@@ -158,6 +158,13 @@ func commit_capability() -> WeaponReloadParticipantPort.CommitCapability:
 		if _weapon_port != null else WeaponReloadParticipantPort.CommitCapability.UNAVAILABLE
 
 
+## Opaque provenance for game-owned composition adapters. This permits task
+## 5.2 to prove that instance lifecycle and reload coordination target the
+## exact same WeaponAuthority without exposing either participant for mutation.
+func weapon_port_identity_token() -> String:
+	return _weapon_port_token if is_bound() else ""
+
+
 func recovery_details() -> Dictionary:
 	return _recovery_details.duplicate(true)
 
