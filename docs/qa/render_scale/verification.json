@@ -1,0 +1,64 @@
+[
+  {
+    "name": "capture",
+    "command": [
+      "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+      "--path",
+      "/Volumes/Data/codes/games/zerkov",
+      "--script",
+      "res://tests/visual/render_scale/capture.gd"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "summary": [
+      "RENDER_SCALE_COMPLETE checks=1292 failures=0"
+    ]
+  },
+  {
+    "name": "ui_composition",
+    "command": [
+      "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Volumes/Data/codes/games/zerkov",
+      "--script",
+      "res://tests/ui_composition_smoke.gd"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "summary": [
+      "UI_COMPOSITION_COMPLETE checks=109 failures=0"
+    ]
+  },
+  {
+    "name": "responsive",
+    "command": [
+      "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+      "--headless",
+      "--path",
+      "/Volumes/Data/codes/games/zerkov",
+      "--script",
+      "res://tests/responsive_smoke.gd"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "summary": [
+      "RESPONSIVE_TEST_COMPLETE checks=96 failures=0"
+    ]
+  },
+  {
+    "name": "border_render",
+    "command": [
+      "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+      "--path",
+      "/Volumes/Data/codes/games/zerkov",
+      "--script",
+      "res://tests/border_render_smoke.gd"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "summary": [
+      "BORDER_RENDER_TEST_COMPLETE checks=135 failures=0"
+    ]
+  }
+]

@@ -1,0 +1,272 @@
+{
+	"checks": 1292,
+	"display": "macOS",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": 0,
+	"human_approval": false,
+	"records": [
+		{
+			"display_rect": [
+				0,
+				0,
+				1920,
+				1080
+			],
+			"key": "1920x1080_320_fixed",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 6.0,
+			"stripe_runs": 1,
+			"stripe_widths": [
+				192
+			],
+			"surface": [
+				320,
+				180
+			],
+			"zoom": 0.5
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1920,
+				1080
+			],
+			"key": "1920x1080_640_fractional",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 3.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				3
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1920,
+				1080
+			],
+			"key": "1920x1080_640_integer",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 3.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				3
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1920,
+				1080
+			],
+			"key": "1920x1080_adaptive_integer",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 3.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				3
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1600,
+				900
+			],
+			"key": "1600x900_320_fixed",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 5.0,
+			"stripe_runs": 1,
+			"stripe_widths": [
+				160
+			],
+			"surface": [
+				320,
+				180
+			],
+			"zoom": 0.5
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1600,
+				900
+			],
+			"key": "1600x900_640_fractional",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 2.5,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				2,
+				3
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				160,
+				90,
+				1280,
+				720
+			],
+			"key": "1600x900_640_integer",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 2.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				2
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1600,
+				900
+			],
+			"key": "1600x900_adaptive_integer",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 2.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				2
+			],
+			"surface": [
+				800,
+				450
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1280,
+				720
+			],
+			"key": "1280x720_320_fixed",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 4.0,
+			"stripe_runs": 1,
+			"stripe_widths": [
+				128
+			],
+			"surface": [
+				320,
+				180
+			],
+			"zoom": 0.5
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1280,
+				720
+			],
+			"key": "1280x720_640_fractional",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 2.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				2
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1280,
+				720
+			],
+			"key": "1280x720_640_integer",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 2.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				2
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		},
+		{
+			"display_rect": [
+				0,
+				0,
+				1280,
+				720
+			],
+			"key": "1280x720_adaptive_integer",
+			"max_camera_error_raster_px": 0.5,
+			"max_pointer_error_world_px": 0.0,
+			"scale": 2.0,
+			"stripe_runs": 64,
+			"stripe_widths": [
+				2
+			],
+			"surface": [
+				640,
+				360
+			],
+			"zoom": 1.0
+		}
+	]
+}

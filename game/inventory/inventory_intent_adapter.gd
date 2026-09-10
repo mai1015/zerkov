@@ -1,26 +1,102 @@
 class_name InventoryIntentAdapter
 extends RefCounted
-## Bounded game-owned authorization seam for raid world-loot transfers.
+## Bounded game-owned authorization seam for raid inventory mutations.
 ##
 ## The adapter snapshots an admitted ZRaidIntent, resolves its actor through a
-## trusted port, validates current world facts, and performs one complete-only
-## InventoryAuthority.quick_transfer_item() call. It owns no canonical state.
+## trusted port, validates current inventory/world facts, and performs exactly
+## one synchronous InventoryAuthority command. It owns no canonical state.
 
 const INTENT_KIND_TRANSFER: StringName = &"inventory_transfer"
-# Deliberately narrow first allowlist: same-inventory move/rotate/split/merge
-# and placement-specific loot remain separate authority work before UI binding.
-const SUPPORTED_INTENT_KINDS: Array[StringName] = [INTENT_KIND_TRANSFER]
+const INTENT_KIND_LOOT: StringName = &"inventory_loot"
+const INTENT_KIND_MOVE: StringName = &"inventory_move"
+const INTENT_KIND_ROTATE: StringName = &"inventory_rotate"
+const INTENT_KIND_SPLIT: StringName = &"inventory_split"
+const INTENT_KIND_MERGE: StringName = &"inventory_merge"
+const INTENT_KIND_QUICK_TRANSFER: StringName = &"inventory_quick_transfer"
+const SUPPORTED_INTENT_KINDS: Array[StringName] = [
+	INTENT_KIND_TRANSFER,
+	INTENT_KIND_LOOT,
+	INTENT_KIND_MOVE,
+	INTENT_KIND_ROTATE,
+	INTENT_KIND_SPLIT,
+	INTENT_KIND_MERGE,
+	INTENT_KIND_QUICK_TRANSFER,
+]
 const DEFAULT_PHASE_HANDLER_ID: StringName = &"inventory_intent_adapter"
 const MAX_TRACKED_REQUESTS: int = 1024
 const MAX_SEQUENCE: int = 2_147_483_647
 
-const _PAYLOAD_KEYS: PackedStringArray = [
+const _TRANSFER_PAYLOAD_KEYS: PackedStringArray = [
 	"inventory_command_id",
 	"source_inventory_id",
 	"destination_inventory_id",
 	"item_id",
 	"expected_source_revision",
 	"expected_destination_revision",
+]
+const _LOOT_PAYLOAD_KEYS: PackedStringArray = [
+	"inventory_command_id",
+	"source_inventory_id",
+	"destination_inventory_id",
+	"item_id",
+	"destination_location",
+	"expected_source_revision",
+	"expected_destination_revision",
+]
+const _MOVE_PAYLOAD_KEYS: PackedStringArray = [
+	"inventory_command_id",
+	"inventory_id",
+	"item_id",
+	"destination_location",
+	"expected_revision",
+]
+const _ROTATE_PAYLOAD_KEYS: PackedStringArray = [
+	"inventory_command_id",
+	"inventory_id",
+	"item_id",
+	"rotated",
+	"expected_revision",
+]
+const _SPLIT_PAYLOAD_KEYS: PackedStringArray = [
+	"inventory_command_id",
+	"inventory_id",
+	"item_id",
+	"quantity",
+	"destination_location",
+	"expected_revision",
+]
+const _MERGE_PAYLOAD_KEYS: PackedStringArray = [
+	"inventory_command_id",
+	"inventory_id",
+	"source_item_id",
+	"destination_item_id",
+	"expected_revision",
+]
+const _QUICK_TRANSFER_PAYLOAD_KEYS: PackedStringArray = [
+	"inventory_command_id",
+	"source_inventory_id",
+	"destination_inventory_id",
+	"item_id",
+	"expected_source_revision",
+	"expected_destination_revision",
+]
+const _LOCATION_FULL_KEYS: PackedStringArray = [
+	"kind",
+	"container",
+	"x",
+	"y",
+	"rotated",
+	"slot_identifier",
+	"ordinal",
+]
+const _LOCATION_SPATIAL_KEYS: PackedStringArray = [
+	"kind", "container", "x", "y", "rotated",
+]
+const _LOCATION_SLOT_KEYS: PackedStringArray = [
+	"kind", "container", "slot_identifier",
+]
+const _LOCATION_LIST_KEYS: PackedStringArray = [
+	"kind", "container", "ordinal",
 ]
 
 const _INTERNAL_HANDLER_FAILURES: Dictionary = {
@@ -49,6 +125,7 @@ var _owner_generation: int = 0
 var _max_transfer_distance_raw: int = 0
 var _request_ledger: Dictionary = {}
 var _command_bindings: Dictionary = {}
+var _submission_active: bool = false
 var _native_call_active: bool = false
 var _raid_authority_instance_id: int = 0
 
@@ -156,6 +233,17 @@ func handle_raid_phase(
 ## inventory command identity. `command_id` is the presentation-compatible
 ## alias; `native_command_id` records what InventoryAuthority returned.
 func submit_intent(intent: ZRaidIntent) -> Dictionary:
+	# Policy and identity ports are synchronous callback boundaries. Guard the
+	# complete submission so a callback cannot commit before its outer receipt.
+	if _submission_active:
+		return _result(false, false, &"reentrant_submission")
+	_submission_active = true
+	var result := _submit_intent_once(intent)
+	_submission_active = false
+	return result
+
+
+func _submit_intent_once(intent: ZRaidIntent) -> Dictionary:
 	last_error = &""
 	if not _configured:
 		return _result(false, false, &"adapter_not_configured")
@@ -176,7 +264,7 @@ func submit_intent(intent: ZRaidIntent) -> Dictionary:
 		return _result(false, false, &"stale_generation", request_key)
 	if intent.source != ZRaidIntent.Source.PLAYER:
 		return _result(false, false, &"intent_source_invalid", request_key)
-	if intent.kind != INTENT_KIND_TRANSFER:
+	if not SUPPORTED_INTENT_KINDS.has(intent.kind):
 		return _result(false, false, &"intent_kind_unsupported", request_key)
 	if intent.target_tick <= 0 or intent.sequence <= 0 or intent.sequence > MAX_SEQUENCE:
 		return _result(false, false, &"intent_order_invalid", request_key)
@@ -198,9 +286,10 @@ func submit_intent(intent: ZRaidIntent) -> Dictionary:
 	if _request_ledger.size() >= MAX_TRACKED_REQUESTS:
 		return _result(false, false, &"request_history_full", request_key)
 
-	var payload := _normalize_payload(intent_copy.payload)
+	var payload := _normalize_payload(intent_copy.kind, intent_copy.payload)
 	if payload.is_empty():
-		return _complete_rejection(request_key, fingerprint, last_error)
+		return _complete_rejection(
+			request_key, fingerprint, last_error, 0, intent_copy.kind)
 	var inventory_command_id := int(payload["inventory_command_id"])
 
 	# Bind the native command identity to exactly one product request. This gate
@@ -213,11 +302,13 @@ func submit_intent(intent: ZRaidIntent) -> Dictionary:
 				request_key,
 				fingerprint,
 				&"inventory_command_id_conflict",
-				inventory_command_id
+				inventory_command_id,
+				intent_copy.kind
 			)
 	if not _owner_is_current():
 		return _complete_rejection(
-			request_key, fingerprint, &"stale_generation", inventory_command_id)
+			request_key, fingerprint, &"stale_generation", inventory_command_id,
+			intent_copy.kind)
 	if _native_call_active:
 		return _result(
 			false, false, &"reentrant_submission", request_key, inventory_command_id)
@@ -225,6 +316,14 @@ func submit_intent(intent: ZRaidIntent) -> Dictionary:
 		"request_id": request_key,
 		"fingerprint": fingerprint,
 	}
+	if intent_copy.kind != INTENT_KIND_TRANSFER:
+		return _submit_routed_mutation(
+			intent_copy.kind,
+			payload,
+			request_key,
+			fingerprint,
+			inventory_command_id
+		)
 
 	var source_inventory_id := int(payload["source_inventory_id"])
 	var destination_inventory_id := int(payload["destination_inventory_id"])
@@ -296,6 +395,28 @@ func submit_intent(intent: ZRaidIntent) -> Dictionary:
 			&"item_not_owned_by_source",
 			inventory_command_id
 		)
+	if not _owner_is_current():
+		return _complete_rejection(
+			request_key, fingerprint, &"stale_generation", inventory_command_id)
+	if _resolve_native_actor_id() != native_actor_id:
+		return _complete_rejection(
+			request_key, fingerprint, &"actor_identity_changed", inventory_command_id)
+	if not _actor_owns_destination(destination_inventory_id):
+		return _complete_rejection(
+			request_key, fingerprint, &"destination_not_owned", inventory_command_id)
+	if not _authority.has_inventory(source_inventory_id) \
+		or not _authority.has_inventory(destination_inventory_id):
+		return _complete_rejection(
+			request_key, fingerprint, &"inventory_not_found", inventory_command_id)
+	if _authority.inventory_revision(source_inventory_id) != source_revision:
+		return _complete_rejection(
+			request_key, fingerprint, &"source_revision_stale", inventory_command_id)
+	if _authority.inventory_revision(destination_inventory_id) != destination_revision:
+		return _complete_rejection(
+			request_key, fingerprint, &"destination_revision_stale", inventory_command_id)
+	if not _inventory_contains_item(source_inventory_id, item_id):
+		return _complete_rejection(
+			request_key, fingerprint, &"item_not_owned_by_source", inventory_command_id)
 
 	# Complete-only, synchronous, and explicitly idempotent in the native
 	# command domain. Zero/auto allocation is forbidden at this boundary.
@@ -365,6 +486,213 @@ func receipt_for_request(request_id: ZRequestId) -> Dictionary:
 	return (entry.get("result", {}) as Dictionary).duplicate(true)
 
 
+func _submit_routed_mutation(
+	operation: StringName,
+	payload: Dictionary,
+	request_key: String,
+	fingerprint: String,
+	inventory_command_id: int
+) -> Dictionary:
+	var native_actor_id := _resolve_native_actor_id()
+	if native_actor_id <= 0:
+		return _complete_rejection(
+			request_key, fingerprint, &"actor_identity_unresolved",
+			inventory_command_id, operation)
+	var shape := _routed_shape(operation, payload)
+	if shape.is_empty():
+		return _complete_rejection(
+			request_key, fingerprint, &"payload_schema_invalid",
+			inventory_command_id, operation)
+
+	var validation := _routed_fact_validation(
+		operation, payload, shape, native_actor_id)
+	var reason := StringName(validation.get("reason", &""))
+	if not reason.is_empty():
+		return _complete_rejection(
+			request_key, fingerprint, reason, inventory_command_id, operation)
+	var world_inventory_id := int(validation.get("world_inventory_id", 0))
+	if world_inventory_id > 0:
+		reason = _world_policy_rejection(
+			int(shape["source_inventory_id"]),
+			int(shape["destination_inventory_id"]),
+			int(shape["primary_item_id"]),
+			world_inventory_id
+		)
+		if not reason.is_empty():
+			return _complete_rejection(
+				request_key, fingerprint, reason, inventory_command_id, operation)
+
+	# Re-read all trusted identity, ownership, item, inventory, and revision facts
+	# after policy. Then repeat policy and one final fact pass so the last policy
+	# observation cannot authorize against facts it invalidated.
+	validation = _routed_fact_validation(
+		operation, payload, shape, native_actor_id)
+	reason = StringName(validation.get("reason", &""))
+	if not reason.is_empty():
+		return _complete_rejection(
+			request_key, fingerprint, reason, inventory_command_id, operation)
+	if int(validation.get("world_inventory_id", 0)) != world_inventory_id:
+		return _complete_rejection(
+			request_key, fingerprint, &"world_target_changed",
+			inventory_command_id, operation)
+	if world_inventory_id > 0:
+		reason = _world_policy_rejection(
+			int(shape["source_inventory_id"]),
+			int(shape["destination_inventory_id"]),
+			int(shape["primary_item_id"]),
+			world_inventory_id
+		)
+		if not reason.is_empty():
+			return _complete_rejection(
+				request_key, fingerprint, reason, inventory_command_id, operation)
+	validation = _routed_fact_validation(
+		operation, payload, shape, native_actor_id)
+	reason = StringName(validation.get("reason", &""))
+	if not reason.is_empty():
+		return _complete_rejection(
+			request_key, fingerprint, reason, inventory_command_id, operation)
+	if int(validation.get("world_inventory_id", 0)) != world_inventory_id:
+		return _complete_rejection(
+			request_key, fingerprint, &"world_target_changed",
+			inventory_command_id, operation)
+
+	_native_call_active = true
+	var native_result := _invoke_routed_native(
+		operation, payload, native_actor_id, inventory_command_id)
+	_native_call_active = false
+	return _finish_routed_native_result(
+		request_key,
+		fingerprint,
+		operation,
+		payload,
+		shape,
+		native_result,
+		inventory_command_id
+	)
+
+
+func _routed_fact_validation(
+	operation: StringName,
+	payload: Dictionary,
+	shape: Dictionary,
+	native_actor_id: int
+) -> Dictionary:
+	var denied := {"reason": &"", "world_inventory_id": 0}
+	if not _owner_is_current():
+		denied["reason"] = &"stale_generation"
+		return denied
+	if _resolve_native_actor_id() != native_actor_id:
+		denied["reason"] = &"actor_identity_changed"
+		return denied
+	var source_inventory_id := int(shape["source_inventory_id"])
+	var destination_inventory_id := int(shape["destination_inventory_id"])
+	if not _actor_owns_inventory(destination_inventory_id):
+		denied["reason"] = &"destination_not_owned"
+		return denied
+	var source_is_world := _world_policy_port.is_world_inventory(
+		_admission.actor_id, source_inventory_id, _admission.generation)
+	var destination_is_world := source_is_world \
+		if source_inventory_id == destination_inventory_id \
+		else _world_policy_port.is_world_inventory(
+			_admission.actor_id, destination_inventory_id, _admission.generation)
+	if source_is_world and destination_is_world \
+		and source_inventory_id != destination_inventory_id:
+		denied["reason"] = &"multiple_world_targets_unsupported"
+		return denied
+	if operation == INTENT_KIND_LOOT and not source_is_world:
+		denied["reason"] = &"world_target_invalid"
+		return denied
+	if source_inventory_id != destination_inventory_id \
+		and not source_is_world \
+		and not _actor_owns_inventory(source_inventory_id):
+		denied["reason"] = &"source_not_owned"
+		return denied
+	var expected_revisions := _expected_revisions(operation, payload, shape)
+	if expected_revisions.is_empty():
+		denied["reason"] = &"payload_schema_invalid"
+		return denied
+	for inventory_id_value in expected_revisions:
+		var inventory_id := int(inventory_id_value)
+		if not _authority.has_inventory(inventory_id):
+			denied["reason"] = &"inventory_not_found"
+			return denied
+		if _authority.inventory_revision(inventory_id) \
+			!= int(expected_revisions[inventory_id_value]):
+			denied["reason"] = _revision_rejection_for(
+				inventory_id, source_inventory_id, destination_inventory_id)
+			return denied
+	if not _inventory_contains_item(source_inventory_id, int(shape["primary_item_id"])):
+		denied["reason"] = &"item_not_owned_by_source"
+		return denied
+	var secondary_item_id := int(shape.get("secondary_item_id", 0))
+	if secondary_item_id > 0 \
+		and not _inventory_contains_item(source_inventory_id, secondary_item_id):
+		denied["reason"] = &"secondary_item_not_owned_by_source"
+		return denied
+	if source_is_world:
+		denied["world_inventory_id"] = source_inventory_id
+	elif destination_is_world:
+		denied["world_inventory_id"] = destination_inventory_id
+	return denied
+
+
+func _routed_shape(operation: StringName, payload: Dictionary) -> Dictionary:
+	match operation:
+		INTENT_KIND_LOOT, INTENT_KIND_QUICK_TRANSFER:
+			return {
+				"source_inventory_id": int(payload["source_inventory_id"]),
+				"destination_inventory_id": int(payload["destination_inventory_id"]),
+				"primary_item_id": int(payload["item_id"]),
+				"secondary_item_id": 0,
+			}
+		INTENT_KIND_MOVE, INTENT_KIND_ROTATE, INTENT_KIND_SPLIT:
+			return {
+				"source_inventory_id": int(payload["inventory_id"]),
+				"destination_inventory_id": int(payload["inventory_id"]),
+				"primary_item_id": int(payload["item_id"]),
+				"secondary_item_id": 0,
+			}
+		INTENT_KIND_MERGE:
+			return {
+				"source_inventory_id": int(payload["inventory_id"]),
+				"destination_inventory_id": int(payload["inventory_id"]),
+				"primary_item_id": int(payload["source_item_id"]),
+				"secondary_item_id": int(payload["destination_item_id"]),
+			}
+	return {}
+
+
+func _expected_revisions(
+	operation: StringName,
+	payload: Dictionary,
+	shape: Dictionary
+) -> Dictionary:
+	var revisions: Dictionary = {}
+	match operation:
+		INTENT_KIND_LOOT, INTENT_KIND_QUICK_TRANSFER:
+			var source_inventory_id := int(shape["source_inventory_id"])
+			var destination_inventory_id := int(shape["destination_inventory_id"])
+			revisions[source_inventory_id] = int(payload["expected_source_revision"])
+			if destination_inventory_id != source_inventory_id:
+				revisions[destination_inventory_id] = int(
+					payload["expected_destination_revision"])
+		INTENT_KIND_MOVE, INTENT_KIND_ROTATE, INTENT_KIND_SPLIT, INTENT_KIND_MERGE:
+			revisions[int(shape["source_inventory_id"])] = int(payload["expected_revision"])
+	return revisions
+
+
+func _revision_rejection_for(
+	inventory_id: int,
+	source_inventory_id: int,
+	destination_inventory_id: int
+) -> StringName:
+	if source_inventory_id == destination_inventory_id:
+		return &"inventory_revision_stale"
+	if inventory_id == source_inventory_id:
+		return &"source_revision_stale"
+	return &"destination_revision_stale"
+
+
 func _owner_is_current() -> bool:
 	return (
 		_owner != null
@@ -376,33 +704,213 @@ func _owner_is_current() -> bool:
 	)
 
 
-func _normalize_payload(payload: Dictionary) -> Dictionary:
+func _normalize_payload(kind: StringName, payload: Dictionary) -> Dictionary:
 	last_error = &"payload_schema_invalid"
-	if payload.size() != _PAYLOAD_KEYS.size():
+	var expected_keys := _payload_keys_for_kind(kind)
+	if expected_keys.is_empty() or payload.size() != expected_keys.size():
+		return {}
+	var normalized := _normalize_exact_dictionary(payload, expected_keys)
+	if normalized.is_empty():
+		return {}
+	if typeof(normalized.get("inventory_command_id", null)) != TYPE_INT \
+		or int(normalized["inventory_command_id"]) <= 0:
+		return {}
+
+	match kind:
+		INTENT_KIND_TRANSFER, INTENT_KIND_QUICK_TRANSFER:
+			if not _positive_int_fields(normalized, [
+				"source_inventory_id", "destination_inventory_id", "item_id"
+			]) or not _nonnegative_int_fields(normalized, [
+				"expected_source_revision", "expected_destination_revision"
+			]):
+				return {}
+			if kind == INTENT_KIND_TRANSFER \
+				and int(normalized["source_inventory_id"]) \
+				== int(normalized["destination_inventory_id"]):
+				return {}
+			if int(normalized["source_inventory_id"]) \
+				== int(normalized["destination_inventory_id"]) \
+				and int(normalized["expected_source_revision"]) \
+				!= int(normalized["expected_destination_revision"]):
+				return {}
+		INTENT_KIND_LOOT:
+			if not _positive_int_fields(normalized, [
+				"source_inventory_id", "destination_inventory_id", "item_id"
+			]) or not _nonnegative_int_fields(normalized, [
+				"expected_source_revision", "expected_destination_revision"
+			]):
+				return {}
+			if int(normalized["source_inventory_id"]) \
+				== int(normalized["destination_inventory_id"]):
+				return {}
+			var loot_location := _normalize_location(
+				normalized.get("destination_location", null))
+			if loot_location.is_empty():
+				return {}
+			normalized["destination_location"] = loot_location
+		INTENT_KIND_MOVE:
+			if not _positive_int_fields(normalized, ["inventory_id", "item_id"]) \
+				or not _nonnegative_int_fields(normalized, ["expected_revision"]):
+				return {}
+			var move_location := _normalize_location(
+				normalized.get("destination_location", null))
+			if move_location.is_empty():
+				return {}
+			normalized["destination_location"] = move_location
+		INTENT_KIND_ROTATE:
+			if not _positive_int_fields(normalized, ["inventory_id", "item_id"]) \
+				or not _nonnegative_int_fields(normalized, ["expected_revision"]) \
+				or typeof(normalized.get("rotated", null)) != TYPE_BOOL:
+				return {}
+		INTENT_KIND_SPLIT:
+			if not _positive_int_fields(normalized, [
+				"inventory_id", "item_id", "quantity"
+			]) or not _nonnegative_int_fields(normalized, ["expected_revision"]):
+				return {}
+			var split_location := _normalize_location(
+				normalized.get("destination_location", null))
+			if split_location.is_empty():
+				return {}
+			normalized["destination_location"] = split_location
+		INTENT_KIND_MERGE:
+			if not _positive_int_fields(normalized, [
+				"inventory_id", "source_item_id", "destination_item_id"
+			]) or not _nonnegative_int_fields(normalized, ["expected_revision"]):
+				return {}
+			if int(normalized["source_item_id"]) == int(normalized["destination_item_id"]):
+				return {}
+		_:
+			return {}
+	last_error = &""
+	return normalized
+
+
+func _payload_keys_for_kind(kind: StringName) -> PackedStringArray:
+	match kind:
+		INTENT_KIND_TRANSFER:
+			return _TRANSFER_PAYLOAD_KEYS
+		INTENT_KIND_LOOT:
+			return _LOOT_PAYLOAD_KEYS
+		INTENT_KIND_MOVE:
+			return _MOVE_PAYLOAD_KEYS
+		INTENT_KIND_ROTATE:
+			return _ROTATE_PAYLOAD_KEYS
+		INTENT_KIND_SPLIT:
+			return _SPLIT_PAYLOAD_KEYS
+		INTENT_KIND_MERGE:
+			return _MERGE_PAYLOAD_KEYS
+		INTENT_KIND_QUICK_TRANSFER:
+			return _QUICK_TRANSFER_PAYLOAD_KEYS
+	return PackedStringArray()
+
+
+func _normalize_exact_dictionary(value: Dictionary, keys: PackedStringArray) -> Dictionary:
+	if value.size() != keys.size():
 		return {}
 	var normalized: Dictionary = {}
-	for key_value in payload:
+	for key_value in value:
 		if typeof(key_value) != TYPE_STRING and typeof(key_value) != TYPE_STRING_NAME:
 			return {}
 		var key := String(key_value)
-		if not _PAYLOAD_KEYS.has(key) or normalized.has(key):
+		if not keys.has(key) or normalized.has(key):
 			return {}
-		normalized[key] = payload[key_value]
-	for key in _PAYLOAD_KEYS:
-		if not normalized.has(key) or typeof(normalized[key]) != TYPE_INT:
+		normalized[key] = value[key_value]
+	for key in keys:
+		if not normalized.has(key):
 			return {}
-	if int(normalized["inventory_command_id"]) <= 0 \
-		or int(normalized["source_inventory_id"]) <= 0 \
-		or int(normalized["destination_inventory_id"]) <= 0 \
-		or int(normalized["item_id"]) <= 0:
-		return {}
-	if int(normalized["source_inventory_id"]) == int(normalized["destination_inventory_id"]):
-		return {}
-	if int(normalized["expected_source_revision"]) < 0 \
-		or int(normalized["expected_destination_revision"]) < 0:
-		return {}
-	last_error = &""
 	return normalized
+
+
+func _positive_int_fields(value: Dictionary, fields: Array) -> bool:
+	for field_value in fields:
+		var field := String(field_value)
+		if typeof(value.get(field, null)) != TYPE_INT or int(value[field]) <= 0:
+			return false
+	return true
+
+
+func _nonnegative_int_fields(value: Dictionary, fields: Array) -> bool:
+	for field_value in fields:
+		var field := String(field_value)
+		if typeof(value.get(field, null)) != TYPE_INT or int(value[field]) < 0:
+			return false
+	return true
+
+
+func _normalize_location(value: Variant) -> Dictionary:
+	if not value is Dictionary:
+		return {}
+	var raw := value as Dictionary
+	var kind_value: Variant = raw.get("kind", null)
+	if typeof(kind_value) != TYPE_STRING and typeof(kind_value) != TYPE_STRING_NAME:
+		return {}
+	var kind := String(kind_value)
+	var minimal_keys := PackedStringArray()
+	match kind:
+		"spatial":
+			minimal_keys = _LOCATION_SPATIAL_KEYS
+		"slot":
+			minimal_keys = _LOCATION_SLOT_KEYS
+		"list":
+			minimal_keys = _LOCATION_LIST_KEYS
+		_:
+			return {}
+	var normalized := _normalize_exact_dictionary(raw, minimal_keys)
+	var used_full_shape := false
+	if normalized.is_empty():
+		normalized = _normalize_exact_dictionary(raw, _LOCATION_FULL_KEYS)
+		used_full_shape = not normalized.is_empty()
+	if normalized.is_empty() \
+		or typeof(normalized.get("container", null)) != TYPE_INT \
+		or int(normalized["container"]) <= 0:
+		return {}
+	if used_full_shape and (
+		typeof(normalized.get("x", null)) != TYPE_INT
+		or typeof(normalized.get("y", null)) != TYPE_INT
+		or typeof(normalized.get("rotated", null)) != TYPE_BOOL
+		or (typeof(normalized.get("slot_identifier", null)) != TYPE_STRING
+			and typeof(normalized.get("slot_identifier", null)) != TYPE_STRING_NAME)
+		or typeof(normalized.get("ordinal", null)) != TYPE_INT
+	):
+		return {}
+	match kind:
+		"spatial":
+			if typeof(normalized.get("x", null)) != TYPE_INT \
+				or typeof(normalized.get("y", null)) != TYPE_INT \
+				or typeof(normalized.get("rotated", null)) != TYPE_BOOL \
+				or int(normalized["x"]) < 0 or int(normalized["x"]) > MAX_SEQUENCE \
+				or int(normalized["y"]) < 0 or int(normalized["y"]) > MAX_SEQUENCE:
+				return {}
+			return {
+				"kind": "spatial",
+				"container": int(normalized["container"]),
+				"x": int(normalized["x"]),
+				"y": int(normalized["y"]),
+				"rotated": bool(normalized["rotated"]),
+			}
+		"slot":
+			var slot_value: Variant = normalized.get("slot_identifier", null)
+			if typeof(slot_value) != TYPE_STRING and typeof(slot_value) != TYPE_STRING_NAME:
+				return {}
+			var slot_identifier := String(slot_value)
+			if not ZIdentityRules.is_valid_part(slot_identifier):
+				return {}
+			return {
+				"kind": "slot",
+				"container": int(normalized["container"]),
+				"slot_identifier": slot_identifier,
+			}
+		"list":
+			if typeof(normalized.get("ordinal", null)) != TYPE_INT \
+				or int(normalized["ordinal"]) < 0 \
+				or int(normalized["ordinal"]) > MAX_SEQUENCE:
+				return {}
+			return {
+				"kind": "list",
+				"container": int(normalized["container"]),
+				"ordinal": int(normalized["ordinal"]),
+			}
+	return {}
 
 
 func _intent_fingerprint(intent: ZRaidIntent) -> String:
@@ -423,10 +931,12 @@ func _complete_rejection(
 	request_key: String,
 	fingerprint: String,
 	reason: StringName,
-	inventory_command_id: int = 0
+	inventory_command_id: int = 0,
+	operation: StringName = INTENT_KIND_TRANSFER
 ) -> Dictionary:
 	var result := _result(
-		false, false, reason, request_key, inventory_command_id)
+		false, false, reason, request_key, inventory_command_id,
+		0, -1, -1, -1, -1, -1, {}, operation)
 	_store_result(request_key, fingerprint, result)
 	return result
 
@@ -472,9 +982,209 @@ func _complete_native_result(
 		int(native_result.get("command_id", 0)),
 		int(status.get("code", -1)),
 		source_predecessor_revision, source_revision,
-		destination_predecessor_revision, destination_revision, exposed_status)
+		destination_predecessor_revision, destination_revision, exposed_status,
+		INTENT_KIND_TRANSFER)
+	result["revisions"] = revisions.duplicate(true)
+	if native_result.get("events", null) is Array:
+		result["events"] = (native_result.get("events", []) as Array).duplicate(true)
+	result["new_item_id"] = int(native_result.get("new_item_id", 0))
+	result["transferred_quantity"] = int(native_result.get("transferred_quantity", 0))
+	result["remaining_quantity"] = int(native_result.get("remaining_quantity", 0))
 	_store_result(request_key, fingerprint, result)
 	return result
+
+
+func _invoke_routed_native(
+	operation: StringName,
+	payload: Dictionary,
+	native_actor_id: int,
+	inventory_command_id: int
+) -> Dictionary:
+	match operation:
+		INTENT_KIND_LOOT:
+			return _authority.loot_item(
+				int(payload["source_inventory_id"]),
+				int(payload["destination_inventory_id"]),
+				int(payload["item_id"]),
+				(payload["destination_location"] as Dictionary).duplicate(true),
+				native_actor_id,
+				inventory_command_id
+			)
+		INTENT_KIND_MOVE:
+			return _authority.move_item(
+				int(payload["inventory_id"]),
+				int(payload["item_id"]),
+				(payload["destination_location"] as Dictionary).duplicate(true),
+				native_actor_id,
+				inventory_command_id
+			)
+		INTENT_KIND_ROTATE:
+			return _authority.rotate_item(
+				int(payload["inventory_id"]),
+				int(payload["item_id"]),
+				bool(payload["rotated"]),
+				native_actor_id,
+				inventory_command_id
+			)
+		INTENT_KIND_SPLIT:
+			return _authority.split_stack(
+				int(payload["inventory_id"]),
+				int(payload["item_id"]),
+				int(payload["quantity"]),
+				(payload["destination_location"] as Dictionary).duplicate(true),
+				native_actor_id,
+				inventory_command_id
+			)
+		INTENT_KIND_MERGE:
+			return _authority.merge_stacks(
+				int(payload["inventory_id"]),
+				int(payload["source_item_id"]),
+				int(payload["destination_item_id"]),
+				native_actor_id,
+				inventory_command_id
+			)
+		INTENT_KIND_QUICK_TRANSFER:
+			return _authority.quick_transfer_item(
+				int(payload["source_inventory_id"]),
+				int(payload["destination_inventory_id"]),
+				int(payload["item_id"]),
+				false,
+				native_actor_id,
+				inventory_command_id
+			)
+	return {}
+
+
+func _finish_routed_native_result(
+	request_key: String,
+	fingerprint: String,
+	operation: StringName,
+	payload: Dictionary,
+	shape: Dictionary,
+	native_result: Dictionary,
+	inventory_command_id: int
+) -> Dictionary:
+	var accepted := false
+	var reason: StringName = &""
+	if not _native_result_shape_valid(native_result):
+		reason = &"native_result_invalid"
+	elif int(native_result.get("command_id", 0)) != inventory_command_id:
+		reason = &"native_command_id_mismatch"
+	elif bool(native_result.get("queued", false)):
+		reason = &"native_transfer_deferred"
+	elif bool(native_result.get("replayed", false)):
+		reason = &"native_command_replay_unexpected"
+	elif not bool(native_result.get("accepted", false)):
+		reason = &"native_command_rejected"
+	else:
+		var expected_revisions := _expected_revisions(operation, payload, shape)
+		if not _accepted_revision_map_matches(native_result, expected_revisions):
+			reason = &"native_revision_mismatch"
+		elif not _operation_outcome_valid(operation, native_result):
+			reason = &"native_result_invalid"
+		else:
+			accepted = true
+
+	var status: Dictionary = {}
+	if native_result.get("status", null) is Dictionary:
+		status = (native_result.get("status", {}) as Dictionary).duplicate(true)
+	var exposed_status := status
+	if not accepted and reason != &"native_command_rejected":
+		exposed_status = {}
+	var revisions: Array = []
+	if native_result.get("revisions", null) is Array:
+		revisions = (native_result.get("revisions", []) as Array).duplicate(true)
+	var source_inventory_id := int(shape["source_inventory_id"])
+	var destination_inventory_id := int(shape["destination_inventory_id"])
+	var source_pair := _revision_pair_for(revisions, source_inventory_id)
+	var destination_pair := source_pair if source_inventory_id == destination_inventory_id \
+		else _revision_pair_for(revisions, destination_inventory_id)
+	var result := _result(
+		accepted,
+		false,
+		reason,
+		request_key,
+		inventory_command_id,
+		int(native_result.get("command_id", 0)),
+		int(status.get("code", -1)),
+		int(source_pair.get("predecessor", -1)),
+		int(source_pair.get("successor", -1)),
+		int(destination_pair.get("predecessor", -1)),
+		int(destination_pair.get("successor", -1)),
+		exposed_status,
+		operation
+	)
+	result["revisions"] = revisions
+	if native_result.get("events", null) is Array:
+		result["events"] = (native_result.get("events", []) as Array).duplicate(true)
+	result["new_item_id"] = int(native_result.get("new_item_id", 0))
+	result["transferred_quantity"] = int(native_result.get("transferred_quantity", 0))
+	result["remaining_quantity"] = int(native_result.get("remaining_quantity", 0))
+	result["primary_item_id"] = int(shape["primary_item_id"])
+	result["secondary_item_id"] = int(shape.get("secondary_item_id", 0))
+	_store_result(request_key, fingerprint, result)
+	return result
+
+
+func _accepted_revision_map_matches(
+	native_result: Dictionary,
+	expected_revisions: Dictionary
+) -> bool:
+	var revisions := native_result.get("revisions", []) as Array
+	if revisions.size() != expected_revisions.size():
+		return false
+	var seen: Dictionary = {}
+	for revision_value in revisions:
+		if not revision_value is Dictionary:
+			return false
+		var revision := revision_value as Dictionary
+		if typeof(revision.get("inventory", null)) != TYPE_INT \
+			or typeof(revision.get("predecessor", null)) != TYPE_INT \
+			or typeof(revision.get("successor", null)) != TYPE_INT:
+			return false
+		var inventory_id := int(revision["inventory"])
+		if not expected_revisions.has(inventory_id) or seen.has(inventory_id):
+			return false
+		var expected := int(expected_revisions[inventory_id])
+		if int(revision["predecessor"]) != expected \
+			or int(revision["successor"]) != expected + 1:
+			return false
+		seen[inventory_id] = true
+	for inventory_id_value in expected_revisions:
+		var inventory_id := int(inventory_id_value)
+		if not seen.has(inventory_id) \
+			or _authority.inventory_revision(inventory_id) \
+			!= int(expected_revisions[inventory_id_value]) + 1:
+			return false
+	return true
+
+
+func _operation_outcome_valid(operation: StringName, native_result: Dictionary) -> bool:
+	match operation:
+		INTENT_KIND_SPLIT:
+			return typeof(native_result.get("new_item_id", null)) == TYPE_INT \
+				and int(native_result["new_item_id"]) > 0
+		INTENT_KIND_LOOT, INTENT_KIND_QUICK_TRANSFER:
+			return typeof(native_result.get("transferred_quantity", null)) == TYPE_INT \
+				and typeof(native_result.get("remaining_quantity", null)) == TYPE_INT \
+				and int(native_result["transferred_quantity"]) > 0 \
+				and int(native_result["remaining_quantity"]) == 0
+		INTENT_KIND_MOVE, INTENT_KIND_ROTATE, INTENT_KIND_MERGE:
+			return true
+	return false
+
+
+func _revision_pair_for(revisions: Array, inventory_id: int) -> Dictionary:
+	for revision_value in revisions:
+		if not revision_value is Dictionary:
+			continue
+		var revision := revision_value as Dictionary
+		if int(revision.get("inventory", 0)) == inventory_id:
+			return {
+				"predecessor": int(revision.get("predecessor", -1)),
+				"successor": int(revision.get("successor", -1)),
+			}
+	return {"predecessor": -1, "successor": -1}
 
 
 func _store_result(request_key: String, fingerprint: String, result: Dictionary) -> void:
@@ -487,24 +1197,27 @@ func _store_result(request_key: String, fingerprint: String, result: Dictionary)
 func _world_policy_rejection(
 	source_inventory_id: int,
 	destination_inventory_id: int,
-	item_id: int
+	item_id: int,
+	world_inventory_id: int = 0
 ) -> StringName:
+	var target_inventory_id := source_inventory_id \
+		if world_inventory_id <= 0 else world_inventory_id
 	if not _world_policy_port.is_world_inventory(
-		_admission.actor_id, source_inventory_id, _admission.generation
+		_admission.actor_id, target_inventory_id, _admission.generation
 	):
 		return &"world_target_invalid"
 	var distance_raw := _world_policy_port.authoritative_distance_raw(
-		_admission.actor_id, source_inventory_id, _admission.generation)
+		_admission.actor_id, target_inventory_id, _admission.generation)
 	if distance_raw < 0:
 		return &"distance_unavailable"
 	if distance_raw > _max_transfer_distance_raw:
 		return &"out_of_range"
 	if not _world_policy_port.is_currently_visible(
-		_admission.actor_id, source_inventory_id, _admission.generation
+		_admission.actor_id, target_inventory_id, _admission.generation
 	):
 		return &"not_visible"
 	if _world_policy_port.access_state(
-		_admission.actor_id, source_inventory_id, _admission.generation
+		_admission.actor_id, target_inventory_id, _admission.generation
 	) != ZInventoryWorldPolicyPort.ACCESS_OPEN:
 		return &"access_closed"
 	if not _world_policy_port.allows_transfer(
@@ -528,10 +1241,14 @@ func _resolve_native_actor_id() -> int:
 
 
 func _actor_owns_destination(destination_inventory_id: int) -> bool:
+	return _actor_owns_inventory(destination_inventory_id)
+
+
+func _actor_owns_inventory(inventory_id: int) -> bool:
 	return _identity_port.actor_owns_inventory(
 		_admission.session_id,
 		_admission.actor_id,
-		destination_inventory_id,
+		inventory_id,
 		_admission.authority_epoch,
 		_admission.generation
 	)
@@ -556,6 +1273,10 @@ func _native_result_shape_valid(native_result: Dictionary) -> bool:
 		and typeof(native_result.get("command_id", null)) == TYPE_INT
 		and native_result.get("status", null) is Dictionary
 		and native_result.get("revisions", null) is Array
+		and native_result.get("events", null) is Array
+		and typeof(native_result.get("new_item_id", null)) == TYPE_INT
+		and typeof(native_result.get("transferred_quantity", null)) == TYPE_INT
+		and typeof(native_result.get("remaining_quantity", null)) == TYPE_INT
 	):
 		return false
 	var status := native_result.get("status", {}) as Dictionary
@@ -578,27 +1299,10 @@ func _accepted_revisions_match(
 	expected_source_revision: int,
 	expected_destination_revision: int
 ) -> bool:
-	var source_seen := false
-	var destination_seen := false
-	for revision_value in (native_result.get("revisions", []) as Array):
-		if not revision_value is Dictionary:
-			return false
-		var revision := revision_value as Dictionary
-		var inventory_id := int(revision.get("inventory", 0))
-		var predecessor := int(revision.get("predecessor", -1))
-		var successor := int(revision.get("successor", -1))
-		if inventory_id == source_inventory_id:
-			source_seen = predecessor == expected_source_revision \
-				and successor == expected_source_revision + 1
-		elif inventory_id == destination_inventory_id:
-			destination_seen = predecessor == expected_destination_revision \
-				and successor == expected_destination_revision + 1
-	return (
-		source_seen
-		and destination_seen
-		and _authority.inventory_revision(source_inventory_id) == expected_source_revision + 1
-		and _authority.inventory_revision(destination_inventory_id) == expected_destination_revision + 1
-	)
+	var expected_revisions: Dictionary = {}
+	expected_revisions[source_inventory_id] = expected_source_revision
+	expected_revisions[destination_inventory_id] = expected_destination_revision
+	return _accepted_revision_map_matches(native_result, expected_revisions)
 
 
 func _admissions_match(left: ZSessionAdmission, right: ZSessionAdmission) -> bool:
@@ -639,7 +1343,8 @@ func _result(
 	source_revision: int = -1,
 	destination_predecessor_revision: int = -1,
 	destination_revision: int = -1,
-	status: Dictionary = {}
+	status: Dictionary = {},
+	operation: StringName = &""
 ) -> Dictionary:
 	last_error = reason
 	var stable_status := status.duplicate(true)
@@ -655,6 +1360,7 @@ func _result(
 		"replayed": replayed,
 		"queued": false,
 		"reason": reason,
+		"operation": operation,
 		"request_id": request_id,
 		"inventory_command_id": inventory_command_id,
 		"command_id": inventory_command_id,
@@ -665,6 +1371,11 @@ func _result(
 		"source_revision": source_revision,
 		"destination_predecessor_revision": destination_predecessor_revision,
 		"destination_revision": destination_revision,
+		"revisions": [],
+		"events": [],
+		"new_item_id": 0,
+		"transferred_quantity": 0,
+		"remaining_quantity": 0,
 	}
 
 

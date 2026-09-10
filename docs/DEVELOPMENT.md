@@ -66,12 +66,54 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_projection_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_mutation_routing_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/equipped_item_reconciliation_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/combat/content_contract.gd
 ```
 
 Godot may return exit code zero for a script parse error, so a run is successful
 only when its named `*_RESULT` line reports zero failures and console output has
-no `SCRIPT ERROR`, `ERROR`, or extension-load failure.
+no `SCRIPT ERROR`, `ERROR`, or extension-load failure. The current inventory
+and authority evidence includes these named zero-failure lines:
+
+```text
+INVENTORY_MUTATION_ROUTING_RESULT checks=146 failures=0
+INVENTORY_INTENT_ADAPTER_RESULT checks=162 failures=0
+INVENTORY_PROJECTION_RESULT checks=99 failures=0
+INVENTORY_CATALOG_RESULT checks=504 failures=0
+INVENTORY_AUTHORITY_RESULT checks=79 failures=0
+AUTHORITY_REPLAY_RESULT checks=81 failures=0
+EQUIPPED_ITEM_RECONCILIATION_RESULT checks=123 failures=0
+IDENTITY_CONTRACT_RESULT checks=18442 failures=0
+COMBAT_CONTENT_RESULT checks=79 failures=0
+```
+
+## Render-scale verification
+
+The isolated native render-scale spike compares the fixed 640x360 world surface
+with the existing full-output HUD at 1920x1080, 1600x900 and 1280x720. Run it
+from the project root with:
+
+```sh
+uv run --with pillow python tests/visual/render_scale/verify.py
+```
+
+The recorded zero-failure lines are:
+
+```text
+RENDER_SCALE_COMPLETE checks=1292 failures=0
+UI_COMPOSITION_COMPLETE checks=109 failures=0
+RESPONSIVE_TEST_COMPLETE checks=96 failures=0
+BORDER_RENDER_TEST_COMPLETE checks=135 failures=0
+```
+
+The evidence packet records 26 PNG hashes. At 1600x900, the selected
+integer-fit world is 1280x720 centered with 160 px horizontal and 90 px
+vertical matte; this constant-FOV policy is a fairness trade-off, not a human
+approval or a later animation, combat, readability or cursor-mapping
+acceptance.
 
 ## Platform status
 

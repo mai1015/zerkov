@@ -135,6 +135,19 @@ never used as a transaction boundary.
 Adapters live under the product's `game/` namespace, never inside sibling
 add-on packages.
 
+The reviewed inventory mutation seam (task 4.7a) routes placement-aware world
+loot and same-inventory move, rotate, split, merge and complete-only quick
+transfer operations through strict payload schemas and typed receipts. Quick
+transfer uses `allow_partial=false`, and the submission path rejects reentrant
+mutation before a second authoritative submission can start.
+
+The reviewed equipped-item reconciler (task 4.8) accepts only the current
+projection's exact native `Resource` provenance, preserves stable
+weapon/equipment and entity mappings, performs fail-atomic rebinding, publishes
+recursively read-only outcomes, and releases bindings in a reentrant-safe
+order. Task 4.7b remains the next unblocked presentation binding task; filter,
+search and tooltip behavior stay presentation-only until that task is verified.
+
 ### Identifiers and units
 
 Content and runtime identifiers use stable lower-case namespaces:
@@ -160,12 +173,32 @@ distance before weapon ranges, vision ranges or navigation data are authored.
   canopy, interaction, navigation, spawn, loot, extraction and occluder data.
 - Bake Common Vision segments from explicit level-authoring data; runtime Vision
   does not infer them from physics or TileMaps.
-- Evaluate a low-resolution world `SubViewport` separately from the crisp UI.
-  Compare at least 1920x1080, 1600x900 and 1280x720 before fixing its size.
+- Use the selected fixed 640x360 internal world `SubViewport` separately from
+  the crisp UI. At each output, fit it with `k = floor(min(W/640, H/360))`
+  using integer enlargement and a centered matte; preserve nearest filtering
+  and round the final presentation camera once to whole source pixels.
 - Import only selected runtime assets, retain source provenance, use nearest
   filtering for sprites, and exclude every `DO NOT USE` directory.
 - Build the base layered character first. Cosmetic permutations are content
   expansion, not a first-playable dependency.
+
+### Render-scale decision (tasks 3.1-3.2)
+
+The native comparison from clean checkpoint `93f337e` selected a fixed 640x360
+world surface, orthographic Camera2D zoom `(1,1)`, nearest filtering, integer
+fit and centered letterboxing. The final desired presentation camera, including
+any presentation impulse, is rounded once to whole world-raster pixels with
+Camera2D smoothing off; simulation positions, ranges, collision shapes and
+`ZWorldUnits` remain unrounded. The HUD remains an independent full-output
+composition and can use the matte without being textured by the world surface.
+
+At 1600x900, the world is displayed at 1280x720 (2x), centered with 160 px
+horizontal and 90 px vertical matte. This is an explicit constant-FOV/fairness
+trade-off: the world view does not expand with output size, so 900p gives up
+matte area instead of granting additional tactical visibility. The independent
+Astra review accepted this selection. The capture evidence records
+`human_approval: false`; later animation, combat/readability and cursor-mapping
+gates remain open.
 
 ### Combat and health ownership
 
@@ -278,6 +311,11 @@ and final gates. `model-routing.md` defines escalation and prompt templates.
 - The first-playable roster keeps both one Scav and one mutant. The Scav lands
   first; mutant implementation starts only after shared perception and melee
   contracts are green.
-- The world render surface remains an evidence-driven decision owned by tasks
-  3.1 and 3.2. No gameplay range, collision or UI layout may assume a candidate
-  render size before that capture comparison is approved.
+- Tasks 3.1-3.2 selected the fixed 640x360 internal world surface with nearest
+  filtering, integer fit and centered matte after an independent Astra review.
+  The final presentation camera rounds once to whole source pixels, while the
+  HUD remains an independent full-output composition. At 1600x900 the world is
+  1280x720 at 2x with 160 px horizontal and 90 px vertical matte. The policy
+  keeps constant FOV for fairness, trading matte area for stable visibility.
+  Human approval remains false; later animation, combat/readability and
+  cursor-mapping gates remain open.

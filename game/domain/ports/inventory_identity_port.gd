@@ -21,9 +21,10 @@ func native_actor_id(
 	return 0
 
 
-## Return whether the exact authenticated actor owns the destination
-## inventory. The adapter rechecks this after world policy. The default is
-## deliberately deny-all.
+## Return whether the exact authenticated actor owns an inventory involved in
+## a mutation. Cross-inventory routes check both non-world source ownership and
+## destination ownership; the adapter rechecks these after world policy. The
+## default is deliberately deny-all.
 func actor_owns_inventory(
 	session_id: ZSessionId,
 	actor_id: ZEntityId,

@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T03:06:43Z
+updated_at: 2026-09-10T04:23:15Z
 ---
 
 ## Why
@@ -49,10 +49,14 @@ variants.
   prototype fallback and is removed screen by screen after equivalent real
   projections pass their tests
 
-Current implementation boundary: the reviewed inventory authority and
-snapshot-projection seam is complete; secure transaction routing remains
-`[SOL]`-owned, while presentation binding remains `[LUNA]`-owned and paused
-while the user updates `ui/**`.
+Current implementation boundary: the reviewed inventory authority,
+snapshot-projection seam, authority-side mutation routing (4.7a), and
+equipped-item reconciliation (4.8) are complete. Task 4.7b remains unchecked
+but is unblocked and next after the reviewed 4.7a seam; it remains dependent on
+that seam, and no UI binding is claimed complete. Tasks 3.1-3.2 selected a
+fixed 640x360 internal world render with nearest filtering, integer fit and a
+centered matte after independent Astra review. Human approval remains false,
+and later animation, combat/readability and cursor-mapping gates remain open.
 
 ## Approval gate
 

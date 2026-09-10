@@ -10,7 +10,8 @@ const ACCESS_CLOSED: StringName = &"closed"
 const ACCESS_UNAVAILABLE: StringName = &"unavailable"
 
 
-## A loot transfer may originate only from a registered live world inventory.
+## Return whether the exact inventory is a registered live world target. Any
+## mutation involving one must pass the remaining world-policy queries.
 func is_world_inventory(actor_id: ZEntityId, inventory_id: int, generation: int) -> bool:
 	return false
 
@@ -39,8 +40,8 @@ func access_state(actor_id: ZEntityId, inventory_id: int, generation: int) -> St
 
 ## Final game-owned policy gate for phase, liveness, eligibility, or other
 ## product rules. Implementations must be side-effect-free and repeatable: the
-## adapter calls the full world-policy query set again immediately before the
-## native transaction, including this method, to close stale-observation gaps.
+## adapter calls the full world-policy query set again, then rechecks all
+## mutable inventory and identity facts before the native transaction.
 func allows_transfer(
 	actor_id: ZEntityId,
 	source_inventory_id: int,

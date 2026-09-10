@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T03:06:43Z
+updated_at: 2026-09-10T04:23:15Z
 completed_at:
 ---
 
@@ -101,11 +101,15 @@ suite; replay digest; teardown/reentrancy regression tests.
 
 ## 3. World, level and player mechanics
 
-- [ ] 3.1 `[ASTRA]` Build an isolated render-scale spike comparing candidate
+- [x] 3.1 `[ASTRA]` Build an isolated render-scale spike comparing candidate
   low-resolution world surfaces at 1920x1080, 1600x900 and 1280x720 while the
   existing UI remains crisp.
-- [ ] 3.2 `[ASTRA]` Select and document the world surface, camera policy,
-  pixel-snap rules and failure tolerances from native captures.
+- [x] 3.2 `[ASTRA]` Select and document the world surface, camera policy,
+  pixel-snap rules and failure tolerances from native captures. The independent
+  Astra review accepted fixed 640x360 rendering with nearest filtering,
+  integer fit/centered matte and a rounded final presentation camera; human
+  approval remains false and later animation, combat/readability and cursor
+  mapping gates remain open.
 - [ ] 3.3 `[LUNA]` Create a 32 px Sawmill source TileSet with explicit terrain,
   navigation, collision and draw-layer metadata.
 - [ ] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
@@ -130,6 +134,17 @@ suite; replay digest; teardown/reentrancy regression tests.
 Evidence: resolution comparison sheet; approved Sawmill layout capture;
 movement/collision contract; level validation report.
 
+Completed task evidence (3.1-3.2, 2026-09-10): the native render-scale matrix
+passed capture `RENDER_SCALE_COMPLETE checks=1292 failures=0`, existing UI
+composition `UI_COMPOSITION_COMPLETE checks=109 failures=0`, responsive
+layouts `RESPONSIVE_TEST_COMPLETE checks=96 failures=0`, and border rendering
+`BORDER_RENDER_TEST_COMPLETE checks=135 failures=0`. The evidence packet records
+26 PNG hashes and the 1600x900 world rectangle as 1280x720 centered with 160 px
+horizontal and 90 px vertical matte. The selected constant-FOV policy keeps
+world visibility stable across the tested outputs, trading the 900p matte for
+fairness rather than exposing extra world area; no human approval or later
+animation/combat/readability/cursor-mapping acceptance is claimed.
+
 ## 4. Inventory, equipment and loot
 
 - [x] 4.1 `[LUNA]` Author the first-playable item definitions for AKM, machete,
@@ -145,15 +160,20 @@ movement/collision contract; level validation report.
   distance, visibility, revision and world-policy checks.
 - [x] 4.6 `[SOL]` Implement the snapshot-to-`InventoryPresentationModel` bridge
   and keep pending intent separate from confirmed state.
-- [ ] 4.7a `[SOL]` Implement authority-side routing for placement-aware world
+- [x] 4.7a `[SOL]` Implement authority-side routing for placement-aware world
   loot and same-inventory move, rotate, split, merge and quick-transfer
-  intents, including typed outcomes at the adapter/controller seam.
+  intents, including typed outcomes at the adapter/controller seam. Quick
+  transfer is complete-only (`allow_partial=false`), with strict schemas,
+  typed receipts and a submission reentrancy guard.
 - [ ] 4.7b `[LUNA]` Bind existing drag, rotate, split, merge and quick-transfer
   interactions to the approved authority seam; keep filter, search and tooltip
-  behavior presentation-only. This UI-dependent work is paused while the user
-  updates `ui/**`.
-- [ ] 4.8 `[SOL]` Implement equipped-item reconciliation and stable weapon/entity
-  mappings after accepted inventory revisions.
+  behavior presentation-only. This work is unblocked and is next after the
+  reviewed 4.7a authority seam; keep this checkbox open until the existing UI
+  interactions are bound and independently verified.
+- [x] 4.8 `[SOL]` Implement equipped-item reconciliation and stable weapon/entity
+  mappings after accepted inventory revisions. The reconciler uses stable
+  weapon/equipment IDs, exact native Resource provenance, fail-atomic rebinding,
+  recursively read-only publications and reentrant release ordering.
 - [ ] 4.9 `[SOL]` Implement ammunition/magazine reserve, reload commit,
   cancellation and rollback without duplication or loss.
 - [ ] 4.10 `[SOL]` Implement inventory-to-ability equipment grants and revoke
@@ -167,6 +187,21 @@ Evidence: inventory catalog validator; inventory intent-adapter and
 presentation-projection contracts; transaction-routing tests; existing
 inventory UI suite bound to real snapshots; reload rollback fixtures;
 persistence byte round trip.
+
+Completed task evidence (4.7a and 4.8, 2026-09-10):
+`INVENTORY_MUTATION_ROUTING_RESULT checks=146 failures=0`,
+`INVENTORY_INTENT_ADAPTER_RESULT checks=162 failures=0`,
+`INVENTORY_PROJECTION_RESULT checks=99 failures=0`,
+`INVENTORY_CATALOG_RESULT checks=504 failures=0`,
+`INVENTORY_AUTHORITY_RESULT checks=79 failures=0`,
+`AUTHORITY_REPLAY_RESULT checks=81 failures=0`, and
+`EQUIPPED_ITEM_RECONCILIATION_RESULT checks=123 failures=0`.
+The reconciliation review also reran the shared identity contract
+(`IDENTITY_CONTRACT_RESULT checks=18442 failures=0`), catalog, authority,
+projection and intent contracts above, plus the combat content contract
+(`COMBAT_CONTENT_RESULT checks=79 failures=0`).
+Task 4.7b remains the next unblocked UI-binding task; no UI binding is marked
+complete here.
 
 ## 5. Weapons, health and combat mechanics
 
