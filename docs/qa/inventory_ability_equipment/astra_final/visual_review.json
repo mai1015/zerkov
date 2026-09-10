@@ -1,0 +1,19 @@
+{
+  "reviewer": "Fresh GPT-6 Astra checkpoint validator",
+  "human_approval": false,
+  "visually_inspected": true,
+  "passed": true,
+  "captures": [
+    {"file": "ordinary_flow_1280x720.png", "finding": "All eleven ordinary states, column headings, counts, scope disclosure and footer are readable and unclipped."},
+    {"file": "external_isolation_1280x720.png", "finding": "Foreign contribution, equipped-item destruction and final zero live counts are readable; five revoked historical rows are explicitly distinguished."},
+    {"file": "recovery_1280x720.png", "finding": "Individually inspected at original detail after a multi-image display appeared cropped. The actual full 1280x720 PNG has its complete header, subtitle, metadata, table headings, three rows and recovery disclosure. No image regeneration was required."},
+    {"file": "teardown_1280x720.png", "finding": "Explicit release and both actual Node destruction orders show two live contributors becoming zero, with revoked versus terminal history separately displayed."}
+  ],
+  "native_window_observation": {
+    "tool": "CUA native accessibility",
+    "app": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app",
+    "observed_window_title": "Astra 4.10 — AUTOMATED VALIDATION HARNESS / NOT PRODUCTION UI (DEBUG)",
+    "observed_roles": ["standard window", "close button", "full screen button", "minimize button"],
+    "followup_screenshot": "The automated process exited normally before the later CUA screenshot call. All four actual framebuffer captures were saved by the running native fixture and inspected directly."
+  }
+}

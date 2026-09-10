@@ -156,6 +156,24 @@ static func build_sealed_catalog() -> InventoryCatalog:
 		if int(finding.get("status_code", -1)) != InventoryCatalog.STATUS_OK:
 			push_error("Zerkov inventory registration failed: " + str(finding))
 			return null
+	# The game-owned equipment -> Gameplay Abilities declaration is opaque to
+	# Inventory System, but it changes authority behavior and therefore belongs
+	# in the same sealed manifest as item/slot definitions. The payload is the
+	# exact canonical declaration bytes consumed by InventoryAbilityAdapter.
+	var equipment_mapping_bytes := \
+		ZerkovEquipmentAbilityContent.integration_mapping_bytes()
+	if equipment_mapping_bytes.is_empty():
+		push_error("Zerkov equipment ability integration mapping is empty")
+		return null
+	var mapping_result: Dictionary = catalog.register_integration_mapping(
+		String(ZerkovEquipmentAbilityContent.INTEGRATION_MAPPING_ID),
+		equipment_mapping_bytes,
+		"res://game/content/zerkov_equipment_ability_content.gd"
+	)
+	if int(mapping_result.get("status_code", -1)) != InventoryCatalog.STATUS_OK:
+		push_error("Zerkov equipment ability mapping registration failed: " \
+			+ str(mapping_result))
+		return null
 	var seal_result: Dictionary = catalog.seal()
 	if int(seal_result.get("status_code", -1)) != InventoryCatalog.STATUS_OK:
 		push_error("Zerkov inventory seal failed: " + str(seal_result))

@@ -1,0 +1,22 @@
+{
+  "name": "inventory_authority_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/inventory_authority_contract.gd"
+  ],
+  "pid": 16821,
+  "exit_code": 0,
+  "elapsed_seconds": 0.249,
+  "timed_out": false,
+  "expected_checks": 79,
+  "checks": 79,
+  "failures": 0,
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

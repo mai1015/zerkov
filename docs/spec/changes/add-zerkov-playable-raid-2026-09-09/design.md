@@ -152,6 +152,30 @@ WeaponAuthority facade has no public symmetric rollback, so crash-safe 2PC and
 physical detachable-magazine identity/swapping are not claimed. Production
 weapon-instance lifecycle and input routing remain tasks 5.2 and 5.7.
 
+The equipment ability adapter (task 4.10, accepted 2026-09-10) binds one exact
+inventory owner/admission generation, inventory actor, Gameplay Ability
+component and canonical inventory/ability catalog pair. Binding itself is
+mutation-free. The adapter registers in `RaidAuthority` phase 7, after inventory
+mutations commit in phase 5, and derives grants only from a complete current
+owner snapshot. Accepted deltas are bounded sequencing hints rather than a
+second source of truth. Stable admission, generation, item, ability-entity and
+content identities make the revision-zero full snapshot, duplicate state,
+recorded/normalized replay, batched revisions and gap/full-snapshot healing
+idempotent.
+
+AKM and machete equipment declare native passive abilities, infinite effects,
+gameplay tags and an equipment-readiness attribute modifier; rig and backpack
+are explicit no-grant equipment. A complete preflight precedes deterministic
+add-before-remove replacement. Unequip, item destruction, explicit release and
+owner/component teardown revoke owned sources. Ambiguous partial failure enters
+fail-stop recovery and may terminally quarantine the captured component; it is
+never represented as a successful adapter revision. The native component keeps
+at most 64 historical grant records, so the 65th grant fails preflight. An
+accepted P2 composition constraint remains for tasks 4.12/7.1: release the
+adapter or tear down its owner/component before `RaidAuthority` terminalizes,
+because terminalizing the raid clears phase handlers and does not itself revoke
+equipment contributions. Automatic raid-terminal-first cleanup is not claimed.
+
 The reviewed inventory mutation seam (task 4.7a) routes placement-aware world
 loot and same-inventory move, rotate, split, merge and complete-only quick
 transfer operations through strict payload schemas and typed receipts. Quick

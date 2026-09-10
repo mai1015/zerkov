@@ -1,0 +1,22 @@
+{
+  "name": "authority_replay_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/authority_replay_contract.gd"
+  ],
+  "pid": 16848,
+  "exit_code": 0,
+  "elapsed_seconds": 0.243,
+  "timed_out": false,
+  "expected_checks": 81,
+  "checks": 81,
+  "failures": 0,
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

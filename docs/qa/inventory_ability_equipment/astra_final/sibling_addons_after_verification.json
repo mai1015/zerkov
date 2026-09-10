@@ -1,0 +1,50 @@
+{
+  "common_ui": {
+    "file_count": 165,
+    "changed_files": [],
+    "git": true,
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "passed": true
+  },
+  "common_vision": {
+    "file_count": 76,
+    "changed_files": [],
+    "git": true,
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "passed": true
+  },
+  "gameplay_abilities": {
+    "file_count": 445,
+    "changed_files": [],
+    "git": true,
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "passed": true
+  },
+  "inventory_system": {
+    "file_count": 361,
+    "changed_files": [],
+    "git": true,
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "passed": true
+  },
+  "level_task_system": {
+    "file_count": 3716,
+    "changed_files": [],
+    "git": false,
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "passed": true
+  },
+  "weapon_system": {
+    "file_count": 164,
+    "changed_files": [],
+    "git": true,
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "passed": true
+  }
+}

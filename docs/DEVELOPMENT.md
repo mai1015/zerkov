@@ -70,6 +70,8 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/equipped_item_reconciliation_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_ability_reconciliation_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/combat/content_contract.gd
 ```
 
@@ -82,10 +84,11 @@ and authority evidence includes these named zero-failure lines:
 INVENTORY_MUTATION_ROUTING_RESULT checks=146 failures=0
 INVENTORY_INTENT_ADAPTER_RESULT checks=162 failures=0
 INVENTORY_PROJECTION_RESULT checks=99 failures=0
-INVENTORY_CATALOG_RESULT checks=504 failures=0
+INVENTORY_CATALOG_RESULT checks=537 failures=0
 INVENTORY_AUTHORITY_RESULT checks=79 failures=0
 AUTHORITY_REPLAY_RESULT checks=81 failures=0
 EQUIPPED_ITEM_RECONCILIATION_RESULT checks=123 failures=0
+INVENTORY_ABILITY_RECONCILIATION_RESULT checks=546 failures=0
 IDENTITY_CONTRACT_RESULT checks=18442 failures=0
 COMBAT_CONTENT_RESULT checks=79 failures=0
 ```
@@ -148,6 +151,45 @@ magazine -> rig -> pockets order and commits inventory and weapon state as one
 coherent in-memory single-writer/no-yield sequence. This is not crash-safe
 symmetric 2PC, physical detachable-magazine swapping, production weapon
 instance/input integration, or human playtest evidence.
+
+## Inventory-to-ability equipment checkpoint (task 4.10)
+
+Task 4.10 is accepted at the implementation/evidence level by the fresh Astra
+packet in
+[`docs/qa/inventory_ability_equipment/astra_final/REPORT.md`](qa/inventory_ability_equipment/astra_final/REPORT.md).
+Run the promoted contract directly with the pinned executable:
+
+```sh
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_ability_reconciliation_contract.gd
+```
+
+The packet's full adjacent suite, independent headless flow and visible native
+Compatibility flow can be reproduced from the repository root:
+
+```sh
+python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py suites
+python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py flow
+python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py native
+python3 -B docs/qa/inventory_ability_equipment/astra_final/finalize_packet.py
+```
+
+The accepted totals are promoted reconciliation `546/0`, independent headless
+flow `451/0`, independent native flow `463/0`, and `21756/0` raw assertion
+executions across 17 distinct test programs and 18 execution variants. Inventory
+mutations commit in `RaidAuthority` phase 5; phase 7 pulls the complete owner
+snapshot and reconciles idempotent source-item grants/revokes. The matrix covers
+duplicate/full/replayed/batched/gapped revisions, AKM and machete native
+abilities/effects/tags/modifiers, explicit no-grant gear, replacement,
+destruction, teardown, failure recovery/quarantine and the 64-record native
+grant-history boundary.
+
+This is offline, synchronous, in-memory evidence and the visible window is an
+automated validation harness, not production UI or a human playtest. Until the
+tasks 4.12/7.1 lifecycle follow-up, composition must release the adapter or tear
+down its owner/component before `RaidAuthority` terminalizes; raid-terminal-first
+cleanup is not automatic. Task 4.11 is next, while whole-game, multiplayer and
+release acceptance remain open.
 
 ## Render-scale verification
 

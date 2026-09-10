@@ -1,0 +1,8 @@
+{
+  "tests/raid/inventory_ability_reconciliation_contract.gd": "0f8ea4e3b7308aa759cb2db789a2cc1408678a11cf57d501a9a4583133f2922b",
+  "game/inventory/equipment/inventory_ability_adapter.gd": "d83f3137fe7b93b5bace8c97669cb9b07072fe221bca74515bcec9bea5b9f063",
+  "game/domain/ports/equipment_ability_participant_port.gd": "87c1dd521353f76ce644a0066626c52f790fdbe9b16f48f4c18afbc6b45c9746",
+  "game/inventory/equipment/gameplay_ability_equipment_port.gd": "87c9d4ccbc0e3147791e324eb60275b6ac00009c0c03c2c1e964fe98c94f25b6",
+  "game/content/zerkov_equipment_ability_content.gd": "12d322f7285e665da540ff8ba55c8fae4ab79d672f28d43f3cd525ddc79a6481",
+  "game/content/zerkov_inventory_catalog.gd": "12c581a92c14fa17f147e34acc7d891e58d966756e26986d3b5f8c4ac99247d1"
+}

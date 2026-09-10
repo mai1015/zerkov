@@ -1,0 +1,22 @@
+{
+  "name": "inventory_multi_controller_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/inventory_multi_controller_contract.gd"
+  ],
+  "pid": 16980,
+  "exit_code": 0,
+  "elapsed_seconds": 0.347,
+  "timed_out": false,
+  "expected_checks": null,
+  "checks": 23,
+  "failures": 0,
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

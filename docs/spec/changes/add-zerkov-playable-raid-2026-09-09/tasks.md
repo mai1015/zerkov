@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T16:49:50Z
+updated_at: 2026-09-10T19:52:55Z
 completed_at:
 ---
 
@@ -175,7 +175,7 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   recursively read-only publications and reentrant release ordering.
 - [x] 4.9 `[SOL]` Implement ammunition/magazine reserve, reload commit,
   cancellation and rollback without duplication or loss.
-- [ ] 4.10 `[SOL]` Implement inventory-to-ability equipment grants and revoke
+- [x] 4.10 `[SOL]` Implement inventory-to-ability equipment grants and revoke
   them idempotently from full snapshots and accepted deltas.
 - [ ] 4.11 `[LUNA]` Add loot-container open/search/close presentation, including
   inaccessible, stale, overweight, disconnected and resynchronizing states.
@@ -275,6 +275,50 @@ playtest, the complete raid loop, multiplayer and release gates remain open.
 The future `4.12a` metadata task above is nonblocking for 4.9 and covers
 FEATURE_LIST capability-query/transfer/persistence proof for stash, crate and
 corpse profiles.
+
+Completed task evidence (4.10, 2026-09-10): the fresh independent Astra
+checkpoint accepted
+`docs/qa/inventory_ability_equipment/astra_final/REPORT.md` with human approval
+false. All current runs used the pinned Godot 4.7.2 Compatibility executable,
+passed strict diagnostics and exited cleanly. The accepted total is `21756`
+raw assertion executions with `0` failures across 17 distinct test programs and
+18 execution variants. The promoted equipment reconciliation contract passed
+`INVENTORY_ABILITY_RECONCILIATION_RESULT checks=546 failures=0`; 16 promoted
+and adjacent suites contributed `20842/0`; the independently authored real
+add-on flow passed `451/0` headless and `463/0` in the visible native window.
+Native repeats the same 451 core assertions and adds 12 renderer, window and
+capture checks. Four inspected 1280x720 captures and an 80-file hash manifest
+seal the accepted packet.
+
+Only `RaidAuthority.advance_one()` drives the independent flows. Real inventory
+insert, move, equip, replay and destruction mutations commit in phase 5; native
+ability grants/revokes and adapter publication occur in phase 7. Binding is
+mutation-free, then revision-zero full reconciliation establishes state.
+Accepted revisions queue bounded sequencing hints while reconciliation always
+pulls the complete current owner snapshot. Stable source keys make duplicate
+full state, recorded and normalized replay, multi-revision batching and
+gap/full-snapshot healing idempotent. AKM and machete sources create and remove
+real passive executions, infinite effects, gameplay tags and an equipment
+attribute modifier; rig and backpack are declared no-grant equipment. Complete
+preflight and deterministic add-before-remove ordering cover replacement, and
+foreign same-ability sources remain isolated during ordinary cleanup.
+
+Unequip, equipped-item destruction, explicit release, owner-first teardown and
+component-first teardown remove owned live contributions. Injected partial
+grant/revoke failures enter `RECOVERY_REQUIRED`, fail the raid tick and account
+for or terminally quarantine unresolved native state without publishing a
+successful revision. The production capacity boundary accounts for 64 native
+grant-history tombstones; a 65th grant fails preflight without creating a new
+live effect. This remains offline, synchronous and in-memory, and component-wide
+quarantine does not promise foreign-state survival.
+
+Accepted P2 lifecycle follow-up for tasks 4.12/7.1: composition must release the
+adapter or tear down the inventory owner/component before `RaidAuthority`
+terminalizes. Raid terminalization clears its phase handlers and, by itself,
+does not revoke equipment contributions; automatic raid-terminal-first cleanup
+is not claimed. Production UI/input, human playtest, the complete raid loop,
+multiplayer and release gates remain open. Tasks 4.11, 4.12 and 4.12a remain
+unchecked.
 
 ## 5. Weapons, health and combat mechanics
 

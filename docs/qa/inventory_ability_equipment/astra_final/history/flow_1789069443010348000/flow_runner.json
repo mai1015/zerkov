@@ -1,0 +1,28 @@
+{
+  "name": "flow",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--rendering-method",
+    "gl_compatibility",
+    "--headless",
+    "--script",
+    "res://docs/qa/inventory_ability_equipment/astra_final/independent_flow.gd"
+  ],
+  "pid": 43048,
+  "exit_code": 0,
+  "elapsed_seconds": 0.317,
+  "timed_out": false,
+  "expected_checks": null,
+  "checks": null,
+  "failures": null,
+  "diagnostics": [
+    "SCRIPT ERROR: Parse Error: Assigned value for constant \"C\" isn't a constant expression.",
+    "SCRIPT ERROR: Parse Error: Assigned value for constant \"I\" isn't a constant expression.",
+    "ERROR: Failed to load script \"res://docs/qa/inventory_ability_equipment/astra_final/independent_flow.gd\" with error \"Parse error\"."
+  ],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": false
+}

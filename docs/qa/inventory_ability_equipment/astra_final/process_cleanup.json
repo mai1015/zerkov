@@ -1,0 +1,62 @@
+{
+  "owned_pids": [
+    16744,
+    16781,
+    16782,
+    16784,
+    16821,
+    16822,
+    16823,
+    16848,
+    16896,
+    16897,
+    16898,
+    16905,
+    16936,
+    16980,
+    16981,
+    16982,
+    17019,
+    17278,
+    17294,
+    43810,
+    45061,
+    71887
+  ],
+  "owned_processes_still_alive": [],
+  "all_reaped": true,
+  "remaining_unrelated_godot_processes_untouched": [
+    {
+      "pid": 22941,
+      "ppid": 22939,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 45931,
+      "ppid": 1,
+      "executable": "/private/var/folders/17/5r3gw10108g2h5wgw9hl1wqc0000gn/T/AppTranslocation/647F7425-AA42-42BD-BC2D-8A11A9699823/d/Godot.app/Contents/MacOS/Godot"
+    },
+    {
+      "pid": 49133,
+      "ppid": 49117,
+      "executable": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot"
+    },
+    {
+      "pid": 50284,
+      "ppid": 16055,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 52576,
+      "ppid": 16055,
+      "executable": "godot"
+    },
+    {
+      "pid": 55470,
+      "ppid": 16055,
+      "executable": "godot"
+    }
+  ],
+  "temporary_files_outside_packet_created_by_validator": [],
+  "passed": true
+}

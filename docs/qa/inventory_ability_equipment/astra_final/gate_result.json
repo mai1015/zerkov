@@ -1,0 +1,121 @@
+{
+  "decision": "ACCEPT",
+  "utc": "2026-09-10T19:48:52.762167+00:00",
+  "head": "cdb5f8e2faef99bb82d299758c375140f2a68630",
+  "human_approval": false,
+  "task": "4.10",
+  "decision_scope": "Frozen implementation and runtime evidence; staged-index acceptance is a separate gate.",
+  "qa_packet_repair": {
+    "change": "Replaced reviewed_diff.patch with lossless base64 reviewed_diff.json and updated the QA runner and packet sealer.",
+    "reason": "An outer added-file diff treated ordinary inner patch context prefixes as space-before-tab whitespace errors.",
+    "decoded_diff_sha256": "e5ab6a83d2547c9af54a6e3596e55d3cbd25cbaafa4295bd062d4359e4954c42",
+    "production_or_promoted_tests_changed": false,
+    "runtime_evidence_changed": false,
+    "staged_index_audit_status": "Pending root restaging and a separately supplied exact staged hash."
+  },
+  "checks": {
+    "frozen_sources_before_and_after_match_requested_hashes": true,
+    "all_covered_project_files_unchanged": true,
+    "all_six_sibling_addons_unchanged": true,
+    "vendored_addons_clean": true,
+    "no_non_packet_changes": true,
+    "no_staging_or_commit": true,
+    "engine_exact_and_unchanged": true,
+    "all_final_runners_pass": true,
+    "all_current_engine_logs_clean": true,
+    "all_assertions_pass": true,
+    "native_repeats_same_451_core_assertions": true,
+    "native_repeats_same_ordered_states": true,
+    "native_window_and_captures_verified": true,
+    "recovery_unresolved_empty": true,
+    "composition_constraint_honestly_recorded": true,
+    "owned_processes_clean": true,
+    "final_diff_check_clean": true,
+    "targeted_secret_scan_clean": true
+  },
+  "counts": {
+    "promoted_and_adjacent_suites": 16,
+    "promoted_and_adjacent_assertions": 20842,
+    "promoted_equipment_contract_assertions": 546,
+    "independent_headless_assertions": 451,
+    "independent_native_assertions": 463,
+    "native_additional_checks": 12,
+    "raw_assertion_executions": 21756,
+    "raw_failures": 0,
+    "distinct_test_programs": 17,
+    "test_execution_variants": 18,
+    "independent_fixture_cases": 6,
+    "native_repeats_headless_cases": true,
+    "history_in_accepted_totals": false
+  },
+  "project_files_hashed": 1231,
+  "project_changed_files": [],
+  "sibling_integrity": {
+    "common_ui": {
+      "file_count": 165,
+      "changed_files": [],
+      "git": true,
+      "head_unchanged": true,
+      "status_unchanged": true,
+      "passed": true
+    },
+    "common_vision": {
+      "file_count": 76,
+      "changed_files": [],
+      "git": true,
+      "head_unchanged": true,
+      "status_unchanged": true,
+      "passed": true
+    },
+    "gameplay_abilities": {
+      "file_count": 445,
+      "changed_files": [],
+      "git": true,
+      "head_unchanged": true,
+      "status_unchanged": true,
+      "passed": true
+    },
+    "inventory_system": {
+      "file_count": 361,
+      "changed_files": [],
+      "git": true,
+      "head_unchanged": true,
+      "status_unchanged": true,
+      "passed": true
+    },
+    "level_task_system": {
+      "file_count": 3716,
+      "changed_files": [],
+      "git": false,
+      "head_unchanged": true,
+      "status_unchanged": true,
+      "passed": true
+    },
+    "weapon_system": {
+      "file_count": 164,
+      "changed_files": [],
+      "git": true,
+      "head_unchanged": true,
+      "status_unchanged": true,
+      "passed": true
+    }
+  },
+  "diagnostics": {},
+  "qa_harness_sha256": "8a534ffd19e9bc1b7c6685a4095819a0508465c073469b87c05b59dbbee231c7",
+  "limitations": [
+    "Offline synchronous in-memory reconciliation; native signals are not an atomic multi-domain transaction.",
+    "Unexpected native failure causes fail-stop recovery and may terminally quarantine the entire captured component.",
+    "Native grant history has 64 entries; the 65th grant fails preflight and requires recovery.",
+    "Accepted P2 follow-up for tasks 4.12/7.1: release adapter or destroy owner/component before RaidAuthority terminalization.",
+    "Automated native validation harness only; production UI/input, human playtest, full raid loop and release acceptance are not claimed."
+  ],
+  "packet_seal": {
+    "sealed_entries": 80,
+    "files_including_manifest_and_verification": 82,
+    "excluded_from_manifest": [
+      "packet_hashes.sha256",
+      "manifest_verification.log"
+    ],
+    "reviewed_diff_decodes_to_recorded_sha256": true
+  }
+}

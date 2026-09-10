@@ -1,0 +1,22 @@
+{
+  "name": "inventory_ability_reconciliation_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/inventory_ability_reconciliation_contract.gd"
+  ],
+  "pid": 16744,
+  "exit_code": 0,
+  "elapsed_seconds": 0.604,
+  "timed_out": false,
+  "expected_checks": null,
+  "checks": 546,
+  "failures": 0,
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

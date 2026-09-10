@@ -1,0 +1,32 @@
+{
+  "results": [
+    {
+      "name": "flow",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--rendering-method",
+        "gl_compatibility",
+        "--headless",
+        "--script",
+        "res://docs/qa/inventory_ability_equipment/astra_final/independent_flow.gd"
+      ],
+      "pid": 43810,
+      "exit_code": 0,
+      "elapsed_seconds": 0.341,
+      "timed_out": false,
+      "expected_checks": null,
+      "checks": 451,
+      "failures": 0,
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    }
+  ],
+  "raw_checks": 451,
+  "failures": 0,
+  "passed": true,
+  "human_approval": false
+}

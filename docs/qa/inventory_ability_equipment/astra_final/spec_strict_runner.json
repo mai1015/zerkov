@@ -1,0 +1,24 @@
+{
+  "name": "spec_strict",
+  "command": [
+    "python3",
+    "/Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "validate",
+    "add-zerkov-playable-raid-2026-09-09",
+    "--strict",
+    "--json"
+  ],
+  "pid": 17278,
+  "exit_code": 0,
+  "elapsed_seconds": 0.105,
+  "timed_out": false,
+  "expected_checks": null,
+  "checks": null,
+  "failures": null,
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

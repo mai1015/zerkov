@@ -1,0 +1,37 @@
+{
+  "utc": "2026-09-10T19:35:15.533288+00:00",
+  "head": "cdb5f8e2faef99bb82d299758c375140f2a68630",
+  "status": " M game/content/zerkov_inventory_catalog.gd\n?? docs/qa/inventory_ability_equipment/astra_final/frozen_hashes.json\n?? docs/qa/inventory_ability_equipment/astra_final/history/initial_baseline_attempt.md\n?? docs/qa/inventory_ability_equipment/astra_final/project_hashes_before.json\n?? docs/qa/inventory_ability_equipment/astra_final/run_validation.py\n?? docs/qa/inventory_ability_equipment/astra_final/sibling_addons_before.json\n?? game/content/zerkov_equipment_ability_content.gd\n?? game/content/zerkov_equipment_ability_content.gd.uid\n?? game/domain/ports/equipment_ability_participant_port.gd\n?? game/domain/ports/equipment_ability_participant_port.gd.uid\n?? game/inventory/equipment/gameplay_ability_equipment_port.gd\n?? game/inventory/equipment/gameplay_ability_equipment_port.gd.uid\n?? game/inventory/equipment/inventory_ability_adapter.gd\n?? game/inventory/equipment/inventory_ability_adapter.gd.uid\n?? tests/raid/inventory_ability_reconciliation_contract.gd\n?? tests/raid/inventory_ability_reconciliation_contract.gd.uid\n",
+  "staged_diff": "",
+  "engine": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+  "engine_version": "4.7.2.stable.official.ed1daf0bf",
+  "engine_sha256": "c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf",
+  "godot_processes_before": [
+    {
+      "pid": 22941,
+      "ppid": 22939,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 49133,
+      "ppid": 49117,
+      "executable": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot"
+    },
+    {
+      "pid": 50284,
+      "ppid": 16055,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 52576,
+      "ppid": 16055,
+      "executable": "godot"
+    },
+    {
+      "pid": 55470,
+      "ppid": 16055,
+      "executable": "godot"
+    }
+  ],
+  "human_approval": false
+}

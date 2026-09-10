@@ -1,0 +1,22 @@
+{
+  "name": "equipped_item_reconciliation_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/equipped_item_reconciliation_contract.gd"
+  ],
+  "pid": 16784,
+  "exit_code": 0,
+  "elapsed_seconds": 0.341,
+  "timed_out": false,
+  "expected_checks": 123,
+  "checks": 123,
+  "failures": 0,
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

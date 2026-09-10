@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T16:49:50Z
+updated_at: 2026-09-10T19:52:55Z
 ---
 
 ## Why
@@ -52,27 +52,35 @@ variants.
 Current implementation boundary: the reviewed inventory authority,
 snapshot-projection seam, authority-side mutation routing (4.7a), equipped-item
 reconciliation (4.8), inventory UI binding (4.7b), and ammunition/magazine
-reload coordination (4.9) are complete at the implementation/evidence level.
-The fresh independent Astra checkpoint accepted task 4.9 with `20750/0` raw
-assertion executions. Its promoted catalog and reload contracts passed
-`537/0` and `159/0`; the independent canonical capacity challenge passed
-`33/0`; the real-add-on flow passed `208/0` headless and `213/0` in the native
-Compatibility window, where the native run repeats the 208 core assertions and
-adds five capture checks. The packet contains 17 distinct test programs and 18
-execution variants. The canonical flow reserves 27 rounds in exact
-magazine-to-rig-to-pockets order, cancels and replays without changing
-quantities, then commits to 30 loaded rounds with a conserved total of 41.
-Task 4.10 is the next implementation task. Human approval remains false, and
-the production weapon-instance/input work (5.2 and 5.7), later combat,
+reload coordination (4.9), and inventory-to-ability equipment reconciliation
+(4.10) are complete at the implementation/evidence level. The fresh independent
+Astra checkpoint accepted task 4.10 with `21756/0` raw assertion executions.
+The promoted reconciliation contract passed `546/0`; the independent real
+add-on flow passed `451/0` headless and `463/0` in a visible native
+Compatibility window, with four reviewed captures. The packet contains 17
+distinct test programs, 18 execution variants and an 80-file evidence seal.
+
+The game-owned adapter applies the revision-zero full snapshot and later
+authoritative inventory changes in `RaidAuthority` phase 7, after phase-5
+inventory commits. Accepted deltas provide bounded sequencing hints; grants and
+revokes are derived from the current complete owner snapshot. Stable source-item
+keys make duplicate snapshots, recorded/normalized replay and gap-healed full
+reconciliation idempotent. AKM and machete equipment drive real native ability,
+effect, tag and modifier state, while rig and backpack remain explicit no-grant
+equipment. Task 4.11 is the next inventory task. Human approval remains false,
+and the production weapon-instance/input work (5.2 and 5.7), later combat,
 playtest, whole-game and release gates remain open.
 
-The 4.9 boundary is offline, synchronous, in-memory, single-writer/no-yield
-coordination. It does not claim crash-safe symmetric two-phase commit because
-the installed WeaponAuthority facade exposes no public rollback participant; it
-also does not claim physical detachable-magazine identity or swapping. Those
-limits, plus the native validation harness being distinct from production UI
-and human playtest, are recorded in the final Astra packet at
-`docs/qa/inventory_weapon_reload/astra_final/REPORT.md`.
+The 4.10 boundary is offline, synchronous and in-memory. Unexpected ambiguous
+native failure enters fail-stop recovery and may quarantine the captured
+Gameplay Ability component. Native grant history is bounded at 64 records; the
+65th grant fails preflight rather than recycling history. Until tasks 4.12/7.1
+close the accepted P2 lifecycle follow-up, composition must release the adapter
+or tear down its inventory owner/component before `RaidAuthority` terminalizes.
+The final packet at
+`docs/qa/inventory_ability_equipment/astra_final/REPORT.md` does not claim
+automatic raid-terminal-first cleanup, production UI/input, human playtest or a
+complete raid loop.
 
 ## Approval gate
 

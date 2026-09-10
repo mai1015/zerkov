@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Assigned value for constant "C" isn't a constant expression.
+          at: GDScript::reload (res://docs/qa/inventory_ability_equipment/astra_final/independent_flow.gd:8)
+SCRIPT ERROR: Parse Error: Assigned value for constant "I" isn't a constant expression.
+          at: GDScript::reload (res://docs/qa/inventory_ability_equipment/astra_final/independent_flow.gd:9)
+ERROR: Failed to load script "res://docs/qa/inventory_ability_equipment/astra_final/independent_flow.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
