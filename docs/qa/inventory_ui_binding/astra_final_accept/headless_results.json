@@ -1,0 +1,242 @@
+[
+  {
+    "name": "authority",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/inventory_authority_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 79,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.151,
+    "sha256": "120f94c679f549b327f93e0e44abbf1c63ebbea868fa8f71be6c37f6bbeff864",
+    "passed": true
+  },
+  {
+    "name": "replay",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/authority_replay_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 81,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.243,
+    "sha256": "82174ee02aa80f583c898b162a226daa413aac9ba37f70f8775e63b15ad95827",
+    "passed": true
+  },
+  {
+    "name": "equipped_reconciliation",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/equipped_item_reconciliation_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 123,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.247,
+    "sha256": "4f0131f51ac60090332e86f24845d438f1fed05f4fad4d13964ad3605cd98d97",
+    "passed": true
+  },
+  {
+    "name": "binding",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/inventory_ui_binding_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 138,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.848,
+    "sha256": "85bc1212063d487d00b7ac14483a177932de26ac468a2f1e3f369e9d98990e89",
+    "passed": true
+  },
+  {
+    "name": "multi_controller",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/inventory_multi_controller_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 23,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.349,
+    "sha256": "e8525696e142ed37dbfe2b45d6c8cde9121c7065d60838cf156c7b36b5fdd64a",
+    "passed": true
+  },
+  {
+    "name": "reentrant",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/visual/inventory_ui_binding/reentrant_probe.gd"
+    ],
+    "exit": 0,
+    "checks": 28,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.352,
+    "sha256": "55290af23609803867ecf7610ec68fd07b8a49305d9ed2f4ef60891438dc852f",
+    "passed": true
+  },
+  {
+    "name": "compact_extent",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/visual/inventory_ui_binding/compact_extent_probe.gd"
+    ],
+    "exit": 0,
+    "checks": 19,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.849,
+    "sha256": "d3bee66c28289a3fa34fc64f207739d0c59dad244fc01e2272d5aa52e867a442",
+    "passed": true
+  },
+  {
+    "name": "inventory",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/inventory_smoke.gd"
+    ],
+    "exit": 0,
+    "checks": 21,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.65,
+    "sha256": "c08a818361257a22fd8b99cd42405e69dedc954f052460198200a44431374fcc",
+    "passed": true
+  },
+  {
+    "name": "compact_inventory",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/compact_inventory_smoke.gd"
+    ],
+    "exit": 0,
+    "checks": 42,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 1.847,
+    "sha256": "68f8a9e19650f47b2e0260ee7050590ed50a08c6ddf485012e3cd8e4de65817c",
+    "passed": true
+  },
+  {
+    "name": "projection",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/inventory_projection_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 99,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.262,
+    "sha256": "4a135d9d6b63278da1621233c4aab4f1c76bd60d0440834b078c263c10704b64",
+    "passed": true
+  },
+  {
+    "name": "intent",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/inventory_intent_adapter_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 162,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.347,
+    "sha256": "3c3569082d7c88e030b3233e9ca4302d3ab64d53ce06800091a8d343832e42ff",
+    "passed": true
+  },
+  {
+    "name": "mutation",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/raid/inventory_mutation_routing_contract.gd"
+    ],
+    "exit": 0,
+    "checks": 146,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 0.237,
+    "sha256": "c8fdb7af1a8a7066dcd3367ff36a49b24170955ff01ec34716c0c5ce9084c259",
+    "passed": true
+  },
+  {
+    "name": "composition",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/ui_composition_smoke.gd"
+    ],
+    "exit": 0,
+    "checks": 109,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 4.531,
+    "sha256": "19617e3ecf80bf9f3b26fa3b3afcdd050cdc63135ab23235eb98cdcba1696371",
+    "passed": true
+  },
+  {
+    "name": "responsive",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/responsive_smoke.gd"
+    ],
+    "exit": 0,
+    "checks": 96,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 5.173,
+    "sha256": "9b56f6f07bf8c46b3421c10727aadfbe907674950fe18cb535169fde30d5a9ec",
+    "passed": true
+  },
+  {
+    "name": "reflow",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/ui_reflow_smoke.gd"
+    ],
+    "exit": 0,
+    "checks": 756,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 51.632,
+    "sha256": "0749f4890ee8c0512706ba8d0495d65eb2f9dce083101537c0fbe70e7f8815da",
+    "passed": true
+  },
+  {
+    "name": "components",
+    "args": [
+      "--headless",
+      "--script",
+      "res://tests/ui_component_states.gd"
+    ],
+    "exit": 0,
+    "checks": 15,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 2.571,
+    "sha256": "ce457236d5dc0fea91869893c939808dcf3505088a28ab4d4dc9999629cae219",
+    "passed": true
+  }
+]

@@ -1,0 +1,1714 @@
+{
+  "human_approval": false,
+  "images": [
+    {
+      "path": "1280x720_states.png",
+      "dimensions": [
+        1280,
+        1925
+      ],
+      "bytes": 690425,
+      "sha256": "37367d6bbeeeab3e9c019e78bb77132b666c851fba8113ca985163e01cd9cf68",
+      "derived": true
+    },
+    {
+      "path": "1600x900_states.png",
+      "dimensions": [
+        1280,
+        1925
+      ],
+      "bytes": 660629,
+      "sha256": "8f9e37772655d4ecad280b7baa8abae770ef6fc5496f1d6123326f9d45ff6cc1",
+      "derived": true
+    },
+    {
+      "path": "1920x1080_states.png",
+      "dimensions": [
+        1280,
+        1925
+      ],
+      "bytes": 665381,
+      "sha256": "abee4e0aa473573896d39eefa34455f04b6200ec256775d99b73a198a6848047",
+      "derived": true
+    },
+    {
+      "path": "960x540_states.png",
+      "dimensions": [
+        1280,
+        1925
+      ],
+      "bytes": 587044,
+      "sha256": "92ebe13624eeb658b754abf6abde0e9e61b8b6bdeb1ec1c40975b1e42863ec26",
+      "derived": true
+    },
+    {
+      "path": "core/1280x720_accepted_merge_60.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 329750,
+      "sha256": "b7464b90e7d3151e49096bdd01ade226e4572ac8a05c9368fba8b2da8903265b",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_accepted_split_50_10.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330379,
+      "sha256": "5f9534f85dc8fd43b4c265070a3a3410ab1ea6a26870e3400757cc275e2213cc",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_disconnected.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 326168,
+      "sha256": "b650e602769b77608085d5551bbb4425806e2f1e68220f607ef5f22db0f1f31c",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_filter_search.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 323041,
+      "sha256": "fbc1a07f7b94d48663b3535393c8d8c0c0e2b5b68ea4946b23ab7361ee18db6e",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_focused_tooltip.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 334518,
+      "sha256": "b0a2fd1048bb2e444331926a8bedf886dcaeb5f79c4aa7ae5048095ada7e457a",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_native_drag.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330931,
+      "sha256": "be8e5345cc4508239efd6811f2e974b166b2292f9d590f91cafb0df4165c33d6",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_native_drag_result.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330006,
+      "sha256": "2ec9e7f4bede01dfc74bb70640b77387b29863fde500ca23b5f7edc7d6914d5c",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_no_match.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 323601,
+      "sha256": "d61b33b3a9d1d624727b64b5cba42e8f1a44c5259e17eed3a048819316882c9a",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_pending.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330354,
+      "sha256": "7b75bd7268e845c3896bea69c0a7414662a72e907d31f4126aa1a0e6695172d9",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_quick_transfer.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 329902,
+      "sha256": "b068a96f7794febbd6d8654d485c7925d036108f4995a28e5591bbe463845fac",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_ready.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330591,
+      "sha256": "cea1b2177f407e08c0227b2a4b8c29602dd57332dadde1d3e0274fea02712753",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_rejected_restored.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330756,
+      "sha256": "25b255667b93f3bc67bf706bc9514fe5b7e61884c9229e41785186fb10bbbf31",
+      "derived": false
+    },
+    {
+      "path": "core/1280x720_resynchronizing.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 329180,
+      "sha256": "cce5225ba6c8bf404094157dd6ebf5f00f2664a39d81fb08264bfc91f8f33c63",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_accepted_merge_60.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 456304,
+      "sha256": "6fc55af9397ebe8a81d83b18b4aaef88395720b13c31bbb619b05df4d515e992",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_accepted_split_50_10.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 456980,
+      "sha256": "0547fff5601dce406cb399f4c848fb6c3a5074cfebe48433d22393de541f2657",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_disconnected.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 450933,
+      "sha256": "7e4c118be6eb5fa7fe9d499ed0391a71b16b864daba99acd3894d197ad296c9c",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_filter_search.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 446014,
+      "sha256": "acb52877fa388ab8ab82673920dd5ee50265dff88d28117f4b95d7bb4dd2b7ee",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_focused_tooltip.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 463394,
+      "sha256": "1a983e3d4bf62eda0747c9ad8919f2c5a1493a7bca80fe336163cb0c7af0c02a",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_native_drag.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 457529,
+      "sha256": "588aa0e05eb8c676f6f1f3304a2169e8f04aed0356b3fa07d42b363f4a16d648",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_native_drag_result.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 456934,
+      "sha256": "f58e36239ca9caeb51200181f7aa719ba744c26881e65d4db84b83681c9463f4",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_no_match.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 446976,
+      "sha256": "e25f9811292bd5acf9aad0f0a88042cc2dfe80405da1368e931f67c31fd1d072",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_pending.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 456752,
+      "sha256": "0db114d7f72782fa9acc2d64579db94fae1360950edc69c13592a16f0660a508",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_quick_transfer.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 456866,
+      "sha256": "036e95be999e353edaeae4759d286fe173c636e98ac6ef5cb693862eaf2b494a",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_ready.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 457004,
+      "sha256": "aa928d8b9af652941db90310898abe2a9300e604345f2e0f61a33210248b55c6",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_rejected_restored.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 457087,
+      "sha256": "46c2d96276c07601ef8079bb33ad56e819d9f0461698fdca6c6878a5204827f0",
+      "derived": false
+    },
+    {
+      "path": "core/1600x900_resynchronizing.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 455581,
+      "sha256": "62d382ec2fd500ac1cc4e69cf0fed0a57f22015c845a1bd9c41b943d6f00bff0",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_accepted_merge_60.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 555401,
+      "sha256": "c0b56bd1c84dc034790260150d6bdfa6af80fca3f2f0221e4a5372e6449480c1",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_accepted_split_50_10.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556451,
+      "sha256": "e949d63e021ebc1b15386478efd501a9d20a47da4c3a5320567854557f5a40dc",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_disconnected.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 547161,
+      "sha256": "3464525a0456fba4f49f137f03cd11a5b05e9f5f5830ea5c175b62f8a31a670e",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_filter_search.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 543570,
+      "sha256": "24ee13b2dfff0e3dca909dbf9cd7a0d92230733cca465ba51cc7a49adde666ec",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_focused_tooltip.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 560756,
+      "sha256": "cab3e85896ec8b9c5ab7230659ac98e413f2adb6b63a435d6784c943eab9d9f4",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_native_drag.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 557160,
+      "sha256": "a92cb46d80406fb21e6e859611d3e4d5030db747f0249fa065de2c14e6893b35",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_native_drag_result.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556540,
+      "sha256": "232e27111865f62927b7c5d612a0994431fecf37b4294d2bc48d5577b4df971c",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_no_match.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 544587,
+      "sha256": "27f77a89e0c51cac788cec9c7ed692d126f0cae641577bca7448140e91b48eb1",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_pending.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 555677,
+      "sha256": "350835210838bcb9c1e6aebfdc71cd12af3619cd9d081f58b6661a420a1cbd08",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_quick_transfer.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556589,
+      "sha256": "62b6f1d67331aa808305fb6419ddf0b090e99b53a42a371b8bb099ed13b33b76",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_ready.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556126,
+      "sha256": "2980f7b337771e09f8f739509555d2a42fc8424123fbf7573f5044bfb2040577",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_rejected_restored.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556035,
+      "sha256": "c0898f0cfb844b547e3109689518af382531869216769cb6e7119031b70cbdf6",
+      "derived": false
+    },
+    {
+      "path": "core/1920x1080_resynchronizing.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 555038,
+      "sha256": "93785fda4adbc7319f762c53bc952c4a364a28b16adfb6368d4952ce4fd60ed4",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_accepted_merge_60.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148968,
+      "sha256": "ffd0fb1a88066c3c6918c74cbb42010ded9dcc29180d14d44df78fa574e78cf1",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_accepted_split_50_10.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148989,
+      "sha256": "72657f45a21340f21f591f04606db4b6237412ec3fd7377b38fd3a3c7afb79e5",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_disconnected.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 146687,
+      "sha256": "2b3686360ce181848f2c9457daef323a5c0d22311133b37a21bb5616ede72205",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_edge_tooltip.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 146719,
+      "sha256": "6156092ec07446640d9351efab10e38bf5b25c47917ae3f0d191f5855b6cb647",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_filter_search.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 142013,
+      "sha256": "e448f8a37e7bc3ce463f48d38cd9f4b19b2fb5c25cf885c1e4544da4d170bb8d",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_focused_tooltip.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 147292,
+      "sha256": "6b6eb5767f432a5da9ca6540900615f7a6fe36e8afa4f53a6210f77403bd7204",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_loadout_bottom.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 135234,
+      "sha256": "d6f1f6ff793021ceed1e3f49f8e8c27a422063c1ed8840c7f739ddbf4b689e9e",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_loadout_scroll_300.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 133058,
+      "sha256": "b969e438e23baa06b583600c69348bed30d64fa94d82667a5de5c76934c3491b",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_loadout_top.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148971,
+      "sha256": "cb912e9c375c8cee019ccbdaae68e294455c11220de5bd0763819646f353a5f6",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_no_match.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 142842,
+      "sha256": "d459609e4c5f9e3692512a6e7d57d9cdec6bb68ee1f4109094f2331a0eaadad9",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_pending.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149205,
+      "sha256": "36ee801542e48e653e0c9e3b6a5bacbab6630aea89dfd5b83d32052a6416219a",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_ready.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149549,
+      "sha256": "2096eeda026257126b45b85f096f73864526aaabcacf5a98231f00e8cc97d10b",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_rejected_restored.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149643,
+      "sha256": "4504f3e7bd03989b9c71ac296cc5036c9b3b1d217a168d4654f2fa0b115e7c7d",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_resynchronizing.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 152883,
+      "sha256": "30fa5db26a2be54c797b9c815bad39a05452bdbf174433f81b13988dd5c2d3a1",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_stash_bottom.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 144379,
+      "sha256": "379a908c33d5b5d0844be32e8b8aae3c09e2098cdbea5963eb7b4e3132acb839",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_stash_top.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 143995,
+      "sha256": "60f3cd00c54dd1cb46597c8de81bfda62af0bf723d9009dea9e8326a4eb05091",
+      "derived": false
+    },
+    {
+      "path": "core/960x540_wheel_over_item.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 146107,
+      "sha256": "97b8f5db3e5cca70e8bd05c073379022030dc919abe33cd4996a19697c18c1ff",
+      "derived": false
+    },
+    {
+      "path": "findings_sheet.png",
+      "dimensions": [
+        1280,
+        770
+      ],
+      "bytes": 297655,
+      "sha256": "9bfb6d7f35b503afe6226a41dcfe9d96261afbb7f748997fd6a1fcbe52ee8154",
+      "derived": true
+    },
+    {
+      "path": "flow/1280x720_fixture_status_status_after_unbind.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 375702,
+      "sha256": "39f7af5c8325bf7e8588efba55a5dbf541d2ca6ea5dfa2752195f2ada433133c",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_independent_surface_fixture_label_gate.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 375702,
+      "sha256": "39f7af5c8325bf7e8588efba55a5dbf541d2ca6ea5dfa2752195f2ada433133c",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_independent_surface_live_gear_labels.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 310521,
+      "sha256": "885e9156fc2fe6dbd6e95f069f130289924ebea59d71a9d0f16c24fca7cb99aa",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_01_bound.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330591,
+      "sha256": "cea1b2177f407e08c0227b2a4b8c29602dd57332dadde1d3e0274fea02712753",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_02_selected_search.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 329152,
+      "sha256": "e1bc1b9283e167a36bdba6bb0ad75460a2de94acec6253273e22f07094f4b940",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_03_drag_confirmed.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330006,
+      "sha256": "2ec9e7f4bede01dfc74bb70640b77387b29863fde500ca23b5f7edc7d6914d5c",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_04_rotated.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 332823,
+      "sha256": "2e0341028b8e5612c947dd922cea7879699e7010c4f97b38a47500e3e624b78b",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_05_split_modal.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 131775,
+      "sha256": "87baa56adedc18c2c967697128d8b3da5530ccd243e44b04c6b8e1164550c3cc",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_06_split_confirmed.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 328916,
+      "sha256": "ab65f784b953266f466dd26164015cfd42c4037f7c32b506781fb37d39eb0e37",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_07_merged.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 328436,
+      "sha256": "70ae714d8c869fdd65b9aabc6f1b1d7efab7c616856540638e1686151c077f25",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_08_quick_transferred.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 328272,
+      "sha256": "5a3bb9cfacdaf5fc767a231eaefd3c7c16e94031498c5989635c75b547692734",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_09_rejected_restored.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 331533,
+      "sha256": "04bc23061fbbbbd6c834a46b6625835c58cffcee4b1ea90cea06f62aa5873f23",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_10_resynchronizing.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330939,
+      "sha256": "49c6e8c62404b6b7f9a79bc535c1b7f22541ae5dd593388782a3d1ce887b19f9",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_11_disconnected.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 326168,
+      "sha256": "b650e602769b77608085d5551bbb4425806e2f1e68220f607ef5f22db0f1f31c",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_live_flow_12_recovered.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 332638,
+      "sha256": "9e7cc503bae2d62ff12d78b3b569cae4a3db30bfe9d570e559674338d5bdcabf",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_section_challenge_health.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 336994,
+      "sha256": "dc35fd64f77f341ff9cb54086e2681633f0d5667c289aee6260ba2aba4c814b2",
+      "derived": false
+    },
+    {
+      "path": "flow/1280x720_section_challenge_stats.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 323295,
+      "sha256": "803c1bba5fab97ec9ab03ad555d13658d8ea7e48d546bad401b8304376d39f1f",
+      "derived": false
+    },
+    {
+      "path": "flow/1600x900_fixture_status_status_after_unbind.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 518962,
+      "sha256": "0141bf9de5b58c26fc1dba088d02a9e64a84acb12a5fdc74db734bdf9590eb72",
+      "derived": false
+    },
+    {
+      "path": "flow/1600x900_independent_surface_fixture_label_gate.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 518962,
+      "sha256": "0141bf9de5b58c26fc1dba088d02a9e64a84acb12a5fdc74db734bdf9590eb72",
+      "derived": false
+    },
+    {
+      "path": "flow/1600x900_independent_surface_live_gear_labels.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 428658,
+      "sha256": "c3951e061c1741ce140da2a61c649bfb80b8f4a340106a7c608cc7a2c570c8b6",
+      "derived": false
+    },
+    {
+      "path": "flow/1600x900_section_challenge_health.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 463312,
+      "sha256": "d9076adcd47b7702d62e48b06eb45f68657dd00a1577694d95d22ef093b67f0b",
+      "derived": false
+    },
+    {
+      "path": "flow/1600x900_section_challenge_stats.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 445026,
+      "sha256": "3475d9355aa4541454321b7e618ada6a791f24a3fb8b6f6152cd394848644769",
+      "derived": false
+    },
+    {
+      "path": "flow/1920x1080_fixture_status_status_after_unbind.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 642371,
+      "sha256": "d9276f6f5a5d8f3db05d351e9d35ebd803fb62b525e235e1e755e6f5a93e6917",
+      "derived": false
+    },
+    {
+      "path": "flow/1920x1080_independent_surface_fixture_label_gate.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 642371,
+      "sha256": "d9276f6f5a5d8f3db05d351e9d35ebd803fb62b525e235e1e755e6f5a93e6917",
+      "derived": false
+    },
+    {
+      "path": "flow/1920x1080_independent_surface_live_gear_labels.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 521526,
+      "sha256": "b99e3ce0b2aace574d893719b98140322f6da88b5d29c8d681873d7c0c827309",
+      "derived": false
+    },
+    {
+      "path": "flow/1920x1080_pointer_regression_after.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 555402,
+      "sha256": "1343dbe4861596aa8a6e6194510ff356cab1dcbfc558d082eca821a51a13431c",
+      "derived": false
+    },
+    {
+      "path": "flow/1920x1080_pointer_regression_before.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 557391,
+      "sha256": "00cd71cc7d0baa147a568ee242e6c7b29beeeac6178349fc766a997c833bfe7a",
+      "derived": false
+    },
+    {
+      "path": "flow/1920x1080_section_challenge_health.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 567145,
+      "sha256": "466574772a02671231d6a89d868e8552d47fe1e66c7f5c78676ad84b5b885329",
+      "derived": false
+    },
+    {
+      "path": "flow/1920x1080_section_challenge_stats.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 521623,
+      "sha256": "12494edeb8057e7aa07c8e576ef3165f96f198ad49557d387457e6ff9c0893b5",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_continuity_corpse_origin.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 150355,
+      "sha256": "c3736331f3f7a385bdaf5604e1141a16f7a67373db5262e775936ef32527a40b",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_continuity_corpse_terminal.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 143359,
+      "sha256": "bd3b5db8be64eddd8c9c64d1f62af1b3efd3f0fc295e3c9d24c9d466ab0c6fe2",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_continuity_selected_tooltip.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 155240,
+      "sha256": "e7a29609450848a9b2312761f230981da605f99c09303ae351d98a2c1f28d4cb",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_continuity_stash_terminal.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 150560,
+      "sha256": "36848fa6891ab40c51461e1097a179719c55699a2d6538ee0a6ddc13db6df7da",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_continuity_typed_search.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149315,
+      "sha256": "2a0eb731d97bae0c2ba64f3b1bc22ee382bea4ee98b5096141b3c4937397e6b1",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_scroll_01_top_left.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 144311,
+      "sha256": "3ae5e9571b3b3ce90c45d9e4e8cefb13fa4c53f8a6d276a10e75cbd9c8c5ec92",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_scroll_02_bottom_right.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 144686,
+      "sha256": "7d194bbec2b4822b9daaffe9b71006501960b9bd78f44185c819344c8cb56a63",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_visual_corpse_bottom_right.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149448,
+      "sha256": "32831b1129338436e8e1073cc476f7b9c8d212d4012e4cbc0be9e28900efe19e",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_visual_corpse_top_left.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 156600,
+      "sha256": "3b461a5df902ae82f17a88120caa39281119c5303dde44d3bb0f2e8655ad2b06",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_visual_edge_tooltip_clear.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 157125,
+      "sha256": "93ee60cfc116b27b81472518ca79eb9549da80c9108c17ff07c283a8caa53380",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_compact_visual_loadout_clear.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 161416,
+      "sha256": "938a37cc9f9bd47d7cf9e38fb4351433adf282579971d638eb30e9f594128532",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_fixture_status_status_after_unbind.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 176175,
+      "sha256": "078735c2696868f7cbd34c26e7b17238142ca35d51dc7ca4c9151af62abc0548",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_independent_surface_fixture_label_gate.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 164878,
+      "sha256": "fc42ae9ee59722ab893a90c125e447e54a195e155f81e0930c692354add3d6cc",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_independent_surface_live_gear_labels.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 154199,
+      "sha256": "28b8057448378b75566766915e2501767b199dfdd9dddb69eca2f73d9117731c",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_live_sections_health.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 185285,
+      "sha256": "a21be2732d2336b2aaf48978b0209bceac1c3f40ec7c6d9a865d482596346827",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_live_sections_stats.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 176185,
+      "sha256": "4394ed170bd0e553f2b6abeb394be6a570b3e3bd78015c979a891a8f472448cd",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_overlay_challenge_closed_after_unrelated_receipt.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149623,
+      "sha256": "0e8e6b4d3e1b20ff6f68a8edb0d00a04fbb786248c47a339d3b0eaebcff95fe0",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_overlay_challenge_later_receipt_still_closed.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 146120,
+      "sha256": "806736aaa1ab8ccc58b0f37c03ea3ed42d14855e53d87e1408c018a2a43c04a2",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_overlay_challenge_removed_source.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 146120,
+      "sha256": "806736aaa1ab8ccc58b0f37c03ea3ed42d14855e53d87e1408c018a2a43c04a2",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_section_challenge_health.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 185285,
+      "sha256": "a21be2732d2336b2aaf48978b0209bceac1c3f40ec7c6d9a865d482596346827",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_section_challenge_stats.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 176185,
+      "sha256": "4394ed170bd0e553f2b6abeb394be6a570b3e3bd78015c979a891a8f472448cd",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_tooltip_refresh_after_unrelated_loot.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 147848,
+      "sha256": "41c749f66e21afd1c567d472616271ee816e9d58c171b69eed9833465477c765",
+      "derived": false
+    },
+    {
+      "path": "flow/960x540_tooltip_refresh_before_unrelated_loot.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148820,
+      "sha256": "5f390dcdb54efe89be2dc100426acfccb5fadabb4b42995e8d0d668f1928a19f",
+      "derived": false
+    },
+    {
+      "path": "honesty/1280x720_fixture_preview.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 375702,
+      "sha256": "39f7af5c8325bf7e8588efba55a5dbf541d2ca6ea5dfa2752195f2ada433133c",
+      "derived": false
+    },
+    {
+      "path": "honesty/1280x720_live_empty.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 335203,
+      "sha256": "ed48acafd46471691f12099095c2097963b6743d90e8c8d1f1d12550f149173a",
+      "derived": false
+    },
+    {
+      "path": "honesty/1600x900_fixture_preview.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 518962,
+      "sha256": "0141bf9de5b58c26fc1dba088d02a9e64a84acb12a5fdc74db734bdf9590eb72",
+      "derived": false
+    },
+    {
+      "path": "honesty/1600x900_live_empty.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 463777,
+      "sha256": "2b3d943f04b83b523938e597751b5a7627635b23d6d9762cb38a111a2819fd2b",
+      "derived": false
+    },
+    {
+      "path": "honesty/1920x1080_fixture_preview.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 642371,
+      "sha256": "d9276f6f5a5d8f3db05d351e9d35ebd803fb62b525e235e1e755e6f5a93e6917",
+      "derived": false
+    },
+    {
+      "path": "honesty/1920x1080_live_empty.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 567321,
+      "sha256": "32521607249ec4d0d0498f9635daa14e39ed7c9d36b062259ba9ff08d1cde0ad",
+      "derived": false
+    },
+    {
+      "path": "honesty/960x540_fixture_preview.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 161352,
+      "sha256": "895f51a3b73832cf9b839f4f44f2c2bb3f1fc47f31d30e84e44c51e24051fe04",
+      "derived": false
+    },
+    {
+      "path": "honesty/960x540_live_empty.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 154782,
+      "sha256": "4091aace841554b11bc8e6ff6d938df1c7f53b7d19b632913d92b63f7a8de9af",
+      "derived": false
+    },
+    {
+      "path": "native_flow_sheet.png",
+      "dimensions": [
+        1920,
+        1540
+      ],
+      "bytes": 658038,
+      "sha256": "6150be7edb7eec9e325aa4bc46b45f6c872140cd61b5f7631daab6ca4d0e143a",
+      "derived": true
+    },
+    {
+      "path": "p2/1280x720_disconnected.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 326355,
+      "sha256": "2650a95e1b60632f12ad00a6bdf5e438f11391756213d54ab16a9bc4de0b1ff7",
+      "derived": false
+    },
+    {
+      "path": "p2/1280x720_ready.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330591,
+      "sha256": "cea1b2177f407e08c0227b2a4b8c29602dd57332dadde1d3e0274fea02712753",
+      "derived": false
+    },
+    {
+      "path": "p2/1280x720_rejected.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 331068,
+      "sha256": "bd527c6639b26b78f85bdd95635536d251ae263b8563afc4b8f3e7bfdea811f8",
+      "derived": false
+    },
+    {
+      "path": "p2/1280x720_resynchronizing.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330442,
+      "sha256": "84bab2dc3569629042e0cf799435b3a91c2daec14ccca203c0b8eef49384062a",
+      "derived": false
+    },
+    {
+      "path": "p2/1600x900_disconnected.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 451320,
+      "sha256": "d124f6f9d3f04d4595534a202c4cac572b13ccb3f7e239eed2c48664660d7ce7",
+      "derived": false
+    },
+    {
+      "path": "p2/1600x900_ready.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 457004,
+      "sha256": "aa928d8b9af652941db90310898abe2a9300e604345f2e0f61a33210248b55c6",
+      "derived": false
+    },
+    {
+      "path": "p2/1600x900_rejected.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 457496,
+      "sha256": "917cf948a1c74a07a6ca53f5144540d280f9ef24a61df950e3ebcb2cedaaa0ff",
+      "derived": false
+    },
+    {
+      "path": "p2/1600x900_resynchronizing.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 456792,
+      "sha256": "f2cb8db45eb8ba9958820dc6f2e0c8adccc162d27165aae23534be40ac33ba4c",
+      "derived": false
+    },
+    {
+      "path": "p2/1920x1080_disconnected.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 547580,
+      "sha256": "af08f2c4db12df1143ea4aa27485b1d224817ae07b6f9ee3137283ab5873ada0",
+      "derived": false
+    },
+    {
+      "path": "p2/1920x1080_ready.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556126,
+      "sha256": "2980f7b337771e09f8f739509555d2a42fc8424123fbf7573f5044bfb2040577",
+      "derived": false
+    },
+    {
+      "path": "p2/1920x1080_rejected.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556511,
+      "sha256": "fe5852cbb978367b28935dd4ace8d41461921256fef6b97f42987584c416ac85",
+      "derived": false
+    },
+    {
+      "path": "p2/1920x1080_resynchronizing.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 555086,
+      "sha256": "c999fac00de7f69a428a18443ab7f864ac1557b699adbf04184278caf5621617",
+      "derived": false
+    },
+    {
+      "path": "p2/960x540_compact_spacing.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149928,
+      "sha256": "4f60b26ec6502eadc2fcfce4d9bf4a957ba6eafb5f1cf7dbed12f0a5c47ac2d2",
+      "derived": false
+    },
+    {
+      "path": "p2/960x540_disconnected.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149928,
+      "sha256": "4f60b26ec6502eadc2fcfce4d9bf4a957ba6eafb5f1cf7dbed12f0a5c47ac2d2",
+      "derived": false
+    },
+    {
+      "path": "p2/960x540_ready.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 149549,
+      "sha256": "2096eeda026257126b45b85f096f73864526aaabcacf5a98231f00e8cc97d10b",
+      "derived": false
+    },
+    {
+      "path": "p2/960x540_rejected.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 150036,
+      "sha256": "c1c0a28970eef0d9dede8e7f6399e8e1ccac575949a7189a29055d15382d61c9",
+      "derived": false
+    },
+    {
+      "path": "p2/960x540_resynchronizing.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 150083,
+      "sha256": "9727dc3aef8fb147f72ed1cb5b0af1db886abc6691428b476eabb5197e71573c",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/1280x720_fixture_preview.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 375702,
+      "sha256": "39f7af5c8325bf7e8588efba55a5dbf541d2ca6ea5dfa2752195f2ada433133c",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/1280x720_live_empty.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 335203,
+      "sha256": "ed48acafd46471691f12099095c2097963b6743d90e8c8d1f1d12550f149173a",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/1600x900_fixture_preview.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 518962,
+      "sha256": "0141bf9de5b58c26fc1dba088d02a9e64a84acb12a5fdc74db734bdf9590eb72",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/1600x900_live_empty.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 463777,
+      "sha256": "2b3d943f04b83b523938e597751b5a7627635b23d6d9762cb38a111a2819fd2b",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/1920x1080_fixture_preview.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 642371,
+      "sha256": "d9276f6f5a5d8f3db05d351e9d35ebd803fb62b525e235e1e755e6f5a93e6917",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/1920x1080_live_empty.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 567321,
+      "sha256": "32521607249ec4d0d0498f9635daa14e39ed7c9d36b062259ba9ff08d1cde0ad",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/960x540_fixture_preview.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 161352,
+      "sha256": "895f51a3b73832cf9b839f4f44f2c2bb3f1fc47f31d30e84e44c51e24051fe04",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/960x540_live_empty.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 154782,
+      "sha256": "4091aace841554b11bc8e6ff6d938df1c7f53b7d19b632913d92b63f7a8de9af",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/960x540_live_health.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 185584,
+      "sha256": "fba7d8097d83e8ffbcae9745e1fdfb29514a60c5ab4bf3dc8098fe9a4777bc43",
+      "derived": false
+    },
+    {
+      "path": "promoted_honesty/960x540_live_stats.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 176470,
+      "sha256": "1e9296fd34acfd26fb743e36405c634efe1af3233c18c65896d34d73a8bd9dc5",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1280x720_disconnected.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 326355,
+      "sha256": "2650a95e1b60632f12ad00a6bdf5e438f11391756213d54ab16a9bc4de0b1ff7",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1280x720_ready.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330591,
+      "sha256": "cea1b2177f407e08c0227b2a4b8c29602dd57332dadde1d3e0274fea02712753",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1280x720_rejected.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 331068,
+      "sha256": "bd527c6639b26b78f85bdd95635536d251ae263b8563afc4b8f3e7bfdea811f8",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1280x720_resynchronizing.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "bytes": 330442,
+      "sha256": "84bab2dc3569629042e0cf799435b3a91c2daec14ccca203c0b8eef49384062a",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1600x900_disconnected.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 451320,
+      "sha256": "d124f6f9d3f04d4595534a202c4cac572b13ccb3f7e239eed2c48664660d7ce7",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1600x900_ready.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 457004,
+      "sha256": "aa928d8b9af652941db90310898abe2a9300e604345f2e0f61a33210248b55c6",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1600x900_rejected.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 457496,
+      "sha256": "917cf948a1c74a07a6ca53f5144540d280f9ef24a61df950e3ebcb2cedaaa0ff",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1600x900_resynchronizing.png",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "bytes": 456792,
+      "sha256": "f2cb8db45eb8ba9958820dc6f2e0c8adccc162d27165aae23534be40ac33ba4c",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1920x1080_disconnected.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 547580,
+      "sha256": "af08f2c4db12df1143ea4aa27485b1d224817ae07b6f9ee3137283ab5873ada0",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1920x1080_ready.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556126,
+      "sha256": "2980f7b337771e09f8f739509555d2a42fc8424123fbf7573f5044bfb2040577",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1920x1080_rejected.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 556511,
+      "sha256": "fe5852cbb978367b28935dd4ace8d41461921256fef6b97f42987584c416ac85",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/1920x1080_resynchronizing.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "bytes": 555086,
+      "sha256": "c999fac00de7f69a428a18443ab7f864ac1557b699adbf04184278caf5621617",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/960x540_compact_spacing.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148743,
+      "sha256": "3402f0a76b65883972e513af0a8b872b63123f3f57637db10e8c13c6e99af42e",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/960x540_compact_tooltip_after_receipt.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 154357,
+      "sha256": "c5c859b3e569ef87ab3f6f44e0303c15d4293da422975f5f7b18dd86c2b98c98",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/960x540_disconnected.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 145870,
+      "sha256": "3f2cddc000c6c2d63b1c50f3acb141c743424d0cb2a64ca2b715625a6aed208a",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/960x540_ready.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148398,
+      "sha256": "06ddce8ccf10a418dad50043f6e37fc37f46907cdf8db6461bc0a1fb8ae0cbb6",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/960x540_rejected.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148743,
+      "sha256": "3402f0a76b65883972e513af0a8b872b63123f3f57637db10e8c13c6e99af42e",
+      "derived": false
+    },
+    {
+      "path": "promoted_p2/960x540_resynchronizing.png",
+      "dimensions": [
+        960,
+        540
+      ],
+      "bytes": 148847,
+      "sha256": "30457338a51011dd5215a2db365aa63e00f0fcaf3bf5a85ed5dad40c5701bc6c",
+      "derived": false
+    },
+    {
+      "path": "reference_comparison.png",
+      "dimensions": [
+        1280,
+        1540
+      ],
+      "bytes": 725160,
+      "sha256": "ed203ced236296e7cbd18708275531111d7d1030e981986ff82f3d34681fd7b7",
+      "derived": true
+    },
+    {
+      "path": "section_and_overlay_sheet.png",
+      "dimensions": [
+        1280,
+        2310
+      ],
+      "bytes": 924432,
+      "sha256": "66879423d5ead577673f4646340c4c8377e1b31c6351c4d3e87839f12c9e97e1",
+      "derived": true
+    }
+  ],
+  "source_hashes": {
+    "game/inventory/presentation/inventory_presentation_controller.gd": "1f207c208ff14b902f1d72d26f57056fdd2dc3b7c3b13367a788850c52e93caf",
+    "ui/screens/character/character_screen.gd": "9bf0c16c1354e15b7a77b5b103e7d141cee0814a5a7a632f99347da455062f1a",
+    "ui/screens/character/character_workspace.tscn": "9144ca8f1965efa4d937560a5bddbe9481ad7df12df2649cbe5c71061bdcbe9c",
+    "ui/screens/character/components/character_layout.gd": "9fc7c49d494bad2684bfccd11332a163a02c7b5c9765e203aa11c70bb37360bd",
+    "ui/screens/character/components/inventory_grid.gd": "771a1ffbf8aa4885a79895d3864138e3d2676f625a2e4abe74873840f6cfe91c",
+    "ui/screens/character/components/health_section.tscn": "9e95cefa2ab637735936016e158948a669a3aee258770354d4c49aaa8a496a46",
+    "ui/screens/character/components/stats_section.tscn": "99c3b008f5222f1b5b9a9a7db417d191e0c14a014af043187ece49076b698d05",
+    "ui/screens/character/inventory_actions.gd": "a9276002a00fa4979cb067f7584e9a78dda266b1b5fa452abdbb803aa75fc733",
+    "tests/raid/inventory_multi_controller_contract.gd": "4289123c29b21da3ed3c9cc8da2c5f3873c8d968b14f74a848fdf0f026521dbc",
+    "tests/raid/inventory_ui_binding_contract.gd": "8e47f11b8f0b4e06b2d34ae67a73cb465de940c858b78d7f468a1ada42a9240d",
+    "tests/visual/inventory_ui_binding/capture.gd": "8cd0ac580acf0acf3e2d9e189d6fd84ed33ba20a2701dd4d45593e2bf8da7745",
+    "tests/visual/inventory_ui_binding/compact_extent_probe.gd": "5217ae4190ca8679356bffdc996a99c797f3f40ddb76f85c6611839f7cea80a1",
+    "tests/visual/inventory_ui_binding/compact_native_selection_probe.gd": "fdd118def3f74740ae41c49a1d25d72879f76e9e2d6473973d0bcfe8767d7e26",
+    "tests/visual/inventory_ui_binding/native_drag_probe.gd": "e20fc6ccecc1ebe8670d0725881d33f038d32b75cca7cffa465d7403e07c0f7e",
+    "tests/visual/inventory_ui_binding/p2_presentation_probe.gd": "6eeaf18f67a1d5e4b2c960c7fe1bd12a7d841375f3bc345c96da934e94fe7cf6",
+    "tests/visual/inventory_ui_binding/presentation_honesty_probe.gd": "8b9c8b8d4391cde384d245de85b68866e0fdd837259254ef2c7c6a889c6c254c",
+    "tests/visual/inventory_ui_binding/reentrant_probe.gd": "afb8af27520a610a3625b432bdf487686d5358dcea92079668120258354393af"
+  }
+}

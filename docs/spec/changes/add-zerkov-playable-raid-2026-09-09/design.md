@@ -145,8 +145,25 @@ The reviewed equipped-item reconciler (task 4.8) accepts only the current
 projection's exact native `Resource` provenance, preserves stable
 weapon/equipment and entity mappings, performs fail-atomic rebinding, publishes
 recursively read-only outcomes, and releases bindings in a reentrant-safe
-order. Task 4.7b remains the next unblocked presentation binding task; filter,
-search and tooltip behavior stay presentation-only until that task is verified.
+order.
+
+The inventory UI binding (task 4.7b, accepted 2026-09-10) keeps canonical
+mutation in the authority/adapter seam. UI item records are detached from
+immutable confirmed snapshots; filter, search, hover, selection and tooltip
+behavior remain presentation-only, while drag, rotate, split, merge, loot and
+quick-transfer gestures emit strict intents. Owner/scope generations, binding
+tokens, exact item facts and captured dependencies protect deferred input and
+synchronous replacement. Command IDs advance before pending publication,
+remain distinct across controllers and models, fail closed at exhaustion, and
+resolve feedback once; quick transfer remains complete-only
+(`allow_partial=false`). Live-empty gear/economy actions are unavailable and
+fixture restoration is visibly labelled `FIXTURE PREVIEW`. Encrypted Drive and
+Gold Watch retain their true identities with neutral artwork and accessible
+`PLACEHOLDER` disclosure; Health and Stats are explicitly authored preview
+values. The accepted native evidence covers 1920x1080, 1600x900, 1280x720 and
+960x540. This does not claim human playtest, complete raid-loop, multiplayer,
+or other-platform release acceptance; later UI, combat and progression gates
+remain open.
 
 ### Identifiers and units
 

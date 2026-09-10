@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+ASTRA_NATIVE_FLOW_CAPTURE state=health runtime=960x540_live_sections extra={"explicit_fixture_label":true,"visible_labels":["TASKS · 2","$ 125,000","LIVE INVENTORY · ACTIONS UNAVAILABLE","FIXTURE PREVIEW · LIVE HEALTH VALUES UNAVAILABLE","HEAD","55%","Concussed · 0:42","TORSO","20%","Heavy bleed · −3/s","BODY-WIDE","■  DEHYDRATED","■  RADIATION · LOW","READY · PROFILE READ-ONLY   ·   FILTER / SEARCH / TOOLTIP READ-ONLY"]}
+ASTRA_NATIVE_FLOW_CAPTURE state=stats runtime=960x540_live_sections extra={"explicit_fixture_label":true,"visible_labels":["TASKS · 2","$ 125,000","LIVE INVENTORY · ACTIONS UNAVAILABLE","FIXTURE PREVIEW · LIVE PROGRESSION VALUES UNAVAILABLE","LEVEL","14","Oak Jhonson","Contractor","56,500 / 100,000","Last raid  ","+2,140 XP","LVL 15 · +1 stash row · Fence T2","14","COMBAT","ACCURACY","34%","▲ 3%","HEADSHOTS","18%","KILLS","312","DMG / RAID","1,240","RANGE","38 m","RAIDS","128","+6 this week","SURVIVAL","61%","▲ 4% vs last 10","K / D","2.4","▼ 0.3 vs last 10","EXTRACTS","78","3 in a row","AVG LOOT","$ 12,400","▲ $ 1,900","LONGEST","44:10","Rail bridge","READY · PROFILE READ-ONLY   ·   FILTER / SEARCH / TOOLTIP READ-ONLY"]}
+ASTRA_LIVE_SECTIONS_COMPLETE checks=18 failures=0

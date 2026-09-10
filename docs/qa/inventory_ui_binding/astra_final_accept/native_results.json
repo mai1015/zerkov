@@ -1,0 +1,170 @@
+[
+  {
+    "name": "independent_surface",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/independent_surface_probe.gd"
+    ],
+    "exit": 0,
+    "checks": 68,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 3.157,
+    "sha256": "115cd1554e911cb4da2ab98a40c8e2b41f01ec5310ffae08ffc713c54ce1cc43",
+    "passed": true
+  },
+  {
+    "name": "fixture_status",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/fixture_status_probe.gd"
+    ],
+    "exit": 0,
+    "checks": 52,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 2.577,
+    "sha256": "6185be983bfcae15d27c0bf20c140089326ddda6d6d817950b38df629c77ff1c",
+    "passed": true
+  },
+  {
+    "name": "compact_continuity",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_continuity.gd"
+    ],
+    "exit": 0,
+    "checks": 34,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 5.594,
+    "sha256": "a3d9ff1f67b1b6018c0a264e30db772fa9cb28b80641f16fae9fdba981146305",
+    "passed": true
+  },
+  {
+    "name": "compact_native_selection",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_native_selection.gd"
+    ],
+    "exit": 0,
+    "checks": 37,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 1.519,
+    "sha256": "9e5cdb8854092a2576a2f187f57acf1730d2e0411e76de29adcb0b6a35f7238f",
+    "passed": true
+  },
+  {
+    "name": "presentation_honesty",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/presentation_honesty.gd"
+    ],
+    "exit": 0,
+    "checks": 528,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 3.127,
+    "sha256": "c37f3605e154934d542a1a24c12c9ecab1c725d68c895f8caa7bd62a1627d579",
+    "passed": true
+  },
+  {
+    "name": "p2_presentation",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/p2_presentation.gd"
+    ],
+    "exit": 0,
+    "checks": 299,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 4.943,
+    "sha256": "bae6b57109aaa0dabd805a3baa0fb598acb9026d862dd2905d3505ecb68951ba",
+    "passed": true
+  },
+  {
+    "name": "native_flow_typed_quantity",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/native_flow.gd"
+    ],
+    "exit": 0,
+    "checks": 88,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 4.241,
+    "sha256": "e0e6b7856e014c622fad3542d2d8a314d7b32efa592e0218030d62e901079098",
+    "passed": true
+  },
+  {
+    "name": "native_pointer",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/native_pointer.gd"
+    ],
+    "exit": 0,
+    "checks": 20,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 1.567,
+    "sha256": "6986d53bdb2a075543065965e2f67fb9244c40f272567afd2f1ad257dc3fb093",
+    "passed": true
+  },
+  {
+    "name": "compact_visual",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_visual.gd"
+    ],
+    "exit": 0,
+    "checks": 23,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 8.966,
+    "sha256": "027485791a7cbe19c73a71f5a1abbce1524d1800a40167694badbdb780f48061",
+    "passed": true
+  },
+  {
+    "name": "core_capture",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/capture.gd"
+    ],
+    "exit": 0,
+    "checks": 140,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 9.805,
+    "sha256": "18445c66baa86be6dc9fe2fdc5d15162d27308f6420db730fc8557f0f671211f",
+    "passed": true
+  },
+  {
+    "name": "live_sections",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/live_sections_probe.gd"
+    ],
+    "exit": 0,
+    "checks": 18,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 8.793,
+    "sha256": "5981685d796d845d2c93dcf3abd6dabdd459b265629f5633801a9d61ac572fd0",
+    "passed": true
+  },
+  {
+    "name": "compact_tooltip_refresh",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_tooltip_refresh_probe.gd"
+    ],
+    "exit": 0,
+    "checks": 17,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 1.507,
+    "sha256": "1b950a0cdf5a0927e061ddf2f7c0529f646d673f72fdf9367ff0e40f8bf5d1fd",
+    "passed": true
+  }
+]

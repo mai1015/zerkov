@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+ASTRA_NATIVE_FLOW_CAPTURE state=status_after_unbind runtime=1920x1080_fixture_status extra={"clip_text":false,"label_width":244.0,"measured_width":99.0,"text":"FIXTURE PREVIEW","tooltip":"FIXTURE PREVIEW · local authored inventory; authority state is not connected."}
+ASTRA_NATIVE_FLOW_CAPTURE state=status_after_unbind runtime=1600x900_fixture_status extra={"clip_text":false,"label_width":244.0,"measured_width":99.0,"text":"FIXTURE PREVIEW","tooltip":"FIXTURE PREVIEW · local authored inventory; authority state is not connected."}
+ASTRA_NATIVE_FLOW_CAPTURE state=status_after_unbind runtime=1280x720_fixture_status extra={"clip_text":false,"label_width":244.0,"measured_width":99.0,"text":"FIXTURE PREVIEW","tooltip":"FIXTURE PREVIEW · local authored inventory; authority state is not connected."}
+ASTRA_NATIVE_FLOW_CAPTURE state=status_after_unbind runtime=960x540_fixture_status extra={"clip_text":false,"label_width":640.0,"measured_width":175.0,"text":"FIXTURE PREVIEW · LOCAL INVENTORY","tooltip":"FIXTURE PREVIEW · local authored inventory; authority state is not connected."}
+ASTRA_FIXTURE_STATUS_COMPLETE checks=52 failures=0

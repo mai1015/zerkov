@@ -1,0 +1,16 @@
+[
+  {
+    "name": "overlay_and_sections_challenge",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd"
+    ],
+    "exit": 0,
+    "checks": 112,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 4.532,
+    "sha256": "21ca1d04e751e46988a6c16a09eaa4d15d04a591aec60f1bf1b003ea5734b9e9",
+    "passed": true
+  }
+]

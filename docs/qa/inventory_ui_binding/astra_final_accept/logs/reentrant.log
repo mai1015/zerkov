@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ASTRA_REENTRANT_PROBE submitting with a synchronous pending listener that unbinds/rebinds
+ASTRA_REENTRANT_OBSERVED result={ "accepted": false, "replayed": false, "queued": false, "reason": &"inventory_runtime_stale_binding", "operation": &"loot", "ui_operation": &"loot", "status": { "code": &"command_rejected", "reason": &"inventory_runtime_stale_binding" }, "inventory_command_id": 1099511627776, "command_id": 1099511627776, "native_command_id": 0, "ui_pending_command_id": 1099511627776, "ui_pending": false, "ui_resolved": true, "ui_binding_current": false } requests=0 pending=[]
+ASTRA_REENTRANT_PROBE submitting with a synchronous result listener that unbinds/rebinds
+ASTRA_REENTRANT_COMPLETE checks=28 failures=0

@@ -1,0 +1,36 @@
+[
+  {
+    "name": "overlay_and_sections_challenge",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd"
+    ],
+    "exit": 1,
+    "checks": 106,
+    "failures": 19,
+    "diagnostics": [
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound health is rendered at (1920, 1080)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for health (1920, 1080)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for health (1920, 1080)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound stats is rendered at (1920, 1080)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for stats (1920, 1080)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for stats (1920, 1080)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound health is rendered at (1600, 900)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for health (1600, 900)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for health (1600, 900)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound stats is rendered at (1600, 900)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for stats (1600, 900)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for stats (1600, 900)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound health is rendered at (1280, 720)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for health (1280, 720)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for health (1280, 720)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound stats is rendered at (1280, 720)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for stats (1280, 720)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for stats (1280, 720)",
+      "ERROR: INVENTORY_UI_BINDING_CONTRACT: later unrelated command is genuinely accepted"
+    ],
+    "seconds": 4.174,
+    "sha256": "27d1e86b3f720996d40c4fc99545dbe5bc2005518fee1ca8cade8bc7ada09643",
+    "passed": false
+  }
+]

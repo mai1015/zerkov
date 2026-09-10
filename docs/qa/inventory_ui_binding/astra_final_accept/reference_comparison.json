@@ -1,0 +1,38 @@
+[
+  {
+    "resolution": "1920x1080",
+    "reference": "/Volumes/Data/codes/games/zerkov-ui-backup.pdqYzi/after/1920x1080/inventory.png",
+    "reference_sha256": "9606f44d3dc4f9428893f66966f6350887ec027c8723e76e82910294d0d37d76",
+    "current": "core/1920x1080_ready.png",
+    "chrome_height": 56,
+    "changed_pixels": 0,
+    "compared_pixels": 107520
+  },
+  {
+    "resolution": "1600x900",
+    "reference": "/Volumes/Data/codes/games/zerkov-ui-backup.pdqYzi/after/1600x900/inventory.png",
+    "reference_sha256": "921cc3bc4d53880f73fb59878a03403aca54701fec9bb0599a2da5b3bbd3d1b1",
+    "current": "core/1600x900_ready.png",
+    "chrome_height": 47,
+    "changed_pixels": 0,
+    "compared_pixels": 75200
+  },
+  {
+    "resolution": "1280x720",
+    "reference": "/Volumes/Data/codes/games/zerkov-ui-backup.pdqYzi/after/1280x720/inventory.png",
+    "reference_sha256": "6cdcdee8b9b4d22e1d7d4d33c1ea5e021c27f84f27a01b3258f961e339c3e8d1",
+    "current": "core/1280x720_ready.png",
+    "chrome_height": 37,
+    "changed_pixels": 2,
+    "compared_pixels": 47360
+  },
+  {
+    "resolution": "960x540",
+    "reference": "/Volumes/Data/codes/games/zerkov-ui-backup.pdqYzi/after/960x540/inventory.png",
+    "reference_sha256": "a55272d75f345a465ff1cb80a05e58b1d594c3bd5ed454e0cf226657961e2050",
+    "current": "core/960x540_ready.png",
+    "chrome_height": 56,
+    "changed_pixels": 0,
+    "compared_pixels": 53760
+  }
+]

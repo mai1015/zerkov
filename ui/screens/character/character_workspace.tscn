@@ -588,13 +588,22 @@ theme_override_font_sizes/font_size = 11
 text = "POCKETS · 4 · always on you"
 vertical_alignment = 1
 
-[node name="PocketsGrid" type="Control" parent="InventoryContent" unique_id=139010613]
+[node name="DesktopPocketsScroll" type="ScrollContainer" parent="InventoryContent"]
 custom_minimum_size = Vector2(296, 74)
 anchors_preset = 0
 offset_left = 568.0
 offset_top = 209.0
 offset_right = 864.0
 offset_bottom = 283.0
+mouse_filter = 1
+clip_contents = true
+follow_focus = true
+
+[node name="PocketsGrid" type="Control" parent="InventoryContent/DesktopPocketsScroll" unique_id=139010613]
+custom_minimum_size = Vector2(296, 74)
+anchors_preset = 0
+offset_right = 296.0
+offset_bottom = 74.0
 mouse_filter = 1
 script = ExtResource("17_awown")
 
@@ -660,13 +669,22 @@ theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBoxFlat_73d5n")
 text = "⇄ SWAP · 3 in stash"
 
-[node name="RigGrid" type="Control" parent="InventoryContent" unique_id=1593257835]
+[node name="DesktopRigScroll" type="ScrollContainer" parent="InventoryContent"]
 custom_minimum_size = Vector2(444, 148)
 anchors_preset = 0
 offset_left = 656.0
 offset_top = 321.0
 offset_right = 1100.0
 offset_bottom = 469.0
+mouse_filter = 1
+clip_contents = true
+follow_focus = true
+
+[node name="RigGrid" type="Control" parent="InventoryContent/DesktopRigScroll" unique_id=1593257835]
+custom_minimum_size = Vector2(444, 148)
+anchors_preset = 0
+offset_right = 444.0
+offset_bottom = 148.0
 mouse_filter = 1
 script = ExtResource("17_awown")
 
@@ -732,13 +750,22 @@ theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBoxFlat_40nc4")
 text = "⇄ SWAP · Hiker 7×6 in stash"
 
-[node name="PackGrid" type="Control" parent="InventoryContent" unique_id=1637998882]
+[node name="DesktopPackScroll" type="ScrollContainer" parent="InventoryContent"]
 custom_minimum_size = Vector2(444, 370)
 anchors_preset = 0
 offset_left = 656.0
 offset_top = 507.0
 offset_right = 1100.0
 offset_bottom = 877.0
+mouse_filter = 1
+clip_contents = true
+follow_focus = true
+
+[node name="PackGrid" type="Control" parent="InventoryContent/DesktopPackScroll" unique_id=1637998882]
+custom_minimum_size = Vector2(444, 370)
+anchors_preset = 0
+offset_right = 444.0
+offset_bottom = 370.0
 mouse_filter = 1
 script = ExtResource("17_awown")
 
@@ -1093,13 +1120,22 @@ text = "UTIL"
 icon = ExtResource("27_drowf")
 expand_icon = true
 
-[node name="StashGrid" type="Control" parent="InventoryContent" unique_id=704097884]
+[node name="DesktopStashScroll" type="ScrollContainer" parent="InventoryContent"]
 custom_minimum_size = Vector2(518, 740)
 anchors_preset = 0
 offset_left = 1304.0
 offset_top = 225.0
 offset_right = 1822.0
 offset_bottom = 965.0
+mouse_filter = 1
+clip_contents = true
+follow_focus = true
+
+[node name="StashGrid" type="Control" parent="InventoryContent/DesktopStashScroll" unique_id=704097884]
+custom_minimum_size = Vector2(518, 740)
+anchors_preset = 0
+offset_right = 518.0
+offset_bottom = 740.0
 mouse_filter = 1
 script = ExtResource("17_awown")
 [node name="CompactWorkspace" parent="InventoryContent" instance=ExtResource("compact_workspace")]

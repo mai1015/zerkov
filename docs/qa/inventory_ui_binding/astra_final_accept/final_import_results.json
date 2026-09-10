@@ -1,0 +1,18 @@
+[
+  {
+    "name": "editor_import_final",
+    "args": [
+      "--headless",
+      "--editor",
+      "--import",
+      "--quit"
+    ],
+    "exit": 0,
+    "checks": null,
+    "failures": null,
+    "diagnostics": [],
+    "seconds": 2.344,
+    "sha256": "0e9619b3491283555b643b1bdec015bda2ac1c8f308977064c61eb06e57c665d",
+    "passed": true
+  }
+]

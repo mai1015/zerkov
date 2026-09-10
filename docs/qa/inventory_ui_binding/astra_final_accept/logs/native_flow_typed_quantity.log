@@ -1,0 +1,18 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+ASTRA_NATIVE_FLOW_CAPTURE state=01_bound runtime=1280x720_live_flow extra={"precondition_command":1099511627776}
+ASTRA_NATIVE_FLOW_CAPTURE state=02_selected_search runtime=1280x720_live_flow extra={"query":"sealed","request_delta":0,"selected_item_id":1}
+ASTRA_NATIVE_FLOW_CAPTURE state=03_drag_confirmed runtime=1280x720_live_flow extra={"destination":[2,0],"item_id":1}
+ASTRA_NATIVE_FLOW_CAPTURE state=04_rotated runtime=1280x720_live_flow extra={"item_id":1,"requests":1,"rotated":true}
+ASTRA_NATIVE_FLOW_CAPTURE state=05_split_modal runtime=1280x720_live_flow extra={"destination":[4,0],"source_item_id":6}
+ASTRA_NATIVE_FLOW_CAPTURE state=06_split_confirmed runtime=1280x720_live_flow extra={"destination":[4,0],"new_item_id":9,"quantity":10,"source_item_id":6}
+ASTRA_NATIVE_FLOW_CAPTURE state=07_merged runtime=1280x720_live_flow extra={"quantity":60,"removed_source_item_id":9,"target_item_id":6}
+ASTRA_NATIVE_FLOW_CAPTURE state=08_quick_transferred runtime=1280x720_live_flow extra={"confirmed_location":{"container":1,"kind":"spatial","rotated":false,"x":0,"y":0},"confirmed_source":"backpack","item_id":4}
+ASTRA_NATIVE_FLOW_CAPTURE state=09_rejected_restored runtime=1280x720_live_flow extra={"concurrent_command":{"accepted":true,"authoritative_revision":0,"command_id":991407,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[{"destination_container":4,"item":1,"kind":2,"reference":0,"secondary_item":0,"source_container":4}],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":6,"successor":7}],"status":{"code":0,"detail":0,"diagnostic":0,"ok":true},"transferred_quantity":0},"item_id":2,"location":{"container":6,"kind":"spatial","rotated":false,"x":2,"y":0},"reason":"REJECTED · destination revision stale"}
+ASTRA_NATIVE_FLOW_CAPTURE state=10_resynchronizing runtime=1280x720_live_flow extra={}
+ASTRA_NATIVE_FLOW_CAPTURE state=11_disconnected runtime=1280x720_live_flow extra={}
+ASTRA_NATIVE_FLOW_CAPTURE state=12_recovered runtime=1280x720_live_flow extra={"item_id":1,"request_delta":1}
+ASTRA_NATIVE_FLOW_CAPTURE state=01_top_left runtime=960x540_compact_scroll extra={"scroll":[0,0]}
+ASTRA_NATIVE_FLOW_CAPTURE state=02_bottom_right runtime=960x540_compact_scroll extra={"last_cell_center":"(755.0, 447.0)","native_scroll":[256,1324],"terminal_max":[256,1324],"terminal_scroll":[256,1324]}
+ASTRA_NATIVE_FLOW_COMPLETE checks=88 failures=0 records=14

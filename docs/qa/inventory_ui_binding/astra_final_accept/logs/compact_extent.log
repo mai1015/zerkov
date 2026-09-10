@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ASTRA_COMPACT_P2 pockets=[P: (160.0, 232.0), S: (296.0, 148.0)] rig_header=[P: (160.0, 396.0), S: (340.0, 36.0)] overlap=[P: (0.0, 0.0), S: (0.0, 0.0)]
+ASTRA_COMPACT stash_grid=(888.0, 1480.0) content=(888.0, 1480.0) maximum_scroll=(256, 1324) page=(632.0, 156.0)
+ASTRA_COMPACT corpse_grid=(740.0, 592.0) content=(740.0, 592.0) maximum_scroll=(108, 436) page=(632.0, 156.0)
+ASTRA_COMPACT_EXTENT_COMPLETE checks=19 failures=0

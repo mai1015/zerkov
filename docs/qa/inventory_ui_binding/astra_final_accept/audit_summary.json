@@ -1,0 +1,523 @@
+{
+  "authoring_attempts": [
+    {
+      "name": "overlay_and_sections_challenge",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd"
+      ],
+      "exit": 1,
+      "checks": null,
+      "failures": null,
+      "diagnostics": [
+        "SCRIPT ERROR: Parse Error: Cannot infer the type of \"column\" variable because the value doesn't have a set type.",
+        "SCRIPT ERROR: Parse Error: Cannot infer the type of \"grid\" variable because the value doesn't have a set type.",
+        "ERROR: Failed to load script \"res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd\" with error \"Parse error\"."
+      ],
+      "seconds": 0.564,
+      "sha256": "b9dbd1d3359ce3ba4296db24663a71127cb8174eb5eedaad7f16a8328b26e8f0",
+      "passed": false
+    },
+    {
+      "name": "overlay_and_sections_challenge",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd"
+      ],
+      "exit": 1,
+      "checks": 106,
+      "failures": 19,
+      "diagnostics": [
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound health is rendered at (1920, 1080)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for health (1920, 1080)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for health (1920, 1080)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound stats is rendered at (1920, 1080)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for stats (1920, 1080)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for stats (1920, 1080)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound health is rendered at (1600, 900)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for health (1600, 900)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for health (1600, 900)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound stats is rendered at (1600, 900)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for stats (1600, 900)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for stats (1600, 900)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound health is rendered at (1280, 720)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for health (1280, 720)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for health (1280, 720)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: bound stats is rendered at (1280, 720)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: fixture disclosure intersects viewport and every clipping ancestor for stats (1280, 720)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: complete disclosure fits its rendered label for stats (1280, 720)",
+        "ERROR: INVENTORY_UI_BINDING_CONTRACT: later unrelated command is genuinely accepted"
+      ],
+      "seconds": 4.174,
+      "sha256": "27d1e86b3f720996d40c4fc99545dbe5bc2005518fee1ca8cade8bc7ada09643",
+      "passed": false
+    }
+  ],
+  "total_invocations": 33,
+  "total_executed_checks": 4334,
+  "total_executed_failures": 19,
+  "verdict": "ACCEPT CHECKPOINT",
+  "human_approval": false,
+  "head": "9f5f90388911dfe36da0978f8d8bdadfb6f9bb44",
+  "unique_suite_ids": 31,
+  "executions": 31,
+  "checks": 4228,
+  "failures": 0,
+  "results": [
+    {
+      "name": "authority",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/inventory_authority_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 79,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.151,
+      "sha256": "120f94c679f549b327f93e0e44abbf1c63ebbea868fa8f71be6c37f6bbeff864",
+      "passed": true
+    },
+    {
+      "name": "replay",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/authority_replay_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 81,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.243,
+      "sha256": "82174ee02aa80f583c898b162a226daa413aac9ba37f70f8775e63b15ad95827",
+      "passed": true
+    },
+    {
+      "name": "equipped_reconciliation",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/equipped_item_reconciliation_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 123,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.247,
+      "sha256": "4f0131f51ac60090332e86f24845d438f1fed05f4fad4d13964ad3605cd98d97",
+      "passed": true
+    },
+    {
+      "name": "binding",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/inventory_ui_binding_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 138,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.848,
+      "sha256": "85bc1212063d487d00b7ac14483a177932de26ac468a2f1e3f369e9d98990e89",
+      "passed": true
+    },
+    {
+      "name": "multi_controller",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/inventory_multi_controller_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 23,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.349,
+      "sha256": "e8525696e142ed37dbfe2b45d6c8cde9121c7065d60838cf156c7b36b5fdd64a",
+      "passed": true
+    },
+    {
+      "name": "reentrant",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/visual/inventory_ui_binding/reentrant_probe.gd"
+      ],
+      "exit": 0,
+      "checks": 28,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.352,
+      "sha256": "55290af23609803867ecf7610ec68fd07b8a49305d9ed2f4ef60891438dc852f",
+      "passed": true
+    },
+    {
+      "name": "compact_extent",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/visual/inventory_ui_binding/compact_extent_probe.gd"
+      ],
+      "exit": 0,
+      "checks": 19,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.849,
+      "sha256": "d3bee66c28289a3fa34fc64f207739d0c59dad244fc01e2272d5aa52e867a442",
+      "passed": true
+    },
+    {
+      "name": "inventory",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/inventory_smoke.gd"
+      ],
+      "exit": 0,
+      "checks": 21,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.65,
+      "sha256": "c08a818361257a22fd8b99cd42405e69dedc954f052460198200a44431374fcc",
+      "passed": true
+    },
+    {
+      "name": "compact_inventory",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/compact_inventory_smoke.gd"
+      ],
+      "exit": 0,
+      "checks": 42,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 1.847,
+      "sha256": "68f8a9e19650f47b2e0260ee7050590ed50a08c6ddf485012e3cd8e4de65817c",
+      "passed": true
+    },
+    {
+      "name": "projection",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/inventory_projection_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 99,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.262,
+      "sha256": "4a135d9d6b63278da1621233c4aab4f1c76bd60d0440834b078c263c10704b64",
+      "passed": true
+    },
+    {
+      "name": "intent",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/inventory_intent_adapter_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 162,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.347,
+      "sha256": "3c3569082d7c88e030b3233e9ca4302d3ab64d53ce06800091a8d343832e42ff",
+      "passed": true
+    },
+    {
+      "name": "mutation",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/raid/inventory_mutation_routing_contract.gd"
+      ],
+      "exit": 0,
+      "checks": 146,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 0.237,
+      "sha256": "c8fdb7af1a8a7066dcd3367ff36a49b24170955ff01ec34716c0c5ce9084c259",
+      "passed": true
+    },
+    {
+      "name": "composition",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/ui_composition_smoke.gd"
+      ],
+      "exit": 0,
+      "checks": 109,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 4.531,
+      "sha256": "19617e3ecf80bf9f3b26fa3b3afcdd050cdc63135ab23235eb98cdcba1696371",
+      "passed": true
+    },
+    {
+      "name": "responsive",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/responsive_smoke.gd"
+      ],
+      "exit": 0,
+      "checks": 96,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 5.173,
+      "sha256": "9b56f6f07bf8c46b3421c10727aadfbe907674950fe18cb535169fde30d5a9ec",
+      "passed": true
+    },
+    {
+      "name": "reflow",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/ui_reflow_smoke.gd"
+      ],
+      "exit": 0,
+      "checks": 756,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 51.632,
+      "sha256": "0749f4890ee8c0512706ba8d0495d65eb2f9dce083101537c0fbe70e7f8815da",
+      "passed": true
+    },
+    {
+      "name": "components",
+      "args": [
+        "--headless",
+        "--script",
+        "res://tests/ui_component_states.gd"
+      ],
+      "exit": 0,
+      "checks": 15,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 2.571,
+      "sha256": "ce457236d5dc0fea91869893c939808dcf3505088a28ab4d4dc9999629cae219",
+      "passed": true
+    },
+    {
+      "name": "independent_surface",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/independent_surface_probe.gd"
+      ],
+      "exit": 0,
+      "checks": 68,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 3.157,
+      "sha256": "115cd1554e911cb4da2ab98a40c8e2b41f01ec5310ffae08ffc713c54ce1cc43",
+      "passed": true
+    },
+    {
+      "name": "fixture_status",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/fixture_status_probe.gd"
+      ],
+      "exit": 0,
+      "checks": 52,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 2.577,
+      "sha256": "6185be983bfcae15d27c0bf20c140089326ddda6d6d817950b38df629c77ff1c",
+      "passed": true
+    },
+    {
+      "name": "compact_continuity",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_continuity.gd"
+      ],
+      "exit": 0,
+      "checks": 34,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 5.594,
+      "sha256": "a3d9ff1f67b1b6018c0a264e30db772fa9cb28b80641f16fae9fdba981146305",
+      "passed": true
+    },
+    {
+      "name": "compact_native_selection",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_native_selection.gd"
+      ],
+      "exit": 0,
+      "checks": 37,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 1.519,
+      "sha256": "9e5cdb8854092a2576a2f187f57acf1730d2e0411e76de29adcb0b6a35f7238f",
+      "passed": true
+    },
+    {
+      "name": "presentation_honesty",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/presentation_honesty.gd"
+      ],
+      "exit": 0,
+      "checks": 528,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 3.127,
+      "sha256": "c37f3605e154934d542a1a24c12c9ecab1c725d68c895f8caa7bd62a1627d579",
+      "passed": true
+    },
+    {
+      "name": "p2_presentation",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/p2_presentation.gd"
+      ],
+      "exit": 0,
+      "checks": 299,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 4.943,
+      "sha256": "bae6b57109aaa0dabd805a3baa0fb598acb9026d862dd2905d3505ecb68951ba",
+      "passed": true
+    },
+    {
+      "name": "native_flow_typed_quantity",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/native_flow.gd"
+      ],
+      "exit": 0,
+      "checks": 88,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 4.241,
+      "sha256": "e0e6b7856e014c622fad3542d2d8a314d7b32efa592e0218030d62e901079098",
+      "passed": true
+    },
+    {
+      "name": "native_pointer",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/native_pointer.gd"
+      ],
+      "exit": 0,
+      "checks": 20,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 1.567,
+      "sha256": "6986d53bdb2a075543065965e2f67fb9244c40f272567afd2f1ad257dc3fb093",
+      "passed": true
+    },
+    {
+      "name": "compact_visual",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_visual.gd"
+      ],
+      "exit": 0,
+      "checks": 23,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 8.966,
+      "sha256": "027485791a7cbe19c73a71f5a1abbce1524d1800a40167694badbdb780f48061",
+      "passed": true
+    },
+    {
+      "name": "core_capture",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/capture.gd"
+      ],
+      "exit": 0,
+      "checks": 140,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 9.805,
+      "sha256": "18445c66baa86be6dc9fe2fdc5d15162d27308f6420db730fc8557f0f671211f",
+      "passed": true
+    },
+    {
+      "name": "live_sections",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/live_sections_probe.gd"
+      ],
+      "exit": 0,
+      "checks": 18,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 8.793,
+      "sha256": "5981685d796d845d2c93dcf3abd6dabdd459b265629f5633801a9d61ac572fd0",
+      "passed": true
+    },
+    {
+      "name": "compact_tooltip_refresh",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/compact_tooltip_refresh_probe.gd"
+      ],
+      "exit": 0,
+      "checks": 17,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 1.507,
+      "sha256": "1b950a0cdf5a0927e061ddf2f7c0529f646d673f72fdf9367ff0e40f8bf5d1fd",
+      "passed": true
+    },
+    {
+      "name": "overlay_and_sections_challenge",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd"
+      ],
+      "exit": 0,
+      "checks": 112,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 4.532,
+      "sha256": "21ca1d04e751e46988a6c16a09eaa4d15d04a591aec60f1bf1b003ea5734b9e9",
+      "passed": true
+    },
+    {
+      "name": "promoted_p2",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/promoted_p2.gd"
+      ],
+      "exit": 0,
+      "checks": 315,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 5.469,
+      "sha256": "6b6c8ede84b560f64fd4649244d5bdefd0cf445e94a077af1fa6342fc3ff37d4",
+      "passed": true
+    },
+    {
+      "name": "promoted_honesty",
+      "args": [
+        "--script",
+        "res://docs/qa/inventory_ui_binding/astra_final_accept/promoted_honesty.gd"
+      ],
+      "exit": 0,
+      "checks": 540,
+      "failures": 0,
+      "diagnostics": [],
+      "seconds": 3.444,
+      "sha256": "540ef79a1bd8a97a0f0ef1d60330cb6edb955d8ca446d4eef84ca623cc7e3025",
+      "passed": true
+    }
+  ],
+  "native_pngs": 161,
+  "derived_pngs": 8,
+  "diff_check_exit": 0,
+  "spec_design_unchanged": true,
+  "lingering_owned_godot": []
+}

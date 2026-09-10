@@ -90,6 +90,35 @@ IDENTITY_CONTRACT_RESULT checks=18442 failures=0
 COMBAT_CONTENT_RESULT checks=79 failures=0
 ```
 
+## Inventory UI binding checkpoint (task 4.7b)
+
+Task 4.7b is complete at the implementation/evidence level. The fresh
+independent Astra gate accepted 31 distinct final suite/probe variants with
+`4228` raw checks and `0` failures at 1920x1080, 1600x900, 1280x720 and
+960x540. The full packet is
+[`docs/qa/inventory_ui_binding/astra_final_accept/REPORT.md`](qa/inventory_ui_binding/astra_final_accept/REPORT.md);
+earlier rejection packets are retained there as history and are not acceptance
+evidence.
+
+The native continuous flow passed `88/0`; compact native continuity passed
+`34/0`, the promoted compact-selection probe `37/0`, the unchanged sealed
+live-section and tooltip regressions `18/0` and `17/0`, and the independent
+overlay/section challenge `112/0`. The UI renders immutable confirmed
+snapshots and emits strict authority intents for drag, rotate, split, merge,
+loot and complete-only quick transfer; presentation-only search, filter,
+hover, selection and tooltip behavior cannot mutate canonical state. Command
+correlation is protected by owner/scope generations, binding tokens, exact item
+facts, captured dependencies, globally distinct pre-published command IDs and
+fail-closed exhaustion handling.
+
+Live-empty gear/economy actions are unavailable. Fixture restoration is visibly
+marked `FIXTURE PREVIEW`; Encrypted Drive and Gold Watch keep their true
+identities with neutral artwork and accessible `PLACEHOLDER` disclosure; Health
+and Stats are authored preview values with explicit notices. This is native
+macOS Compatibility evidence, not a human playtest or a complete raid loop.
+Human gates 5.13, 8.13 and 12.5, whole-game completion, multiplayer and
+Windows/Linux release acceptance remain open.
+
 ## Render-scale verification
 
 The isolated native render-scale spike compares the fixed 640x360 world surface

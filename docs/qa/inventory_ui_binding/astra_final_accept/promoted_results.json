@@ -1,0 +1,30 @@
+[
+  {
+    "name": "promoted_p2",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/promoted_p2.gd"
+    ],
+    "exit": 0,
+    "checks": 315,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 5.469,
+    "sha256": "6b6c8ede84b560f64fd4649244d5bdefd0cf445e94a077af1fa6342fc3ff37d4",
+    "passed": true
+  },
+  {
+    "name": "promoted_honesty",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/promoted_honesty.gd"
+    ],
+    "exit": 0,
+    "checks": 540,
+    "failures": 0,
+    "diagnostics": [],
+    "seconds": 3.444,
+    "sha256": "540ef79a1bd8a97a0f0ef1d60330cb6edb955d8ca446d4eef84ca623cc7e3025",
+    "passed": true
+  }
+]

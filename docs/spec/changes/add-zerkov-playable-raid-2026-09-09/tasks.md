@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T04:23:15Z
+updated_at: 2026-09-10T14:02:26Z
 completed_at:
 ---
 
@@ -165,11 +165,10 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   intents, including typed outcomes at the adapter/controller seam. Quick
   transfer is complete-only (`allow_partial=false`), with strict schemas,
   typed receipts and a submission reentrancy guard.
-- [ ] 4.7b `[LUNA]` Bind existing drag, rotate, split, merge and quick-transfer
+- [x] 4.7b `[LUNA]` Bind existing drag, rotate, split, merge and quick-transfer
   interactions to the approved authority seam; keep filter, search and tooltip
-  behavior presentation-only. This work is unblocked and is next after the
-  reviewed 4.7a authority seam; keep this checkbox open until the existing UI
-  interactions are bound and independently verified.
+  behavior presentation-only. The existing UI interactions are bound to real
+  snapshots and independently verified at the native desktop resolutions.
 - [x] 4.8 `[SOL]` Implement equipped-item reconciliation and stable weapon/entity
   mappings after accepted inventory revisions. The reconciler uses stable
   weapon/equipment IDs, exact native Resource provenance, fail-atomic rebinding,
@@ -200,8 +199,37 @@ The reconciliation review also reran the shared identity contract
 (`IDENTITY_CONTRACT_RESULT checks=18442 failures=0`), catalog, authority,
 projection and intent contracts above, plus the combat content contract
 (`COMBAT_CONTENT_RESULT checks=79 failures=0`).
-Task 4.7b remains the next unblocked UI-binding task; no UI binding is marked
-complete here.
+
+Completed task evidence (4.7b, 2026-09-10): the fresh independent Astra gate
+accepted 31 distinct final suite/probe variants with `4228` raw checks and
+`0` failures at 1920x1080, 1600x900, 1280x720 and 960x540. The continuous
+native owner/session flow passed `88/0`; compact native continuity passed
+`34/0`, and the promoted compact-selection probe passed `37/0`. The unchanged
+sealed live-section and tooltip regressions passed `18/0` and `17/0`; the
+independent overlay/section challenge passed `112/0`. Earlier authoring
+attempts are retained as diagnostic history and are excluded from the accepted
+31-variant total.
+
+The binding keeps canonical mutation in the authority/adapter seam: detached
+UI records render immutable confirmed snapshots; filter, search, hover,
+selection and tooltip remain presentation-only; drag, rotate, split, merge,
+loot and quick-transfer emit strict intents. Owner/scope generations, binding
+tokens, exact item facts and captured dependencies protect deferred input and
+synchronous replacement; command IDs advance before pending publication,
+remain distinct across controllers/models, fail closed at exhaustion, and
+resolve feedback once. Quick transfer remains complete-only
+(`allow_partial=false`). Live-empty gear/economy actions are unavailable;
+fixture restoration is visibly labelled `FIXTURE PREVIEW`, and Encrypted Drive
+and Gold Watch retain their true identities with neutral artwork and visible
+accessible `PLACEHOLDER` disclosure. Health and Stats remain authored preview
+values with explicit notices rather than early progression claims.
+
+The evidence is native macOS Compatibility coverage only, and the automated
+flows are not a human playtest or a complete raid loop. Human gates 5.13, 8.13
+and 12.5, whole-game completion, multiplayer, and other-platform release
+acceptance remain open. See
+`docs/qa/inventory_ui_binding/astra_final_accept/REPORT.md` for the full
+acceptance packet and rejection history.
 
 ## 5. Weapons, health and combat mechanics
 

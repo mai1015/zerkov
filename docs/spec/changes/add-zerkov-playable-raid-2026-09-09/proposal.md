@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T04:23:15Z
+updated_at: 2026-09-10T14:02:26Z
 ---
 
 ## Why
@@ -50,13 +50,15 @@ variants.
   projections pass their tests
 
 Current implementation boundary: the reviewed inventory authority,
-snapshot-projection seam, authority-side mutation routing (4.7a), and
-equipped-item reconciliation (4.8) are complete. Task 4.7b remains unchecked
-but is unblocked and next after the reviewed 4.7a seam; it remains dependent on
-that seam, and no UI binding is claimed complete. Tasks 3.1-3.2 selected a
-fixed 640x360 internal world render with nearest filtering, integer fit and a
-centered matte after independent Astra review. Human approval remains false,
-and later animation, combat/readability and cursor-mapping gates remain open.
+snapshot-projection seam, authority-side mutation routing (4.7a), equipped-item
+reconciliation (4.8), and inventory UI binding (4.7b) are complete. The fresh
+independent Astra checkpoint accepted 31 final suite/probe variants with
+`4228/0` checks/failures across 1920x1080, 1600x900, 1280x720 and 960x540;
+continuous native flow passed `88/0`, compact continuity `34/0` plus promoted
+selection `37/0`, sealed regressions `18/0` and `17/0`, and the independent
+challenge `112/0`. Task 4.9 is the next unblocked inventory task. Human approval
+remains false, and later animation, combat/readability, cursor-mapping,
+human-playtest, whole-game and release gates remain open.
 
 ## Approval gate
 

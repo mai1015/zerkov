@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+ASTRA_NATIVE_FLOW_CAPTURE state=loadout_clear runtime=960x540_compact_visual extra={}
+ASTRA_NATIVE_FLOW_CAPTURE state=edge_tooltip_clear runtime=960x540_compact_visual extra={}
+ASTRA_NATIVE_FLOW_CAPTURE state=corpse_top_left runtime=960x540_compact_visual extra={}
+ASTRA_NATIVE_FLOW_CAPTURE state=corpse_bottom_right runtime=960x540_compact_visual extra={"outer":"[P: (160.0, 328.0), S: (640.0, 164.0)]","page":"(632.0, 156.0)","scroll":[108,436]}
+ASTRA_COMPACT_VISUAL_COMPLETE checks=23 failures=0

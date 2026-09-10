@@ -1,0 +1,20 @@
+[
+  {
+    "name": "overlay_and_sections_challenge",
+    "args": [
+      "--script",
+      "res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd"
+    ],
+    "exit": 1,
+    "checks": null,
+    "failures": null,
+    "diagnostics": [
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"column\" variable because the value doesn't have a set type.",
+      "SCRIPT ERROR: Parse Error: Cannot infer the type of \"grid\" variable because the value doesn't have a set type.",
+      "ERROR: Failed to load script \"res://docs/qa/inventory_ui_binding/astra_final_accept/overlay_and_sections_challenge.gd\" with error \"Parse error\"."
+    ],
+    "seconds": 0.564,
+    "sha256": "b9dbd1d3359ce3ba4296db24663a71127cb8174eb5eedaad7f16a8328b26e8f0",
+    "passed": false
+  }
+]

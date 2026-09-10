@@ -1,0 +1,12 @@
+{
+  "live_sections_probe.gd": {
+    "source_sha256": "bd3a8e46023f05045fbff7bd2e986ce2b4c2038403b3a4a44ebd1cdbe7fd85f9",
+    "current_sha256": "b11637d5faf9c4e5049f83eed2617825ac226733f8faa142b01aae2c807b86a0",
+    "assertion_source_unchanged": true
+  },
+  "compact_tooltip_refresh_probe.gd": {
+    "source_sha256": "517c07683bbb68fd60bc48c5c1f61dff09ba9453f58830243abcf5697615bc48",
+    "current_sha256": "9b481b02a1835b1b41306f5fc8be930b61b5244d46025cd6616c1bf17a793903",
+    "assertion_source_unchanged": true
+  }
+}

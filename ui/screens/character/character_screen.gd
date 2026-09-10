@@ -3,21 +3,29 @@ extends "res://ui/screens/character/inventory_actions.gd"
 const CompactLayout = preload("res://ui/screens/character/components/character_layout.gd")
 var _nodes: Dictionary = {}
 var _bound := false
+var _compact_reflow_queued := false
+var _compact_scroll_release_queued := false
 
 func build() -> void:
 	_surface = $InventoryContent
 	if not _bound:
-		_ensure_inventory_state()
-		var persisted := _state()
-		_loot_mode = bool(persisted.get("inventory_loot_mode", false))
-		_current_filter = str(persisted.get("inventory_filter", "all"))
-		_search_query = str(persisted.get("inventory_search", ""))
-		_compact_section = _tab_name() if _tab_name() in ["health", "stats"] else str(persisted.get("inventory_compact_section", "loadout"))
+		if not _live_inventory_binding:
+			_ensure_inventory_state()
+			var persisted := _state()
+			_loot_mode = bool(persisted.get("inventory_loot_mode", false))
+			_current_filter = str(persisted.get("inventory_filter", "all"))
+			_search_query = str(persisted.get("inventory_search", ""))
+			_compact_section = _tab_name() if _tab_name() in ["health", "stats"] else str(persisted.get("inventory_compact_section", "loadout"))
+		else:
+			_compact_section = _tab_name() if _tab_name() in ["health", "stats"] else _compact_section
 		for node in _surface.find_children("*", "Control", true, false):
 			_nodes[str(_surface.get_path_to(node))] = node
 		for section in ["loadout", "stash", "gear", "health", "stats"]:
 			var button: Button = _node("CompactWorkspace/Section_" + section)
-			_wire_button(button, _select_compact_section.bind(section))
+			_wire_button_deferred(button, _select_compact_section.bind(section))
+		var compact_stash_scroll := _node("CompactWorkspace/StashScroll") as ScrollContainer
+		if compact_stash_scroll != null and not compact_stash_scroll.gui_input.is_connected(_on_compact_stash_scroll_input):
+			compact_stash_scroll.gui_input.connect(_on_compact_stash_scroll_input)
 		_bound = true
 	ZThemeAdapter.apply_controls(self)
 	_bind_header()
@@ -25,7 +33,16 @@ func build() -> void:
 	queue_adaptive_layout()
 
 func _node(path: String) -> Control:
-	return _nodes.get(path) as Control
+	var direct := _nodes.get(path) as Control
+	if direct != null:
+		return direct
+	# Scene wrappers may move a retained grid between the authored desktop
+	# parent and the compact scroll content. Resolve by leaf name as a bounded
+	# fallback, never by an array index or fixture identity.
+	var leaf := path.get_file()
+	for node in _surface.find_children(leaf, "Control", true, false):
+		return node as Control
+	return null
 
 func _bind_content() -> void:
 	_grids.clear()
@@ -36,6 +53,7 @@ func _bind_content() -> void:
 	_bind_stats()
 	_bind_loadout()
 	_bind_stash()
+	_bind_live_status()
 	_build_focus_graph()
 	if _adaptive_applied:
 		CompactLayout.apply(self, get_viewport_rect().size)
@@ -49,8 +67,74 @@ func layout_compact(view: Vector2) -> void:
 
 func _select_compact_section(section: String) -> void:
 	_compact_section = section
-	_state()["inventory_compact_section"] = section
+	if not _live_inventory_binding:
+		_state()["inventory_compact_section"] = section
+	# A section Button emits `pressed` from inside Godot's mouse-release
+	# dispatch. Reparenting and resizing the control tree synchronously from that
+	# callback leaves the viewport's GUI mouse capture on the old hierarchy. The
+	# next native tab/wheel gesture can then be swallowed even though the target
+	# is visible. Coalesce the reflow onto the next idle turn so the current
+	# native gesture always completes against one stable tree.
+	_queue_compact_reflow()
+
+
+func _queue_compact_reflow() -> void:
+	if _compact_reflow_queued or _tearing_down or not is_inside_tree():
+		return
+	_compact_reflow_queued = true
+	call_deferred("_apply_queued_compact_reflow")
+
+
+func _apply_queued_compact_reflow() -> void:
+	_compact_reflow_queued = false
+	if _tearing_down or not is_inside_tree() or not _adaptive_applied:
+		return
 	CompactLayout.apply(self, get_viewport_rect().size)
+
+
+func _on_compact_stash_scroll_input(event: InputEvent) -> void:
+	if not _adaptive_applied or not event is InputEventMouseButton:
+		return
+	var mouse_event := event as InputEventMouseButton
+	if not mouse_event.pressed or mouse_event.button_index not in [
+		MOUSE_BUTTON_WHEEL_UP,
+		MOUSE_BUTTON_WHEEL_DOWN,
+		MOUSE_BUTTON_WHEEL_LEFT,
+		MOUSE_BUTTON_WHEEL_RIGHT,
+	]:
+		return
+	if _compact_scroll_release_queued:
+		return
+	_compact_scroll_release_queued = true
+	call_deferred("_release_compact_scroll_capture")
+
+
+func _release_compact_scroll_capture() -> void:
+	_compact_scroll_release_queued = false
+	var viewport := get_viewport()
+	if _tearing_down or not is_inside_tree() or not _adaptive_applied \
+			or viewport.gui_is_dragging() \
+			or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		return
+	var scroll := _node("CompactWorkspace/StashScroll") as ScrollContainer
+	if scroll == null or not scroll.is_visible_in_tree():
+		return
+	var scroll_position := Vector2i(scroll.scroll_horizontal, scroll.scroll_vertical)
+	var focus_owner := viewport.gui_get_focus_owner()
+	# Wheel buttons are instantaneous, but Godot can retain their GUI capture on
+	# a child at a terminal boundary. Toggling only the retained scroller within
+	# one deferred idle turn clears that completed capture without rendering a
+	# hidden frame or rebuilding slots. Restore the two presentation coordinates
+	# explicitly, then ask the viewport to recompute native hover/cursor state at
+	# the unchanged physical pointer position.
+	scroll.hide()
+	scroll.show()
+	scroll.scroll_horizontal = scroll_position.x
+	scroll.scroll_vertical = scroll_position.y
+	if is_instance_valid(focus_owner) and focus_owner.is_visible_in_tree() \
+			and focus_owner.focus_mode != Control.FOCUS_NONE:
+		focus_owner.grab_focus()
+	viewport.update_mouse_cursor_state()
 
 func _selected_from_grid(item: Dictionary, grid: Control) -> void:
 	_on_grid_selected(item, str(grid.source_id))
@@ -79,10 +163,33 @@ func _bind_post_raid() -> void:
 	var post: Panel = _node("PostRaidBar") as Panel
 	if post == null:
 		return
-	post.visible = bool(_state().get("post_raid", true))
-	_wire_button(post.get_node_or_null("MoveLoot") as Button, Callable(self, "_bank_loot"))
-	_wire_button(post.get_node_or_null("Reinsure") as Button, Callable(self, "_reinsure"))
-	_wire_button(post.get_node_or_null("SellJunk") as Button, Callable(self, "_sell_junk"))
+	post.visible = true if _live_inventory_binding else bool(_state().get("post_raid", true))
+	var move_loot := post.get_node_or_null("MoveLoot") as Button
+	var reinsure := post.get_node_or_null("Reinsure") as Button
+	var sell_junk := post.get_node_or_null("SellJunk") as Button
+	var title := post.get_node_or_null("Title") as Label
+	var details := post.get_node_or_null("Details") as Label
+	var loot_value := post.get_node_or_null("LootValue") as Label
+	_wire_button(move_loot, Callable(self, "_bank_loot"))
+	_wire_button(reinsure, Callable(self, "_reinsure"))
+	_wire_button(sell_junk, Callable(self, "_sell_junk"))
+	_set_live_unavailable(move_loot, "Move the post-raid fixture loot to stash")
+	_set_live_unavailable(reinsure, "Re-insure the fixture loadout")
+	_set_live_unavailable(sell_junk, "Sell fixture junk")
+	if move_loot != null:
+		move_loot.text = "MOVE LOOT · UNAVAILABLE" if _live_inventory_binding else "G  MOVE LOOT TO STASH"
+	if reinsure != null:
+		reinsure.text = "RE-INSURE · UNAVAILABLE" if _live_inventory_binding else "RE-INSURE LOADOUT   $ 340"
+	if sell_junk != null:
+		sell_junk.text = "SELL JUNK · UNAVAILABLE" if _live_inventory_binding else "SELL JUNK   $ 620"
+	if title != null:
+		title.text = "LIVE INVENTORY" if _live_inventory_binding else "FIXTURE PREVIEW · SURVIVED"
+		title.clip_text = false
+		title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	if details != null:
+		details.text = "POST-RAID ACTIONS UNAVAILABLE" if _live_inventory_binding else "Rail bridge · 24:10 · 2 kills · loot"
+	if loot_value != null:
+		loot_value.text = "—" if _live_inventory_binding else "$ 8,420"
 
 
 func _bind_tabs() -> void:
@@ -103,14 +210,14 @@ func _bind_tabs() -> void:
 
 func _bind_gear() -> void:
 	var slots: Array[Array] = [
-		["HeadSlot", "HEAD", "— empty"],
-		["FaceSlot", "FACE", "— empty"],
-		["ArmorSlot", "ARMOR", "— empty"],
-		["HeadsetSlot", "HEADSET", "— empty"],
-		["SlingSlot", "ON SLING", "AKM · 7.62×39 · 24/30"],
-		["BackSlot", "ON BACK", "Pump shotgun · 12ga · 5/5"],
-		["LegStrapSlot", "LEG STRAP", "Machete"],
-		["HolsterSlot", "HOLSTER", "M1911 · .45 · 7/7"],
+		["HeadSlot", "HEAD", "— empty", "HeadDetail", ""],
+		["FaceSlot", "FACE", "— empty", "FaceDetail", ""],
+		["ArmorSlot", "ARMOR", "— empty", "ArmorDetail", ""],
+		["HeadsetSlot", "HEADSET", "— empty", "HeadsetDetail", ""],
+		["SlingSlot", "ON SLING", "AKM · 7.62×39 · 24/30", "SlingDetail", "SlingIcon"],
+		["BackSlot", "ON BACK", "Pump shotgun · 12ga · 5/5", "BackDetail", "BackIcon"],
+		["LegStrapSlot", "LEG STRAP", "Machete", "LegStrapDetail", "LegStrapIcon"],
+		["HolsterSlot", "HOLSTER", "M1911 · .45 · 7/7", "HolsterDetail", "HolsterIcon"],
 	]
 	var character: Control = _node("CharacterColumn") as Control
 	if character == null:
@@ -120,50 +227,127 @@ func _bind_gear() -> void:
 		if slot == null:
 			continue
 		_wire_button(slot, Callable(self, "_gear_selected").bind(str(entry[1]), str(entry[2])))
+		var fixture_detail := str(entry[2])
+		if _live_inventory_binding:
+			slot.disabled = true
+			slot.tooltip_text = "Unavailable in live mode · no confirmed equipment projection"
+		else:
+			slot.disabled = false
+			slot.tooltip_text = ""
+		var detail: Label = slot.get_node_or_null(str(entry[3])) as Label
+		if detail != null:
+			var showing_fixture := _live_inventory_binding and fixture_detail != "— empty"
+			detail.text = "FIXTURE · LIVE UNAVAILABLE" if showing_fixture else fixture_detail
+			if showing_fixture:
+				detail.add_theme_color_override("font_color", U.YELLOW)
+			else:
+				detail.remove_theme_color_override("font_color")
+		if not str(entry[4]).is_empty():
+			var icon: TextureRect = slot.get_node_or_null(str(entry[4])) as TextureRect
+			if icon != null:
+				icon.modulate = Color(1, 1, 1, 0.28) if _live_inventory_binding and fixture_detail != "— empty" else Color.WHITE
 
 	var sling: Button = character.get_node_or_null("SlingSlot") as Button
 	if sling != null:
 		var compatibility_enter := Callable(self, "_set_compatibility").bind("7.62x39")
 		var compatibility_exit := Callable(self, "_clear_compatibility")
-		if not sling.mouse_entered.is_connected(compatibility_enter):
-			sling.mouse_entered.connect(compatibility_enter)
-		if not sling.mouse_exited.is_connected(compatibility_exit):
-			sling.mouse_exited.connect(compatibility_exit)
-		sling.tooltip_text = "AKM\nShowing compatible ammo + mags\nF · move to stash   RMB · options"
+		if _live_inventory_binding:
+			if sling.mouse_entered.is_connected(compatibility_enter):
+				sling.mouse_entered.disconnect(compatibility_enter)
+			if sling.mouse_exited.is_connected(compatibility_exit):
+				sling.mouse_exited.disconnect(compatibility_exit)
+			sling.mouse_default_cursor_shape = Control.CURSOR_ARROW
+			sling.tooltip_text = "Unavailable in live mode · no confirmed equipment projection"
+		else:
+			if not sling.mouse_entered.is_connected(compatibility_enter):
+				sling.mouse_entered.connect(compatibility_enter)
+			if not sling.mouse_exited.is_connected(compatibility_exit):
+				sling.mouse_exited.connect(compatibility_exit)
+			sling.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			sling.tooltip_text = "AKM\nShowing compatible ammo + mags\nF · move to stash   RMB · options"
+	var gear_hint := character.get_node_or_null("GearHint") as Label
+	if gear_hint != null:
+		gear_hint.text = "FIXTURE PREVIEW · LIVE EQUIPMENT UNAVAILABLE · HOVER DISABLED" if _live_inventory_binding else "FIXTURE PREVIEW · F QUICK MOVE · R ROTATE · RMB OPTIONS"
+		gear_hint.tooltip_text = "No confirmed equipment projection is available; retained gear art is preview-only." if _live_inventory_binding else "FIXTURE PREVIEW · local gear actions are presentation-only; authority state is not connected."
+		gear_hint.clip_text = false
+		gear_hint.autowrap_mode = TextServer.AUTOWRAP_OFF
+		gear_hint.add_theme_color_override("font_color", U.YELLOW if _live_inventory_binding else U.MUTED)
 
 
 func _bind_loadout() -> void:
-	var inventory: Dictionary = _inventory_data()
-	var rig_size: Array = inventory.get("rig_size", [6, 2])
-	var pack_size: Array = inventory.get("backpack_size", [6, 5])
+	var pockets_size := Vector2i(4, 1)
+	var rig_size := Vector2i(6, 2)
+	var pack_size := Vector2i(6, 5)
+	if _live_inventory_binding and _inventory_controller != null:
+		pockets_size = _inventory_controller.grid_size(&"pockets")
+		rig_size = _inventory_controller.grid_size(&"rig")
+		pack_size = _inventory_controller.grid_size(&"backpack")
+	else:
+		var inventory: Dictionary = _inventory_data()
+		var fixture_rig: Array = inventory.get("rig_size", [6, 2])
+		var fixture_pack: Array = inventory.get("backpack_size", [6, 5])
+		rig_size = Vector2i(int(fixture_rig[0]), int(fixture_rig[1]))
+		pack_size = Vector2i(int(fixture_pack[0]), int(fixture_pack[1]))
 	var rig_title: Label = _node("RigTitle") as Label
 	if rig_title != null:
-		rig_title.text = "Scav vest   %d×%d · %d slots · 0.8 kg" % [int(rig_size[0]), int(rig_size[1]), int(rig_size[0]) * int(rig_size[1])]
+		if _live_inventory_binding:
+			rig_title.text = "RIG · LIVE · EQUIPMENT PANEL UNAVAILABLE"
+		else:
+			rig_title.text = "Scav vest   %d×%d · %d slots · 0.8 kg" % [rig_size.x, rig_size.y, rig_size.x * rig_size.y]
 	var pack_title: Label = _node("PackTitle") as Label
 	if pack_title != null:
-		pack_title.text = "Field pack   %d×%d · %d slots · 11 used · 1.2 kg" % [int(pack_size[0]), int(pack_size[1]), int(pack_size[0]) * int(pack_size[1])]
+		if _live_inventory_binding:
+			pack_title.text = "BACKPACK · LIVE · EQUIPMENT PANEL UNAVAILABLE"
+		else:
+			pack_title.text = "Field pack   %d×%d · %d slots · 11 used · 1.2 kg" % [pack_size.x, pack_size.y, pack_size.x * pack_size.y]
+	var pockets_title := _node("PocketsTitle") as Label
+	if pockets_title != null:
+		pockets_title.text = ("POCKETS · %d×%d · LIVE" % [pockets_size.x, pockets_size.y]) if _live_inventory_binding else "POCKETS · 4 · always on you"
+	var weight := _node("LoadoutWeight") as Label
+	var value := _node("LoadoutValue") as Label
+	if weight != null:
+		weight.text = "WEIGHT — · LIVE PROJECTION" if _live_inventory_binding else "WEIGHT 14.2 / 32 kg · VALUE "
+	if value != null:
+		value.text = "—" if _live_inventory_binding else "$ 9,860"
 	_wire_button(_node("RigContainer") as Button, Callable(self, "_container_selected").bind("rig"))
 	_wire_button(_node("PackContainer") as Button, Callable(self, "_container_selected").bind("backpack"))
 	_wire_button(_node("RigSwap") as Button, Callable(self, "_swap_container").bind("rig"))
 	_wire_button(_node("PackSwap") as Button, Callable(self, "_swap_container").bind("backpack"))
+	var rig_swap := _node("RigSwap") as Button
+	var pack_swap := _node("PackSwap") as Button
+	_set_live_unavailable(rig_swap, "Swap the fixture rig")
+	_set_live_unavailable(pack_swap, "Swap the fixture backpack")
+	if rig_swap != null:
+		rig_swap.text = "RIG SWAP · UNAVAILABLE IN LIVE" if _live_inventory_binding else "⇄ SWAP · 3 in stash"
+	if pack_swap != null:
+		pack_swap.text = "PACK SWAP · UNAVAILABLE IN LIVE" if _live_inventory_binding else "⇄ SWAP · Hiker 7×6 in stash"
 
-	_bind_grid(_node("PocketsGrid") as Control, 4, 1, "pockets", "pockets")
-	_bind_grid(_node("RigGrid") as Control, int(rig_size[0]), int(rig_size[1]), "rig", "rig")
-	_bind_grid(_node("PackGrid") as Control, int(pack_size[0]), int(pack_size[1]), "backpack", "backpack")
+	_bind_grid(_node("PocketsGrid") as Control, pockets_size.x, pockets_size.y, "pockets", "pockets")
+	_bind_grid(_node("RigGrid") as Control, rig_size.x, rig_size.y, "rig", "rig")
+	_bind_grid(_node("PackGrid") as Control, pack_size.x, pack_size.y, "backpack", "backpack")
 
+	var quick_title := _node("QuickUseTitle") as Label
+	if quick_title != null:
+		quick_title.text = "QUICK USE · LIVE UNAVAILABLE" if _live_inventory_binding else "QUICK USE"
 	for index in range(4):
 		var slot: Button = _node("QuickSlot%d" % (index + 5)) as Button
 		_wire_button(slot, Callable(self, "_quick_slot_used").bind(index))
+		if slot != null:
+			slot.disabled = _live_inventory_binding
+			slot.tooltip_text = "Unavailable in live mode · no confirmed quick item" if _live_inventory_binding else ""
 	var count: Label = _node("QuickSlot5/Count") as Label
 	if count != null:
-		count.text = str(_state().get("med_count", 2))
+		count.text = "—" if _live_inventory_binding else str(_state().get("med_count", 2))
 
 
 func _bind_stash() -> void:
 	var stash_tab: Button = _node("StashTab") as Button
 	var loot_tab: Button = _node("LootTab") as Button
-	_wire_button(stash_tab, Callable(self, "_set_loot_mode").bind(false))
-	_wire_button(loot_tab, Callable(self, "_set_loot_mode").bind(true))
+	# Both callbacks rebuild the retained grid and compact geometry. Dispatch
+	# them only after Button has completed its native release bookkeeping; doing
+	# that work from inside `pressed` can strand GUI mouse capture on the tab.
+	_wire_button_deferred(stash_tab, Callable(self, "_set_loot_mode").bind(false))
+	_wire_button_deferred(loot_tab, Callable(self, "_set_loot_mode").bind(true))
 	_apply_mode_style(stash_tab, not _loot_mode)
 	_apply_mode_style(loot_tab, _loot_mode)
 
@@ -174,6 +358,13 @@ func _bind_stash() -> void:
 			search.text_changed.connect(Callable(self, "_on_search_changed"))
 	_wire_button(_node("SortStash") as Button, Callable(self, "_sort_stash"))
 	_wire_button(_node("OrganizeStash") as Button, Callable(self, "_organize_stash"))
+	_set_live_unavailable(_node("SortStash") as Button, "Sort the fixture stash by value")
+	_set_live_unavailable(_node("OrganizeStash") as Button, "Organize the fixture stash")
+	var source_key := "loot" if _loot_mode else "stash"
+	var source_size := _inventory_controller.grid_size(StringName(source_key)) if _live_inventory_binding and _inventory_controller != null else Vector2i(7, 10)
+	var summary := _node("StashSummary") as Label
+	if summary != null:
+		summary.text = "%d×%d · %s" % [source_size.x, source_size.y, "LIVE" if _loot_mode else "READ-ONLY"] if _live_inventory_binding else "LV 2 · 61 / 70"
 
 	var filter_names: Array[String] = ["all", "guns", "ammo", "armor", "clothing", "food", "util"]
 	var filter_nodes: Array[String] = ["All", "Guns", "Ammo", "Armor", "Cloth", "Food", "Util"]
@@ -184,25 +375,43 @@ func _bind_stash() -> void:
 		filter_button.tooltip_text = "Filter " + filter_names[index]
 		filter_button.add_theme_color_override("font_color", U.TEXT if _current_filter == filter_names[index] else U.MUTED)
 		_wire_button(filter_button, Callable(self, "_set_filter").bind(filter_names[index]))
-	_bind_grid(_node("StashGrid") as Control, 7, 10, "loot" if _loot_mode else "stash", "loot" if _loot_mode else "stash")
+	_bind_grid(_node("StashGrid") as Control, 12 if _live_inventory_binding else 7, 20 if _live_inventory_binding else 10, source_key, source_key)
 
 
 func _bind_grid(grid: Control, columns: int, rows: int, source_key: String, data_key: String) -> void:
 	if grid == null or not grid.has_method("set_grid_size"):
 		return
 	grid.set("source_id", source_key)
+	grid.set("binding_token", _active_binding_token if _live_inventory_binding else 0)
+	if _live_inventory_binding and _inventory_controller != null:
+		var descriptor := _inventory_controller.descriptor(StringName(source_key))
+		grid.set("inventory_id", int(descriptor.get("inventory_id", 0)))
+		grid.set("container_id", int(descriptor.get("container_id", 0)))
+		grid.set("scope", StringName(descriptor.get("scope", "")))
+		grid.set("owner_generation", int(descriptor.get("owner_generation", 0)))
+		grid.set("scope_generation", int(descriptor.get("scope_generation", 0)))
+		var live_size := _inventory_controller.grid_size(StringName(source_key))
+		columns = live_size.x
+		rows = live_size.y
 	grid.set_grid_size(columns, rows, 74)
 	var values: Array = _items_for(data_key)
 	if source_key in ["stash", "loot"]:
 		values = _filtered_items(values)
-	grid.set_items(values)
+	grid.set_items(values, _items_for(data_key))
 	grid.set_compatibility(_compatibility_key)
+	if grid.has_method("set_mutation_enabled"):
+		grid.set_mutation_enabled(not _live_inventory_binding or (_inventory_controller != null and _inventory_controller.mutation_available(StringName(source_key))))
+	if grid.has_method("set_operation_availability"):
+		var quick_available := not _live_inventory_binding or (_inventory_controller != null and _inventory_controller.quick_transfer_available(StringName(source_key)))
+		var split_available := not _live_inventory_binding or (_inventory_controller != null and _inventory_controller.split_available(StringName(source_key), StringName(source_key)))
+		grid.set_operation_availability(quick_available, split_available)
 	var hover := Callable(self, "_on_grid_hovered").bind(grid)
 	var selected := Callable(self, "_selected_from_grid").bind(grid)
 	var context := Callable(self, "_context_from_grid").bind(grid)
 	var quick := Callable(self, "_on_quick_move")
 	var dropped := Callable(self, "_on_item_dropped").bind(grid)
 	var rejected := Callable(self, "_on_drop_rejected")
+	var split := Callable(self, "_on_split_requested").bind(grid)
 	if not grid.item_hovered.is_connected(hover):
 		grid.item_hovered.connect(hover)
 	if not grid.item_selected.is_connected(selected):
@@ -215,7 +424,103 @@ func _bind_grid(grid: Control, columns: int, rows: int, source_key: String, data
 		grid.item_dropped.connect(dropped, CONNECT_DEFERRED)
 	if not grid.drop_rejected.is_connected(rejected):
 		grid.drop_rejected.connect(rejected)
+	if not grid.split_requested.is_connected(split):
+		grid.split_requested.connect(split)
 	_grids.append(grid)
+
+
+func _bind_live_status() -> void:
+	var status_label := _node("StashCompatible") as Label
+	var compact_hint := _node("CompactWorkspace/InventoryHints") as Label
+	if not _live_inventory_binding or _inventory_controller == null:
+		if status_label != null:
+			# Fixture mode is intentionally interactive, but it must never look like
+			# a restored live authority surface. Keep this short enough for the
+			# authored 244px desktop label and explicitly replace any retained live
+			# tooltip/overflow settings from the bound presentation.
+			status_label.text = "FIXTURE PREVIEW"
+			status_label.clip_text = false
+			status_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+			status_label.tooltip_text = "FIXTURE PREVIEW · local authored inventory; authority state is not connected."
+			status_label.add_theme_color_override("font_color", U.YELLOW)
+		if compact_hint != null:
+			compact_hint.text = "FIXTURE PREVIEW · LOCAL INVENTORY"
+			compact_hint.clip_text = false
+			compact_hint.autowrap_mode = TextServer.AUTOWRAP_OFF
+			compact_hint.tooltip_text = "FIXTURE PREVIEW · local authored inventory; authority state is not connected."
+			compact_hint.add_theme_color_override("font_color", U.YELLOW)
+		return
+	var raid_ready := _inventory_controller.mutation_available(&"pockets")
+	var profile_ready := _inventory_controller.scope_ready(&"stash")
+	var profile_mutable := _inventory_controller.mutation_available(&"stash")
+	var available := raid_ready
+	var reason := ""
+	if not raid_ready:
+		reason = str(_inventory_controller.status_reason(&"pockets"))
+	elif not profile_ready:
+		reason = str(_inventory_controller.status_reason(&"stash"))
+	var status_text := ""
+	var status_detail := ""
+	var status_color := U.RED
+	if available and profile_ready and not profile_mutable:
+		status_text = "READY · PROFILE READ-ONLY"
+		status_detail = "LIVE · RAID MUTATIONS AVAILABLE · PROFILE READ-ONLY"
+		status_color = U.GREEN
+	elif available and not profile_ready:
+		status_text = "READY · PROFILE " + _live_status_short(reason)
+		status_detail = "LIVE · RAID MUTATIONS AVAILABLE · PROFILE " + _live_status_detail(reason)
+		status_color = U.GREEN
+	else:
+		status_text = "READY · MUTATIONS AVAILABLE" if available else "MUTATIONS DISABLED · " + _live_status_short(reason)
+		status_detail = "LIVE · MUTATIONS AVAILABLE" if available else "LIVE · MUTATIONS DISABLED · " + _live_status_detail(reason)
+		status_color = U.GREEN if available else U.RED
+	if status_label != null:
+		status_label.text = status_text
+		status_label.clip_text = true
+		status_label.tooltip_text = status_detail
+		status_label.add_theme_color_override("font_color", status_color)
+	if compact_hint != null:
+		compact_hint.text = status_text + "   ·   FILTER / SEARCH / TOOLTIP READ-ONLY"
+		compact_hint.clip_text = true
+		compact_hint.tooltip_text = status_detail
+		compact_hint.add_theme_color_override("font_color", status_color)
+
+
+func _live_status_short(reason: String) -> String:
+	match reason.to_lower():
+		"inventory_loading":
+			return "LOADING"
+		"inventory_resynchronizing":
+			return "RESYNC"
+		"inventory_stale":
+			return "STALE"
+		"inventory_disconnected", "inventory_runtime_unbound":
+			return "DISCONNECTED"
+		"profile_inventory_read_only":
+			return "PROFILE READ-ONLY"
+	return "UNAVAILABLE"
+
+
+func _live_status_detail(reason: String) -> String:
+	match reason.to_lower():
+		"inventory_loading":
+			return "inventory is loading; mutations are paused"
+		"inventory_resynchronizing":
+			return "inventory is resynchronizing; mutations are paused"
+		"inventory_stale":
+			return "inventory data is stale; mutations are paused"
+		"inventory_disconnected", "inventory_runtime_unbound":
+			return "inventory is disconnected; authority state is unavailable"
+		"profile_inventory_read_only":
+			return "profile inventory is read-only"
+	return "inventory is unavailable; authority state is unchanged"
+
+
+func _set_live_unavailable(button: Button, fixture_tooltip: String) -> void:
+	if button == null:
+		return
+	button.disabled = _live_inventory_binding
+	button.tooltip_text = "Unavailable in live mode" if _live_inventory_binding else fixture_tooltip
 
 
 func _apply_tab_style(button: Button, active: bool) -> void:
@@ -258,6 +563,13 @@ func _wire_button(button: Button, callback: Callable) -> void:
 		button.pressed.connect(callback)
 
 
+func _wire_button_deferred(button: Button, callback: Callable) -> void:
+	if button == null or not callback.is_valid():
+		return
+	if not button.pressed.is_connected(callback):
+		button.pressed.connect(callback, CONNECT_DEFERRED)
+
+
 func _open_route(route: String) -> void:
 	if app != null and app.has_method("navigate"):
 		app.navigate(route)
@@ -274,6 +586,9 @@ func _bind_health() -> void:
 	var area: Control = _node("HealthColumn") as Control
 	if area == null:
 		return
+	var live_notice := area.get_node_or_null("LiveFixtureNotice") as Label
+	if live_notice != null:
+		live_notice.visible = _live_inventory_binding
 	var treated: bool = bool(_state().get("quick_healed", false))
 	_set_health_card(area, "HeadCard", "HEAD", "55%", "Concussed · 0:42", U.YELLOW, 55.0)
 	_set_health_card(area, "TorsoCard", "TORSO", "68%" if treated else "20%", "Stabilized · 0:18" if treated else "Heavy bleed · −3/s", U.GREEN if treated else U.RED, 68.0 if treated else 20.0)
@@ -282,7 +597,9 @@ func _bind_health() -> void:
 	_set_meter(area, "Health", "HEALTH", "476/700" if treated else "190/700", 68.0 if treated else 27.0, U.GREEN if treated else U.RED)
 	_set_meter(area, "Energy", "ENERGY", "64/100", 64.0, U.YELLOW)
 	_set_meter(area, "Hydration", "HYDRATION", "22/100", 22.0, U.BLUE)
-	_wire_button(_node("HealthColumn/QuickHeal") as Button, Callable(self, "_quick_heal"))
+	var quick_heal := _node("HealthColumn/QuickHeal") as Button
+	_wire_button(quick_heal, Callable(self, "_quick_heal"))
+	_set_live_unavailable(quick_heal, "Use the fixture quick-heal preview")
 
 
 func _set_health_card(area: Control, card_name: String, limb: String, percent: String, detail: String, color: Color, value: float) -> void:
@@ -326,6 +643,9 @@ func _bind_stats() -> void:
 	if stats == null:
 		return
 	stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var live_notice := stats.get_node_or_null("LiveFixtureNotice") as Label
+	if live_notice != null:
+		live_notice.visible = _live_inventory_binding
 	# Stats are authored presentation values in this prototype. Keep the
 	# authored hierarchy stable while allowing the shared state to control the
 	# compact section and all actions around it.

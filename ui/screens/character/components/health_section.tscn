@@ -283,6 +283,20 @@ offset_right = 528.0
 offset_bottom = 1024.0
 mouse_filter = 2
 
+[node name="LiveFixtureNotice" type="Label" parent="."]
+visible = false
+z_index = 8
+layout_mode = 0
+offset_left = 4.0
+offset_right = 480.0
+offset_bottom = 24.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 10
+text = "FIXTURE PREVIEW · LIVE HEALTH VALUES UNAVAILABLE"
+vertical_alignment = 1
+
 [node name="BodySilhouette" type="TextureRect" parent="."]
 modulate = Color(1, 1, 1, 0.28)
 texture_filter = 1

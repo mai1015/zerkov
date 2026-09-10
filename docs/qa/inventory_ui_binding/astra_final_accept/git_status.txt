@@ -1,0 +1,15 @@
+ M ui/screens/character/character_screen.gd
+ M ui/screens/character/character_workspace.tscn
+ M ui/screens/character/components/character_layout.gd
+ M ui/screens/character/components/health_section.tscn
+ M ui/screens/character/components/inventory_grid.gd
+ M ui/screens/character/components/stats_section.tscn
+ M ui/screens/character/inventory_actions.gd
+?? docs/qa/inventory_ui_binding/
+?? game/inventory/presentation/inventory_presentation_controller.gd
+?? game/inventory/presentation/inventory_presentation_controller.gd.uid
+?? tests/raid/inventory_multi_controller_contract.gd
+?? tests/raid/inventory_multi_controller_contract.gd.uid
+?? tests/raid/inventory_ui_binding_contract.gd
+?? tests/raid/inventory_ui_binding_contract.gd.uid
+?? tests/visual/inventory_ui_binding/

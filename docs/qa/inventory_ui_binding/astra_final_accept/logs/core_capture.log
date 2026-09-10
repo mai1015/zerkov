@@ -1,0 +1,64 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+ASTRA_OUTPUT requested=(1920, 1080) actual=(1920, 1080) usable=[P: (0, 30), S: (1855, 1050)]
+ASTRA_CAPTURE 1920x1080_ready.png {}
+ASTRA_CAPTURE 1920x1080_focused_tooltip.png {"selected":6}
+ASTRA_CAPTURE 1920x1080_pending.png {"confirmed_revision":1,"method":"public bridge pending presentation probe; synchronous adapter has no artificial delay","pending_id":1099511627777}
+ASTRA_CAPTURE 1920x1080_rejected_restored.png {"confirmed_revision":1,"method":"model rejection presentation probe"}
+ASTRA_CAPTURE 1920x1080_accepted_split_50_10.png {"accepted":true}
+ASTRA_CAPTURE 1920x1080_accepted_merge_60.png {"accepted":true}
+ASTRA_CAPTURE 1920x1080_filter_search.png {}
+ASTRA_CAPTURE 1920x1080_no_match.png {}
+ASTRA_CAPTURE 1920x1080_native_drag.png {"from":"(1377.5, 261.5)","native_dragging":true,"payload_present":true,"to":"(824.0, 341.0)"}
+ASTRA_CAPTURE 1920x1080_native_drag_result.png {"native_dragging":true,"request_delta":1,"toast":"Inventory confirmed"}
+ASTRA_CAPTURE 1920x1080_quick_transfer.png {"request_delta":1,"source_quantity":2}
+ASTRA_CAPTURE 1920x1080_resynchronizing.png {}
+ASTRA_CAPTURE 1920x1080_disconnected.png {}
+ASTRA_OUTPUT requested=(1600, 900) actual=(1600, 900) usable=[P: (0, 30), S: (1855, 1050)]
+ASTRA_CAPTURE 1600x900_ready.png {}
+ASTRA_CAPTURE 1600x900_focused_tooltip.png {"selected":6}
+ASTRA_CAPTURE 1600x900_pending.png {"confirmed_revision":1,"method":"public bridge pending presentation probe; synchronous adapter has no artificial delay","pending_id":1099511627783}
+ASTRA_CAPTURE 1600x900_rejected_restored.png {"confirmed_revision":1,"method":"model rejection presentation probe"}
+ASTRA_CAPTURE 1600x900_accepted_split_50_10.png {"accepted":true}
+ASTRA_CAPTURE 1600x900_accepted_merge_60.png {"accepted":true}
+ASTRA_CAPTURE 1600x900_filter_search.png {}
+ASTRA_CAPTURE 1600x900_no_match.png {}
+ASTRA_CAPTURE 1600x900_native_drag.png {"from":"(1377.5, 261.5)","native_dragging":true,"payload_present":true,"to":"(824.0, 341.0)"}
+ASTRA_CAPTURE 1600x900_native_drag_result.png {"native_dragging":true,"request_delta":1,"toast":"Inventory confirmed"}
+ASTRA_CAPTURE 1600x900_quick_transfer.png {"request_delta":1,"source_quantity":2}
+ASTRA_CAPTURE 1600x900_resynchronizing.png {}
+ASTRA_CAPTURE 1600x900_disconnected.png {}
+ASTRA_OUTPUT requested=(1280, 720) actual=(1280, 720) usable=[P: (0, 30), S: (1855, 1050)]
+ASTRA_CAPTURE 1280x720_ready.png {}
+ASTRA_CAPTURE 1280x720_focused_tooltip.png {"selected":6}
+ASTRA_CAPTURE 1280x720_pending.png {"confirmed_revision":1,"method":"public bridge pending presentation probe; synchronous adapter has no artificial delay","pending_id":1099511627789}
+ASTRA_CAPTURE 1280x720_rejected_restored.png {"confirmed_revision":1,"method":"model rejection presentation probe"}
+ASTRA_CAPTURE 1280x720_accepted_split_50_10.png {"accepted":true}
+ASTRA_CAPTURE 1280x720_accepted_merge_60.png {"accepted":true}
+ASTRA_CAPTURE 1280x720_filter_search.png {}
+ASTRA_CAPTURE 1280x720_no_match.png {}
+ASTRA_CAPTURE 1280x720_native_drag.png {"from":"(1377.5, 261.5)","native_dragging":true,"payload_present":true,"to":"(824.0, 341.0)"}
+ASTRA_CAPTURE 1280x720_native_drag_result.png {"native_dragging":true,"request_delta":1,"toast":"Inventory confirmed"}
+ASTRA_CAPTURE 1280x720_quick_transfer.png {"request_delta":1,"source_quantity":2}
+ASTRA_CAPTURE 1280x720_resynchronizing.png {}
+ASTRA_CAPTURE 1280x720_disconnected.png {}
+ASTRA_OUTPUT requested=(960, 540) actual=(960, 540) usable=[P: (0, 30), S: (1855, 1050)]
+ASTRA_CAPTURE 960x540_ready.png {}
+ASTRA_CAPTURE 960x540_focused_tooltip.png {"selected":6}
+ASTRA_CAPTURE 960x540_pending.png {"confirmed_revision":1,"method":"public bridge pending presentation probe; synchronous adapter has no artificial delay","pending_id":1099511627795}
+ASTRA_CAPTURE 960x540_rejected_restored.png {"confirmed_revision":1,"method":"model rejection presentation probe"}
+ASTRA_CAPTURE 960x540_accepted_split_50_10.png {"accepted":true}
+ASTRA_CAPTURE 960x540_accepted_merge_60.png {"accepted":true}
+ASTRA_CAPTURE 960x540_filter_search.png {}
+ASTRA_CAPTURE 960x540_no_match.png {}
+ASTRA_CAPTURE 960x540_resynchronizing.png {}
+ASTRA_CAPTURE 960x540_stash_top.png {}
+ASTRA_CAPTURE 960x540_stash_bottom.png {}
+ASTRA_CAPTURE 960x540_loadout_top.png {}
+ASTRA_CAPTURE 960x540_loadout_scroll_300.png {}
+ASTRA_CAPTURE 960x540_loadout_bottom.png {}
+ASTRA_CAPTURE 960x540_edge_tooltip.png {}
+ASTRA_CAPTURE 960x540_wheel_over_item.png {"after":41,"before":0}
+ASTRA_CAPTURE 960x540_disconnected.png {}
+ASTRA_CAPTURE_COMPLETE checks=140 failures=0
