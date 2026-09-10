@@ -1,0 +1,6 @@
+#ifndef LEVEL_TASK_SYSTEM_RESOURCES_EDGE_DEFINITION_H
+#define LEVEL_TASK_SYSTEM_RESOURCES_EDGE_DEFINITION_H
+
+#include "resources/level_task_definition_resources.h"
+
+#endif // LEVEL_TASK_SYSTEM_RESOURCES_EDGE_DEFINITION_H

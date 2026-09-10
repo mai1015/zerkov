@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "addon": "common_ui",
+  "version": "0.1.2",
+  "api_version": "0.1",
+  "engine": {
+    "compatibility_minimum": "4.7",
+    "float_precision": "single"
+  },
+  "provenance": {
+    "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+    "source_revision": "38e5e5b5971fc5b0ab2d4a843ab49b8a2cd06afe",
+    "built_at": "2026-07-28T19:39:05Z"
+  },
+  "note": "A target is supported only while its entry has status 'validated' and a checksum. Entries with status 'planned' are declared intent and MUST NOT be advertised as supported.",
+  "targets": [
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "debug",
+      "artifact": "bin/libcommon_ui.macos.template_debug.universal.dylib",
+      "status": "built",
+      "sha256": "6c9b98c88da61963c9679c3ad9e25f18398228b1daa16694bee44ee933e5b03f"
+    },
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "release",
+      "artifact": "bin/libcommon_ui.macos.template_release.universal.dylib",
+      "status": "built",
+      "sha256": "e078d0ceec2216a541c84e2dafce04f666ab7ca2b60e49304734fa99f8dcf643"
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "debug",
+      "artifact": "bin/libcommon_ui.windows.template_debug.x86_64.dll",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "release",
+      "artifact": "bin/libcommon_ui.windows.template_release.x86_64.dll",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "debug",
+      "artifact": "bin/libcommon_ui.linux.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "release",
+      "artifact": "bin/libcommon_ui.linux.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "debug",
+      "artifact": "bin/libcommon_ui.android.template_debug.arm64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "release",
+      "artifact": "bin/libcommon_ui.android.template_release.arm64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "debug",
+      "artifact": "bin/libcommon_ui.android.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "release",
+      "artifact": "bin/libcommon_ui.android.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "debug",
+      "artifact": "bin/libcommon_ui.ios.template_debug.framework",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "release",
+      "artifact": "bin/libcommon_ui.ios.template_release.framework",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "debug",
+      "artifact": "bin/libcommon_ui.web.template_debug.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "requires": [
+        "extension_support",
+        "cross_origin_isolation"
+      ]
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "release",
+      "artifact": "bin/libcommon_ui.web.template_release.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "requires": [
+        "extension_support",
+        "cross_origin_isolation"
+      ]
+    }
+  ]
+}

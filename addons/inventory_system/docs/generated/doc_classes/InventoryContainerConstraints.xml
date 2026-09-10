@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryContainerConstraints" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="access_mask" type="int" setter="set_access_mask" getter="get_access_mask" default="15">
+		</member>
+		<member name="allow_auto_placement" type="bool" setter="set_allow_auto_placement" getter="get_allow_auto_placement" default="false">
+		</member>
+		<member name="allow_nesting" type="bool" setter="set_allow_nesting" getter="get_allow_nesting" default="false">
+		</member>
+		<member name="allow_quick_transfer" type="bool" setter="set_allow_quick_transfer" getter="get_allow_quick_transfer" default="false">
+		</member>
+		<member name="allow_stack_split" type="bool" setter="set_allow_stack_split" getter="get_allow_stack_split" default="false">
+		</member>
+		<member name="blocked_traits" type="PackedStringArray" setter="set_blocked_traits" getter="get_blocked_traits" default="PackedStringArray()">
+		</member>
+		<member name="has_mass_capacity" type="bool" setter="set_has_mass_capacity" getter="get_has_mass_capacity" default="false">
+		</member>
+		<member name="mass_capacity_mg" type="int" setter="set_mass_capacity_mg" getter="get_mass_capacity_mg" default="0">
+		</member>
+		<member name="max_items" type="int" setter="set_max_items" getter="get_max_items" default="0">
+		</member>
+		<member name="max_nesting_depth" type="int" setter="set_max_nesting_depth" getter="get_max_nesting_depth" default="0">
+		</member>
+		<member name="required_traits" type="PackedStringArray" setter="set_required_traits" getter="get_required_traits" default="PackedStringArray()">
+		</member>
+		<member name="retention" type="int" setter="set_retention" getter="get_retention" enum="InventoryContainerConstraints.Retention" default="0">
+		</member>
+	</members>
+	<constants>
+		<constant name="RETENTION_NONE" value="0" enum="Retention">
+		</constant>
+		<constant name="RETENTION_PROTECTED" value="1" enum="Retention">
+		</constant>
+		<constant name="RETENTION_BOUND" value="2" enum="Retention">
+		</constant>
+		<constant name="ACCESS_INSERT" value="1" enum="AccessFlagBits" is_bitfield="true">
+		</constant>
+		<constant name="ACCESS_REMOVE" value="2" enum="AccessFlagBits" is_bitfield="true">
+		</constant>
+		<constant name="ACCESS_MOVE" value="4" enum="AccessFlagBits" is_bitfield="true">
+		</constant>
+		<constant name="ACCESS_INSPECT" value="8" enum="AccessFlagBits" is_bitfield="true">
+		</constant>
+	</constants>
+</class>

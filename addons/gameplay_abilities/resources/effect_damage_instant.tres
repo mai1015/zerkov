@@ -1,0 +1,24 @@
+[gd_resource type="GameplayEffectDefinition" load_steps=3 format=3]
+
+[sub_resource type="GameplayMagnitude" id="GameplayMagnitude_dmg1"]
+kind = 0
+coefficient = -10.0
+attribute = &""
+set_by_caller_field = &""
+
+[sub_resource type="GameplayModifierDeclaration" id="GameplayModifierDeclaration_dmg1"]
+target_attribute = &"attribute.vitals.health"
+op = 0
+magnitude = SubResource("GameplayMagnitude_dmg1")
+priority = 0
+
+[resource]
+identifier = &"effect.damage.instant"
+duration_policy = 0
+duration_ticks = 0
+has_period = false
+period_ticks = 0
+modifiers = Array[GameplayModifierDeclaration]([SubResource("GameplayModifierDeclaration_dmg1")])
+granted_tags = PackedStringArray()
+cue_identifiers = PackedStringArray()
+prediction_safe = false

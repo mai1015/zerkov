@@ -1,0 +1,7 @@
+<!-- invalid_x: drop-invalid / rejected (DESIGN.md §7.2, §11.2).
+     Literal metaphor: an X mark, two crossing strokes. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M5 5 L19 19 M19 5 L5 19"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

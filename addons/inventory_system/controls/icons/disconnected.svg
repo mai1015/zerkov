@@ -1,0 +1,11 @@
+<!-- disconnected: disconnected state (DESIGN.md §7.2 "broken plug/link",
+     §11.2). A plug body with two prongs, a short connected cable segment,
+     then a visible gap (marked with a break tick pair) before an
+     unattached far cable segment -- a literal "unplugged" reading. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M5 9 H10 V15 H5 Z" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="miter"/>
+  <path d="M2 10.5 H5 M2 13.5 H5" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+  <path d="M10 12 H13.5" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+  <path d="M18.5 12 H22" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+  <path d="M14.5 9 L16.5 15 M17 9 L19 15" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+</svg>

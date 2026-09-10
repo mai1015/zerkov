@@ -1,0 +1,8 @@
+<!-- discovery_cancel: cancel one authority-owned in-progress task. The open
+     progress ring distinguishes this from the generic invalid/rejection X. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M12 3 A9 9 0 1 1 5.64 5.64"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+  <path d="M8.5 8.5 L15.5 15.5 M15.5 8.5 L8.5 15.5"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+</svg>

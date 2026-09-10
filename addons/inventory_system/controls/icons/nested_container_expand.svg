@@ -1,0 +1,8 @@
+<!-- nested_container_expand: subcontainer navigation affordance (DESIGN.md
+     §7.2 "caret/chevron"). A single right-pointing chevron, the literal
+     "there is more inside, go in" metaphor. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M9 5 L16 12 L9 19"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

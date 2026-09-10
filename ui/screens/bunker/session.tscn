@@ -1,0 +1,1834 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/theme/pixel_style.gd" id="1_m63h7"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="2_03v65"]
+[ext_resource type="Script" path="res://ui/screens/bunker/session.gd" id="3_kir4g"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bunker_map.png" id="4_3yxeh"]
+[ext_resource type="Texture2D" path="res://assets/handoff/logo_white_pixel.png" id="5_bhikb"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Bold.ttf" id="6_flm3r"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="7_huouy"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="8_5bnfc"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-SemiBold.ttf" id="9_2vgeh"]
+[ext_resource type="Texture2D" path="res://assets/handoff/player_sprite.png" id="10_vyjap"]
+[ext_resource type="PackedScene" path="res://ui/screens/bunker/components/top_chrome.tscn" id="11_top_chrome"]
+
+[ext_resource type="PackedScene" path="res://ui/screens/bunker/components/compact_workspace.tscn" id="compact_workspace"]
+
+[sub_resource type="StyleBox" id="StyleBox_oytci"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_m6cke"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_ojlwd"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_r36ld"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_i5lvy"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e5xk8"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3fvac"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f3r12"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16470589, 0.16470589, 0.16470589, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBox" id="StyleBox_u24qo"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_m0hnw"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_gj4gn"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_yrorf"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_tfck4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_o33pn"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_r2rck"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_f7x54"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_7i0vu"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_nmx07"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_db4xk"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_pp8o4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n5bsp"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_togpw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="Theme" id="Theme_u8yjr"]
+default_font = ExtResource("2_03v65")
+default_font_size = 14
+Button/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Button/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+Button/styles/disabled = SubResource("StyleBox_oytci")
+Button/styles/focus = SubResource("StyleBox_m6cke")
+Button/styles/hover = SubResource("StyleBox_ojlwd")
+Button/styles/normal = SubResource("StyleBox_r36ld")
+Button/styles/pressed = SubResource("StyleBox_i5lvy")
+CheckBox/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckBox/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+CheckButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_e5xk8")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_3fvac")
+HSlider/styles/slider = SubResource("StyleBoxFlat_f3r12")
+Label/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Label/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+LineEdit/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/styles/disabled = SubResource("StyleBox_u24qo")
+LineEdit/styles/focus = SubResource("StyleBox_m0hnw")
+LineEdit/styles/hover = SubResource("StyleBox_gj4gn")
+LineEdit/styles/normal = SubResource("StyleBox_yrorf")
+LineEdit/styles/pressed = SubResource("StyleBox_tfck4")
+OptionButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+OptionButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+OptionButton/styles/disabled = SubResource("StyleBox_o33pn")
+OptionButton/styles/focus = SubResource("StyleBox_r2rck")
+OptionButton/styles/hover = SubResource("StyleBox_f7x54")
+OptionButton/styles/normal = SubResource("StyleBox_7i0vu")
+OptionButton/styles/pressed = SubResource("StyleBox_nmx07")
+Panel/styles/panel = SubResource("StyleBox_db4xk")
+PopupMenu/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+PopupMenu/colors/font_hover_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+PopupMenu/styles/panel = SubResource("StyleBox_pp8o4")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_n5bsp")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_togpw")
+
+[sub_resource type="Gradient" id="Gradient_uykba"]
+colors = PackedColorArray(0.08235294, 0.09411765, 0.101960786, 1, 0.039215688, 0.043137256, 0.039215688, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_6pxcy"]
+gradient = SubResource("Gradient_uykba")
+fill = 1
+fill_from = Vector2(0.4, 0.5)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="StyleBox" id="StyleBox_ons5b"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="FontVariation" id="FontVariation_yesv8"]
+base_font = ExtResource("6_flm3r")
+spacing_glyph = 2
+
+[sub_resource type="FontVariation" id="FontVariation_iyq82"]
+base_font = ExtResource("7_huouy")
+
+[sub_resource type="StyleBox" id="StyleBox_h8p6e"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="FontVariation" id="FontVariation_6xxlj"]
+base_font = ExtResource("8_5bnfc")
+spacing_glyph = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qchoa"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gpcj5"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ad4cm"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_0cb7j"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_trw53"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nq836"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ccpij"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_nywu2"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_xpihf"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_i7a63"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_rt6pb"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_12v3j"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_d3klb"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="FontVariation" id="FontVariation_776yd"]
+base_font = ExtResource("6_flm3r")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_37iej"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.68)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBox" id="StyleBox_i8hxs"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8lhds"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yoty7"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kvwuh"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_gxli6"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smajy"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wcqtk"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5hjjm"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_ierys"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_64a1n"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fuj1p"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h4vgl"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_dp85t"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_iiedx"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_8tcts"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mw37e"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g5wkt"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5jt2t"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yk6ra"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eg7gm"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xpdlv"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wybe6"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_n3kcu"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v2wwi"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5iygx"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i6h3r"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_2p4kh"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_rgjnv"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_mp6qx"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_yxt3m"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_pvaya"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_gpdgs"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_dbf2s"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_f8euo"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_3j45d"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_vujur"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_544yg"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_eywho"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_k2um8"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_685f8"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_jkpll"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_2kk63"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_m3xjo"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_wv3eo"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_2rxf6"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_mvvrc"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_d0f6a"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_khgca"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[sub_resource type="StyleBox" id="StyleBox_ecqiv"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_m63h7")
+
+[node name="Session" type="Control" unique_id=519387895]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = SubResource("Theme_u8yjr")
+script = ExtResource("3_kir4g")
+
+[node name="BackgroundColor" type="ColorRect" parent="." unique_id=805083959]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+
+[node name="FloorplanColor" type="ColorRect" parent="." unique_id=1313444226]
+layout_mode = 0
+offset_top = 56.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.035, 0.043, 0.043, 1)
+
+[node name="FloorplanGlow" type="TextureRect" parent="." unique_id=1635957883]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_6pxcy")
+
+[node name="BunkerMap" type="TextureRect" parent="." unique_id=1400527119]
+modulate = Color(0.9, 0.9, 0.9, 1)
+texture_filter = 1
+layout_mode = 0
+offset_left = 290.0
+offset_top = 160.0
+offset_right = 1350.0
+offset_bottom = 852.0
+mouse_filter = 2
+texture = ExtResource("4_3yxeh")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TopChrome" parent="." instance=ExtResource("11_top_chrome")]
+variant = "session"
+
+[node name="StorageMarker" type="Panel" parent="." unique_id=873594332]
+layout_mode = 0
+offset_left = 343.0
+offset_top = 202.0
+offset_right = 440.0
+offset_bottom = 224.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_nywu2")
+
+[node name="Label" type="Label" parent="StorageMarker" unique_id=929470594]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 89.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+text = "STORAGE UNIT"
+vertical_alignment = 1
+clip_text = true
+
+[node name="MedicalMarker" type="Panel" parent="." unique_id=186388477]
+layout_mode = 0
+offset_left = 322.0
+offset_top = 631.0
+offset_right = 434.0
+offset_bottom = 653.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_xpihf")
+
+[node name="Label" type="Label" parent="MedicalMarker" unique_id=532810079]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 104.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+text = "MEDICAL · 02:14"
+vertical_alignment = 1
+clip_text = true
+
+[node name="UtilitiesMarker" type="Panel" parent="." unique_id=925200597]
+layout_mode = 0
+offset_left = 820.0
+offset_top = 312.0
+offset_right = 891.0
+offset_bottom = 334.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_i7a63")
+
+[node name="Label" type="Label" parent="UtilitiesMarker" unique_id=605092218]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 63.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+text = "UTILITIES"
+vertical_alignment = 1
+clip_text = true
+
+[node name="AmmoMarker" type="Panel" parent="." unique_id=124520383]
+layout_mode = 0
+offset_left = 1032.0
+offset_top = 451.0
+offset_right = 1160.0
+offset_bottom = 473.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_rt6pb")
+
+[node name="Label" type="Label" parent="AmmoMarker" unique_id=2117537743]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 120.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+text = "AMMUNITION BENCH"
+vertical_alignment = 1
+clip_text = true
+
+[node name="FoodMarker" type="Panel" parent="." unique_id=1174863144]
+layout_mode = 0
+offset_left = 820.0
+offset_top = 672.0
+offset_right = 925.0
+offset_bottom = 694.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_12v3j")
+
+[node name="Label" type="Label" parent="FoodMarker" unique_id=646081680]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 97.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+text = "FOOD SUPPLIES"
+vertical_alignment = 1
+clip_text = true
+
+[node name="HostSprite" type="TextureRect" parent="." unique_id=240632951]
+z_index = 4
+texture_filter = 1
+layout_mode = 0
+offset_left = 608.0
+offset_top = 471.0
+offset_right = 644.0
+offset_bottom = 531.0
+mouse_filter = 2
+texture = ExtResource("10_vyjap")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GuestSprite" type="TextureRect" parent="." unique_id=1678266710]
+z_index = 4
+texture_filter = 1
+layout_mode = 0
+offset_left = 672.0
+offset_top = 506.0
+offset_right = 708.0
+offset_bottom = 566.0
+mouse_filter = 2
+texture = ExtResource("10_vyjap")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GuestName" type="Label" parent="." unique_id=1778256014]
+layout_mode = 0
+offset_left = 650.0
+offset_top = 484.0
+offset_right = 750.0
+offset_bottom = 502.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 10
+text = "KEVIN_J"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="JoinToast" type="Panel" parent="." unique_id=1301499400]
+layout_mode = 0
+offset_left = 719.0
+offset_top = 76.0
+offset_right = 1201.0
+offset_bottom = 114.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_d3klb")
+
+[node name="Status" type="ColorRect" parent="JoinToast" unique_id=2058304647]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 14.0
+offset_right = 24.0
+offset_bottom = 22.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Message" type="Label" parent="JoinToast" unique_id=912894499]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 9.0
+offset_right = 242.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_776yd")
+theme_override_font_sizes/font_size = 12
+text = "KEVIN_J joined your world"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="JoinToast" unique_id=1625311594]
+layout_mode = 0
+offset_left = 236.0
+offset_top = 11.0
+offset_right = 472.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "2 / 4 · they arrive at the bunker door"
+vertical_alignment = 1
+clip_text = true
+
+[node name="SessionPanel" type="Panel" parent="." unique_id=149201602]
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 92.0
+offset_right = 1872.0
+offset_bottom = 1032.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_37iej")
+
+[node name="Title" type="Label" parent="SessionPanel" unique_id=667557534]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 480.0
+offset_bottom = 17.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 13
+text = "SESSION"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Subtitle" type="Label" parent="SessionPanel" unique_id=414689697]
+layout_mode = 0
+offset_top = -2.0
+offset_right = 480.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 12
+text = "TAB · you are the host"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Rule" type="ColorRect" parent="SessionPanel" unique_id=1184007814]
+layout_mode = 0
+offset_top = 25.0
+offset_right = 480.0
+offset_bottom = 26.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="WhoCanJoin" type="Label" parent="SessionPanel" unique_id=1061379722]
+layout_mode = 0
+offset_top = 40.0
+offset_right = 200.0
+offset_bottom = 56.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 10
+text = "WHO CAN JOIN"
+vertical_alignment = 1
+clip_text = true
+
+[node name="PrivacyClosed" type="Panel" parent="SessionPanel" unique_id=525416683]
+layout_mode = 0
+offset_top = 63.0
+offset_right = 160.0
+offset_bottom = 93.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_i8hxs")
+
+[node name="Label" type="Label" parent="SessionPanel/PrivacyClosed" unique_id=831364462]
+layout_mode = 0
+offset_top = 7.0
+offset_right = 160.0
+offset_bottom = 22.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "CLOSED"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="SessionPanel/PrivacyClosed" unique_id=939178627]
+layout_mode = 0
+offset_right = 160.0
+offset_bottom = 30.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_8lhds")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_yoty7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_kvwuh")
+theme_override_styles/focus = SubResource("StyleBoxFlat_kvwuh")
+
+[node name="PrivacyInviteOnly" type="Panel" parent="SessionPanel" unique_id=220177600]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 63.0
+offset_right = 320.0
+offset_bottom = 93.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_gxli6")
+
+[node name="Label" type="Label" parent="SessionPanel/PrivacyInviteOnly" unique_id=1050986418]
+layout_mode = 0
+offset_top = 7.0
+offset_right = 160.0
+offset_bottom = 22.0
+theme_override_colors/font_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "INVITE ONLY"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="SessionPanel/PrivacyInviteOnly" unique_id=2146338954]
+layout_mode = 0
+offset_right = 160.0
+offset_bottom = 30.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_smajy")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_wcqtk")
+theme_override_styles/hover = SubResource("StyleBoxFlat_5hjjm")
+theme_override_styles/focus = SubResource("StyleBoxFlat_5hjjm")
+
+[node name="PrivacyFriends" type="Panel" parent="SessionPanel" unique_id=468063277]
+layout_mode = 0
+offset_left = 320.0
+offset_top = 63.0
+offset_right = 480.0
+offset_bottom = 93.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_ierys")
+
+[node name="Label" type="Label" parent="SessionPanel/PrivacyFriends" unique_id=1140928205]
+layout_mode = 0
+offset_top = 7.0
+offset_right = 160.0
+offset_bottom = 22.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "FRIENDS"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="SessionPanel/PrivacyFriends" unique_id=1035105378]
+layout_mode = 0
+offset_right = 160.0
+offset_bottom = 30.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_64a1n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fuj1p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_h4vgl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_h4vgl")
+
+[node name="Policy" type="Label" parent="SessionPanel" unique_id=943908655]
+layout_mode = 0
+offset_top = 100.0
+offset_right = 480.0
+offset_bottom = 132.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "Friends: anyone on your list can walk in while the world is open. Progress they earn stays on their character; loot goes where they extract it."
+vertical_alignment = 1
+autowrap_mode = 3
+clip_text = true
+
+[node name="Occupancy" type="Label" parent="SessionPanel" unique_id=1718665764]
+layout_mode = 0
+offset_top = 140.0
+offset_right = 250.0
+offset_bottom = 156.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 10
+text = "IN THIS WORLD · 2 / 4"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Players" type="Panel" parent="SessionPanel" unique_id=964040743]
+layout_mode = 0
+offset_top = 163.0
+offset_right = 480.0
+offset_bottom = 303.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_dp85t")
+
+[node name="Host" type="Panel" parent="SessionPanel/Players" unique_id=448232880]
+layout_mode = 0
+offset_right = 480.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_iiedx")
+
+[node name="Dot" type="ColorRect" parent="SessionPanel/Players/Host" unique_id=849821020]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 20.0
+offset_right = 20.0
+offset_bottom = 26.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="Name" type="Label" parent="SessionPanel/Players/Host" unique_id=1672321620]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 10.0
+offset_right = 242.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 12
+text = "OAK_JHONSON"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Role" type="Label" parent="SessionPanel/Players/Host" unique_id=1784538386]
+layout_mode = 0
+offset_left = 142.0
+offset_top = 12.0
+offset_right = 220.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 8
+text = "HOST  YOU"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="SessionPanel/Players/Host" unique_id=741751088]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 28.0
+offset_right = 332.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "LVL 14 · Bunker"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Guest" type="Panel" parent="SessionPanel/Players" unique_id=408209977]
+layout_mode = 0
+offset_top = 52.0
+offset_right = 480.0
+offset_bottom = 104.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_8tcts")
+
+[node name="Dot" type="ColorRect" parent="SessionPanel/Players/Guest" unique_id=441560029]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 20.0
+offset_right = 20.0
+offset_bottom = 26.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Name" type="Label" parent="SessionPanel/Players/Guest" unique_id=1143133613]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 10.0
+offset_right = 242.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 12
+text = "KEVIN_J"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Role" type="Label" parent="SessionPanel/Players/Guest" unique_id=1612846412]
+layout_mode = 0
+offset_left = 394.0
+offset_top = 12.0
+offset_right = 472.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 8
+text = "● TALKING   ···"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="SessionPanel/Players/Guest" unique_id=1776966944]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 28.0
+offset_right = 332.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "LVL 22 · Bunker · just arrived"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Kick" type="Button" parent="SessionPanel/Players/Guest" unique_id=1089526629]
+layout_mode = 0
+offset_left = 430.0
+offset_top = 8.0
+offset_right = 472.0
+offset_bottom = 38.0
+tooltip_text = "···"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_mw37e")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_g5wkt")
+theme_override_styles/hover = SubResource("StyleBoxFlat_5jt2t")
+theme_override_styles/focus = SubResource("StyleBoxFlat_5jt2t")
+text = "···"
+
+[node name="EmptySlot" type="Panel" parent="SessionPanel/Players" unique_id=646963817]
+layout_mode = 0
+offset_top = 104.0
+offset_right = 480.0
+offset_bottom = 140.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_yk6ra")
+
+[node name="Label" type="Label" parent="SessionPanel/Players/EmptySlot" unique_id=1647109649]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 314.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 11
+text = "□  2 EMPTY SLOTS · INVITE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="SessionPanel/Players/EmptySlot" unique_id=930414235]
+layout_mode = 0
+offset_right = 480.0
+offset_bottom = 46.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_eg7gm")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_xpdlv")
+theme_override_styles/hover = SubResource("StyleBoxFlat_wybe6")
+theme_override_styles/focus = SubResource("StyleBoxFlat_wybe6")
+
+[node name="CodeRow" type="Panel" parent="SessionPanel" unique_id=1600057794]
+layout_mode = 0
+offset_top = 317.0
+offset_right = 384.0
+offset_bottom = 357.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_n3kcu")
+
+[node name="Caption" type="Label" parent="SessionPanel/CodeRow" unique_id=1489186106]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 112.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 9
+text = "WORLD CODE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Code" type="Label" parent="SessionPanel/CodeRow" unique_id=1267095524]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 8.0
+offset_right = 310.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 14
+text = "ZK-7F2Q"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Copy" type="Button" parent="SessionPanel/CodeRow" unique_id=348125856]
+layout_mode = 0
+offset_left = 308.0
+offset_top = 6.0
+offset_right = 380.0
+offset_bottom = 34.0
+tooltip_text = "COPY"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_v2wwi")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_5iygx")
+theme_override_styles/hover = SubResource("StyleBoxFlat_i6h3r")
+theme_override_styles/focus = SubResource("StyleBoxFlat_i6h3r")
+text = "COPY"
+
+[node name="NewCode" type="Button" parent="SessionPanel" unique_id=1512280585]
+layout_mode = 0
+offset_left = 393.0
+offset_top = 317.0
+offset_right = 480.0
+offset_bottom = 357.0
+tooltip_text = "NEW CODE"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBox_2p4kh")
+theme_override_styles/pressed = SubResource("StyleBox_rgjnv")
+theme_override_styles/hover = SubResource("StyleBox_mp6qx")
+theme_override_styles/focus = SubResource("StyleBox_yxt3m")
+text = "NEW CODE"
+
+[node name="FriendsTitle" type="Label" parent="SessionPanel" unique_id=1345411587]
+layout_mode = 0
+offset_top = 375.0
+offset_right = 480.0
+offset_bottom = 395.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 13
+text = "FRIENDS"
+vertical_alignment = 1
+clip_text = true
+
+[node name="FriendsMeta" type="Label" parent="SessionPanel" unique_id=322986241]
+layout_mode = 0
+offset_top = 376.0
+offset_right = 480.0
+offset_bottom = 394.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 12
+text = "4 online"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="FriendsRule" type="ColorRect" parent="SessionPanel" unique_id=478520065]
+layout_mode = 0
+offset_top = 403.0
+offset_right = 480.0
+offset_bottom = 404.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="FriendsBox" type="Panel" parent="SessionPanel" unique_id=653121359]
+layout_mode = 0
+offset_top = 419.0
+offset_right = 480.0
+offset_bottom = 827.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_pvaya")
+
+[node name="Denz" type="Panel" parent="SessionPanel/FriendsBox" unique_id=1539037851]
+layout_mode = 0
+offset_right = 480.0
+offset_bottom = 43.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_gpdgs")
+
+[node name="Status" type="ColorRect" parent="SessionPanel/FriendsBox/Denz" unique_id=1820061057]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 21.0
+offset_right = 20.0
+offset_bottom = 27.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Name" type="Label" parent="SessionPanel/FriendsBox/Denz" unique_id=1147000465]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 10.0
+offset_right = 272.0
+offset_bottom = 25.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 11
+text = "DENZ"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="SessionPanel/FriendsBox/Denz" unique_id=195961231]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 27.0
+offset_right = 312.0
+offset_bottom = 41.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 9
+text = "In bunker · own world"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Invite" type="Button" parent="SessionPanel/FriendsBox/Denz" unique_id=394279874]
+layout_mode = 0
+offset_left = 414.0
+offset_top = 12.0
+offset_right = 468.0
+offset_bottom = 32.0
+tooltip_text = "INVITE"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBox_dbf2s")
+theme_override_styles/pressed = SubResource("StyleBox_f8euo")
+theme_override_styles/hover = SubResource("StyleBox_3j45d")
+theme_override_styles/focus = SubResource("StyleBox_vujur")
+text = "INVITE"
+
+[node name="Pilgrim" type="Panel" parent="SessionPanel/FriendsBox" unique_id=594839940]
+layout_mode = 0
+offset_top = 43.0
+offset_right = 480.0
+offset_bottom = 86.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_544yg")
+
+[node name="Status" type="ColorRect" parent="SessionPanel/FriendsBox/Pilgrim" unique_id=2070731059]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 21.0
+offset_right = 20.0
+offset_bottom = 27.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Name" type="Label" parent="SessionPanel/FriendsBox/Pilgrim" unique_id=255512298]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 10.0
+offset_right = 272.0
+offset_bottom = 25.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 11
+text = "PILGRIM_88"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="SessionPanel/FriendsBox/Pilgrim" unique_id=644873517]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 27.0
+offset_right = 312.0
+offset_bottom = 41.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 9
+text = "Main menu"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Invite" type="Button" parent="SessionPanel/FriendsBox/Pilgrim" unique_id=1434367166]
+layout_mode = 0
+offset_left = 414.0
+offset_top = 12.0
+offset_right = 468.0
+offset_bottom = 32.0
+tooltip_text = "INVITE"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBox_eywho")
+theme_override_styles/pressed = SubResource("StyleBox_k2um8")
+theme_override_styles/hover = SubResource("StyleBox_685f8")
+theme_override_styles/focus = SubResource("StyleBox_jkpll")
+text = "INVITE"
+
+[node name="Soot" type="Panel" parent="SessionPanel/FriendsBox" unique_id=63597705]
+layout_mode = 0
+offset_top = 86.0
+offset_right = 480.0
+offset_bottom = 129.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_2kk63")
+
+[node name="Status" type="ColorRect" parent="SessionPanel/FriendsBox/Soot" unique_id=1199612974]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 21.0
+offset_right = 20.0
+offset_bottom = 27.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Name" type="Label" parent="SessionPanel/FriendsBox/Soot" unique_id=382998157]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 10.0
+offset_right = 272.0
+offset_bottom = 25.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 11
+text = "SOOT"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="SessionPanel/FriendsBox/Soot" unique_id=13805002]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 27.0
+offset_right = 312.0
+offset_bottom = 41.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 9
+text = "In your world? no · with MARA"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Invite" type="Button" parent="SessionPanel/FriendsBox/Soot" unique_id=2090010747]
+layout_mode = 0
+offset_left = 414.0
+offset_top = 12.0
+offset_right = 468.0
+offset_bottom = 32.0
+tooltip_text = "INVITE"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_6xxlj")
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBox_m3xjo")
+theme_override_styles/pressed = SubResource("StyleBox_wv3eo")
+theme_override_styles/hover = SubResource("StyleBox_2rxf6")
+theme_override_styles/focus = SubResource("StyleBox_mvvrc")
+text = "INVITE"
+
+[node name="Mara" type="Panel" parent="SessionPanel/FriendsBox" unique_id=1322746770]
+layout_mode = 0
+offset_top = 129.0
+offset_right = 480.0
+offset_bottom = 172.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_d0f6a")
+
+[node name="Status" type="ColorRect" parent="SessionPanel/FriendsBox/Mara" unique_id=722795583]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 21.0
+offset_right = 20.0
+offset_bottom = 27.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Name" type="Label" parent="SessionPanel/FriendsBox/Mara" unique_id=1128142072]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 10.0
+offset_right = 272.0
+offset_bottom = 25.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 11
+text = "MARA_VOSS"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="SessionPanel/FriendsBox/Mara" unique_id=1621195415]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 27.0
+offset_right = 312.0
+offset_bottom = 41.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 9
+text = "In raid · 12:40 left"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Halvard" type="Panel" parent="SessionPanel/FriendsBox" unique_id=816632782]
+layout_mode = 0
+offset_top = 172.0
+offset_right = 480.0
+offset_bottom = 215.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_khgca")
+
+[node name="Status" type="ColorRect" parent="SessionPanel/FriendsBox/Halvard" unique_id=1730426492]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 21.0
+offset_right = 20.0
+offset_bottom = 27.0
+mouse_filter = 2
+color = Color(0.36078432, 0.38431373, 0.35686275, 1)
+
+[node name="Name" type="Label" parent="SessionPanel/FriendsBox/Halvard" unique_id=1823028353]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 10.0
+offset_right = 272.0
+offset_bottom = 25.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 11
+text = "HALVARD"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="SessionPanel/FriendsBox/Halvard" unique_id=1673333389]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 27.0
+offset_right = 312.0
+offset_bottom = 41.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 9
+text = "Offline · 2 h ago"
+vertical_alignment = 1
+clip_text = true
+
+[node name="SquadRules" type="Panel" parent="SessionPanel" unique_id=1478861623]
+layout_mode = 0
+offset_top = 841.0
+offset_right = 480.0
+offset_bottom = 940.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_ecqiv")
+
+[node name="Title" type="Label" parent="SessionPanel/SquadRules" unique_id=383129941]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 194.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_yesv8")
+theme_override_font_sizes/font_size = 10
+text = "SQUAD RULES"
+vertical_alignment = 1
+clip_text = true
+
+[node name="StartLabel" type="Label" parent="SessionPanel/SquadRules" unique_id=2050135790]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 38.0
+offset_right = 194.0
+offset_bottom = 53.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "Raid starts when"
+vertical_alignment = 1
+clip_text = true
+
+[node name="StartValue" type="Label" parent="SessionPanel/SquadRules" unique_id=1710612046]
+layout_mode = 0
+offset_left = 224.0
+offset_top = 38.0
+offset_right = 466.0
+offset_bottom = 53.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "everyone at the deploy table"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="LootLabel" type="Label" parent="SessionPanel/SquadRules" unique_id=1385341605]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 58.0
+offset_right = 194.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "Loot from shared crates"
+vertical_alignment = 1
+clip_text = true
+
+[node name="LootValue" type="Label" parent="SessionPanel/SquadRules" unique_id=43345436]
+layout_mode = 0
+offset_left = 224.0
+offset_top = 58.0
+offset_right = 466.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "first to grab"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="FriendlyLabel" type="Label" parent="SessionPanel/SquadRules" unique_id=246912395]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 78.0
+offset_right = 194.0
+offset_bottom = 93.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "Friendly fire"
+vertical_alignment = 1
+clip_text = true
+
+[node name="FriendlyValue" type="Label" parent="SessionPanel/SquadRules" unique_id=842462049]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 78.0
+offset_right = 466.0
+offset_bottom = 93.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "off"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="FooterHint" type="Label" parent="." unique_id=1897772079]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 1014.0
+offset_right = 978.0
+offset_bottom = 1032.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_iyq82")
+theme_override_font_sizes/font_size = 10
+text = "WASD  WALK      E  USE STATION      B  BUILD      TAB  SESSION      M  DEPLOY TABLE      V  TALK"
+vertical_alignment = 1
+clip_text = true
+
+[node name="CompactWorkspace" parent="." instance=ExtResource("compact_workspace")]

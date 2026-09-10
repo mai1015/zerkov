@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryCatalog" inherits="RefCounted" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="api_version" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="api_version_major" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="api_version_minor" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="api_version_patch" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="feature_module_version" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="is_sealed" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="manifest_algorithm" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="manifest_fingerprint" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="mass_unit" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="persistence_schema_version" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="protocol_version" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="register_builtin_definitions">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="register_catalog_resource">
+			<return type="Array" />
+			<param index="0" name="catalog" type="InventoryCatalogResource" />
+			<description>
+			</description>
+		</method>
+		<method name="register_container">
+			<return type="Dictionary" />
+			<param index="0" name="resource" type="InventoryContainerDefinition" />
+			<description>
+			</description>
+		</method>
+		<method name="register_discovery_definitions">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="register_discovery_policy">
+			<return type="Dictionary" />
+			<param index="0" name="resource" type="InventoryDiscoveryPolicy" />
+			<description>
+			</description>
+		</method>
+		<method name="register_integration_mapping">
+			<return type="Dictionary" />
+			<param index="0" name="identifier" type="String" />
+			<param index="1" name="canonical_bytes" type="PackedByteArray" />
+			<param index="2" name="source" type="String" default="&quot;&lt;script&gt;&quot;" />
+			<description>
+			</description>
+		</method>
+		<method name="register_item">
+			<return type="Dictionary" />
+			<param index="0" name="resource" type="InventoryItemDefinition" />
+			<description>
+			</description>
+		</method>
+		<method name="register_profile">
+			<return type="Dictionary" />
+			<param index="0" name="resource" type="InventoryProfileDefinition" />
+			<description>
+			</description>
+		</method>
+		<method name="register_trait_schema">
+			<return type="Dictionary" />
+			<param index="0" name="resource" type="InventoryTraitSchema" />
+			<description>
+			</description>
+		</method>
+		<method name="resource_schema_version" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="seal">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="validate_resource" qualifiers="const">
+			<return type="Array" />
+			<param index="0" name="resource" type="Resource" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="STATUS_OK" value="0" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_INVALID_ARGUMENT" value="1" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_NOT_FOUND" value="2" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_ALREADY_EXISTS" value="3" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_OUT_OF_BOUNDS" value="4" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_ARITHMETIC_ERROR" value="5" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_LIMIT_EXCEEDED" value="6" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_NOT_SUPPORTED" value="7" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_INTERNAL_ERROR" value="8" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_INVALID_IDENTIFIER" value="20" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_DUPLICATE_DEFINITION" value="21" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_UNKNOWN_DEFINITION" value="22" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_INVALID_REFERENCE" value="23" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_CATALOG_SEALED" value="24" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_CATALOG_NOT_SEALED" value="25" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_HASH_COLLISION" value="26" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_DEPENDENCY_MISSING" value="27" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_DEPENDENCY_CYCLE" value="28" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_INCOMPATIBLE_DEFINITION" value="29" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_MANIFEST_MISMATCH" value="40" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_PROTOCOL_MISMATCH" value="41" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_SCHEMA_MISMATCH" value="42" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_FEATURE_UNSUPPORTED" value="43" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_ENCODE_FAILED" value="44" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_DECODE_FAILED" value="45" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_PAYLOAD_TOO_LARGE" value="46" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_REVISION_MISMATCH" value="60" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_DUPLICATE_COMMAND" value="61" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_PERMISSION_DENIED" value="62" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_ROLE_VIOLATION" value="63" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_INVARIANT_VIOLATION" value="64" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_COMMAND_REJECTED" value="65" enum="StatusCode">
+		</constant>
+		<constant name="STATUS_SNAPSHOT_REQUIRED" value="66" enum="StatusCode">
+		</constant>
+	</constants>
+</class>

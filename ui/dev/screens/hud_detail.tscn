@@ -1,0 +1,708 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://ui/dev/screens/hud_detail.gd" id="1_hud_detail"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_energy.png" id="3_energy"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_thirst.png" id="4_thirst"]
+[ext_resource type="Script" path="res://ui/screens/raid/components/hud_ring.gd" id="5_ring"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="6_chakra"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="7_ibm"]
+
+[sub_resource type="FontVariation" id="FontVariation_chakra_s2"]
+base_font = ExtResource("6_chakra")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status_bleeding"]
+bg_color = Color(0, 0, 0, 0.5)
+border_color = Color(0.8509804, 0.282353, 0.2313726, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status_fracture"]
+bg_color = Color(0, 0, 0, 0.5)
+border_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status_dehydrated"]
+bg_color = Color(0, 0, 0, 0.5)
+border_color = Color(0.2980392, 0.5529412, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_quick_heal"]
+bg_color = Color(0, 0, 0, 0.48)
+border_color = Color(0.9098039, 0.5882353, 0.1803922, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[node name="HudDetail" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud_detail")
+metadata/screen_route = "hud_detail"
+
+[node name="DetailPlate" type="Control" parent="."]
+layout_mode = 0
+offset_left = 560.0
+offset_top = 380.0
+offset_right = 1360.0
+offset_bottom = 700.0
+clip_contents = true
+mouse_filter = 2
+
+[node name="BackgroundFrame" type="TextureRect" parent="DetailPlate"]
+layout_mode = 0
+offset_left = -30.0
+offset_top = -776.0
+offset_right = 1950.0
+offset_bottom = 337.0
+mouse_filter = 2
+texture_filter = 1
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Shade" type="ColorRect" parent="DetailPlate"]
+layout_mode = 0
+offset_right = 800.0
+offset_bottom = 320.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.06)
+
+[node name="BorderTop" type="ColorRect" parent="DetailPlate"]
+layout_mode = 0
+offset_right = 800.0
+offset_bottom = 1.0
+mouse_filter = 2
+color = Color(0.1647059, 0.1647059, 0.1647059, 1)
+
+[node name="BorderBottom" type="ColorRect" parent="DetailPlate"]
+layout_mode = 0
+offset_top = 319.0
+offset_right = 800.0
+offset_bottom = 320.0
+mouse_filter = 2
+color = Color(0.1647059, 0.1647059, 0.1647059, 1)
+
+[node name="BorderLeft" type="ColorRect" parent="DetailPlate"]
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 320.0
+mouse_filter = 2
+color = Color(0.1647059, 0.1647059, 0.1647059, 1)
+
+[node name="BorderRight" type="ColorRect" parent="DetailPlate"]
+layout_mode = 0
+offset_left = 799.0
+offset_right = 800.0
+offset_bottom = 320.0
+mouse_filter = 2
+color = Color(0.1647059, 0.1647059, 0.1647059, 1)
+
+[node name="Note" type="Label" parent="DetailPlate"]
+layout_mode = 0
+offset_left = 470.0
+offset_top = 9.0
+offset_right = 784.0
+offset_bottom = 27.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 10
+text = "HUD · BOTTOM-LEFT · 1:1 · DAMAGED STATE"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Vitals" type="Control" parent="DetailPlate"]
+layout_mode = 0
+offset_top = -760.0
+offset_right = 0.0
+offset_bottom = -760.0
+mouse_filter = 2
+
+[node name="PlayerName" type="Label" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 958.0
+offset_right = 356.0
+offset_bottom = 978.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_chakra_s2")
+theme_override_font_sizes/font_size = 11
+text = "OAK JHONSON"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="HealthReadout" type="Label" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 306.0
+offset_top = 958.0
+offset_right = 396.0
+offset_bottom = 978.0
+mouse_filter = 2
+visible = false
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 11
+text = "435 / 435"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HealthSegment1" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 56.00000
+offset_top = 982.0
+offset_right = 102.85714
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.372549, 0.827451, 0.4196079, 1)
+
+[node name="HealthSegment2" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 104.85714
+offset_top = 982.0
+offset_right = 151.71429
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.372549, 0.827451, 0.4196079, 1)
+
+[node name="HealthSegment3" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 153.71429
+offset_top = 982.0
+offset_right = 200.57143
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.372549, 0.827451, 0.4196079, 1)
+
+[node name="HealthSegment4" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 202.57143
+offset_top = 982.0
+offset_right = 249.42857
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.372549, 0.827451, 0.4196079, 1)
+
+[node name="HealthSegment5" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 251.42857
+offset_top = 982.0
+offset_right = 298.28571
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.372549, 0.827451, 0.4196079, 1)
+
+[node name="HealthSegment6" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 300.28571
+offset_top = 982.0
+offset_right = 347.14286
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.372549, 0.827451, 0.4196079, 1)
+
+[node name="HealthSegment7" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 349.14286
+offset_top = 982.0
+offset_right = 396.00000
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.372549, 0.827451, 0.4196079, 1)
+
+[node name="HealthTrack" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 998.0
+offset_right = 396.0
+offset_bottom = 1001.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="HealthFill" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 998.0
+offset_right = 321.0
+offset_bottom = 1001.0
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="EnergyIcon" type="TextureRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1012.0
+offset_right = 68.0
+offset_bottom = 1024.0
+mouse_filter = 2
+texture_filter = 1
+texture = ExtResource("3_energy")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnergyTrack" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 74.0
+offset_top = 1017.0
+offset_right = 213.0
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.52)
+
+[node name="EnergyFill" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 74.0
+offset_top = 1017.0
+offset_right = 162.96
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="ThirstIcon" type="TextureRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 234.0
+offset_top = 1012.0
+offset_right = 246.0
+offset_bottom = 1024.0
+mouse_filter = 2
+texture_filter = 1
+texture = ExtResource("4_thirst")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ThirstTrack" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 252.0
+offset_top = 1017.0
+offset_right = 391.0
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.52)
+
+[node name="ThirstFill" type="ColorRect" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 252.0
+offset_top = 1017.0
+offset_right = 282.58
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0.2980392, 0.5529412, 1, 1)
+
+[node name="StatusBleeding" type="Panel" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1031.0
+offset_right = 182.0
+offset_bottom = 1056.0
+visible = false
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_status_bleeding")
+
+[node name="Stripe" type="ColorRect" parent="DetailPlate/Vitals/StatusBleeding"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 25.0
+mouse_filter = 2
+color = Color(0.8509804, 0.282353, 0.2313726, 1)
+
+[node name="Icon" type="Control" parent="DetailPlate/Vitals/StatusBleeding"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 7.0
+offset_right = 21.0
+offset_bottom = 19.0
+mouse_filter = 2
+
+[node name="Block1" type="ColorRect" parent="DetailPlate/Vitals/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 4
+offset_top = 0
+offset_right = 5.6
+offset_bottom = 1.6
+mouse_filter = 2
+color = Color(0.8509804, 0.282353, 0.2313726, 1)
+
+[node name="Block2" type="ColorRect" parent="DetailPlate/Vitals/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 2.4
+offset_top = 1.6
+offset_right = 7.2
+offset_bottom = 4.8
+mouse_filter = 2
+color = Color(0.8509804, 0.282353, 0.2313726, 1)
+
+[node name="Block3" type="ColorRect" parent="DetailPlate/Vitals/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 1.6
+offset_top = 4.8
+offset_right = 8
+offset_bottom = 8
+mouse_filter = 2
+color = Color(0.8509804, 0.282353, 0.2313726, 1)
+
+[node name="Block4" type="ColorRect" parent="DetailPlate/Vitals/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 8
+offset_right = 6.4
+offset_bottom = 9.6
+mouse_filter = 2
+color = Color(0.8509804, 0.282353, 0.2313726, 1)
+
+[node name="Caption" type="Label" parent="DetailPlate/Vitals/StatusBleeding"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 1.0
+offset_right = 104.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.8509804, 0.282353, 0.2313726, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("6_chakra")
+theme_override_font_sizes/font_size = 9
+text = "BLEEDING"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="Suffix" type="Label" parent="DetailPlate/Vitals/StatusBleeding"]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 1.0
+offset_right = 123.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9490196, 0.6901961, 0.658824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 9
+text = "−3/s"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="StatusFracture" type="Panel" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 1031.0
+offset_right = 318.0
+offset_bottom = 1056.0
+visible = false
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_status_fracture")
+
+[node name="Stripe" type="ColorRect" parent="DetailPlate/Vitals/StatusFracture"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 25.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Icon" type="Control" parent="DetailPlate/Vitals/StatusFracture"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 7.0
+offset_right = 21.0
+offset_bottom = 19.0
+mouse_filter = 2
+
+[node name="Block1" type="ColorRect" parent="DetailPlate/Vitals/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 0
+offset_right = 6.4
+offset_bottom = 1.6
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block2" type="ColorRect" parent="DetailPlate/Vitals/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 4
+offset_top = 1.6
+offset_right = 5.6
+offset_bottom = 4
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block3" type="ColorRect" parent="DetailPlate/Vitals/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 2.4
+offset_top = 4
+offset_right = 4.8
+offset_bottom = 5.6
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block4" type="ColorRect" parent="DetailPlate/Vitals/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 5.6
+offset_top = 4.8
+offset_right = 7.2
+offset_bottom = 6.4
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block5" type="ColorRect" parent="DetailPlate/Vitals/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 4
+offset_top = 6.4
+offset_right = 5.6
+offset_bottom = 9.6
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Caption" type="Label" parent="DetailPlate/Vitals/StatusFracture"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 1.0
+offset_right = 104.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("6_chakra")
+theme_override_font_sizes/font_size = 9
+text = "FRACTURE"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="Suffix" type="Label" parent="DetailPlate/Vitals/StatusFracture"]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 1.0
+offset_right = 123.0
+offset_bottom = 22.0
+mouse_filter = 2
+visible = false
+theme_override_colors/font_color = Color(0.9490196, 0.6901961, 0.658824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 9
+text = ""
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="StatusDehydrated" type="Panel" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 328.0
+offset_top = 1031.0
+offset_right = 454.0
+offset_bottom = 1056.0
+visible = false
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_status_dehydrated")
+
+[node name="Stripe" type="ColorRect" parent="DetailPlate/Vitals/StatusDehydrated"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 25.0
+mouse_filter = 2
+color = Color(0.2980392, 0.5529412, 1, 1)
+
+[node name="Icon" type="Control" parent="DetailPlate/Vitals/StatusDehydrated"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 7.0
+offset_right = 21.0
+offset_bottom = 19.0
+mouse_filter = 2
+
+[node name="Block1" type="ColorRect" parent="DetailPlate/Vitals/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 4
+offset_top = 0.8
+offset_right = 5.6
+offset_bottom = 2.4
+mouse_filter = 2
+color = Color(0.2980392, 0.5529412, 1, 1)
+
+[node name="Block2" type="ColorRect" parent="DetailPlate/Vitals/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 2.4
+offset_right = 6.4
+offset_bottom = 3.2
+mouse_filter = 2
+color = Color(0.2980392, 0.5529412, 1, 1)
+
+[node name="Block3" type="ColorRect" parent="DetailPlate/Vitals/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 2.4
+offset_top = 3.2
+offset_right = 7.2
+offset_bottom = 6.4
+mouse_filter = 2
+color = Color(0.2980392, 0.5529412, 1, 1)
+
+[node name="Block4" type="ColorRect" parent="DetailPlate/Vitals/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 6.4
+offset_right = 6.4
+offset_bottom = 8.8
+mouse_filter = 2
+color = Color(0.2980392, 0.5529412, 1, 1)
+
+[node name="Caption" type="Label" parent="DetailPlate/Vitals/StatusDehydrated"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 1.0
+offset_right = 104.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.2980392, 0.5529412, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("6_chakra")
+theme_override_font_sizes/font_size = 9
+text = "DEHYDRATED"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="Suffix" type="Label" parent="DetailPlate/Vitals/StatusDehydrated"]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 1.0
+offset_right = 123.0
+offset_bottom = 22.0
+mouse_filter = 2
+visible = false
+theme_override_colors/font_color = Color(0.9490196, 0.6901961, 0.658824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 9
+text = ""
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="QuickHealKey" type="Panel" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1060.0
+offset_right = 84.0
+offset_bottom = 1087.0
+visible = false
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_quick_heal")
+
+[node name="Key" type="Label" parent="DetailPlate/Vitals/QuickHealKey"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 28.0
+offset_bottom = 27.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.1803922, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 11
+text = "Y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="QuickHealTitle" type="Label" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 1058.0
+offset_right = 216.0
+offset_bottom = 1085.0
+mouse_filter = 2
+visible = false
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.1803922, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("6_chakra")
+theme_override_font_sizes/font_size = 11
+text = "QUICK HEAL"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="QuickHealDetail" type="Label" parent="DetailPlate/Vitals"]
+layout_mode = 0
+offset_left = 221.0
+offset_top = 1058.0
+offset_right = 481.0
+offset_bottom = 1085.0
+mouse_filter = 2
+visible = false
+theme_override_colors/font_color = Color(1, 0.85098, 0.658824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 10
+text = "Bandage ×2 · stops bleed · +40 HP"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="ReloadRing" type="Control" parent="DetailPlate"]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 106.0
+offset_right = 734.0
+offset_bottom = 140.0
+visible = false
+mouse_filter = 2
+script = ExtResource("5_ring")
+
+[node name="ReloadConnector" type="ColorRect" parent="DetailPlate"]
+layout_mode = 0
+offset_left = 717.0
+offset_top = 148.0
+offset_right = 718.0
+offset_bottom = 158.0
+visible = false
+mouse_filter = 2
+color = Color(0.9, 0.92, 0.89, 0.66)
+
+[node name="DetailHint" type="Label" parent="."]
+layout_mode = 0
+offset_left = 560.0
+offset_top = 720.0
+offset_right = 1360.0
+offset_bottom = 742.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_ibm")
+theme_override_font_sizes/font_size = 10
+text = "H  LOW HEALTH     R  RELOAD PREVIEW     X  EXTRACT"
+horizontal_alignment = 1
+vertical_alignment = 1
+

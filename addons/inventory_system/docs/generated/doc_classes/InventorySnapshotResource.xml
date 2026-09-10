@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventorySnapshotResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="canonical_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Owner-only canonical bytes. Returns empty for a non-owner projected snapshot; local/debug projected values must not be transmitted or restored as canonical state.
+			</description>
+		</method>
+		<method name="get_containers" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_inventory_id" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_items" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_manifest_algorithm" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_manifest_fingerprint" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_profile_identifier" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_references" qualifiers="const">
+			<return type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="get_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_visibility" qualifiers="const">
+			<return type="int" enum="InventorySnapshotResource.Visibility" />
+			<description>
+			</description>
+		</method>
+		<method name="hash" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="VISIBILITY_OWNER" value="0" enum="Visibility">
+		</constant>
+		<constant name="VISIBILITY_OBSERVER" value="1" enum="Visibility">
+		</constant>
+		<constant name="VISIBILITY_REDACTED" value="2" enum="Visibility">
+		</constant>
+	</constants>
+</class>

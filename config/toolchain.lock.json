@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "engine": {
+    "name": "Godot",
+    "required_version": "4.7.2.stable.official.ed1daf0bf",
+    "path_hint": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "renderer": "gl_compatibility",
+    "float_precision": "single"
+  },
+  "native_sdk": {
+    "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+    "extension_api": "4.7.0-stable"
+  },
+  "tools": {
+    "python": {
+      "minimum": "3.8.0",
+      "validated": "3.14.6"
+    },
+    "scons": {
+      "minimum": "4.7.0",
+      "validated": "4.10.1"
+    },
+    "cxx": {
+      "family": "Apple Clang",
+      "minimum_major": 15,
+      "validated": "21.0.0"
+    }
+  },
+  "validated_host": {
+    "platform": "macos",
+    "architecture": "arm64",
+    "macos_version": "27.0",
+    "xcode_version": "26.4",
+    "macos_sdk_version": "26.4",
+    "deployment_target_minimum": "10.13"
+  },
+  "future_targets": {
+    "windows_x86_64": {
+      "compiler": "MSVC 19.3x (Visual Studio 2022) or MinGW GCC >= 12",
+      "sdk": "Windows 10 SDK 10.0.20348 or newer",
+      "status": "unproven"
+    },
+    "linux_x86_64": {
+      "compiler": "GCC >= 12 or Clang >= 15",
+      "sdk": "glibc >= 2.31",
+      "status": "unproven"
+    }
+  }
+}

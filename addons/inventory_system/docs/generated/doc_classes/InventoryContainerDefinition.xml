@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryContainerDefinition" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="constraints" type="InventoryContainerConstraints" setter="set_constraints" getter="get_constraints">
+		</member>
+		<member name="discovery_policy_identifier" type="StringName" setter="set_discovery_policy_identifier" getter="get_discovery_policy_identifier" default="&amp;&quot;&quot;">
+		</member>
+		<member name="enabled_features" type="PackedStringArray" setter="set_enabled_features" getter="get_enabled_features" default="PackedStringArray()">
+		</member>
+		<member name="grid_allow_rotation" type="bool" setter="set_grid_allow_rotation" getter="get_grid_allow_rotation" default="false">
+		</member>
+		<member name="grid_height" type="int" setter="set_grid_height" getter="get_grid_height" default="1">
+		</member>
+		<member name="grid_width" type="int" setter="set_grid_width" getter="get_grid_width" default="1">
+		</member>
+		<member name="identifier" type="StringName" setter="set_identifier" getter="get_identifier" default="&amp;&quot;&quot;">
+		</member>
+		<member name="layout_kind" type="int" setter="set_layout_kind" getter="get_layout_kind" enum="InventoryContainerDefinition.LayoutKind" default="0">
+		</member>
+		<member name="named_slots" type="InventoryNamedSlot[]" setter="set_named_slots" getter="get_named_slots" default="[]">
+		</member>
+		<member name="ordered_list_max_entries" type="int" setter="set_ordered_list_max_entries" getter="get_ordered_list_max_entries" default="1">
+		</member>
+		<member name="schema_version" type="int" setter="set_schema_version" getter="get_schema_version" default="1">
+		</member>
+	</members>
+	<constants>
+		<constant name="LAYOUT_SPATIAL_GRID" value="0" enum="LayoutKind">
+		</constant>
+		<constant name="LAYOUT_NAMED_SLOTS" value="1" enum="LayoutKind">
+		</constant>
+		<constant name="LAYOUT_ORDERED_LIST" value="2" enum="LayoutKind">
+		</constant>
+	</constants>
+</class>

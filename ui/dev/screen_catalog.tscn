@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/dev/screen_catalog.gd" id="script"]
+[ext_resource type="Theme" path="res://ui/theme/zerkov_theme.tres" id="theme"]
+
+[sub_resource type="StyleBoxFlat" id="panel"]
+bg_color = Color(0.035, 0.04, 0.035, 0.98)
+border_color = Color(0.91, 0.59, 0.18, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[node name="ScreenPicker" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+theme = ExtResource("theme")
+script = ExtResource("script")
+
+[node name="Panel" type="Panel" parent="."]
+offset_right = 1320.0
+offset_bottom = 844.0
+theme_override_styles/panel = SubResource("panel")
+
+[node name="Title" type="Label" parent="Panel"]
+offset_left = 32.0
+offset_top = 20.0
+offset_right = 1256.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 28
+text = "ZERKOV / UI REVIEW"
+
+[node name="Description" type="Label" parent="Panel"]
+offset_left = 32.0
+offset_top = 68.0
+offset_right = 1256.0
+offset_bottom = 92.0
+theme_override_font_sizes/font_size = 12
+text = "All approved screens · local mock state · F1 to close"
+
+[node name="ScreenCatalog" type="ScrollContainer" parent="Panel"]
+offset_left = 24.0
+offset_top = 112.0
+offset_right = 1296.0
+offset_bottom = 776.0
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Entries" type="GridContainer" parent="Panel/ScreenCatalog"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 3
+
+[node name="Footer" type="Label" parent="Panel"]
+offset_left = 32.0
+offset_top = 796.0
+offset_right = 1256.0
+offset_bottom = 824.0
+theme_override_font_sizes/font_size = 11
+text = "Scroll for all screens · Enter to open · Esc / F1 to close"

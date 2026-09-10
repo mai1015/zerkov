@@ -1,0 +1,1815 @@
+{
+  "artifact_root": "/Volumes/Data/codes/games/zerkov-ui-backup.pdqYzi",
+  "archive": {
+    "path": "before.tar",
+    "sha256": "ea140eb625a9d5c1a85d89c86b4a304885f902425c8efd24236566b5d35b72bf"
+  },
+  "images": [
+    {
+      "path": "after/1280x720/build_mode.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2d4243ea398552e884c4d0ef2e7fddd9afd27d27bd24b9f635181423ae8f6cac"
+    },
+    {
+      "path": "after/1280x720/bunker.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "0a4f5b69ad31034133bfdba652ed76edc85b83c98f1667e1f1eb358ec0589ef4"
+    },
+    {
+      "path": "after/1280x720/controls.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "1179b0fce7fffde3e1e0f2a2f55d7844a219bb100fb71cd5433065a4de466e63"
+    },
+    {
+      "path": "after/1280x720/crafting.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "168668c660fb5f7dcd73f500028158de1f46614eb03a2b78f47c2e6ce462de92"
+    },
+    {
+      "path": "after/1280x720/crosshairs.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7d8d489199ca0ecac7706ef1cd9c0a58fb9092f14722bbd6cb406c88152d38b1"
+    },
+    {
+      "path": "after/1280x720/deploying.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "5e15da6c5020c98ffe7ebf939398b0fc5b1edec6c6344281ab4cda838ee4f3cf"
+    },
+    {
+      "path": "after/1280x720/health.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e03a2bbdd9c01e4df90fe2414fc9dc11d8a172c7b6c92d1e5d3474ccb31f8380"
+    },
+    {
+      "path": "after/1280x720/hud.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7579dec4ab6ca97430b6c56bf99d6b2d457de0d5f2b81b39215cafb7c400795d"
+    },
+    {
+      "path": "after/1280x720/hud_coop.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e71cfde4b317b97bb1dd66ffae783653a5088f4834db412e4def617d047cb9c0"
+    },
+    {
+      "path": "after/1280x720/hud_detail.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7628acca7e3b8d15125969c511578004de598c22cb89afbf44953a4fa028782f"
+    },
+    {
+      "path": "after/1280x720/inventory.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "6cdcdee8b9b4d22e1d7d4d33c1ea5e021c27f84f27a01b3258f961e339c3e8d1"
+    },
+    {
+      "path": "after/1280x720/join_friend.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "6d7ab04653e6ca3b076c7b4c53aa10041bfd33580328b1a58c13b485f5bf690e"
+    },
+    {
+      "path": "after/1280x720/mag_empty.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "5c3a6f5941562e5d69351922433d871d5c66eadac655f92f50aa96bdd4fef8de"
+    },
+    {
+      "path": "after/1280x720/main_menu.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e4a2546d6e2196c35a2fa0b60e91fd56ea8a068feba3338168e5f2e6562f7822"
+    },
+    {
+      "path": "after/1280x720/maps.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "3d093a901cb2e93d7c89a21264937a4ba67ff03d9f7a9c0ca9c02f25a4bc162e"
+    },
+    {
+      "path": "after/1280x720/pause.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "53626c475bbc35616eb99c47efa5721cf80f3641ac49653768a843121b1e0df5"
+    },
+    {
+      "path": "after/1280x720/reload.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2ed4127c13246b95107ec81f87dea8a7698fa3848f8afef1797ff3dff8ee51d6"
+    },
+    {
+      "path": "after/1280x720/saves.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "37a41e6c7d0fff6532356e9f80b01ad70bd2d5cc8548f25c62c1c0fad7e8f61b"
+    },
+    {
+      "path": "after/1280x720/session.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7fc6412552802f117e9d20bf7edcd6ce8832f07f0b056db45954297d54250df7"
+    },
+    {
+      "path": "after/1280x720/settings.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "ec6aa50de350a3d6f376cf8eebbf779cbd9332680dab3f6b142029303e3e1927"
+    },
+    {
+      "path": "after/1280x720/showcase.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "c6786f51e67bbd230c8b3e1133d687acf80e0a43da9427b1fa744571005fa0db"
+    },
+    {
+      "path": "after/1280x720/squad_list.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "d42189bf9501da3a4f0fdc0685f96146d047047146d4b2e847f8d76106875139"
+    },
+    {
+      "path": "after/1280x720/stats.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "785f5116f7370a8f48fde3ba7e3e12c97dc40a8ed7c61e25b6b6245d495a0a8b"
+    },
+    {
+      "path": "after/1280x720/status_icons.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "171fc34b6eb4a98ca46c95f4da357cba38cebd2240388d0c5e76e7d322a5a5f7"
+    },
+    {
+      "path": "after/1280x720/summary_solo.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "be5435a3a4b1ba6abaa18bf90031b365a5a75c201e497e8d40e3ca6c06f70ddd"
+    },
+    {
+      "path": "after/1280x720/summary_squad.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "ff8224e0153082b3237d09718a7a70d8eee89e70ed97a58f0e1645b829798cfd"
+    },
+    {
+      "path": "after/1280x720/tasks.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "13f68aab52fbe3e6bf5230c6d3c02c6ef98e897d4df15a12754412e27333b1e3"
+    },
+    {
+      "path": "after/1280x720/title.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "c6ac3434e2f340cb0f3bb12a80865402343eb61a87533337755288b6d6248cef"
+    },
+    {
+      "path": "after/1600x900/build_mode.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "9d47a84e547b707e0e62b49afde21316abcc56dafe85d51389e190397b103f15"
+    },
+    {
+      "path": "after/1600x900/bunker.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "aeace4bbc8052338828ff6300e7aefd8aed30c304a110552c783b1d9ea4538f0"
+    },
+    {
+      "path": "after/1600x900/controls.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "a6dc677e142648fbff21f7f064dc4f750d878f5b15970240b7eeb4885d20281a"
+    },
+    {
+      "path": "after/1600x900/crafting.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "0ff61d56462a43fe4089a3faacf71ae13cc3c8028885c164ea4802fac65d5a05"
+    },
+    {
+      "path": "after/1600x900/crosshairs.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "fe94055d11626a13c540a2a42e4a24b3fc10716105a3baf4ba62a068eebcd23d"
+    },
+    {
+      "path": "after/1600x900/deploying.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "6aac15cb75632a2174748b61f73ec9220e0fe3c5e97fb9d017c103809b07e323"
+    },
+    {
+      "path": "after/1600x900/health.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "ef49b96cbbd6af2931d2d1ee2e648cff0cbb433bd50409bee4d9a400a79f27be"
+    },
+    {
+      "path": "after/1600x900/hud.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "8f754c65a2350d732292a5665ef2f69947b513d3880e32907518fc00b3fa3e3f"
+    },
+    {
+      "path": "after/1600x900/hud_coop.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "5678d39c60e05a11f7a580fa7a653c39efcbce20cbe88c1064e3dc7cae6d6c3c"
+    },
+    {
+      "path": "after/1600x900/hud_detail.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "874afc8b43270001589f1a7f794a6f25390f2dc5ecedb5d2f721d6f623f36461"
+    },
+    {
+      "path": "after/1600x900/inventory.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "921cc3bc4d53880f73fb59878a03403aca54701fec9bb0599a2da5b3bbd3d1b1"
+    },
+    {
+      "path": "after/1600x900/join_friend.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "15b1a9dbb611a35f8a3c03ba9db09f52ad89e55eefb1b0d09c277f49ae7df570"
+    },
+    {
+      "path": "after/1600x900/mag_empty.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "96c740cc3e418e3201ae8136654ac2966fac896e8faa6fd84f8831848e70028f"
+    },
+    {
+      "path": "after/1600x900/main_menu.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "0d8582c9a4abc7b401f4af3b5f712a40662b1dda26350a5aae48cc57da202179"
+    },
+    {
+      "path": "after/1600x900/maps.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "8c9edaa86611cc04404fcfc708d9962aa2dbd7a9a91850c786b6e7f09ebb502b"
+    },
+    {
+      "path": "after/1600x900/pause.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "12d55ab195e221c1d18eb4d21e5b01e96314159b02ab1fa4955d8b1a51141031"
+    },
+    {
+      "path": "after/1600x900/reload.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "f162db3984e5f11f00e706f7798e5c8c4f7e17d95849c47a2d9d0918945c05bc"
+    },
+    {
+      "path": "after/1600x900/saves.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "75e6d1a87e07ca8c60889c7d664505fa16337f0833d9f4a9e5686a7349574220"
+    },
+    {
+      "path": "after/1600x900/session.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "12a837836cdcfd792197c1d7cf0151e99c6d197856b0458fd12c9f5a53503166"
+    },
+    {
+      "path": "after/1600x900/settings.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "342d6ad7b1a3cb27d0906d43916c52c9a39da3995a2f2ec2be67b74da3662f25"
+    },
+    {
+      "path": "after/1600x900/showcase.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "85ca58eed8c7692dae31097afed513433d6d1de3e5fadfda096ce16f3c6a40c6"
+    },
+    {
+      "path": "after/1600x900/squad_list.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "e421e49f2f77c4547f375964a06fa453bb8f90e467c32af77a1800de961d3a63"
+    },
+    {
+      "path": "after/1600x900/stats.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "b2d89f443649a7ce86cc223899497143c4d028fa9d3f28af1933102d356da1c0"
+    },
+    {
+      "path": "after/1600x900/status_icons.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "3785e70bcf64a45ed3a9916bfa3b7e8d2a74d39491590aeecf92a547e9ba2639"
+    },
+    {
+      "path": "after/1600x900/summary_solo.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "a605c37e71a91d7f5b1564122dbc8817737ec99ee9f8db2dbff5638152b92d14"
+    },
+    {
+      "path": "after/1600x900/summary_squad.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "bc1292426ee62b78c58dc00745e434be63ada9697211aa73db0b2831f254ce54"
+    },
+    {
+      "path": "after/1600x900/tasks.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "8d6b601e5ee84369de3201e64e5f6baef95e1108c8fea1590e8d5bd9cc9b9887"
+    },
+    {
+      "path": "after/1600x900/title.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "15f75e9a66e67f7999c6c118a3a46da36fb25e0d78c5a144a7d418bc16b37f72"
+    },
+    {
+      "path": "after/1920x1080/build_mode.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e9fd5a28f7eb55fa804fd37599de45e01304fcc223447d6e2509bd22444af304"
+    },
+    {
+      "path": "after/1920x1080/bunker.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3a85228be888e5e7b5960c8cb727486138f27af656f404ca66f25751b5de1693"
+    },
+    {
+      "path": "after/1920x1080/controls.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c81cdac5b11e3012f4d44d849a185f81691f635799374adeb0cf2a9dff1f6606"
+    },
+    {
+      "path": "after/1920x1080/crafting.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "95132839c2a5585a4ad52fb0da1dd1661e190db4e25b73d2d45ac742dcd9a2cc"
+    },
+    {
+      "path": "after/1920x1080/crosshairs.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "509b9ab3d47f80bba887bea52f4876e7d73661e720b6a507736d6d5ccea6cd4d"
+    },
+    {
+      "path": "after/1920x1080/deploying.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "66120316bb16ac5d94a5f2ca118539f17a28d57ddd4ca2640719432f3829df3c"
+    },
+    {
+      "path": "after/1920x1080/health.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "82709256f881290c9ca018a7710c4a40df9f62851b8982963a483c353023b4ae"
+    },
+    {
+      "path": "after/1920x1080/hud.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "d8b4c4adc703e043ca1d24177bdbc38f93ae0fc49ea8081894b0a27a819d8ef4"
+    },
+    {
+      "path": "after/1920x1080/hud_coop.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9715103d538174137b7ba4addffc820304a3f94c768ff9f08874b631ef6811c4"
+    },
+    {
+      "path": "after/1920x1080/hud_detail.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9baeaccb5ce9606c00fa83962833873198b76e313555f80144ce13aff6376651"
+    },
+    {
+      "path": "after/1920x1080/inventory.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9606f44d3dc4f9428893f66966f6350887ec027c8723e76e82910294d0d37d76"
+    },
+    {
+      "path": "after/1920x1080/join_friend.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "8c2616d020d1dc727e8a06811f767e67dfe2780a8063f6171027382357dec74f"
+    },
+    {
+      "path": "after/1920x1080/mag_empty.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "2f8e41d95093bc4e4a6a3389d6a77a3ff8ed9baf4dd05be693b04c81e8d2409c"
+    },
+    {
+      "path": "after/1920x1080/main_menu.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7f72c77621fc29e28d19f124ddf2c77ec89501c1b80068a36a028ebf69f815db"
+    },
+    {
+      "path": "after/1920x1080/maps.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "b2e0104431c807ef9ac522283eb805489a3f61f6afdf25023eea55b4c83e086c"
+    },
+    {
+      "path": "after/1920x1080/pause.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "72521c8ec5534e37b9715a5da71fad4a796061331325eed26b7b447f4dd5f7bf"
+    },
+    {
+      "path": "after/1920x1080/reload.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7f64da9822b65a4e222f554fe9542f6178f13061566f777a0b3d307f73831f2c"
+    },
+    {
+      "path": "after/1920x1080/saves.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "60b2af8712e1867fb241fd8339a1f938647a0c598201117b339bdeb453cc1cb0"
+    },
+    {
+      "path": "after/1920x1080/session.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c8b238cc1774ac647b7c5c5a5454aadb2675fe83a8a0c76289b0332f826e6c5d"
+    },
+    {
+      "path": "after/1920x1080/settings.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "069e900b8e06b16e03e09b73394911c43afbca0d1f30c64e9832ac5b544566e8"
+    },
+    {
+      "path": "after/1920x1080/showcase.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c390413963e355812497627c348fe52c99694695ec5f95659972661ad1147f10"
+    },
+    {
+      "path": "after/1920x1080/squad_list.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "1f217780065ba6947e7594023fd077ddf88a2b97d81be7b16089f7403cef400f"
+    },
+    {
+      "path": "after/1920x1080/stats.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5428542cd7a5b1deb96c02d34e1bf6e8dc261e3203b6d95d83913c970443ff76"
+    },
+    {
+      "path": "after/1920x1080/status_icons.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "d3786f0d781ca47618dc7e629dba423f9e11d6de05b5d4c62724b5f52e890034"
+    },
+    {
+      "path": "after/1920x1080/summary_solo.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "fd42ce15dde119a310104b8f00cfc3cd9e401dc990df6a38090ec590c7c28978"
+    },
+    {
+      "path": "after/1920x1080/summary_squad.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e56ef9a66ec576b8cedfccb35571bda2a7ec7ce67181ca69df26939fef966ae9"
+    },
+    {
+      "path": "after/1920x1080/tasks.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "1294813dd82ec76395ddffd90c2a57369ec41885f1e90cdff439aee5f6ebf01b"
+    },
+    {
+      "path": "after/1920x1080/title.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "db6f56c6e76ca0c7297d2c25468bc3e0989aa48829c7c733f41e4b454d938499"
+    },
+    {
+      "path": "after/960x540/build_mode.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "1b903df835cf13d6aa58b8dfae0114cfc6b5071be794abc0278b9c5960d42fa0"
+    },
+    {
+      "path": "after/960x540/bunker.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "213515a7f921892d74f3a353992c1a1f78f0ae9fd8df2c4d72cf16adafe723a2"
+    },
+    {
+      "path": "after/960x540/controls.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "8e8ae90a49661c8e0716941c3bd338e2084e8e497ecf4200b032c04105b80605"
+    },
+    {
+      "path": "after/960x540/crafting.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "d1bd27033070de8c1af77336b6f0268aaf78491e27ae24a40f0cac808454fb5b"
+    },
+    {
+      "path": "after/960x540/crosshairs.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "df83ee1c65fb40bd8638956816c47cf2a6fda4c54e4abb843235f8acffbb1b8f"
+    },
+    {
+      "path": "after/960x540/deploying.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "95f13a095ddf44210337468daad356edbf900259431c83f174bdf9f543cc19ae"
+    },
+    {
+      "path": "after/960x540/health.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "280946cc6b7536ee74eb23c33d0e15835606a1b478b6ff2e5c0911d71a7aa684"
+    },
+    {
+      "path": "after/960x540/hud.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "fa139d5887dcef7383121f3c0a9eb9588f3f1d81c90ddb11908b16876bda1d45"
+    },
+    {
+      "path": "after/960x540/hud_coop.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "21973cbf63410aa0a63a7e2b34bb06a739810257068000a3f4cd79013fda6acc"
+    },
+    {
+      "path": "after/960x540/hud_detail.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "8525d6d3a6afa976f51774d6e5f32350a8aeb513481453e6f83e5689a28e4f87"
+    },
+    {
+      "path": "after/960x540/inventory.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "a55272d75f345a465ff1cb80a05e58b1d594c3bd5ed454e0cf226657961e2050"
+    },
+    {
+      "path": "after/960x540/join_friend.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "5ac7eaf9a3eb731161760def1c4dd72af8a1604986f46250093478de6fa57cfe"
+    },
+    {
+      "path": "after/960x540/mag_empty.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "e91437938293e265202544e14896f31a7983e9f9d271e4c4c4ec57233d129e5b"
+    },
+    {
+      "path": "after/960x540/main_menu.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "a0a0e0f24df4c1179e237d1d6dfacc61f48470199460220c465af0729a3966ca"
+    },
+    {
+      "path": "after/960x540/maps.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "b3cd048d11dae880efdfcd96079093b77ea9a05f413d3c3660d0096173d907d2"
+    },
+    {
+      "path": "after/960x540/pause.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "fce6930131aa52f0f6c3059d9f32ce18563be91d1d642e5c368ed8a309e2ffab"
+    },
+    {
+      "path": "after/960x540/reload.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "b46f451bcd406025f0635759c6d36b27ac3c88a26e583a447681b91ae940924e"
+    },
+    {
+      "path": "after/960x540/saves.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "0ffca3b2eaa1969d47baba0042d3aae4ac7e2ad2b4c4136d2050541171b136f5"
+    },
+    {
+      "path": "after/960x540/session.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "40278dd98c24134583942d02d217f236a3b9146407c9097fd82c00fa695b3aba"
+    },
+    {
+      "path": "after/960x540/settings.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "e5afad5426c1da5de304775aa1bda58e15805f10f10a0ef6b5d3fde4578582ec"
+    },
+    {
+      "path": "after/960x540/showcase.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "99486429cacc67aa9119fa1505b6deb9cf236c4c4fc1f4e81326541e51e77645"
+    },
+    {
+      "path": "after/960x540/squad_list.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "e576f268490494c69282991a5e534a643b719be2f2ee693428b36047ec112f11"
+    },
+    {
+      "path": "after/960x540/stats.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "6ffea0a6ed0ccc40502ebf7322690f83be482937cd58a3f632bad01919ad12b5"
+    },
+    {
+      "path": "after/960x540/status_icons.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "3b376c16eeb9ab759810cb0b0cabe3351af648d85c1fe72a76e73f11d79096e3"
+    },
+    {
+      "path": "after/960x540/summary_solo.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "a227216aff6a01a0a5cfce8233c2418f2f8d878980a065141f913f3bb52d4453"
+    },
+    {
+      "path": "after/960x540/summary_squad.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "4296caa27d2442666f60c500ade1e663e9c03a56ff0aa372b82c10278b2fbad7"
+    },
+    {
+      "path": "after/960x540/tasks.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "0d88391953eb8d764ad8982387a1c08fc3abeb28ad7f5491c9b6caaff375f0d3"
+    },
+    {
+      "path": "after/960x540/title.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "5579036d30f108f991dfff96f020d0e76c41c7df72abf40ceeef995665ca2153"
+    },
+    {
+      "path": "after/forced-1280x720/build_mode.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "14c4498b12b19d487ee5588c77837e4aeb1b0ba7299a557f407dc0034947e64e"
+    },
+    {
+      "path": "after/forced-1280x720/bunker.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "fa4d1152f72f42f107855a473ef73a0829a3d5d08a83c7b376db295d7b587146"
+    },
+    {
+      "path": "after/forced-1280x720/controls.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "bea1615cdb93e92999c1d19ad39f5f573e8802f3a0444ef6519205e730eca9fb"
+    },
+    {
+      "path": "after/forced-1280x720/crafting.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "8b463ab7bc5f60ac0e0009f39a91853ce5f05b992c4234e6803b1e3cb0736e5c"
+    },
+    {
+      "path": "after/forced-1280x720/crosshairs.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "4127a0bd1f45a1e49ce0d80ffd8d2b5e5ca286c48b2d5e0cb22fcb625c5d0223"
+    },
+    {
+      "path": "after/forced-1280x720/deploying.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "028b59733dae0c736c47a3da76bc19405b2b50a3bd188d82666d6c40fc703b03"
+    },
+    {
+      "path": "after/forced-1280x720/health.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "c68425220ea6d90afa44cb65bb03241a812ba71f752be8cacd162ef4ad0958c2"
+    },
+    {
+      "path": "after/forced-1280x720/hud.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "49c5da226807374d13921ae9d34ea5ea535bf67f9aebcd86f0818fb9b40635dc"
+    },
+    {
+      "path": "after/forced-1280x720/hud_coop.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "a440d8f0a717425b607947e0a002e25994d5a939b31d751c871cd6e7a60094ee"
+    },
+    {
+      "path": "after/forced-1280x720/hud_detail.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "216fbe446bd293653dbfc00a47c3d55a7d03e73ae8527a0b518741761d0def1a"
+    },
+    {
+      "path": "after/forced-1280x720/inventory.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "374937db9e9fdf20645cc9248701e8fea371f163f8905d6d43debce325c30a1b"
+    },
+    {
+      "path": "after/forced-1280x720/join_friend.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "fb574f4df00a27a0b41634242e8105bbc06e73aa6c7deb0f10b39342671c8245"
+    },
+    {
+      "path": "after/forced-1280x720/mag_empty.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "4e4f0329f01f8174c014644e039811763c7f295c9164131e142d9a0dcc44260e"
+    },
+    {
+      "path": "after/forced-1280x720/main_menu.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7ed1a3ec42f5f2b14db1a9d0049ede64dcd79e13ebf39bbdb8ad374e526c6693"
+    },
+    {
+      "path": "after/forced-1280x720/maps.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "24aa169ac8a7af5aa054434a2535228cb5d065fe6ff90ce08572d232e03ce975"
+    },
+    {
+      "path": "after/forced-1280x720/pause.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "4df17385051b24a0be48dc68a4e0a77a344a6c213d9475f52f568a403e8543e9"
+    },
+    {
+      "path": "after/forced-1280x720/reload.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "34d6a205a57c7c6748cd8eab038ab18979b32f5baf169fb581fa50926a885b9e"
+    },
+    {
+      "path": "after/forced-1280x720/saves.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2b0b171e48cd10068123ecb2d9f49445e49f07c5f496f3bdb669e3fb884c6c93"
+    },
+    {
+      "path": "after/forced-1280x720/session.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "45fd8324efa21f48cf53683eb558034a3b82c56725d4968d8dd36118946b9f4f"
+    },
+    {
+      "path": "after/forced-1280x720/settings.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "a77e0dfd7ff387bb04eb0c559fac8aeb3384ae3c1a8491316bf28d13f578a7cc"
+    },
+    {
+      "path": "after/forced-1280x720/showcase.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "a52148a963a6193dde8d9cde43f3a1165c67caeb2192858715e1a3e689a6cf3c"
+    },
+    {
+      "path": "after/forced-1280x720/squad_list.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "9efcc84af67eadec84835420fc6d780a3822f54f7f5eb8a1792c65b50af23c7f"
+    },
+    {
+      "path": "after/forced-1280x720/stats.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e5195839efd896160cc59e6593405390b4135cc58eecbe38eb50984c3857645e"
+    },
+    {
+      "path": "after/forced-1280x720/status_icons.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "3b46c665ae48b4a20a3e3a305d2d2c27d99cd036e56f5f2122744ff00208994d"
+    },
+    {
+      "path": "after/forced-1280x720/summary_solo.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "ed709bc6a7b894a60759fd5e4db4bc5db8bd7236a6b08f5707608c384e1110db"
+    },
+    {
+      "path": "after/forced-1280x720/summary_squad.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "325d929f8912e2fb1c5d354a111d992a0a4f3826776024040630b0982247c0cb"
+    },
+    {
+      "path": "after/forced-1280x720/tasks.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "ab93fe1e1fe5281bec0d4123f5935b00530ac3deb87726d5881ad425981bd3ab"
+    },
+    {
+      "path": "after/forced-1280x720/title.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "afb52c8669d12ffd401e72b616b07adf88d879df58ec42b7f8abcd074137cca9"
+    },
+    {
+      "path": "baseline/1280x720/build_mode.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "f2ebb30f96eb545d1d7a19e77ed114fad14c5e2095108b87c644f7c62f94a983"
+    },
+    {
+      "path": "baseline/1280x720/bunker.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "0a4f5b69ad31034133bfdba652ed76edc85b83c98f1667e1f1eb358ec0589ef4"
+    },
+    {
+      "path": "baseline/1280x720/controls.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2c6144bde19a380dabc15b61bb450021a363a57088b04636d99cdbe4c66cdf17"
+    },
+    {
+      "path": "baseline/1280x720/crafting.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "168668c660fb5f7dcd73f500028158de1f46614eb03a2b78f47c2e6ce462de92"
+    },
+    {
+      "path": "baseline/1280x720/crosshairs.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7d8d489199ca0ecac7706ef1cd9c0a58fb9092f14722bbd6cb406c88152d38b1"
+    },
+    {
+      "path": "baseline/1280x720/deploying.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "5e15da6c5020c98ffe7ebf939398b0fc5b1edec6c6344281ab4cda838ee4f3cf"
+    },
+    {
+      "path": "baseline/1280x720/health.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "fbb5152da31d5d40562e6700133295a90dab94c37046ecf7e1978076756ad3ec"
+    },
+    {
+      "path": "baseline/1280x720/hud.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7579dec4ab6ca97430b6c56bf99d6b2d457de0d5f2b81b39215cafb7c400795d"
+    },
+    {
+      "path": "baseline/1280x720/hud_coop.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e71cfde4b317b97bb1dd66ffae783653a5088f4834db412e4def617d047cb9c0"
+    },
+    {
+      "path": "baseline/1280x720/hud_detail.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7628acca7e3b8d15125969c511578004de598c22cb89afbf44953a4fa028782f"
+    },
+    {
+      "path": "baseline/1280x720/inventory.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "6cdcdee8b9b4d22e1d7d4d33c1ea5e021c27f84f27a01b3258f961e339c3e8d1"
+    },
+    {
+      "path": "baseline/1280x720/join_friend.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "6d7ab04653e6ca3b076c7b4c53aa10041bfd33580328b1a58c13b485f5bf690e"
+    },
+    {
+      "path": "baseline/1280x720/mag_empty.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "5c3a6f5941562e5d69351922433d871d5c66eadac655f92f50aa96bdd4fef8de"
+    },
+    {
+      "path": "baseline/1280x720/main_menu.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "b8ccccdcc43dcca73553466e71973d68df2568e5cc1ac3ea6778250ee39d7ee5"
+    },
+    {
+      "path": "baseline/1280x720/maps.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7c9cc3d95e54dacb41bf3ccf0e52b541b5760f9a278e251edbcdf75249a2c329"
+    },
+    {
+      "path": "baseline/1280x720/pause.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "53626c475bbc35616eb99c47efa5721cf80f3641ac49653768a843121b1e0df5"
+    },
+    {
+      "path": "baseline/1280x720/reload.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "5c390227b97e7f8fb3f1cb4531b75e3bc2530964c6f70de0f31473ca0f886462"
+    },
+    {
+      "path": "baseline/1280x720/saves.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "37a41e6c7d0fff6532356e9f80b01ad70bd2d5cc8548f25c62c1c0fad7e8f61b"
+    },
+    {
+      "path": "baseline/1280x720/session.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7fc6412552802f117e9d20bf7edcd6ce8832f07f0b056db45954297d54250df7"
+    },
+    {
+      "path": "baseline/1280x720/settings.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "96242da7ddf1703715039e47b64f4c990b2204707fdf44344cf229289e0b50ab"
+    },
+    {
+      "path": "baseline/1280x720/showcase.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "c6786f51e67bbd230c8b3e1133d687acf80e0a43da9427b1fa744571005fa0db"
+    },
+    {
+      "path": "baseline/1280x720/squad_list.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "d42189bf9501da3a4f0fdc0685f96146d047047146d4b2e847f8d76106875139"
+    },
+    {
+      "path": "baseline/1280x720/stats.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "785f5116f7370a8f48fde3ba7e3e12c97dc40a8ed7c61e25b6b6245d495a0a8b"
+    },
+    {
+      "path": "baseline/1280x720/status_icons.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "171fc34b6eb4a98ca46c95f4da357cba38cebd2240388d0c5e76e7d322a5a5f7"
+    },
+    {
+      "path": "baseline/1280x720/summary_solo.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "be5435a3a4b1ba6abaa18bf90031b365a5a75c201e497e8d40e3ca6c06f70ddd"
+    },
+    {
+      "path": "baseline/1280x720/summary_squad.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "ff8224e0153082b3237d09718a7a70d8eee89e70ed97a58f0e1645b829798cfd"
+    },
+    {
+      "path": "baseline/1280x720/tasks.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "02b2ac808eadb66b498d5753a7cdbff9d4069fc11bbbeb83e07d968cd360982f"
+    },
+    {
+      "path": "baseline/1280x720/title.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "c6ac3434e2f340cb0f3bb12a80865402343eb61a87533337755288b6d6248cef"
+    },
+    {
+      "path": "baseline/1600x900/build_mode.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "e8c5a253fa2a4d6af039212cdf93bebde47af3d8f6e44712b349e7daae02097c"
+    },
+    {
+      "path": "baseline/1600x900/bunker.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "aeace4bbc8052338828ff6300e7aefd8aed30c304a110552c783b1d9ea4538f0"
+    },
+    {
+      "path": "baseline/1600x900/controls.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "a6b52ec38ba43cca7859003dcfba291d90f9bea156cba63e61ad90aaaaa07c7b"
+    },
+    {
+      "path": "baseline/1600x900/crafting.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "0ff61d56462a43fe4089a3faacf71ae13cc3c8028885c164ea4802fac65d5a05"
+    },
+    {
+      "path": "baseline/1600x900/crosshairs.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "fe94055d11626a13c540a2a42e4a24b3fc10716105a3baf4ba62a068eebcd23d"
+    },
+    {
+      "path": "baseline/1600x900/deploying.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "6aac15cb75632a2174748b61f73ec9220e0fe3c5e97fb9d017c103809b07e323"
+    },
+    {
+      "path": "baseline/1600x900/health.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "cb6504ef58e16d1d01585b186fdde3a5016d505fff1d93b30ab050105b54ea9f"
+    },
+    {
+      "path": "baseline/1600x900/hud.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "8f754c65a2350d732292a5665ef2f69947b513d3880e32907518fc00b3fa3e3f"
+    },
+    {
+      "path": "baseline/1600x900/hud_coop.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "5678d39c60e05a11f7a580fa7a653c39efcbce20cbe88c1064e3dc7cae6d6c3c"
+    },
+    {
+      "path": "baseline/1600x900/hud_detail.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "874afc8b43270001589f1a7f794a6f25390f2dc5ecedb5d2f721d6f623f36461"
+    },
+    {
+      "path": "baseline/1600x900/inventory.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "921cc3bc4d53880f73fb59878a03403aca54701fec9bb0599a2da5b3bbd3d1b1"
+    },
+    {
+      "path": "baseline/1600x900/join_friend.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "15b1a9dbb611a35f8a3c03ba9db09f52ad89e55eefb1b0d09c277f49ae7df570"
+    },
+    {
+      "path": "baseline/1600x900/mag_empty.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "96c740cc3e418e3201ae8136654ac2966fac896e8faa6fd84f8831848e70028f"
+    },
+    {
+      "path": "baseline/1600x900/main_menu.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "61609a70be971d24c3675bd3db03a6f20271abd7571f2a8b0b74e1b39424eee3"
+    },
+    {
+      "path": "baseline/1600x900/maps.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "ee6b097cb1dd65e805ed1a088959f3eb5da51a948b68df6ef5b26bfb9ade7166"
+    },
+    {
+      "path": "baseline/1600x900/pause.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "12d55ab195e221c1d18eb4d21e5b01e96314159b02ab1fa4955d8b1a51141031"
+    },
+    {
+      "path": "baseline/1600x900/reload.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "9c8327fa7b76bd3c44b5c3c0c433857f85bdd5fea67575cee527b9a5619dcea9"
+    },
+    {
+      "path": "baseline/1600x900/saves.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "75e6d1a87e07ca8c60889c7d664505fa16337f0833d9f4a9e5686a7349574220"
+    },
+    {
+      "path": "baseline/1600x900/session.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "a48b2f478fe8bed1aaec51c9755aef06467083f2d77e8c62ffea2aed1c47fac4"
+    },
+    {
+      "path": "baseline/1600x900/settings.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "ecc134e35eab7055d898f60e81a28efd4f23453a64bd64b24efa2fa5e9b803b8"
+    },
+    {
+      "path": "baseline/1600x900/showcase.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "85ca58eed8c7692dae31097afed513433d6d1de3e5fadfda096ce16f3c6a40c6"
+    },
+    {
+      "path": "baseline/1600x900/squad_list.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "e421e49f2f77c4547f375964a06fa453bb8f90e467c32af77a1800de961d3a63"
+    },
+    {
+      "path": "baseline/1600x900/stats.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "b2d89f443649a7ce86cc223899497143c4d028fa9d3f28af1933102d356da1c0"
+    },
+    {
+      "path": "baseline/1600x900/status_icons.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "3785e70bcf64a45ed3a9916bfa3b7e8d2a74d39491590aeecf92a547e9ba2639"
+    },
+    {
+      "path": "baseline/1600x900/summary_solo.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "a605c37e71a91d7f5b1564122dbc8817737ec99ee9f8db2dbff5638152b92d14"
+    },
+    {
+      "path": "baseline/1600x900/summary_squad.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "bc1292426ee62b78c58dc00745e434be63ada9697211aa73db0b2831f254ce54"
+    },
+    {
+      "path": "baseline/1600x900/tasks.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "f0a2e387eb393541df9a58730d18a3b4426a491f52db2bf78667830de70aa9ec"
+    },
+    {
+      "path": "baseline/1600x900/title.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "15f75e9a66e67f7999c6c118a3a46da36fb25e0d78c5a144a7d418bc16b37f72"
+    },
+    {
+      "path": "baseline/1920x1080/build_mode.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "27293cb51ebfae61bc81f369f9dfc1551f64d45da466eca41bf544a25e667d1e"
+    },
+    {
+      "path": "baseline/1920x1080/bunker.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3a85228be888e5e7b5960c8cb727486138f27af656f404ca66f25751b5de1693"
+    },
+    {
+      "path": "baseline/1920x1080/controls.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "464b9bd12283fa7cb4eab6574f526d67d9dd7b1b3b2a2433e9cc65c748701d86"
+    },
+    {
+      "path": "baseline/1920x1080/crafting.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "95132839c2a5585a4ad52fb0da1dd1661e190db4e25b73d2d45ac742dcd9a2cc"
+    },
+    {
+      "path": "baseline/1920x1080/crosshairs.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "509b9ab3d47f80bba887bea52f4876e7d73661e720b6a507736d6d5ccea6cd4d"
+    },
+    {
+      "path": "baseline/1920x1080/deploying.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "66120316bb16ac5d94a5f2ca118539f17a28d57ddd4ca2640719432f3829df3c"
+    },
+    {
+      "path": "baseline/1920x1080/health.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "87e88fbc31d6bfec3d1ebedd727a09952b066dbadc654464a31b47251842a316"
+    },
+    {
+      "path": "baseline/1920x1080/hud.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "d8b4c4adc703e043ca1d24177bdbc38f93ae0fc49ea8081894b0a27a819d8ef4"
+    },
+    {
+      "path": "baseline/1920x1080/hud_coop.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9715103d538174137b7ba4addffc820304a3f94c768ff9f08874b631ef6811c4"
+    },
+    {
+      "path": "baseline/1920x1080/hud_detail.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9baeaccb5ce9606c00fa83962833873198b76e313555f80144ce13aff6376651"
+    },
+    {
+      "path": "baseline/1920x1080/inventory.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9606f44d3dc4f9428893f66966f6350887ec027c8723e76e82910294d0d37d76"
+    },
+    {
+      "path": "baseline/1920x1080/join_friend.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "8c2616d020d1dc727e8a06811f767e67dfe2780a8063f6171027382357dec74f"
+    },
+    {
+      "path": "baseline/1920x1080/mag_empty.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "2f8e41d95093bc4e4a6a3389d6a77a3ff8ed9baf4dd05be693b04c81e8d2409c"
+    },
+    {
+      "path": "baseline/1920x1080/main_menu.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "96ad1449b6590a01d6d7c6206909221599fa31b751eed18b1a2d1eadf6e3431d"
+    },
+    {
+      "path": "baseline/1920x1080/maps.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "88671bd22cf3b654ffc9fd0cb3a11b3b4b42e2bbfd451e9f25aa77cde00cc9f3"
+    },
+    {
+      "path": "baseline/1920x1080/pause.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "72521c8ec5534e37b9715a5da71fad4a796061331325eed26b7b447f4dd5f7bf"
+    },
+    {
+      "path": "baseline/1920x1080/reload.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "cf77bf52b972cc0dd3fde355d402fa37671cc08f05cb9058f64b3c14b8990758"
+    },
+    {
+      "path": "baseline/1920x1080/saves.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "60b2af8712e1867fb241fd8339a1f938647a0c598201117b339bdeb453cc1cb0"
+    },
+    {
+      "path": "baseline/1920x1080/session.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c8b238cc1774ac647b7c5c5a5454aadb2675fe83a8a0c76289b0332f826e6c5d"
+    },
+    {
+      "path": "baseline/1920x1080/settings.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "7b3cf281f186f7eb3e8cfe25ce8018461375bb35bb33ec98bdfe180f4a4361d4"
+    },
+    {
+      "path": "baseline/1920x1080/showcase.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c390413963e355812497627c348fe52c99694695ec5f95659972661ad1147f10"
+    },
+    {
+      "path": "baseline/1920x1080/squad_list.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "1f217780065ba6947e7594023fd077ddf88a2b97d81be7b16089f7403cef400f"
+    },
+    {
+      "path": "baseline/1920x1080/stats.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5428542cd7a5b1deb96c02d34e1bf6e8dc261e3203b6d95d83913c970443ff76"
+    },
+    {
+      "path": "baseline/1920x1080/status_icons.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "d3786f0d781ca47618dc7e629dba423f9e11d6de05b5d4c62724b5f52e890034"
+    },
+    {
+      "path": "baseline/1920x1080/summary_solo.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "fd42ce15dde119a310104b8f00cfc3cd9e401dc990df6a38090ec590c7c28978"
+    },
+    {
+      "path": "baseline/1920x1080/summary_squad.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "e56ef9a66ec576b8cedfccb35571bda2a7ec7ce67181ca69df26939fef966ae9"
+    },
+    {
+      "path": "baseline/1920x1080/tasks.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "c9d5858e9c502e65679b33942c4dda0f68488a57cae733304528ccab13b17b35"
+    },
+    {
+      "path": "baseline/1920x1080/title.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "db6f56c6e76ca0c7297d2c25468bc3e0989aa48829c7c733f41e4b454d938499"
+    },
+    {
+      "path": "baseline/960x540/build_mode.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "abaca7904c7022401a9604191d10aaf25ed67d566a7a59bb0338c0b7a6a42f49"
+    },
+    {
+      "path": "baseline/960x540/bunker.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "9b21e31277f9d35bb848223e49f1329b057dbf85a3058fd3f2dbfb3887bf985c"
+    },
+    {
+      "path": "baseline/960x540/controls.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "f7ac1293f238c82d390d1b0f71e66b12f89f228275bc2b2aa91fdaf1b775a8c0"
+    },
+    {
+      "path": "baseline/960x540/crafting.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "00163f7e73088edc54dffcdb800cb0c305881efd95c8f2035fb90cd292ac9ab3"
+    },
+    {
+      "path": "baseline/960x540/crosshairs.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "df83ee1c65fb40bd8638956816c47cf2a6fda4c54e4abb843235f8acffbb1b8f"
+    },
+    {
+      "path": "baseline/960x540/deploying.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "95f13a095ddf44210337468daad356edbf900259431c83f174bdf9f543cc19ae"
+    },
+    {
+      "path": "baseline/960x540/health.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "71e24e03ec8f6d3adc5d623049532a7964a9186d9d5c4fac5493c9d529b5adcf"
+    },
+    {
+      "path": "baseline/960x540/hud.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "fa139d5887dcef7383121f3c0a9eb9588f3f1d81c90ddb11908b16876bda1d45"
+    },
+    {
+      "path": "baseline/960x540/hud_coop.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "21973cbf63410aa0a63a7e2b34bb06a739810257068000a3f4cd79013fda6acc"
+    },
+    {
+      "path": "baseline/960x540/hud_detail.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "8525d6d3a6afa976f51774d6e5f32350a8aeb513481453e6f83e5689a28e4f87"
+    },
+    {
+      "path": "baseline/960x540/inventory.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "27cc66826aa0dd222fd33a1a9e20ffc2d1eb8d37988ba442ef092d02022103ee"
+    },
+    {
+      "path": "baseline/960x540/join_friend.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "5ac7eaf9a3eb731161760def1c4dd72af8a1604986f46250093478de6fa57cfe"
+    },
+    {
+      "path": "baseline/960x540/mag_empty.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "e91437938293e265202544e14896f31a7983e9f9d271e4c4c4ec57233d129e5b"
+    },
+    {
+      "path": "baseline/960x540/main_menu.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "a0a0e0f24df4c1179e237d1d6dfacc61f48470199460220c465af0729a3966ca"
+    },
+    {
+      "path": "baseline/960x540/maps.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "c2fe85dac3c4a9bd8553936e81002d866cf0ef98f26bd429da7a92d2523478eb"
+    },
+    {
+      "path": "baseline/960x540/pause.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "fce6930131aa52f0f6c3059d9f32ce18563be91d1d642e5c368ed8a309e2ffab"
+    },
+    {
+      "path": "baseline/960x540/reload.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "c0b2e66880562071ef11b732c91ac5ab7dd6bce8fb49f2323bc738c196bda246"
+    },
+    {
+      "path": "baseline/960x540/saves.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "0ffca3b2eaa1969d47baba0042d3aae4ac7e2ad2b4c4136d2050541171b136f5"
+    },
+    {
+      "path": "baseline/960x540/session.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "338de776f1fd73fa0107e52423495244d19c76bc6d12dba3e88bc39e6aa50a5a"
+    },
+    {
+      "path": "baseline/960x540/settings.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "814d8bb42886d3be2f1a2def03f645112bb787c63ad6dcfd098f880af2fd40fe"
+    },
+    {
+      "path": "baseline/960x540/showcase.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "99486429cacc67aa9119fa1505b6deb9cf236c4c4fc1f4e81326541e51e77645"
+    },
+    {
+      "path": "baseline/960x540/squad_list.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "e576f268490494c69282991a5e534a643b719be2f2ee693428b36047ec112f11"
+    },
+    {
+      "path": "baseline/960x540/stats.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "b37e001ca7a11f7adb53ba3bea79a63f577811e0080e63834c10e803d353d665"
+    },
+    {
+      "path": "baseline/960x540/status_icons.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "3b376c16eeb9ab759810cb0b0cabe3351af648d85c1fe72a76e73f11d79096e3"
+    },
+    {
+      "path": "baseline/960x540/summary_solo.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "a227216aff6a01a0a5cfce8233c2418f2f8d878980a065141f913f3bb52d4453"
+    },
+    {
+      "path": "baseline/960x540/summary_squad.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "4296caa27d2442666f60c500ade1e663e9c03a56ff0aa372b82c10278b2fbad7"
+    },
+    {
+      "path": "baseline/960x540/tasks.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "708fb022cc2603e45efa2b5d6444adda2398cd81f7229d19e3f2af2c4ec0b345"
+    },
+    {
+      "path": "baseline/960x540/title.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "5579036d30f108f991dfff96f020d0e76c41c7df72abf40ceeef995665ca2153"
+    },
+    {
+      "path": "baseline/forced-1280x720/build_mode.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "6e610882d5e268db2b5771710f9b5277b3dad11e305d73573ecab79108c8116a"
+    },
+    {
+      "path": "baseline/forced-1280x720/bunker.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "50ef8e0656630aa76a742683c549998e8330bb1302ae6c244497f0e90cf3c267"
+    },
+    {
+      "path": "baseline/forced-1280x720/controls.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "40f09ea2aea7f4989223b0ee2e54817b4d7b12a759abbd3a7633a4d9ac0af3ea"
+    },
+    {
+      "path": "baseline/forced-1280x720/crafting.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "84c28743cace82f453e1fdfbabc8e7bdb532327f78974b5a0fff10593c524f72"
+    },
+    {
+      "path": "baseline/forced-1280x720/crosshairs.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "4127a0bd1f45a1e49ce0d80ffd8d2b5e5ca286c48b2d5e0cb22fcb625c5d0223"
+    },
+    {
+      "path": "baseline/forced-1280x720/deploying.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "028b59733dae0c736c47a3da76bc19405b2b50a3bd188d82666d6c40fc703b03"
+    },
+    {
+      "path": "baseline/forced-1280x720/health.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "a3655580b200bfde20f922b10ae0b1de5344dd98389877cb07380e6216a6299e"
+    },
+    {
+      "path": "baseline/forced-1280x720/hud.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "49c5da226807374d13921ae9d34ea5ea535bf67f9aebcd86f0818fb9b40635dc"
+    },
+    {
+      "path": "baseline/forced-1280x720/hud_coop.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "a440d8f0a717425b607947e0a002e25994d5a939b31d751c871cd6e7a60094ee"
+    },
+    {
+      "path": "baseline/forced-1280x720/hud_detail.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "216fbe446bd293653dbfc00a47c3d55a7d03e73ae8527a0b518741761d0def1a"
+    },
+    {
+      "path": "baseline/forced-1280x720/inventory.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "466723e5f97ba152c064e8a959bb9cf56a5f5de24cb9a44896c7b5e144a13902"
+    },
+    {
+      "path": "baseline/forced-1280x720/join_friend.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "fb574f4df00a27a0b41634242e8105bbc06e73aa6c7deb0f10b39342671c8245"
+    },
+    {
+      "path": "baseline/forced-1280x720/mag_empty.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "4e4f0329f01f8174c014644e039811763c7f295c9164131e142d9a0dcc44260e"
+    },
+    {
+      "path": "baseline/forced-1280x720/main_menu.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "7ed1a3ec42f5f2b14db1a9d0049ede64dcd79e13ebf39bbdb8ad374e526c6693"
+    },
+    {
+      "path": "baseline/forced-1280x720/maps.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "da0ee53071aa53bd2b78cfce9a119136d347311ec326e1f22f1b1ee904a64a2d"
+    },
+    {
+      "path": "baseline/forced-1280x720/pause.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "4df17385051b24a0be48dc68a4e0a77a344a6c213d9475f52f568a403e8543e9"
+    },
+    {
+      "path": "baseline/forced-1280x720/reload.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "504435da612b85cadbd0ed65a7b0a03002377cb5c49682bccb90795393efd17b"
+    },
+    {
+      "path": "baseline/forced-1280x720/saves.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2b0b171e48cd10068123ecb2d9f49445e49f07c5f496f3bdb669e3fb884c6c93"
+    },
+    {
+      "path": "baseline/forced-1280x720/session.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "35c4b7142ae6dd76e243565528cbd90910016f5624aa898d2be471c5b4612816"
+    },
+    {
+      "path": "baseline/forced-1280x720/settings.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "844fda5fde8a1953646ce8156f08604870b1704c805a598460dddb75ddde9fbd"
+    },
+    {
+      "path": "baseline/forced-1280x720/showcase.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "a52148a963a6193dde8d9cde43f3a1165c67caeb2192858715e1a3e689a6cf3c"
+    },
+    {
+      "path": "baseline/forced-1280x720/squad_list.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "9efcc84af67eadec84835420fc6d780a3822f54f7f5eb8a1792c65b50af23c7f"
+    },
+    {
+      "path": "baseline/forced-1280x720/stats.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "113afa4d3d2c7cc432e78f55c36ff0200fac220143f5a8d991264de2ad2137ec"
+    },
+    {
+      "path": "baseline/forced-1280x720/status_icons.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "3b46c665ae48b4a20a3e3a305d2d2c27d99cd036e56f5f2122744ff00208994d"
+    },
+    {
+      "path": "baseline/forced-1280x720/summary_solo.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "ed709bc6a7b894a60759fd5e4db4bc5db8bd7236a6b08f5707608c384e1110db"
+    },
+    {
+      "path": "baseline/forced-1280x720/summary_squad.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "325d929f8912e2fb1c5d354a111d992a0a4f3826776024040630b0982247c0cb"
+    },
+    {
+      "path": "baseline/forced-1280x720/tasks.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "2348f4a552853cc45b7c5ab051a8d7a18905b163a5b9dd65a2fea329732e4227"
+    },
+    {
+      "path": "baseline/forced-1280x720/title.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "afb52c8669d12ffd401e72b616b07adf88d879df58ec42b7f8abcd074137cca9"
+    },
+    {
+      "path": "component-states/1280-default.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "45911487b2f511c339141a5c2c4ac1baf12e71199c7864cc93b1b0ff98b2f2fe"
+    },
+    {
+      "path": "component-states/1280-dialog.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "1e9ee2cb22c68fe708d8b79729b48a577fefadfe6cc037dc9d1448fe91519e90"
+    },
+    {
+      "path": "component-states/1280-hover.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "0c9f065154b7b133c0bd2cab75bf8724e607b772757464343c3f03e8e8531de1"
+    },
+    {
+      "path": "component-states/1280-pressed.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "e76b3e8eea6f22d1835eda0b0b25816831008dd343efdd20e49315e65adea0a8"
+    },
+    {
+      "path": "component-states/1280-prompt.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "6a924641d0ad97c9888063b957823f068533a3033e864a7c1f2a96ff10a3ddbe"
+    },
+    {
+      "path": "component-states/1280-selected-focus.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "83dbf772e6524393170316ba743aed88a68be320876ad58db435544519607ae5"
+    },
+    {
+      "path": "component-states/1280-updated-disabled.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "b087a03a4bc96da67272ae4c5684bb58be801608da6633bf6b4fb72fed41afc9"
+    },
+    {
+      "path": "component-states/1920-default.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "da8dcdba2382c9d64ebecc5016e347b47dc2b68b700010a9c5d0a8cea545789e"
+    },
+    {
+      "path": "component-states/1920-dialog.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "00ee42d926ea379e1caa6fd69abf6df4356010831cba2505ac9fa12fcfc92e1a"
+    },
+    {
+      "path": "component-states/1920-hover.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "464bfd76f07657b46d648516f2926c30044b96b48fe3975c3a940e234157379d"
+    },
+    {
+      "path": "component-states/1920-pressed.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "cb27856f331ce9242bcfcc93d46fb1bbed8fedcdec6bf2a53b4c6e4d67a16ed2"
+    },
+    {
+      "path": "component-states/1920-prompt.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5022512c3792e451547d279d7a60bfc950387abb35df3af4a2aec6ddf5fef3d1"
+    },
+    {
+      "path": "component-states/1920-selected-focus.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "30232207e5d8daa57a0a3a61959a23902f2a44a99a8ddb610cc383cc7fc2869b"
+    },
+    {
+      "path": "component-states/1920-updated-disabled.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "f7c5213b58f036dd7c34b104eb1831804651c2b9c1c517f4ab46e5e5f564d7b4"
+    },
+    {
+      "path": "component-states/960-default.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "2dcfb75013beb8d905189bd62dc2ba629fb9705e90dfd4b557eb89f9784db68e"
+    },
+    {
+      "path": "component-states/960-dialog.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "e2b01c78ef7489760769acbd7ee817ed1005058a8e7a812b9f11f0b9d313145b"
+    },
+    {
+      "path": "component-states/960-hover.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "9252b3fbc43fb57077e3a3089a9c32cceabdb9aca0d59b5eb0f8913ea34f8f48"
+    },
+    {
+      "path": "component-states/960-pressed.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "a80b1d60854aa837d128384d5626cb21a865125a03d7e495e0db6c93cfcd495b"
+    },
+    {
+      "path": "component-states/960-prompt.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "b4c5f496c87074ef978630c414290fc436a2b7c3c4c04be3d74051f2ef4f236c"
+    },
+    {
+      "path": "component-states/960-selected-focus.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "4a9f6710239c7e1e2b3a63a9942ab690e1fbda2dd8cf4f0004bb229dea39ba42"
+    },
+    {
+      "path": "component-states/960-updated-disabled.png",
+      "width": 960,
+      "height": 540,
+      "sha256": "4a777d9c1ede6f79350e3309818f0d8e8b823edef4cc9698110b2a82e6086883"
+    }
+  ]
+}

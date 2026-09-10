@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "addon": "level_task_system",
+  "version": "0.1.0",
+  "api_version": "0.1.0",
+  "protocol_version": 1,
+  "definition_schema_version": 1,
+  "level_definition_schema_version": 1,
+  "task_graph_definition_schema_version": 1,
+  "conversation_definition_schema_version": 1,
+  "speaker_definition_schema_version": 1,
+  "provider_definition_schema_version": 1,
+  "resource_schema_version": 1,
+  "snapshot_schema_version": 1,
+  "canonical_format_version": 1,
+  "canonicalization_version": 1,
+  "manifest_algorithm": "fnv1a64-canonical-v1",
+  "catalog_fingerprint_algorithm": "fnv1a64-canonical-v1",
+  "checksum_algorithm": "sha256",
+  "release_state": "pre_release",
+  "engine": {
+    "compatibility_minimum": "4.7",
+    "compatibility_maximum": null,
+    "validated_against": "4.7.1-stable",
+    "float_precision": "single"
+  },
+  "support_state_policy": {
+    "supported": "Only a target whose exact artifact builds, loads, exports, passes role-applicable conformance, and has a recorded checksum may be advertised as supported.",
+    "experimental": "The artifact builds and extension-load smoke passes, but export or role-applicable conformance for this exact entry is incomplete; it is not a production support claim.",
+    "planned": "No artifact is claimed for this target in this pre-release manifest. Planned entries are intent only and must not be advertised as supported."
+  },
+  "symbols_policy": {
+    "current_behavior": "No target is built or packaged yet; no symbol-stripping or side-car claim is made.",
+    "intended_policy": "Debug artifacts retain symbols. Release packaging may add a target-specific side-car policy only when the packaging tool and exact evidence are recorded in a future manifest.",
+    "sidecar_suffix": ".debug"
+  },
+  "licenses": {
+    "addon": "MIT (see ../../LICENSE)",
+    "third_party_reference": "THIRD_PARTY_LICENSES.md",
+    "mandatory_third_party_runtime": "godot-cpp only (MIT; pinned in native/dependencies.json). No gameplay, dialogue, transport, serialization, or reward runtime is bundled."
+  },
+  "support_policy": "This is a pre-release development manifest. No target is supported until its entry records a built artifact, checksum, extension-load evidence, export evidence, and role-applicable conformance.",
+  "provenance": {
+    "source_revision": null,
+    "source_worktree_dirty": true,
+    "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+    "built_at": null,
+    "note": "No canonical promotion or distributable binary has occurred. The exact godot-cpp pin is recorded by native/dependencies.json when the native package is built; null values here are intentional, not placeholders for release provenance."
+  },
+  "targets": [
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "debug",
+      "role": "client",
+      "roles": ["client", "offline_authority", "server_authority"],
+      "artifact": "bin/liblevel_task_system.macos.template_debug.universal.dylib",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "release",
+      "role": "client",
+      "roles": ["client", "offline_authority", "server_authority"],
+      "artifact": "bin/liblevel_task_system.macos.template_release.universal.dylib",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.windows.template_debug.x86_64.dll",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.windows.template_release.x86_64.dll",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "roles": ["client", "offline_authority", "server_authority"],
+      "artifact": "bin/liblevel_task_system.linux.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "roles": ["client", "offline_authority", "server_authority"],
+      "artifact": "bin/liblevel_task_system.linux.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "debug",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.android.template_debug.arm64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "release",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.android.template_release.arm64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.android.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.android.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "debug",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.ios.template_debug.framework",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "release",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.ios.template_release.framework",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": []
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "debug",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.web.template_debug.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "support_state": "planned",
+      "requires": ["extension_support", "cross_origin_isolation"],
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "verified_by": []
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "release",
+      "role": "client",
+      "roles": ["client", "offline_authority"],
+      "artifact": "bin/liblevel_task_system.web.template_release.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "support_state": "planned",
+      "requires": ["extension_support", "cross_origin_isolation"],
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.1.0",
+        "protocol_version": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "verified_by": []
+    }
+  ]
+}

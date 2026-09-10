@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryReplicaNode" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_delta_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="apply_discovery_delta_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="apply_discovery_view_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="apply_snapshot_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="container_mass" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="container_mass_capacity" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="count_in_container" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_needs_resync" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_view" qualifiers="const">
+			<return type="InventoryDiscoverySnapshotResource" />
+			<description>
+			</description>
+		</method>
+		<method name="fits" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="item_definition_identifier" type="String" />
+			<param index="1" name="destination" type="Dictionary" />
+			<param index="2" name="quantity" type="int" default="1" />
+			<param index="3" name="excluding_item" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="get_catalog" qualifiers="const">
+			<return type="InventoryCatalog" />
+			<description>
+			</description>
+		</method>
+		<method name="get_discovery_inventory_id" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_discovery_inventory_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_discovery_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_inventory_id" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_applied_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="has_feature" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="feature_identifier" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="needs_resync" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="remaining_count_capacity" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="resync_request_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="set_catalog">
+			<return type="void" />
+			<param index="0" name="catalog" type="InventoryCatalog" />
+			<description>
+			</description>
+		</method>
+		<method name="snapshot" qualifiers="const">
+			<return type="InventorySnapshotResource" />
+			<param index="0" name="visibility" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="total_mass" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="delta_applied">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="revision" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="discovery_delta_applied">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="inventory_revision" type="int" />
+			<param index="2" name="discovery_revision" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="discovery_resync_needed">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="inventory_revision" type="int" />
+			<param index="2" name="discovery_revision" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="discovery_snapshot_replaced">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="inventory_revision" type="int" />
+			<param index="2" name="discovery_revision" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="resync_needed">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="last_applied_revision" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="snapshot_replaced">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="revision" type="int" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

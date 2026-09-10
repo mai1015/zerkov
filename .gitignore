@@ -1,0 +1,13 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Local Python/test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Local OS/editor noise
+.DS_Store
+*.swp

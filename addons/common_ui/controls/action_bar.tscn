@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c0mm0nuiactionbar1"]
+
+[ext_resource type="Script" path="res://addons/common_ui/controls/action_bar.gd" id="1_action_bar"]
+
+[node name="ActionBar" type="HBoxContainer"]
+script = ExtResource("1_action_bar")

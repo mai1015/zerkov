@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryNetworkGateway" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+		Server/game-owned transport-neutral authenticated inventory ingress and grant-scoped egress. This node owns no MultiplayerPeer or RPC endpoint; the game supplies the trusted peer context. InventoryAuthority command bytes are raw protocol bytes, not RPC messages. Packet identity and observer visibility are never trusted. Fresh logical session ids strictly increase within an authority epoch; reconnect reuses the same id and exact actor/authority epoch with a strictly higher connection epoch and may migrate to a different peer while preserving bounded session state. A higher authority epoch starts a fresh session-id domain only after all live sessions are gone. SessionHello attempts share the command-ingress token bucket with command bytes.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="authority_epoch" type="int" setter="set_authority_epoch" getter="get_authority_epoch" default="0">
+			Positive immutable server authority generation.
+		</member>
+		<member name="authority_path" type="NodePath" setter="set_authority_path" getter="get_authority_path">
+			Path to the server-role InventoryAuthority.
+		</member>
+		<member name="tick_rate" type="int" setter="set_tick_rate" getter="get_tick_rate" default="60">
+			Positive tick rate used by gateway rate windows.
+		</member>
+	</members>
+	<methods>
+		<method name="accept_session_hello">
+			<return type="Dictionary" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="session" type="int" />
+			<param index="2" name="connection_epoch" type="int" />
+			<param index="3" name="bytes" type="PackedByteArray" />
+			<param index="4" name="now_tick" type="int" default="0" />
+			<description>
+				Admits exact SessionHello bytes for the trusted peer/session/connection tuple. The attempt consumes the shared authenticated command-ingress token bucket before hello readiness, size/decode, or compatibility; malformed and oversized attempts consume budget too.
+			</description>
+		</method>
+		<method name="admit_session_hello">
+			<return type="Dictionary" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="session" type="int" />
+			<param index="2" name="connection_epoch" type="int" />
+			<param index="3" name="bytes" type="PackedByteArray" />
+			<param index="4" name="now_tick" type="int" default="0" />
+			<description>
+				Alias for accept_session_hello().
+			</description>
+		</method>
+		<method name="begin_session">
+			<return type="Dictionary" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="session" type="int" />
+			<param index="2" name="actor" type="int" />
+			<param index="3" name="connection_epoch" type="int" />
+			<param index="4" name="command_allowlist" type="int" default="0" />
+			<description>
+				Binds an authenticated session. Fresh logical session ids must strictly increase within an authority epoch. A reconnect reuses the same id and exact actor/authority epoch with a strictly higher connection epoch, may use a different peer, and preserves grants, replay/sequence state, and both rate buckets; stale old-peer/old-epoch traffic is rejected. Command permissions default to deny.
+			</description>
+		</method>
+		<method name="clear_sessions">
+			<return type="Dictionary" />
+			<description>
+				Clears all bounded authenticated session, grant, and replay state.
+			</description>
+		</method>
+		<method name="configure">
+			<return type="Dictionary" />
+			<param index="0" name="authority_epoch" type="int" />
+			<param index="1" name="tick_rate" type="int" />
+			<description>
+				Atomically configures the positive authority epoch and tick rate.
+			</description>
+		</method>
+		<method name="delta_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<param index="2" name="predecessor" type="int" default="0" />
+			<description>
+				Returns grant-scoped trusted server egress bytes. Completed exact SessionHello admission for the current epochs is required; this is trusted server output, not an RPC entry point. Recipient-filtered OWNER DeltaBatch bytes always clear source_command_id to 0; the authority-global id remains only in the server-local raw authority batch so it cannot correlate other touched inventories or principals.
+			</description>
+		</method>
+		<method name="delta_result" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<param index="2" name="predecessor" type="int" default="0" />
+			<description>
+				Returns grant-scoped trusted server egress result data. Completed exact SessionHello admission for the current epochs is required. Recipient-filtered OWNER DeltaBatch results always set source_command_id to 0; the authority-global id remains only in the server-local raw authority batch so it cannot correlate other touched inventories or principals.
+			</description>
+		</method>
+		<method name="drop_session">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<description>
+				Ends one authenticated session by session id.
+			</description>
+		</method>
+		<method name="end_session">
+			<return type="Dictionary" />
+			<param index="0" name="peer" type="int" />
+			<description>
+				Ends the authenticated session bound to a trusted peer.
+			</description>
+		</method>
+		<method name="get_authority_epoch" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_authority_path" qualifiers="const">
+			<return type="NodePath" />
+			<description>
+			</description>
+		</method>
+		<method name="get_command_allowlist" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="session" type="int" />
+			<description>
+				Returns the default-deny command-class mask for a session.
+			</description>
+		</method>
+		<method name="get_inventory_authority_path" qualifiers="const">
+			<return type="NodePath" />
+			<description>
+				Alias for get_authority_path().
+			</description>
+		</method>
+		<method name="get_last_status" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="get_replication_visibility" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Returns the stored grant visibility; packet content cannot select it.
+			</description>
+		</method>
+		<method name="get_tick_rate" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_world_policy" qualifiers="const">
+			<return type="Callable" />
+			<description>
+			</description>
+		</method>
+		<method name="get_world_policy_callback" qualifiers="const">
+			<return type="Callable" />
+			<description>
+				Alias for get_world_policy().
+			</description>
+		</method>
+		<method name="grant_command_inventory">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Grants command access to one exact inventory; this is separate from replication.
+			</description>
+		</method>
+		<method name="grant_inventory">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Alias for the command-inventory grant.
+			</description>
+		</method>
+		<method name="grant_observer_replication">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<param index="2" name="visibility" type="int" default="1" />
+			<description>
+				Grants observer or redacted recipient-safe replication.
+			</description>
+		</method>
+		<method name="grant_owner_replication">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Grants canonical owner replication, separate from command access.
+			</description>
+		</method>
+		<method name="grant_replication">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<param index="2" name="visibility" type="int" />
+			<description>
+				Stores an exact owner, observer, or redacted replication scope.
+			</description>
+		</method>
+		<method name="has_inventory_grant" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Tests command access only.
+			</description>
+		</method>
+		<method name="has_replication_grant" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Tests replication access only.
+			</description>
+		</method>
+		<method name="replay_entry_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="session" type="int" />
+			<description>
+				Returns the bounded exact-byte replay-entry count.
+			</description>
+		</method>
+		<method name="resync_bytes">
+			<return type="PackedByteArray" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="session" type="int" />
+			<param index="2" name="connection_epoch" type="int" />
+			<param index="3" name="bytes" type="PackedByteArray" />
+			<param index="4" name="now_tick" type="int" default="0" />
+			<description>
+				Returns a trusted server response to an authenticated owner or observer resync request. Completed exact SessionHello admission for the current epochs is required; observer visibility comes from the stored grant.
+			</description>
+		</method>
+		<method name="resync_result">
+			<return type="Dictionary" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="session" type="int" />
+			<param index="2" name="connection_epoch" type="int" />
+			<param index="3" name="bytes" type="PackedByteArray" />
+			<param index="4" name="now_tick" type="int" default="0" />
+			<description>
+				Admits an authenticated resync request only after completed exact SessionHello admission for the current epochs; observer visibility comes from the stored grant.
+			</description>
+		</method>
+		<method name="revoke_command_inventory">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Revokes command access to one exact inventory.
+			</description>
+		</method>
+		<method name="revoke_inventory">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Alias for the command-inventory revoke.
+			</description>
+		</method>
+		<method name="revoke_replication">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Removes the stored replication grant.
+			</description>
+		</method>
+		<method name="session_ready" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="session" type="int" />
+			<description>
+				Returns true only after exact hello admission for the current epochs.
+			</description>
+		</method>
+		<method name="set_authority_epoch">
+			<return type="bool" />
+			<param index="0" name="epoch" type="int" />
+			<description>
+				Sets a positive immutable authority generation.
+			</description>
+		</method>
+		<method name="set_authority_path">
+			<return type="void" />
+			<param index="0" name="path" type="NodePath" />
+			<description>
+				Sets the path to the server-role InventoryAuthority.
+			</description>
+		</method>
+		<method name="set_command_allowlist">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="allowlist" type="int" />
+			<description>
+				Sets the default-deny remote command-class mask.
+			</description>
+		</method>
+		<method name="set_inventory_authority_path">
+			<return type="void" />
+			<param index="0" name="path" type="NodePath" />
+			<description>
+				Alias for set_authority_path().
+			</description>
+		</method>
+		<method name="set_tick_rate">
+			<return type="bool" />
+			<param index="0" name="tick_rate" type="int" />
+			<description>
+				Sets a positive bounded tick rate.
+			</description>
+		</method>
+		<method name="set_world_policy">
+			<return type="void" />
+			<param index="0" name="policy" type="Callable" />
+			<description>
+				Sets the mandatory game-owned world-policy callback. This Callable is trusted server code and must be pure with respect to InventoryAuthority during evaluation: it must not submit typed or raw commands, perform lifecycle, reservation, discovery, or other authority mutations, or perform external side effects. Gateway recursion is blocked, but arbitrary callback side effects cannot generally be rolled back.
+			</description>
+		</method>
+		<method name="set_world_policy_callback">
+			<return type="void" />
+			<param index="0" name="policy" type="Callable" />
+			<description>
+				Alias for set_world_policy(); the installed trusted server callback must remain pure with respect to InventoryAuthority and external side effects.
+			</description>
+		</method>
+		<method name="snapshot_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Returns grant-scoped trusted server egress bytes. Completed exact SessionHello admission for the current epochs is required; this is trusted server output, not an RPC entry point.
+			</description>
+		</method>
+		<method name="snapshot_result" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="session" type="int" />
+			<param index="1" name="inventory" type="int" />
+			<description>
+				Returns grant-scoped trusted server egress result data. Completed exact SessionHello admission for the current epochs is required.
+			</description>
+		</method>
+		<method name="submit_command">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<param index="1" name="peer" type="int" />
+			<param index="2" name="session" type="int" />
+			<param index="3" name="connection_epoch" type="int" />
+			<param index="4" name="now_tick" type="int" default="0" />
+			<description>
+				Bytes-first alias for submit_command_bytes(); packet identity is not trusted.
+			</description>
+		</method>
+		<method name="submit_command_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="session" type="int" />
+			<param index="2" name="connection_epoch" type="int" />
+			<param index="3" name="bytes" type="PackedByteArray" />
+			<param index="4" name="now_tick" type="int" default="0" />
+			<description>
+				Admits an authenticated raw command envelope. Client-local command id and actor echo are canonicalized by the server; exact accepted replays return a normalized no-event/no-delta receipt. One-shot events, deltas, and side-effect payloads are never exposed; detailed IDs/revisions are retained only when OWNER replication covers every touched inventory. The custom executor is synchronous/immediate; a queued result must not enqueue work or perform any side effects and is rejected because no authoritative reply can be produced.
+			</description>
+		</method>
+		<method name="submit_remote_command">
+			<return type="Dictionary" />
+			<param index="0" name="peer" type="int" />
+			<param index="1" name="session" type="int" />
+			<param index="2" name="connection_epoch" type="int" />
+			<param index="3" name="bytes" type="PackedByteArray" />
+			<param index="4" name="now_tick" type="int" default="0" />
+			<description>
+				Alias for submit_command_bytes().
+			</description>
+		</method>
+		<method name="tracked_session_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the bounded live-session count.
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="VISIBILITY_OWNER" value="0" enum="Visibility">
+		</constant>
+		<constant name="VISIBILITY_OBSERVER" value="1" enum="Visibility">
+		</constant>
+		<constant name="VISIBILITY_REDACTED" value="2" enum="Visibility">
+		</constant>
+		<constant name="COMMAND_CLASS_MOVE_ITEM" value="1">
+		</constant>
+		<constant name="COMMAND_CLASS_ROTATE_ITEM" value="2">
+		</constant>
+		<constant name="COMMAND_CLASS_SPLIT_STACK" value="3">
+		</constant>
+		<constant name="COMMAND_CLASS_MERGE_STACKS" value="4">
+		</constant>
+		<constant name="COMMAND_CLASS_INSERT_ITEM" value="5">
+		</constant>
+		<constant name="COMMAND_CLASS_REMOVE_ITEM" value="6">
+		</constant>
+		<constant name="COMMAND_CLASS_EQUIP_ITEM" value="7">
+		</constant>
+		<constant name="COMMAND_CLASS_UNEQUIP_ITEM" value="8">
+		</constant>
+		<constant name="COMMAND_CLASS_SWAP_ITEMS" value="9">
+		</constant>
+		<constant name="COMMAND_CLASS_AUTO_PLACE_ITEM" value="10">
+		</constant>
+		<constant name="COMMAND_CLASS_QUICK_TRANSFER_ITEM" value="11">
+		</constant>
+		<constant name="COMMAND_CLASS_LOOT_ITEM" value="12">
+		</constant>
+		<constant name="COMMAND_CLASS_DROP_ITEM" value="13">
+		</constant>
+		<constant name="COMMAND_CLASS_SETTLE_INVENTORY" value="14">
+		</constant>
+		<constant name="COMMAND_CLASS_ASSIGN_REFERENCE" value="15">
+		</constant>
+		<constant name="COMMAND_CLASS_CLEAR_REFERENCE" value="16">
+		</constant>
+		<constant name="COMMAND_CLASS_TARGETED_PROVIDER_TRANSFER" value="17">
+		</constant>
+		<constant name="COMMAND_CLASS_SET_ITEM_COMPONENT" value="18">
+		</constant>
+		<constant name="COMMAND_CLASS_REMOVE_ITEM_COMPONENT" value="19">
+		</constant>
+		<constant name="COMMAND_MASK_MOVE_ITEM" value="1">
+		</constant>
+		<constant name="COMMAND_MASK_ROTATE_ITEM" value="2">
+		</constant>
+		<constant name="COMMAND_MASK_SPLIT_STACK" value="4">
+		</constant>
+		<constant name="COMMAND_MASK_MERGE_STACKS" value="8">
+		</constant>
+		<constant name="COMMAND_MASK_INSERT_ITEM" value="16">
+		</constant>
+		<constant name="COMMAND_MASK_REMOVE_ITEM" value="32">
+		</constant>
+		<constant name="COMMAND_MASK_EQUIP_ITEM" value="64">
+		</constant>
+		<constant name="COMMAND_MASK_UNEQUIP_ITEM" value="128">
+		</constant>
+		<constant name="COMMAND_MASK_SWAP_ITEMS" value="256">
+		</constant>
+		<constant name="COMMAND_MASK_AUTO_PLACE_ITEM" value="512">
+		</constant>
+		<constant name="COMMAND_MASK_QUICK_TRANSFER_ITEM" value="1024">
+		</constant>
+		<constant name="COMMAND_MASK_LOOT_ITEM" value="2048">
+		</constant>
+		<constant name="COMMAND_MASK_DROP_ITEM" value="4096">
+		</constant>
+		<constant name="COMMAND_MASK_SETTLE_INVENTORY" value="8192">
+		</constant>
+		<constant name="COMMAND_MASK_ASSIGN_REFERENCE" value="16384">
+		</constant>
+		<constant name="COMMAND_MASK_CLEAR_REFERENCE" value="32768">
+		</constant>
+		<constant name="COMMAND_MASK_TARGETED_PROVIDER_TRANSFER" value="65536">
+		</constant>
+		<constant name="COMMAND_MASK_SET_ITEM_COMPONENT" value="131072">
+		</constant>
+		<constant name="COMMAND_MASK_REMOVE_ITEM_COMPONENT" value="262144">
+		</constant>
+		<constant name="COMMAND_MASK_ALL" value="524287">
+		</constant>
+		<constant name="MAX_REPLICATION_GRANTS_PER_SESSION" value="256">
+			Combined Godot-façade owner plus observer/redacted replication entries per session; the engine-free observer grant cap remains 64.
+		</constant>
+	</constants>
+</class>

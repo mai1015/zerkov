@@ -1,0 +1,161 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://ui/dev/screens/mag_empty.gd" id="1_mag_empty"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="2_raid_frame"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="3_ibm_regular"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="4_chakra_semibold"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_key_badge"]
+bg_color = Color(0, 0, 0, 0.48)
+border_color = Color(0.901961, 0.909804, 0.890196, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[node name="MagEmpty" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_mag_empty")
+metadata/screen_route = "mag_empty"
+
+[node name="ReviewPlate" type="Control" parent="."]
+layout_mode = 0
+offset_left = 694.0
+offset_top = 409.0
+offset_right = 1226.0
+offset_bottom = 671.0
+clip_contents = true
+
+[node name="Background" type="TextureRect" parent="ReviewPlate"]
+texture_filter = 1
+layout_mode = 0
+offset_left = -707.0
+offset_top = -588.0
+offset_right = 1273.0
+offset_bottom = 525.0
+mouse_filter = 2
+texture = ExtResource("2_raid_frame")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Darken" type="ColorRect" parent="ReviewPlate"]
+layout_mode = 0
+offset_right = 532.0
+offset_bottom = 262.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.08)
+
+[node name="BorderTop" type="ColorRect" parent="ReviewPlate"]
+layout_mode = 0
+offset_right = 532.0
+offset_bottom = 1.0
+mouse_filter = 2
+color = Color(0.164706, 0.164706, 0.164706, 1)
+
+[node name="BorderBottom" type="ColorRect" parent="ReviewPlate"]
+layout_mode = 0
+offset_top = 261.0
+offset_right = 532.0
+offset_bottom = 262.0
+mouse_filter = 2
+color = Color(0.164706, 0.164706, 0.164706, 1)
+
+[node name="BorderLeft" type="ColorRect" parent="ReviewPlate"]
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 262.0
+mouse_filter = 2
+color = Color(0.164706, 0.164706, 0.164706, 1)
+
+[node name="BorderRight" type="ColorRect" parent="ReviewPlate"]
+layout_mode = 0
+offset_left = 531.0
+offset_right = 532.0
+offset_bottom = 262.0
+mouse_filter = 2
+color = Color(0.164706, 0.164706, 0.164706, 1)
+
+[node name="Description" type="Label" parent="ReviewPlate"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 9.0
+offset_right = 514.0
+offset_bottom = 27.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_fonts/font = ExtResource("3_ibm_regular")
+theme_override_font_sizes/font_size = 10
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+text = "1 · MAG EMPTY · counter turns red 0 / 90"
+vertical_alignment = 1
+
+[node name="ReloadBadge" type="Panel" parent="ReviewPlate"]
+layout_mode = 0
+offset_left = 217.0
+offset_top = 106.0
+offset_right = 245.0
+offset_bottom = 134.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_key_badge")
+
+[node name="Label" type="Label" parent="ReviewPlate/ReloadBadge"]
+layout_mode = 0
+offset_right = 28.0
+offset_bottom = 28.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_fonts/font = ExtResource("3_ibm_regular")
+theme_override_font_sizes/font_size = 11
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+text = "R"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReloadPrompt" type="Label" parent="ReviewPlate"]
+layout_mode = 0
+offset_left = 256.0
+offset_top = 106.0
+offset_right = 348.0
+offset_bottom = 134.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.85098, 0.282353, 0.231373, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_fonts/font = ExtResource("4_chakra_semibold")
+theme_override_font_sizes/font_size = 11
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+text = "RELOAD"
+vertical_alignment = 1
+
+[node name="PromptConnector" type="ColorRect" parent="ReviewPlate"]
+layout_mode = 0
+offset_left = 248.0
+offset_top = 143.0
+offset_right = 249.0
+offset_bottom = 153.0
+mouse_filter = 2
+color = Color(0.9, 0.92, 0.89, 0.66)
+
+[node name="Caption" type="Label" parent="."]
+layout_mode = 0
+offset_left = 694.0
+offset_top = 691.0
+offset_right = 1226.0
+offset_bottom = 713.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("3_ibm_regular")
+theme_override_font_sizes/font_size = 10
+text = "MAG EMPTY · red prompt · native controls"
+horizontal_alignment = 1
+vertical_alignment = 1

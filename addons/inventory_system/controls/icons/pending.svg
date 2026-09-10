@@ -1,0 +1,11 @@
+<!-- pending: the "in-flight glyph" DESIGN.md §11.2 calls for without naming
+     one, and InventoryStateGlyphs' honest state-token fallback for it (see
+     that script's header comment). No dedicated §7.2 table entry exists, so
+     this glyph was designed to the same rule set (§7.1) rather than copied
+     from the table: an hourglass/bowtie, a literal "waiting" metaphor kept
+     visually distinct from `resync` (circular arrows) and `disconnected`
+     (broken plug). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M7 4 L17 4 L12 12 L17 20 L7 20 L12 12 Z"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="miter"/>
+</svg>

@@ -1,0 +1,8 @@
+<!-- inspect: inspect context action / action bar (DESIGN.md §7.2
+     "magnifier", §12.8). A classic magnifying glass: a circular lens and a
+     straight diagonal handle. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M15.5 15.5 L20.5 20.5"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+</svg>

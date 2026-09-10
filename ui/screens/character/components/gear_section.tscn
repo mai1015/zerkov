@@ -1,0 +1,680 @@
+[gd_scene format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="5_n753q"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="6_b15tx"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="8_kqyny"]
+[ext_resource type="Texture2D" path="res://assets/handoff/sil_gear.png" id="12_yw6ql"]
+[ext_resource type="Texture2D" path="res://assets/handoff/gun_ak.png" id="13_dlg4a"]
+[ext_resource type="Texture2D" path="res://assets/handoff/gun_shotgun.png" id="14_2xtph"]
+[ext_resource type="Texture2D" path="res://assets/handoff/gun_machete.png" id="15_aqoon"]
+[ext_resource type="Texture2D" path="res://assets/handoff/wpn_pistol.png" id="16_u6ys6"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vhram"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4385f"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yrbk2"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_703ks"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_or1px"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_74skg"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp6py"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sft32"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gnurs"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_581cu"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nxh7f"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qgf7g"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qa06q"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_thtjh"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dnqxa"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h4t8x"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0eslf"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4e7em"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8q0pu"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m135o"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kpl5w"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x27wx"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5x3h0"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.15, 0.12, 0.07, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nfang"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.13, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[node name="CharacterColumn" type="Control"]
+anchors_preset = 0
+offset_left = 48.0
+offset_top = 188.0
+offset_right = 528.0
+offset_bottom = 1024.0
+mouse_filter = 2
+
+[node name="GearSilhouette" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.2)
+texture_filter = 1
+layout_mode = 0
+offset_left = 86.0
+offset_right = 390.0
+offset_bottom = 570.0
+mouse_filter = 2
+texture = ExtResource("12_yw6ql")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeadSlot" type="Button" parent="."]
+layout_mode = 0
+offset_top = 28.0
+offset_right = 150.0
+offset_bottom = 132.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_vhram")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_4385f")
+theme_override_styles/hover = SubResource("StyleBoxFlat_yrbk2")
+alignment = 0
+
+[node name="HeadTitle" type="Label" parent="HeadSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 140.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "HEAD"
+vertical_alignment = 1
+
+[node name="HeadDetail" type="Label" parent="HeadSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 74.0
+offset_right = 140.0
+offset_bottom = 97.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 12
+text = "— empty"
+vertical_alignment = 1
+
+[node name="FaceSlot" type="Button" parent="."]
+layout_mode = 0
+offset_left = 330.0
+offset_top = 28.0
+offset_right = 480.0
+offset_bottom = 132.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_703ks")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_or1px")
+theme_override_styles/hover = SubResource("StyleBoxFlat_74skg")
+alignment = 0
+
+[node name="FaceTitle" type="Label" parent="FaceSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 140.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "FACE"
+vertical_alignment = 1
+
+[node name="FaceDetail" type="Label" parent="FaceSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 74.0
+offset_right = 140.0
+offset_bottom = 97.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 12
+text = "— empty"
+vertical_alignment = 1
+
+[node name="ArmorSlot" type="Button" parent="."]
+layout_mode = 0
+offset_top = 146.0
+offset_right = 150.0
+offset_bottom = 250.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_hp6py")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_sft32")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gnurs")
+alignment = 0
+
+[node name="ArmorTitle" type="Label" parent="ArmorSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 140.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "ARMOR"
+vertical_alignment = 1
+
+[node name="ArmorDetail" type="Label" parent="ArmorSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 74.0
+offset_right = 140.0
+offset_bottom = 97.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 12
+text = "— empty"
+vertical_alignment = 1
+
+[node name="HeadsetSlot" type="Button" parent="."]
+layout_mode = 0
+offset_left = 330.0
+offset_top = 146.0
+offset_right = 480.0
+offset_bottom = 250.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_581cu")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nxh7f")
+theme_override_styles/hover = SubResource("StyleBoxFlat_qgf7g")
+alignment = 0
+
+[node name="HeadsetTitle" type="Label" parent="HeadsetSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 140.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "HEADSET"
+vertical_alignment = 1
+
+[node name="HeadsetDetail" type="Label" parent="HeadsetSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 74.0
+offset_right = 140.0
+offset_bottom = 97.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 12
+text = "— empty"
+vertical_alignment = 1
+
+[node name="SlingSlot" type="Button" parent="."]
+layout_mode = 0
+offset_top = 300.0
+offset_right = 228.0
+offset_bottom = 412.0
+tooltip_text = "AKM
+Showing compatible ammo + mags
+F · move to stash   RMB · options"
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_qa06q")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_thtjh")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dnqxa")
+alignment = 0
+
+[node name="SlingTitle" type="Label" parent="SlingSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 218.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "ON SLING"
+vertical_alignment = 1
+
+[node name="SlingIcon" type="TextureRect" parent="SlingSlot"]
+texture_filter = 1
+layout_mode = 0
+offset_left = 16.0
+offset_top = 27.0
+offset_right = 212.0
+offset_bottom = 75.0
+mouse_filter = 2
+texture = ExtResource("13_dlg4a")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlingDetail" type="Label" parent="SlingSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 84.0
+offset_right = 218.0
+offset_bottom = 107.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+text = "AKM · 7.62×39 · 24/30"
+vertical_alignment = 1
+
+[node name="BackSlot" type="Button" parent="."]
+layout_mode = 0
+offset_left = 252.0
+offset_top = 300.0
+offset_right = 480.0
+offset_bottom = 412.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_h4t8x")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_0eslf")
+theme_override_styles/hover = SubResource("StyleBoxFlat_4e7em")
+alignment = 0
+
+[node name="BackTitle" type="Label" parent="BackSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 218.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "ON BACK"
+vertical_alignment = 1
+
+[node name="BackIcon" type="TextureRect" parent="BackSlot"]
+texture_filter = 1
+layout_mode = 0
+offset_left = 16.0
+offset_top = 27.0
+offset_right = 212.0
+offset_bottom = 75.0
+mouse_filter = 2
+texture = ExtResource("14_2xtph")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BackDetail" type="Label" parent="BackSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 84.0
+offset_right = 218.0
+offset_bottom = 107.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+text = "Pump shotgun · 12ga · 5/5"
+vertical_alignment = 1
+
+[node name="LegStrapSlot" type="Button" parent="."]
+layout_mode = 0
+offset_top = 432.0
+offset_right = 228.0
+offset_bottom = 544.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_8q0pu")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_m135o")
+theme_override_styles/hover = SubResource("StyleBoxFlat_kpl5w")
+alignment = 0
+
+[node name="LegStrapTitle" type="Label" parent="LegStrapSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 218.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "LEG STRAP"
+vertical_alignment = 1
+
+[node name="LegStrapIcon" type="TextureRect" parent="LegStrapSlot"]
+texture_filter = 1
+layout_mode = 0
+offset_left = 16.0
+offset_top = 27.0
+offset_right = 212.0
+offset_bottom = 75.0
+mouse_filter = 2
+texture = ExtResource("15_aqoon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LegStrapDetail" type="Label" parent="LegStrapSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 84.0
+offset_right = 218.0
+offset_bottom = 107.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+text = "Machete"
+vertical_alignment = 1
+
+[node name="HolsterSlot" type="Button" parent="."]
+layout_mode = 0
+offset_left = 252.0
+offset_top = 432.0
+offset_right = 480.0
+offset_bottom = 544.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_x27wx")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_5x3h0")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nfang")
+alignment = 0
+
+[node name="HolsterTitle" type="Label" parent="HolsterSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 218.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 10
+text = "HOLSTER"
+vertical_alignment = 1
+
+[node name="HolsterIcon" type="TextureRect" parent="HolsterSlot"]
+texture_filter = 1
+layout_mode = 0
+offset_left = 16.0
+offset_top = 27.0
+offset_right = 212.0
+offset_bottom = 75.0
+mouse_filter = 2
+texture = ExtResource("16_u6ys6")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HolsterDetail" type="Label" parent="HolsterSlot"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 84.0
+offset_right = 218.0
+offset_bottom = 107.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+text = "M1911 · .45 · 7/7"
+vertical_alignment = 1
+
+[node name="GearHint" type="Label" parent="."]
+layout_mode = 0
+offset_top = 808.0
+offset_right = 802.0
+offset_bottom = 836.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "F  QUICK MOVE     R  ROTATE     RMB  OPTIONS     CTRL+DRAG  SPLIT STACK     HOVER  SHOW COMPATIBLE"
+vertical_alignment = 1
+autowrap_mode = 3

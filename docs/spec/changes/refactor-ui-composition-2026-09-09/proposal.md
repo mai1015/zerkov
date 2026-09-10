@@ -1,0 +1,64 @@
+---
+created_at: 2026-09-10T01:35:01Z
+updated_at: 2026-09-10T03:08:58Z
+---
+
+## Why
+
+The UI passes its existing smoke tests, but its scene migration is incomplete.
+Inventory interactions discard authored content, compact screens replace shared
+components with separate implementations, and navigation still recreates screens
+through a manual history list. The current structure makes visual edits fragile
+and live gameplay integration harder. See [the source and runtime audit](audit.md).
+
+## What Changes
+
+- Organize scenes and their controllers by feature; give reusable controls,
+  layout, theme resources, navigation, and developer fixtures explicit homes.
+- Make authored components own their configuration, interaction states, signals,
+  and responsive layout. Remove callers' dependence on component internals.
+- Establish a shared authored theme and project button variants. Preserve the
+  existing palette, typography, geometry, pixel-aligned borders, and imagery.
+- Keep screen shells alive during data updates and resizing. Populate dynamic
+  data through bounded component APIs instead of rebuilding entire screens.
+- Use CommonUI stacks for temporary navigation and the HUD/menu/modal/popup
+  layers according to their roles; preserve underlying screens when covered.
+- Provide a fixture-backed preview host and explicit UI dependencies so scenes
+  do not require an absolute `/root/Main` lookup.
+- Add regression checks for component reuse after interaction, layout changes,
+  focus restoration, input isolation, and native visual comparison.
+
+## Impact
+
+- Affected capability: new `ui-composition` requirements.
+- Affected code: `ui/`, UI test scene paths, `README.md`, `DESIGN.md`, and UI
+  component documentation. `ui/main.tscn` remains the application entry point.
+- All 28 route identifiers and current prototype actions remain available.
+- Internal resource paths change as features migrate; all references and
+  resource UIDs must move with them.
+- The vendored addons, gameplay authority, platform artifacts, and original
+  assets are outside this change.
+
+## Relationship to the playable-raid change
+
+`add-zerkov-playable-raid-2026-09-09` is already approved in its task ledger and
+has unfinished UI integration work in section 8. This proposal defines the
+component ownership and migration details missing from that work. It does not
+reopen approval of the offline raid or implement its pending gameplay tasks.
+
+After approval, coordinate the CommonUI work with tasks 8.1, 8.2, and 8.10 in
+that ledger and attach shared evidence rather than implementing those tasks
+twice. Real projections, gameplay rebinding, production feature gates, and
+removal of production mock state remain in the original change. There are no
+archived truth specs in this checkout to modify.
+
+## Approval and delivery
+
+Status: implemented and UI acceptance passed (2,891 checks, zero failures).
+Gameplay integration remains ongoing and outside this change. Review
+[design.md](design.md) for the target tree and navigation policies and
+[tasks.md](tasks.md) for the incremental migration and evidence gates.
+
+Approval covers this visual-preserving structural migration. Each feature must
+pass its focused checks before the next family migrates; final acceptance
+requires all 28 routes at desktop and compact sizes.

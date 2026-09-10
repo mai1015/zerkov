@@ -1,0 +1,14 @@
+<!-- overweight_warning: drop-overweight / overflow (DESIGN.md §7.2 "triangle
+     with weight glyph", §11.2). A warning-triangle outline containing a
+     simplified balance-scale (weight) glyph: a center post, crossbar, and
+     two hanging pans. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M12 3 L21 20 L3 20 Z"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M12 10 L12 13 M8 13 L16 13 M8 13 L8 15.5 M16 13 L16 15.5"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+  <circle cx="8" cy="16.3" r="1" fill="#FFFFFF"/>
+  <circle cx="16" cy="16.3" r="1" fill="#FFFFFF"/>
+</svg>

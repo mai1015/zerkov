@@ -1,0 +1,81 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="1_chakra_semibold"]
+[ext_resource type="PackedScene" path="res://ui/components/controls/zerkov_button.tscn" id="2_common_button"]
+[ext_resource type="Script" path="res://ui/screens/frontflow/components/new_world_row.gd" id="3_script"]
+
+[sub_resource type="FontVariation" id="FontVariation_chakra_s1"]
+base_font = ExtResource("1_chakra_semibold")
+spacing_glyph = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_new_row"]
+bg_color = Color(0.027, 0.035, 0.035, 0.28)
+border_color = Color(0.545098, 0.568627, 0.541176, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_normal"]
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_hover"]
+bg_color = Color(1, 1, 1, 0.04)
+border_color = Color(0.901961, 0.909804, 0.890196, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_pressed"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+border_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_focus"]
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_width_left = 2
+
+[node name="NewWorldRow" type="Panel"]
+script = ExtResource("3_script")
+layout_mode = 0
+offset_right = 1264.0
+offset_bottom = 68.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_new_row")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_top = 24.0
+offset_right = 1264.0
+offset_bottom = 44.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.717647, 0.737255, 0.705882, 1)
+theme_override_fonts/font = SubResource("FontVariation_chakra_s1")
+theme_override_font_sizes/font_size = 13
+text = "+  NEW WORLD"
+vertical_alignment = 1
+
+[node name="Hit" parent="." instance=ExtResource("2_common_button")]
+variant = "hit"
+layout_mode = 0
+offset_right = 1264.0
+offset_bottom = 68.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+flat = false
+show_glyph = false
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 0)
+theme_override_styles/normal = SubResource("StyleBox_hit_normal")
+theme_override_styles/hover = SubResource("StyleBox_hit_hover")
+theme_override_styles/pressed = SubResource("StyleBox_hit_pressed")
+theme_override_styles/focus = SubResource("StyleBox_hit_focus")
+text = ""

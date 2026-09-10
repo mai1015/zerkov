@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryObserverReplicaNode" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+		Recipient-only projected observer replica. This node accepts only the dedicated inventory-observer-v1/version-1 replacement view protocol and exposes no canonical restore, runtime query, or authority mutation methods.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="apply_delta_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+				Applies one exact predecessor full-replacement observer view. Duplicate/stale deltas are successful no-ops; gaps or invalid successors leave the view unchanged and request resync.
+			</description>
+		</method>
+		<method name="apply_snapshot_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+				Atomically installs a dedicated recipient-bound observer baseline. It cannot restore canonical inventory state.
+			</description>
+		</method>
+		<method name="configure_stream">
+			<return type="Dictionary" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="visibility" type="int" />
+			<description>
+				Binds the immutable exact recipient, inventory, and observer visibility stream before the first packet. This is local packet binding, not authentication.
+			</description>
+		</method>
+		<method name="get_catalog" qualifiers="const">
+			<return type="InventoryCatalog" />
+			<description>
+			</description>
+		</method>
+		<method name="get_generation" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_inventory_id" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_applied_sequence" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="initialized" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="needs_resync" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="resync_request_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Returns an ObserverResyncRequest with no visibility authority. The gateway resolves visibility from the authenticated configured recipient/inventory stream policy, including the generation=0/last_applied_sequence=0 bootstrap with no cached view; initialized requests carry the current positive generation and sequence.
+			</description>
+		</method>
+		<method name="set_catalog">
+			<return type="void" />
+			<param index="0" name="catalog" type="InventoryCatalog" />
+			<description>
+				Assigns the sealed catalog before initialization. The catalog validates projected values but is not a canonical restore target.
+			</description>
+		</method>
+		<method name="view" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Returns an owned value view. The manifest fingerprint is exposed as a decimal String; redacted content is represented by aggregate-only shells, never hidden item rows.
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="delta_applied">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="sequence" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="resync_needed">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="last_applied_sequence" type="int" />
+			<description>
+			</description>
+		</signal>
+		<signal name="snapshot_replaced">
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="sequence" type="int" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

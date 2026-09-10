@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryAuthority" inherits="Node" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="active_quantity_reservation_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="advance_discovery">
+			<return type="InventoryDiscoveryResultResource" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="elapsed_ms" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="apply_persistence_record">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<param index="1" name="replace_existing" type="bool" default="false" />
+			<description>
+				Decodes and installs one persistence record. A live inventory id is rejected unless [param replace_existing] is [code]true[/code]. Successful replacement establishes a new runtime generation, invalidates affected replay/reservation/discovery/observer/last-delta state, and emits [signal inventory_generation_changing] before the new same-id runtime is visible while preserving unrelated state.
+			</description>
+		</method>
+		<method name="assign_reference">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="actor" type="int" default="0" />
+			<param index="3" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="auto_place_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="destination_container" type="int" default="0" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="begin_container_search">
+			<return type="InventoryDiscoveryResultResource" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="container_token" type="int" />
+			<param index="4" name="request_id" type="int" default="0" />
+			<param index="5" name="expected_inventory_revision" type="int" default="-1" />
+			<param index="6" name="expected_discovery_revision" type="int" default="-1" />
+			<description>
+			</description>
+		</method>
+		<method name="begin_item_scan">
+			<return type="InventoryDiscoveryResultResource" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="entry_token" type="int" />
+			<param index="4" name="request_id" type="int" default="0" />
+			<param index="5" name="expected_inventory_revision" type="int" default="-1" />
+			<param index="6" name="expected_discovery_revision" type="int" default="-1" />
+			<description>
+			</description>
+		</method>
+		<method name="cancel_discovery">
+			<return type="InventoryDiscoveryResultResource" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="request_id" type="int" default="0" />
+			<param index="4" name="expected_inventory_revision" type="int" default="-1" />
+			<param index="5" name="expected_discovery_revision" type="int" default="-1" />
+			<description>
+			</description>
+		</method>
+		<method name="clear_reference">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="reference" type="int" />
+			<param index="2" name="actor" type="int" default="0" />
+			<param index="3" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="commit_quantity_reservation_silent">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="reservation_id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="container_mass" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="container_mass_capacity" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="count_in_container" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="create_inventory">
+			<return type="int" />
+			<param index="0" name="profile_identifier" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_count_in_container" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_delta">
+			<return type="InventoryDiscoveryDeltaResource" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="predecessor_inventory_revision" type="int" />
+			<param index="4" name="predecessor_discovery_revision" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_delta_bytes">
+			<return type="PackedByteArray" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="predecessor_inventory_revision" type="int" />
+			<param index="4" name="predecessor_discovery_revision" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_hello_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_layout_kind" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_revision" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_view">
+			<return type="InventoryDiscoverySnapshotResource" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="discovery_view_bytes">
+			<return type="PackedByteArray" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="drop_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="external_owner" type="int" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="encode_move_command_bytes_for_test">
+			<return type="PackedByteArray" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="destination" type="Dictionary" />
+			<param index="3" name="expected_revision" type="int" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="encode_quick_transfer_command_bytes_for_test">
+			<return type="PackedByteArray" />
+			<param index="0" name="source_inventory_id" type="int" />
+			<param index="1" name="destination_inventory_id" type="int" />
+			<param index="2" name="item" type="int" />
+			<param index="3" name="allow_partial" type="bool" />
+			<param index="4" name="source_expected_revision" type="int" />
+			<param index="5" name="destination_expected_revision" type="int" />
+			<param index="6" name="actor" type="int" default="0" />
+			<param index="7" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="equip_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="destination_container" type="int" />
+			<param index="3" name="slot_identifier" type="String" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="expire_quantity_reservation">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="reservation_id" type="String" />
+			<param index="2" name="current_tick" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="fits" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item_definition_identifier" type="String" />
+			<param index="2" name="destination" type="Dictionary" />
+			<param index="3" name="quantity" type="int" default="1" />
+			<param index="4" name="excluding_item" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="get_catalog" qualifiers="const">
+			<return type="InventoryCatalog" />
+			<description>
+			</description>
+		</method>
+		<method name="get_last_status" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+			</description>
+		</method>
+		<method name="has_feature" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="feature_identifier" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="has_inventory" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="health_quantity_reservation" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="reservation_id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="insert_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item_definition_identifier" type="String" />
+			<param index="2" name="quantity" type="int" />
+			<param index="3" name="destination" type="Dictionary" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="inventory_revision" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="unload_inventory">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<description>
+				Tears down one live inventory and its inventory-scoped reservation, discovery, idempotency, and last-delta state before emitting [signal inventory_unloaded]. Remote replica nodes are independently owned by the caller.
+			</description>
+		</method>
+		<method name="last_delta_batch_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Returns server-local diagnostic/integration bytes only. The raw multi-inventory batch must not be broadcast; client egress is produced per-session/per-inventory through InventoryNetworkGateway and permission-filtered. This server-local canonical batch retains source_command_id; recipient-filtered OWNER DeltaBatch egress clears it to 0 so the authority-global id cannot correlate other touched inventories or principals.
+			</description>
+		</method>
+		<method name="loot_item">
+			<return type="Dictionary" />
+			<param index="0" name="source_inventory_id" type="int" />
+			<param index="1" name="destination_inventory_id" type="int" />
+			<param index="2" name="item" type="int" />
+			<param index="3" name="destination_location" type="Dictionary" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="make_persistence_record" qualifiers="const">
+			<return type="PackedByteArray" />
+			<param index="0" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="merge_stacks">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="source" type="int" />
+			<param index="2" name="destination_item" type="int" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="move_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="destination" type="Dictionary" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="prepare_quantity_reservation">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="reservation_id" type="String" />
+			<param index="2" name="required_trait" type="String" />
+			<param index="3" name="container_priorities" type="Array" />
+			<param index="4" name="quantity" type="int" />
+			<param index="5" name="expected_revision" type="int" default="-1" />
+			<param index="6" name="deadline_tick" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="preview_transfer_item_to_provider">
+			<return type="Dictionary" />
+			<param index="0" name="source_inventory_id" type="int" />
+			<param index="1" name="destination_inventory_id" type="int" />
+			<param index="2" name="item" type="int" />
+			<param index="3" name="destination_provider" type="int" />
+			<param index="4" name="actor" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="publish_quantity_reservation">
+			<return type="Dictionary" />
+			<param index="0" name="reservation_id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="quick_transfer_item">
+			<return type="Dictionary" />
+			<param index="0" name="source_inventory_id" type="int" />
+			<param index="1" name="destination_inventory_id" type="int" />
+			<param index="2" name="item" type="int" />
+			<param index="3" name="allow_partial" type="bool" default="false" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="register_discovery_recipient">
+			<return type="Dictionary" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="release_quantity_reservation">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="reservation_id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="remaining_count_capacity" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="container_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="actor" type="int" default="0" />
+			<param index="3" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="remove_item_component">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="component_identifier" type="String" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+				Removes one existing mutable component transactionally. Missing components reject atomically.
+			</description>
+		</method>
+		<method name="revoke_discovery_inventory">
+			<return type="Dictionary" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="rollback_quantity_reservation">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="reservation_id" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="rotate_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="rotated" type="bool" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="session_hello_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="set_catalog">
+			<return type="void" />
+			<param index="0" name="catalog" type="InventoryCatalog" />
+			<description>
+			</description>
+		</method>
+		<method name="set_item_component">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="component_identifier" type="String" />
+			<param index="3" name="payload" type="PackedByteArray" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+				Sets or replaces one bounded mutable component through the transaction pipeline.
+			</description>
+		</method>
+		<method name="settle_inventory">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="plan" type="Array" />
+			<param index="2" name="actor" type="int" default="0" />
+			<param index="3" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="snapshot" qualifiers="const">
+			<return type="InventorySnapshotResource" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="visibility" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="snapshot_envelope_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="visibility" type="int" default="0" />
+			<description>
+				Encodes the canonical owner-only SnapshotEnvelope for InventoryReplicaNode. Non-owner visibility is rejected; use the recipient-bound observer transport for untrusted peers.
+			</description>
+		</method>
+		<method name="observer_delta_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="predecessor_sequence" type="int" />
+			<description>
+				Produces a recipient-bound full replacement observer view for the exact stream. Hidden-only canonical changes return no bytes and do not advance the recipient sequence.
+			</description>
+		</method>
+		<method name="observer_snapshot_envelope_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="visibility" type="int" default="1" />
+			<description>
+				Produces the dedicated inventory-observer-v1/version-1 recipient-bound projected baseline. Registration is lifecycle state only; the game gateway must authenticate and authorize the exact recipient, inventory, and visibility before calling or transmitting the bytes.
+			</description>
+		</method>
+		<method name="split_stack">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="source" type="int" />
+			<param index="2" name="quantity" type="int" />
+			<param index="3" name="destination" type="Dictionary" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="submit_command_bytes">
+			<return type="Dictionary" />
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="swap_items">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item_a" type="int" />
+			<param index="2" name="item_b" type="int" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="teardown_discovery_recipient">
+			<return type="Dictionary" />
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="teardown_discovery_session">
+			<return type="Dictionary" />
+			<param index="0" name="session_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="total_mass" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="transfer_item_to_provider">
+			<return type="Dictionary" />
+			<param index="0" name="source_inventory_id" type="int" />
+			<param index="1" name="destination_inventory_id" type="int" />
+			<param index="2" name="item" type="int" />
+			<param index="3" name="destination_provider" type="int" />
+			<param index="4" name="actor" type="int" default="0" />
+			<param index="5" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+		<method name="unequip_item">
+			<return type="Dictionary" />
+			<param index="0" name="inventory_id" type="int" />
+			<param index="1" name="item" type="int" />
+			<param index="2" name="destination" type="Dictionary" />
+			<param index="3" name="actor" type="int" default="0" />
+			<param index="4" name="command_id" type="int" default="0" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="role" type="int" setter="set_role" getter="get_role" enum="InventoryAuthority.Role" default="0">
+		</member>
+	</members>
+	<signals>
+		<signal name="delta_ready">
+			<param index="0" name="bytes" type="PackedByteArray" />
+			<description>
+				Server-local notification for an accepted transaction with a non-empty canonical delta batch. The raw multi-inventory bytes are never a client broadcast; use InventoryNetworkGateway per-session/per-inventory permission-filtered egress. The raw batch retains source_command_id; recipient-filtered OWNER DeltaBatch egress clears it to 0 to avoid correlating other touched inventories or principals.
+			</description>
+		</signal>
+		<signal name="discovery_delta_ready">
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="bytes" type="PackedByteArray" />
+			<description>
+			</description>
+		</signal>
+		<signal name="discovery_result">
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="result" type="InventoryDiscoveryResultResource" />
+			<description>
+			</description>
+		</signal>
+		<signal name="discovery_view_ready">
+			<param index="0" name="session_id" type="int" />
+			<param index="1" name="actor_id" type="int" />
+			<param index="2" name="inventory_id" type="int" />
+			<param index="3" name="view" type="InventoryDiscoverySnapshotResource" />
+			<description>
+			</description>
+		</signal>
+		<signal name="inventory_unloaded">
+			<param index="0" name="inventory_id" type="int" />
+			<description>
+				Emitted after scoped teardown and runtime erasure; callers/network bridges dispose the matching independently-owned replica.
+			</description>
+		</signal>
+		<signal name="inventory_generation_changing">
+			<param index="0" name="inventory_id" type="int" />
+			<description>
+				Emitted before an explicit same-id persistence replacement makes the new runtime generation visible; the bound gateway and callers/network bridges invalidate old same-id grants, mirrors, replay state, and cached egress at this edge.
+			</description>
+		</signal>
+		<signal name="quantity_reservation_published">
+			<param index="0" name="result" type="Dictionary" />
+			<description>
+			</description>
+		</signal>
+		<signal name="transaction_committed">
+			<param index="0" name="result" type="Dictionary" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="ROLE_OFFLINE_AUTHORITY" value="0" enum="Role">
+		</constant>
+		<constant name="ROLE_SERVER_AUTHORITY" value="1" enum="Role">
+		</constant>
+	</constants>
+</class>

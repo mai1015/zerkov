@@ -1,0 +1,226 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/frontflow/title.gd" id="1_title"]
+[ext_resource type="Texture2D" path="res://assets/handoff/keyart.png" id="2_keyart"]
+[ext_resource type="Texture2D" path="res://assets/handoff/logo_white_pixel.png" id="3_logo"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="4_chakra_semibold"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="5_ibm_regular"]
+
+[sub_resource type="FontVariation" id="FontVariation_chakra_s2"]
+base_font = ExtResource("4_chakra_semibold")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_background"]
+bg_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+border_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_overlay"]
+bg_color = Color(0, 0, 0, 0.18)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_prompt"]
+bg_color = Color(0.027, 0.035, 0.035, 0.48)
+border_color = Color(1, 1, 1, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status_dot"]
+bg_color = Color(0.372549, 0.827451, 0.419608, 1)
+border_color = Color(0, 0, 0, 0)
+
+[node name="Title" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_title")
+
+[node name="BackgroundBase" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_background")
+metadata/z_backdrop = true
+
+[node name="BackgroundArt" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("2_keyart")
+expand_mode = 1
+stretch_mode = 6
+metadata/z_backdrop = true
+
+[node name="BackgroundShade" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.46)
+metadata/z_backdrop = true
+
+[node name="AtmosphereOverlay" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_overlay")
+
+[node name="Logo" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 0
+offset_left = 450.0
+offset_top = 232.0
+offset_right = 1470.0
+offset_bottom = 435.0
+mouse_filter = 2
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StartPrompt" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 806.0
+offset_top = 813.0
+offset_right = 1114.0
+offset_bottom = 849.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_prompt")
+
+[node name="AnyKey" type="Label" parent="StartPrompt"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 8.0
+offset_right = 108.0
+offset_bottom = 28.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_fonts/font = ExtResource("5_ibm_regular")
+theme_override_font_sizes/font_size = 12
+text = "ANY KEY"
+vertical_alignment = 1
+
+[node name="PressToStart" type="Label" parent="StartPrompt"]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 8.0
+offset_right = 282.0
+offset_bottom = 28.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_fonts/font = SubResource("FontVariation_chakra_s2")
+theme_override_font_sizes/font_size = 14
+text = "PRESS TO START"
+vertical_alignment = 1
+
+[node name="ConnectionPrefix" type="Label" parent="."]
+layout_mode = 0
+offset_left = 730.0
+offset_top = 865.0
+offset_right = 1000.0
+offset_bottom = 883.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.717647, 0.737255, 0.705882, 1)
+theme_override_fonts/font = ExtResource("5_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "CONNECTING TO ZERKOV SERVICES · "
+vertical_alignment = 1
+
+[node name="ConnectionStatus" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1000.0
+offset_top = 865.0
+offset_right = 1064.0
+offset_bottom = 883.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.372549, 0.827451, 0.419608, 1)
+theme_override_fonts/font = ExtResource("5_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "ONLINE"
+vertical_alignment = 1
+
+[node name="ConnectionRegion" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1064.0
+offset_top = 865.0
+offset_right = 1204.0
+offset_bottom = 883.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.717647, 0.737255, 0.705882, 1)
+theme_override_fonts/font = ExtResource("5_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = " · EU-WEST · 34 ms"
+vertical_alignment = 1
+
+[node name="Version" type="Label" parent="."]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 1030.0
+offset_right = 120.0
+offset_bottom = 1046.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("5_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "v1.1.2"
+vertical_alignment = 1
+
+[node name="Copyright" type="Label" parent="."]
+layout_mode = 0
+offset_left = 142.0
+offset_top = 1030.0
+offset_right = 242.0
+offset_bottom = 1046.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("5_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "© Takario"
+vertical_alignment = 1
+
+[node name="SignedInAs" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1654.0
+offset_top = 1030.0
+offset_right = 1764.0
+offset_bottom = 1046.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("5_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "SIGNED IN AS"
+vertical_alignment = 1
+
+[node name="AccountName" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1770.0
+offset_top = 1030.0
+offset_right = 1882.0
+offset_bottom = 1046.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_fonts/font = SubResource("FontVariation_chakra_s2")
+theme_override_font_sizes/font_size = 12
+text = "OAK_JHONSON"
+vertical_alignment = 1
+
+[node name="StatusDot" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1890.0
+offset_top = 1035.0
+offset_right = 1898.0
+offset_bottom = 1043.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_status_dot")

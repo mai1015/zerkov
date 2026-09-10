@@ -1,0 +1,32 @@
+{
+  "seed": 90210,
+  "raid_id": "zerkov.raid.fixture.replay_001",
+  "profile_key": "replay_profile",
+  "actor_slot": "player",
+  "intents": [
+    {
+      "request_id": "zerkov.request.replay.intent_002",
+      "target_tick": 1,
+      "sequence": 2,
+      "kind": "loot",
+      "amount": 2,
+      "consequence_id": "zerkov.consequence.replay.loot_002"
+    },
+    {
+      "request_id": "zerkov.request.replay.intent_001",
+      "target_tick": 1,
+      "sequence": 1,
+      "kind": "loot",
+      "amount": 1,
+      "consequence_id": "zerkov.consequence.replay.loot_001"
+    },
+    {
+      "request_id": "zerkov.request.replay.intent_003",
+      "target_tick": 2,
+      "sequence": 3,
+      "kind": "fire",
+      "amount": 1,
+      "consequence_id": "zerkov.consequence.replay.fire_003"
+    }
+  ]
+}

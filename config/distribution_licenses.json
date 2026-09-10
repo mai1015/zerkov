@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-10T00:52:02Z",
+  "policy": "Public packages must contain only entries whose distribution_status is cleared.",
+  "addons": [
+    {
+      "id": "common_ui",
+      "license": "MIT",
+      "license_file": "addons/common_ui/LICENSE",
+      "third_party_notice_file": "addons/common_ui/THIRD_PARTY_LICENSES.md",
+      "distribution_status": "cleared"
+    },
+    {
+      "id": "common_vision",
+      "license": "MIT",
+      "license_file": "addons/common_vision/LICENSE",
+      "third_party_notice_file": "addons/common_vision/THIRD_PARTY_LICENSES.md",
+      "distribution_status": "cleared"
+    },
+    {
+      "id": "gameplay_abilities",
+      "license": "MIT",
+      "license_file": "addons/gameplay_abilities/LICENSE",
+      "third_party_notice_file": "addons/gameplay_abilities/THIRD_PARTY_LICENSES.md",
+      "distribution_status": "cleared"
+    },
+    {
+      "id": "inventory_system",
+      "license": null,
+      "license_file": null,
+      "third_party_notice_file": null,
+      "distribution_status": "blocked",
+      "blocker": "The locked source and vendored package contain no license grant or package-level third-party notice. Internal evaluation only until the owner supplies them."
+    },
+    {
+      "id": "level_task_system",
+      "license": "MIT",
+      "license_file": "licenses/level_task_system-MIT.txt",
+      "third_party_notice_file": "addons/level_task_system/THIRD_PARTY_LICENSES.md",
+      "distribution_status": "cleared",
+      "note": "The license text is preserved from the locked repository root because the pre-release addon directory does not contain it."
+    },
+    {
+      "id": "weapon_system",
+      "license": null,
+      "license_file": null,
+      "third_party_notice_file": "addons/weapon_system/THIRD_PARTY_LICENSES.md",
+      "distribution_status": "blocked",
+      "blocker": "The locked source and vendored package contain no license grant for Weapon System itself. Its reference notice is not a license grant. Internal evaluation only until the owner supplies one."
+    }
+  ],
+  "shared_dependencies": [
+    {
+      "id": "godot-cpp",
+      "revision": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+      "license": "MIT",
+      "license_file": "licenses/godot-cpp-MIT.md",
+      "distribution_status": "cleared"
+    }
+  ],
+  "asset_families": [
+    {
+      "id": "chakra-petch-fonts",
+      "path": "assets/fonts/ChakraPetch-*.ttf",
+      "license": "SIL Open Font License 1.1",
+      "license_file": "assets/fonts/OFL-ChakraPetch.txt",
+      "distribution_status": "cleared"
+    },
+    {
+      "id": "ibm-plex-mono-fonts",
+      "path": "assets/fonts/IBMPlexMono-*.ttf",
+      "license": "SIL Open Font License 1.1",
+      "license_file": "assets/fonts/OFL-IBM-Plex-Mono.txt",
+      "distribution_status": "cleared"
+    },
+    {
+      "id": "zerkov-handoff-and-original-art",
+      "path": "assets/handoff/** and assets/original/**",
+      "license": null,
+      "license_file": null,
+      "distribution_status": "blocked",
+      "blocker": "No redistribution grant or project-owned provenance record is present. These assets may be used for internal development but must be excluded from a public package until ownership is documented."
+    }
+  ]
+}

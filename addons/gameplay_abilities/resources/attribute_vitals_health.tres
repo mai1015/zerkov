@@ -1,0 +1,10 @@
+[gd_resource type="GameplayAttributeDefinition" format=3]
+
+[resource]
+identifier = &"attribute.vitals.health"
+default_base = 100.0
+has_min = true
+min_value = 0.0
+has_max = true
+max_value = 100.0
+display_name = "Health"

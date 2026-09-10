@@ -1,0 +1,311 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://ui/components/layout/navigation_chrome.gd" id="1_navigation"]
+[ext_resource type="PackedScene" path="res://ui/components/controls/zerkov_button.tscn" id="2_common_button"]
+[ext_resource type="Texture2D" path="res://assets/handoff/logo_white_pixel.png" id="3_logo"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="4_chakra"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="5_mono_regular"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-SemiBold.ttf" id="6_mono_semibold"]
+
+[sub_resource type="StyleBoxFlat" id="StyleHeader"]
+bg_color = Color(0.027, 0.035, 0.031, 0.97)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="FontVariation" id="FontNav"]
+base_font = ExtResource("4_chakra")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleNavNormal"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleNavHover"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleNavPressed"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_color = Color(0.90980394, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleNavFocus"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_color = Color(0.90980394, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleTaskBadge"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.90980394, 0.5882353, 0.18039216, 1)
+border_color = Color(1, 1, 1, 0)
+
+[node name="NavigationChrome" type="Control"]
+custom_minimum_size = Vector2(1920, 56)
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 56.0
+mouse_filter = 1
+script = ExtResource("1_navigation")
+
+[node name="Header" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleHeader")
+
+[node name="Logo" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 0
+offset_left = 48.0
+offset_top = 16.0
+offset_right = 152.0
+offset_bottom = 40.0
+mouse_filter = 2
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Character" parent="." instance=ExtResource("2_common_button")]
+layout_mode = 0
+offset_left = 190.0
+offset_right = 346.0
+offset_bottom = 56.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+show_glyph = false
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_pressed_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_disabled_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontNav")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleNavNormal")
+theme_override_styles/hover = SubResource("StyleNavHover")
+theme_override_styles/pressed = SubResource("StyleNavPressed")
+theme_override_styles/focus = SubResource("StyleNavFocus")
+text = "CHARACTER"
+
+[node name="CharacterUnderline" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 190.0
+offset_top = 54.0
+offset_right = 346.0
+offset_bottom = 55.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[node name="Maps" parent="." instance=ExtResource("2_common_button")]
+layout_mode = 0
+offset_left = 354.0
+offset_right = 458.0
+offset_bottom = 56.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+show_glyph = false
+theme_override_colors/font_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_pressed_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_disabled_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontNav")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleNavNormal")
+theme_override_styles/hover = SubResource("StyleNavHover")
+theme_override_styles/pressed = SubResource("StyleNavPressed")
+theme_override_styles/focus = SubResource("StyleNavFocus")
+text = "MAPS"
+
+[node name="MapsUnderline" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 354.0
+offset_top = 54.0
+offset_right = 458.0
+offset_bottom = 55.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="Tasks" parent="." instance=ExtResource("2_common_button")]
+layout_mode = 0
+offset_left = 466.0
+offset_right = 582.0
+offset_bottom = 56.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+show_glyph = false
+theme_override_colors/font_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_pressed_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_disabled_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontNav")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleNavNormal")
+theme_override_styles/hover = SubResource("StyleNavHover")
+theme_override_styles/pressed = SubResource("StyleNavPressed")
+theme_override_styles/focus = SubResource("StyleNavFocus")
+
+[node name="TasksLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 466.0
+offset_right = 530.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontNav")
+theme_override_font_sizes/font_size = 13
+text = "TASKS"
+vertical_alignment = 1
+
+[node name="TaskBadge" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 532.0
+offset_top = 20.0
+offset_right = 554.0
+offset_bottom = 36.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleTaskBadge")
+
+[node name="Count" type="Label" parent="TaskBadge"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_fonts/font = ExtResource("5_mono_regular")
+theme_override_font_sizes/font_size = 10
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TasksUnderline" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 466.0
+offset_top = 54.0
+offset_right = 582.0
+offset_bottom = 55.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="Insurance" parent="." instance=ExtResource("2_common_button")]
+layout_mode = 0
+offset_left = 590.0
+offset_right = 730.0
+offset_bottom = 56.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+show_glyph = false
+theme_override_colors/font_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_pressed_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_disabled_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontNav")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleNavNormal")
+theme_override_styles/hover = SubResource("StyleNavHover")
+theme_override_styles/pressed = SubResource("StyleNavPressed")
+theme_override_styles/focus = SubResource("StyleNavFocus")
+text = "INSURANCE"
+
+[node name="Settings" parent="." instance=ExtResource("2_common_button")]
+layout_mode = 0
+offset_left = 738.0
+offset_right = 858.0
+offset_bottom = 56.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+show_glyph = false
+theme_override_colors/font_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_pressed_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_disabled_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontNav")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleNavNormal")
+theme_override_styles/hover = SubResource("StyleNavHover")
+theme_override_styles/pressed = SubResource("StyleNavPressed")
+theme_override_styles/focus = SubResource("StyleNavFocus")
+text = "SETTINGS"
+
+[node name="SettingsUnderline" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 738.0
+offset_top = 54.0
+offset_right = 858.0
+offset_bottom = 55.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="Level" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1518.0
+offset_top = 14.0
+offset_right = 1618.0
+offset_bottom = 42.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_mono_semibold")
+theme_override_font_sizes/font_size = 14
+text = "◆ LVL 14"
+vertical_alignment = 1
+
+[node name="Money" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1624.0
+offset_top = 14.0
+offset_right = 1748.0
+offset_bottom = 42.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.1803922, 1)
+theme_override_fonts/font = ExtResource("6_mono_semibold")
+theme_override_font_sizes/font_size = 16
+text = "$ 125,000"
+vertical_alignment = 1
+
+[node name="Close" parent="." instance=ExtResource("2_common_button")]
+layout_mode = 0
+offset_left = 1760.0
+offset_top = 16.0
+offset_right = 1872.0
+offset_bottom = 47.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+show_glyph = false
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_pressed_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_disabled_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("4_chakra")
+theme_override_font_sizes/font_size = 13
+text = "ESC · CLOSE"
+
+[node name="HeaderRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_top = 55.0
+offset_right = 1920.0
+offset_bottom = 56.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)

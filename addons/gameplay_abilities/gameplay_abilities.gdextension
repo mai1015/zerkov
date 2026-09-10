@@ -1,0 +1,31 @@
+[configuration]
+
+entry_symbol = "gameplay_abilities_library_init"
+compatibility_minimum = "4.7"
+reloadable = false
+
+[libraries]
+
+; Every entry below must also appear in addons/gameplay_abilities/release_manifest.json.
+; A target with no validated artifact is not supported, and Godot will report a
+; missing library rather than falling back to a script implementation.
+
+macos.debug = "res://addons/gameplay_abilities/bin/libgameplay_abilities.macos.template_debug.universal.dylib"
+macos.release = "res://addons/gameplay_abilities/bin/libgameplay_abilities.macos.template_release.universal.dylib"
+
+windows.debug.x86_64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.windows.template_release.x86_64.dll"
+
+linux.debug.x86_64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.linux.template_release.x86_64.so"
+
+android.debug.arm64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.android.template_debug.arm64.so"
+android.release.arm64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.android.template_release.arm64.so"
+android.debug.x86_64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.android.template_debug.x86_64.so"
+android.release.x86_64 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.android.template_release.x86_64.so"
+
+ios.debug = "res://addons/gameplay_abilities/bin/libgameplay_abilities.ios.template_debug.framework"
+ios.release = "res://addons/gameplay_abilities/bin/libgameplay_abilities.ios.template_release.framework"
+
+web.debug.wasm32 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.web.template_debug.wasm32.wasm"
+web.release.wasm32 = "res://addons/gameplay_abilities/bin/libgameplay_abilities.web.template_release.wasm32.wasm"

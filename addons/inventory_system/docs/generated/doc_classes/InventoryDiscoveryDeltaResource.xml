@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryDiscoveryDeltaResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="canonical_bytes" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_inventory_id" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_predecessor_discovery_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_predecessor_inventory_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_replacement_snapshot" qualifiers="const">
+			<return type="InventoryDiscoverySnapshotResource" />
+			<description>
+			</description>
+		</method>
+		<method name="get_successor_discovery_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_successor_inventory_revision" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+	</methods>
+</class>

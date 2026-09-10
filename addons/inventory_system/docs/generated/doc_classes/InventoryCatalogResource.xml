@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryCatalogResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="containers" type="InventoryContainerDefinition[]" setter="set_containers" getter="get_containers" default="[]">
+		</member>
+		<member name="discovery_policies" type="InventoryDiscoveryPolicy[]" setter="set_discovery_policies" getter="get_discovery_policies" default="[]">
+		</member>
+		<member name="items" type="InventoryItemDefinition[]" setter="set_items" getter="get_items" default="[]">
+		</member>
+		<member name="profiles" type="InventoryProfileDefinition[]" setter="set_profiles" getter="get_profiles" default="[]">
+		</member>
+		<member name="trait_schemas" type="InventoryTraitSchema[]" setter="set_trait_schemas" getter="get_trait_schemas" default="[]">
+		</member>
+	</members>
+</class>

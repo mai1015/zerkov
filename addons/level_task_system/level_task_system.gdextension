@@ -1,0 +1,30 @@
+[configuration]
+
+entry_symbol = "level_task_system_library_init"
+compatibility_minimum = "4.7"
+reloadable = false
+
+[libraries]
+
+; Every entry below is mirrored by the package release manifest.  A target
+; without a built artifact remains an explicit planned target in that manifest.
+
+macos.debug = "res://addons/level_task_system/bin/liblevel_task_system.macos.template_debug.universal.dylib"
+macos.release = "res://addons/level_task_system/bin/liblevel_task_system.macos.template_release.universal.dylib"
+
+windows.debug.x86_64 = "res://addons/level_task_system/bin/liblevel_task_system.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/level_task_system/bin/liblevel_task_system.windows.template_release.x86_64.dll"
+
+linux.debug.x86_64 = "res://addons/level_task_system/bin/liblevel_task_system.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://addons/level_task_system/bin/liblevel_task_system.linux.template_release.x86_64.so"
+
+android.debug.arm64 = "res://addons/level_task_system/bin/liblevel_task_system.android.template_debug.arm64.so"
+android.release.arm64 = "res://addons/level_task_system/bin/liblevel_task_system.android.template_release.arm64.so"
+android.debug.x86_64 = "res://addons/level_task_system/bin/liblevel_task_system.android.template_debug.x86_64.so"
+android.release.x86_64 = "res://addons/level_task_system/bin/liblevel_task_system.android.template_release.x86_64.so"
+
+ios.debug = "res://addons/level_task_system/bin/liblevel_task_system.ios.template_debug.framework"
+ios.release = "res://addons/level_task_system/bin/liblevel_task_system.ios.template_release.framework"
+
+web.debug.wasm32 = "res://addons/level_task_system/bin/liblevel_task_system.web.template_debug.wasm32.wasm"
+web.release.wasm32 = "res://addons/level_task_system/bin/liblevel_task_system.web.template_release.wasm32.wasm"

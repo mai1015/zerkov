@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryDiscoveryTaskResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_duration_ms" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_elapsed_ms" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_kind" qualifiers="const">
+			<return type="int" enum="InventoryDiscoveryTaskResource.Kind" />
+			<description>
+			</description>
+		</method>
+		<method name="get_target_token" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="is_actor_busy" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="TASK_NONE" value="0" enum="Kind">
+		</constant>
+		<constant name="TASK_CONTAINER_SEARCH" value="1" enum="Kind">
+		</constant>
+		<constant name="TASK_ITEM_SCAN" value="2" enum="Kind">
+		</constant>
+	</constants>
+</class>

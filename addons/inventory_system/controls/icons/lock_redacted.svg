@@ -1,0 +1,12 @@
+<!-- lock_redacted: redacted overlay / protected marker / read-only / drop-
+     inaccessible / inaccessible (DESIGN.md §7.2 "padlock", §11.2). A classic
+     padlock: shackle arc over a sharp-cornered body with a keyhole. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M8 10 V7.5 A4 4 0 0 1 16 7.5 V10"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M5.5 10 H18.5 V20 H5.5 Z"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="miter"/>
+  <circle cx="12" cy="14" r="1.1" fill="#FFFFFF"/>
+  <path d="M12 15.1 L12 17.3" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+</svg>

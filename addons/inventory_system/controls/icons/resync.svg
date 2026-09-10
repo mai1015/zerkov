@@ -1,0 +1,12 @@
+<!-- resync: resynchronizing / stale-corrected (DESIGN.md §7.2 "circular
+     arrows around a clock", §11.2). A dashed circle (two ~19-unit arcs
+     separated by two gaps, reading as circular motion) with a small
+     arrowhead at each gap plus a clock's hands at the center. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <circle cx="12" cy="12" r="8" fill="none" stroke="#FFFFFF" stroke-width="1.5"
+          stroke-dasharray="19 6.27" stroke-linecap="butt"/>
+  <path d="M18.8 7.2 L20.6 8.6 L17.9 9.9 Z" fill="#FFFFFF"/>
+  <path d="M5.2 16.8 L3.4 15.4 L6.1 14.1 Z" fill="#FFFFFF"/>
+  <path d="M12 12 L12 8.5 M12 12 L14.5 12"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+</svg>

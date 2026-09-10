@@ -1,0 +1,13 @@
+<!-- quick_transfer: quick-transfer context action / action bar (DESIGN.md
+     §7.2 "arrow through a bracket", §12.8). An open bracket ("[", missing
+     its right edge) with a straight arrow starting inside it and exiting
+     past its open side, read as an item leaving its container in one
+     motion. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M9 4 H5 V20 H9"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M6 12 H20 M16 8 L20 12 L16 16"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

@@ -1,0 +1,115 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/components/feedback/zerkov_dialog.gd" id="1_zerkov_dialog"]
+[ext_resource type="PackedScene" path="res://ui/components/controls/zerkov_button.tscn" id="2_common_button"]
+
+[ext_resource type="Theme" path="res://ui/theme/zerkov_theme.tres" id="theme"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="title_font"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="body_font"]
+
+[sub_resource type="StyleBoxFlat" id="panel"]
+bg_color = Color(0.05490196, 0.06274510, 0.05882353, 1)
+border_color = Color(1, 1, 1, 0.12)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[node name="ZerkovDialog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme = ExtResource("theme")
+script = ExtResource("1_zerkov_dialog")
+enter_transition = 0
+exit_transition = 0
+duration = 0.0
+animations_enabled = false
+
+[node name="Veil" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.8)
+
+[node name="DialogPanel" type="Panel" parent="."]
+theme_override_styles/panel = SubResource("panel")
+custom_minimum_size = Vector2(660, 280)
+layout_mode = 0
+offset_right = 660.0
+offset_bottom = 280.0
+mouse_filter = 1
+
+[node name="Margin" type="MarginContainer" parent="DialogPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 24.0
+offset_right = -32.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="DialogPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="DialogPanel/Margin/Content"]
+theme_override_fonts/font = ExtResource("title_font")
+theme_override_font_sizes/font_size = 24
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = ""
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="Message" type="Label" parent="DialogPanel/Margin/Content"]
+theme_override_fonts/font = ExtResource("body_font")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.717647, 0.737255, 0.705882, 1)
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+text = ""
+autowrap_mode = 2
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="Prompt" type="LineEdit" parent="DialogPanel/Margin/Content"]
+theme_override_fonts/font = ExtResource("body_font")
+theme_override_font_sizes/font_size = 14
+custom_minimum_size = Vector2(0, 44)
+visible = false
+layout_mode = 2
+mouse_default_cursor_shape = 2
+
+[node name="Actions" type="HBoxContainer" parent="DialogPanel/Margin/Content"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CancelButton" parent="DialogPanel/Margin/Content/Actions" instance=ExtResource("2_common_button")]
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+show_glyph = false
+text = "CANCEL"
+variant = "dialog_secondary"
+
+[node name="ConfirmButton" parent="DialogPanel/Margin/Content/Actions" instance=ExtResource("2_common_button")]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+show_glyph = false
+text = "CONFIRM"
+variant = "primary"

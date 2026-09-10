@@ -1,0 +1,414 @@
+{
+  "schema_version": 1,
+  "addon": "gameplay_abilities",
+  "version": "0.2.0",
+  "api_version": "0.2.0",
+  "protocol_version": 4,
+  "manifest_algorithm": "fnv1a64-canonical-v1",
+  "checksum_algorithm": "sha256",
+  "engine": {
+    "compatibility_minimum": "4.7",
+    "compatibility_maximum": null,
+    "validated_against": "4.7.1-stable",
+    "float_precision": "single"
+  },
+  "provenance": {
+    "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+    "source_revision": "86090ec42070348f889eaa807e8c64ff33b6a53f",
+    "built_at": "2026-07-29T21:15:04Z"
+  },
+  "support_state_policy": {
+    "supported": "The artifact builds, the extension loads (extension-load smoke passes), the exported package for both debug and release actually bundles the native library (export smoke), and the applicable multiplayer/integration smoke test passes for this target's role (client: headless integration tests; server: the dedicated-server startup/session smoke plus the multi-peer conformance suite). Only then may release notes, store listings, or documentation call a target supported.",
+    "experimental": "The artifact builds and there is direct evidence it loads (extension-load smoke passed for at least one build type), but export smoke and/or the role-applicable multiplayer/integration smoke test have not yet passed for this exact entry. Usable for development; not to be advertised to end users as a supported target.",
+    "planned": "Declared intent only: no artifact has been built for this target in the environment that produced this manifest, or (server role) the dedicated-server-specific smoke tests have not run against it."
+  },
+  "symbols_policy": {
+    "build_flags_today": "SConstruct appends -g for every GDExtension build on macOS/iOS/Linux/Android/Web, and /Zi plus /DEBUG on Windows, for BOTH template_debug and template_release -- there is no per-build-type branch that omits it. Every artifact this repository builds today, release included, embeds full debug symbols.",
+    "current_behavior": "No stripping step runs anywhere in this repository today. Neither tools/checksums.py, tools/ga_checksums.py, tools/export_smoke.sh, tools/ga_export_smoke.sh, nor any .github/workflows/ci.yml job invokes a symbol-stripping, dsymutil, or side-car step for either addon. Every file presently in addons/gameplay_abilities/bin/ -- both the debug and the release macOS artifact -- carries embedded, unstripped debug symbols. The SConstruct comment that release symbols are 'stripped into a side-car by tools/package_release.py' describes an intended future step, not current behavior: that file did not exist before task 12.1 and nothing invoked it.",
+    "intended_policy": "tools/ga_package_release.py (added by task 12.1) strips a release build's symbols into a '<artifact-filename>.debug' side-car file (dsymutil+strip on macOS/iOS, objcopy --only-keep-debug plus --strip-debug on Linux/Android, left as-is on Windows where /Zi already emits a separate .pdb, and left embedded on Web/wasm32 where no stripping tool is assumed present) when it packages a release artifact for distribution. Debug-build artifacts are never stripped by that script. This is the intended policy going forward; no artifact recorded in this manifest has actually been packaged through it yet, so every 'symbols' value below reads 'embedded'.",
+    "sidecar_suffix": ".debug"
+  },
+  "licenses": {
+    "addon": "MIT (see addons/gameplay_abilities/LICENSE)",
+    "third_party_reference": "addons/gameplay_abilities/THIRD_PARTY_LICENSES.md",
+    "mandatory_third_party_runtime": "None. Verified by auditing every #include across native/core, native/protocol, native/godot, and native/resources: beyond the C++ standard library and the godot-cpp binding (native/dependencies.json, MIT, shared with CommonUI's pinned checkout), no vendored third-party gameplay or networking library is included, linked, or required."
+  },
+  "targets": [
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.macos.template_debug.universal.dylib",
+      "status": "built",
+      "sha256": "c5f6adb59bd1d1bb50268751831148bb812da7cf5899321eb21134b1eff0b963",
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "experimental",
+      "verified_by": [
+        "tests/gameplay_abilities/smoke/ga_smoke_main.tscn",
+        "tests/gameplay_abilities/smoke/test_catalog_service.tscn",
+        "tests/gameplay_abilities/smoke/test_editor_dashboard.tscn",
+        "tests/gameplay_abilities/smoke/test_migration_planner.tscn",
+        "tests/gameplay_abilities/smoke/test_orphan_preservation.tscn",
+        "tests/gameplay_abilities/smoke/test_reference_registry.tscn",
+        "tests/gameplay_abilities/smoke/test_rewrite_planner.tscn",
+        "tests/gameplay_abilities/smoke/test_tag_hierarchy_search.tscn",
+        "tests/gameplay_abilities/smoke/test_usage_scanner.tscn",
+        "tests/gameplay_abilities/integration/integration_main.tscn",
+        "tests/gameplay_abilities/network/test_enet_harness.tscn",
+        "tests/gameplay_abilities/network/run_multipeer_processes.sh",
+        "tools/ga_verify.sh"
+      ],
+      "notes": "add-observer-task-state-replication-2026-07-27 re-verified this exact artifact end to end on 2026-07-27, after bumping GA_PROTOCOL_VERSION 2 -> 3 and adding the observable-task section (FeatureSet::OBSERVER_TASK_STATE) to the public observer payload: 538/538 native tests (both plain and under sanitize=address,undefined; up from 438 -- this change alone added 8: 5 in ga_test_task_protocol.cpp, 2 in ga_test_version.cpp, 1 in ga_test_budgets.cpp), the extension-load smoke scene (now reporting protocol 3), the full tests/gameplay_abilities/integration/integration_main.tscn aggregate (10/10 sub-scenes, including the new observer/task assertion added to test_component_runtime.tscn), tests/gameplay_abilities/network/test_enet_harness.tscn (178/178 checks, including a new real-ENet observer-vs-owner-only task test), and the complete tests/gameplay_abilities/network/run_multipeer_conformance.sh (all 4 stages: ENet harness, multi-process dedicated/listen-server conformance with byte-identical digest convergence unaffected by this change, task/target process protocol, and the playable basic-combat multiplayer demo). Export smoke (tools/ga_export_smoke.sh macOS debug) still has NOT passed: Godot export templates remain uninstalled in this environment (SKIP, exit 3) -- this is the ONLY reason this target stays 'experimental' rather than 'supported' per support_state_policy; every other 'supported' criterion for the client role is now met."
+    },
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.macos.template_release.universal.dylib",
+      "status": "built",
+      "sha256": "ebd4dc0f452820cb1c914b5dccbf3218ab5d096b2fe0192996336ced719250c2",
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "experimental",
+      "verified_by": [],
+      "notes": "add-observer-task-state-replication-2026-07-27 (2026-07-27) rebuilt and re-checksummed this release artifact (scons platform=macos target=template_release arch=universal) after the observer-task-state native work compiled clean under both plain and sanitize=address,undefined test runs. Its OWN load path is still not independently confirmed in this environment: Godot's non-exported headless run always resolves the template_debug artifact instead (see the debug entry's notes), so every scene/harness run this session verified the debug artifact, not this one. Export-release smoke (tools/ga_export_smoke.sh macOS release) has not run: export templates are not installed here. Treat this artifact as unverified until export-release smoke passes for it specifically."
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.windows.template_debug.x86_64.dll",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.windows.template_release.x86_64.dll",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.linux.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.linux.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "server",
+      "artifact": "bin/libgameplay_abilities.linux.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "export_preset": "Linux Dedicated Server",
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "Distinguished from the linux/client entry above because the platform-support spec requires a separately verified dedicated-server artifact (tools/ga_export_smoke.sh 'Linux Dedicated Server' debug|release, export_presets.cfg preset.3, plus tools/ga_dedicated_server.sh startup/session smoke against examples/gameplay_abilities/dedicated_server.tscn), even though today it is built from the identical GDExtension shared library as the linux/client entry above -- this addon does not introduce a custom feature tag to select a distinct binary for the dedicated-server export, so Godot resolves the same platform/arch/build-type library either way. No artifact has been built for this target in this environment."
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "server",
+      "artifact": "bin/libgameplay_abilities.linux.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "export_preset": "Linux Dedicated Server",
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "Distinguished from the linux/client entry above because the platform-support spec requires a separately verified dedicated-server artifact (tools/ga_export_smoke.sh 'Linux Dedicated Server' debug|release, export_presets.cfg preset.3, plus tools/ga_dedicated_server.sh startup/session smoke against examples/gameplay_abilities/dedicated_server.tscn), even though today it is built from the identical GDExtension shared library as the linux/client entry above -- this addon does not introduce a custom feature tag to select a distinct binary for the dedicated-server export, so Godot resolves the same platform/arch/build-type library either way. No artifact has been built for this target in this environment."
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.android.template_debug.arm64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.android.template_release.arm64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.android.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.android.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.ios.template_debug.framework",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.ios.template_release.framework",
+      "status": "planned",
+      "sha256": null,
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.web.template_debug.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "requires": [
+        "extension_support",
+        "cross_origin_isolation"
+      ],
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libgameplay_abilities.web.template_release.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "requires": [
+        "extension_support",
+        "cross_origin_isolation"
+      ],
+      "compatibility": {
+        "engine_compatibility_minimum": "4.7",
+        "engine_compatibility_maximum": null,
+        "engine_validated_against": "4.7.1-stable",
+        "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+        "api_version": "0.2.0",
+        "protocol_version": 4,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "symbols": "embedded",
+      "support_state": "planned",
+      "verified_by": [],
+      "notes": "No artifact has been built for this target in this environment; declared intent only per the platform-support spec's artifact matrix."
+    }
+  ]
+}

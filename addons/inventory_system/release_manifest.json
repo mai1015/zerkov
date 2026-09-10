@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "addon": "inventory_system",
+  "version": "0.4.0",
+  "api_version": "0.4.0",
+  "protocol_version": 1,
+  "resource_schema_version": 1,
+  "feature_module_version": 1,
+  "persistence_schema_version": 1,
+  "manifest_algorithm": "fnv1a64-canonical-v1",
+  "canonical_mass_unit": "milligram",
+  "checksum_algorithm": "sha256",
+  "engine": {
+    "compatibility_minimum": "4.7",
+    "compatibility_maximum": null,
+    "validated_against": "4.7.2-stable",
+    "float_precision": "single"
+  },
+  "support_policy": "Every target is planned until its artifact builds, loads, exports, and passes the role-applicable smoke and conformance suites. Planned entries are declared intent and must not be advertised as supported. \"experimental\" (mirroring gameplay_abilities' support_state convention): the artifact builds and loads (extension-load smoke passed) but export smoke has not yet run in this environment (Godot export templates are not installed here), so it is not yet advertised as \"supported\".",
+  "provenance": {
+    "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+    "source_revision": "26c8499e03bc7642100bf429068c3435f86f5e78",
+    "source_worktree_dirty": true,
+    "built_at": "2026-09-08T11:42:56Z"
+  },
+  "targets": [
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libinventory_system.macos.template_debug.universal.dylib",
+      "status": "built",
+      "sha256": "964b1824415758b4f7098137af13089810cdda2bbe0d16743378e0d0c28193f1",
+      "support_state": "experimental",
+      "verified_by": [
+        "scons target=template_debug arch=universal -j4",
+        "scons inventory_tests run_inventory_tests=yes -j4 (373/373)",
+        "scons inventory_tests run_inventory_tests=yes sanitize=address,undefined -j4 (373/373; clean)",
+        "tools/godot.sh import (pass)",
+        "tools/godot.sh smoke (API 0.4.0; pass)",
+        "tests/inventory_system/gateway/inv_gateway_main.tscn (939/939)",
+        "tests/inventory_system/contract/inv_contract_main.tscn (522/522)",
+        "tests/inventory_system/presentation/inv_presentation_main.tscn (654/654)",
+        "tests/inventory_system/discovery/inv_discovery_main.tscn (197/197)",
+        "tests/inventory_system/harness/inv_harness_main.tscn (6140/6140)",
+        "tests/inventory_system/presentation/inv_interaction_main.tscn (1601/1601)",
+        "tests/inventory_system/icons/inv_icons_main.tscn (193/193)",
+        "tests/inventory_system/server/inv_server_main.tscn (113/113)",
+        "scons inventory_boundary_check (pass)",
+        "scons inventory_fixture_check (pass)"
+      ],
+      "notes": "Unreleased 0.4.0 development artifact. macOS universal debug and release builds pass for x86_64 and arm64; the debug artifact passed Godot 4.7.2 import and API-0.4.0 smoke. Native plain and combined ASan+UBSan runs each passed 373/373, with no sanitizer diagnostics. Authenticated gateway passed 939/939; GDScript contract 522/522; presentation 654/654; discovery 197/197; harness 6140/6140; interaction 1601/1601; icons 193/193; dedicated server 113/113. Include-boundary and immutable fixture checks passed. All 22 generated XML files parsed; strict spec validation, CodeGraph sync, and git diff --check passed. C# was not compiled or run because no .csproj/.sln/.slnx exists despite .NET SDK 10.0.302. Export-release smoke was unavailable because compatible Godot export templates are not installed. Support remains experimental."
+    },
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libinventory_system.macos.template_release.universal.dylib",
+      "status": "built",
+      "sha256": "d290fe6f486a91dd9a28907ed3b28685896dfb65aa6de518c2e76ed33397042e",
+      "support_state": "experimental",
+      "verified_by": [
+        "scons target=template_release arch=universal -j4"
+      ],
+      "notes": "Universal macOS release build passed for x86_64 and arm64. No release-artifact load or export-release smoke was run because compatible Godot export templates are not installed; support remains experimental. The checksum reflects the final Task 4.6 source."
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libinventory_system.windows.template_debug.x86_64.dll",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libinventory_system.windows.template_release.x86_64.dll",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libinventory_system.linux.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libinventory_system.linux.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "server",
+      "artifact": "bin/libinventory_system.linux.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "server",
+      "artifact": "bin/libinventory_system.linux.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libinventory_system.android.template_debug.arm64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "arm64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libinventory_system.android.template_release.arm64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libinventory_system.android.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "android",
+      "arch": "x86_64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libinventory_system.android.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libinventory_system.ios.template_debug.framework",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "ios",
+      "arch": "arm64",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libinventory_system.ios.template_release.framework",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "debug",
+      "role": "client",
+      "artifact": "bin/libinventory_system.web.template_debug.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "requires": [
+        "extension_support",
+        "cross_origin_isolation"
+      ]
+    },
+    {
+      "platform": "web",
+      "arch": "wasm32",
+      "build": "release",
+      "role": "client",
+      "artifact": "bin/libinventory_system.web.template_release.wasm32.wasm",
+      "status": "planned",
+      "sha256": null,
+      "requires": [
+        "extension_support",
+        "cross_origin_isolation"
+      ]
+    }
+  ]
+}

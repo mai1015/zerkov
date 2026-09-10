@@ -1,0 +1,11 @@
+<!-- discovery_search: search an unopened staged container. The container
+     shell is the sharp rectangle; the magnifier is the literal Search
+     action. Authored for this addon to DESIGN.md §7.1's 24px/1.5px system. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M3 5.5 H14.5 V16.5 H3 Z M3 9 H14.5"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="miter"/>
+  <circle cx="16.25" cy="16.25" r="3.25"
+          fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M18.75 18.75 L21 21"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square"/>
+</svg>

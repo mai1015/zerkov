@@ -1,0 +1,2607 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/theme/pixel_style.gd" id="1_ixta8"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="2_qvf2m"]
+[ext_resource type="Script" path="res://ui/screens/raid/summary_solo.gd" id="3_gaw40"]
+[ext_resource type="Shader" path="res://ui/shaders/backdrop.gdshader" id="4_1spo0"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="5_jativ"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="6_hdogv"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="7_xo1uv"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-SemiBold.ttf" id="8_cjnax"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_battery.png" id="9_3lfps"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_book.png" id="10_lind0"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_parts.png" id="11_2ugvl"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_potion.png" id="12_joogt"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_fish.png" id="13_hofng"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_chess.png" id="14_2kctx"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_box.png" id="15_uex3n"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_cup.png" id="16_ui3wx"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_coal.png" id="17_qrmox"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_bottle.png" id="18_eunhh"]
+
+[sub_resource type="StyleBox" id="StyleBox_nmowq"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_0k8o1"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_m1emr"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_fyke7"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_u03q1"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5a6qg"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a1txh"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gcvj5"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16470589, 0.16470589, 0.16470589, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBox" id="StyleBox_l5g0m"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_c454f"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_uqmlv"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_kxm64"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_ay718"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_x4o4c"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_3wf6f"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_1jj0x"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_f335r"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_j1k3t"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_j6wjf"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_agsch"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_urna3"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vkulr"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="Theme" id="Theme_dfhtp"]
+default_font = ExtResource("2_qvf2m")
+default_font_size = 14
+Button/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Button/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+Button/styles/disabled = SubResource("StyleBox_nmowq")
+Button/styles/focus = SubResource("StyleBox_0k8o1")
+Button/styles/hover = SubResource("StyleBox_m1emr")
+Button/styles/normal = SubResource("StyleBox_fyke7")
+Button/styles/pressed = SubResource("StyleBox_u03q1")
+CheckBox/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckBox/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+CheckButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_5a6qg")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_a1txh")
+HSlider/styles/slider = SubResource("StyleBoxFlat_gcvj5")
+Label/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Label/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+LineEdit/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/styles/disabled = SubResource("StyleBox_l5g0m")
+LineEdit/styles/focus = SubResource("StyleBox_c454f")
+LineEdit/styles/hover = SubResource("StyleBox_uqmlv")
+LineEdit/styles/normal = SubResource("StyleBox_kxm64")
+LineEdit/styles/pressed = SubResource("StyleBox_ay718")
+OptionButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+OptionButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+OptionButton/styles/disabled = SubResource("StyleBox_x4o4c")
+OptionButton/styles/focus = SubResource("StyleBox_3wf6f")
+OptionButton/styles/hover = SubResource("StyleBox_1jj0x")
+OptionButton/styles/normal = SubResource("StyleBox_f335r")
+OptionButton/styles/pressed = SubResource("StyleBox_j1k3t")
+Panel/styles/panel = SubResource("StyleBox_j6wjf")
+PopupMenu/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+PopupMenu/colors/font_hover_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+PopupMenu/styles/panel = SubResource("StyleBox_agsch")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_urna3")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_vkulr")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6r2ss"]
+shader = ExtResource("4_1spo0")
+
+[sub_resource type="FontVariation" id="FontVariation_o28q2"]
+base_font = ExtResource("6_hdogv")
+spacing_glyph = 3
+
+[sub_resource type="StyleBox" id="StyleBox_ilfjc"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="FontVariation" id="FontVariation_euqpt"]
+base_font = ExtResource("6_hdogv")
+spacing_glyph = 2
+
+[sub_resource type="FontVariation" id="FontVariation_rakjo"]
+base_font = ExtResource("8_cjnax")
+spacing_glyph = 1
+
+[sub_resource type="StyleBox" id="StyleBox_05axv"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_oausq"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_avuwg"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_j27mq"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_njwn6"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_nm4ae"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_elo4i"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_guuaf"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_xmca2"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_lm8oh"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_y34f1"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_xgpb4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_6y733"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_il7go"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_tqop7"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_s3evd"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_70vm2"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_8ruyb"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_5ioi2"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_0qjn3"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_6q36r"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_rscpb"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_p2jki"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_0g7yb"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_anp52"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_2nsrr"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_ekhce"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_ubfbh"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_q4tuh"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_3tdr7"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_m557d"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_bbu7v"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_soxwh"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[sub_resource type="StyleBox" id="StyleBox_cuxsa"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_ixta8")
+
+[node name="SummarySolo" type="Control" unique_id=1737996384]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = SubResource("Theme_dfhtp")
+script = ExtResource("3_gaw40")
+default_focus = NodePath("BackBunker")
+metadata/screen_route = "summary_solo"
+
+[node name="BackgroundImage" type="TextureRect" parent="." unique_id=514961761]
+texture_filter = 2
+material = SubResource("ShaderMaterial_6r2ss")
+layout_mode = 0
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 1984.0
+offset_bottom = 1144.0
+mouse_filter = 2
+texture = ExtResource("5_jativ")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BackdropDim" type="ColorRect" parent="." unique_id=1881438221]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.8)
+
+[node name="BackdropTint" type="ColorRect" parent="." unique_id=629672042]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.12, 0.4, 0.18, 0.025)
+
+[node name="VerdictDot" type="ColorRect" parent="." unique_id=1617479754]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 47.0
+offset_right = 58.0
+offset_bottom = 57.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Verdict" type="Label" parent="." unique_id=210405359]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 36.0
+offset_right = 550.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_o28q2")
+theme_override_font_sizes/font_size = 12
+text = "RAID COMPLETE · SURVIVED"
+vertical_alignment = 1
+
+[node name="MapName" type="Label" parent="." unique_id=1248353030]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 58.0
+offset_right = 748.0
+offset_bottom = 118.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_o28q2")
+theme_override_font_sizes/font_size = 44
+text = "SAWMILL YARD"
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="." unique_id=1500704854]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 112.0
+offset_right = 808.0
+offset_bottom = 135.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 12
+text = "Day · 24:10 in raid · Road gate extract · Oak Jhonson"
+vertical_alignment = 1
+
+[node name="MetricLoot" type="Panel" parent="." unique_id=621024534]
+metadata/compact_group = "RaidSummary3"
+layout_mode = 0
+offset_left = 1335.0
+offset_top = 50.0
+offset_right = 1509.0
+offset_bottom = 130.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_ilfjc")
+
+[node name="Title" type="Label" parent="MetricLoot" unique_id=1342818430]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 164.0
+offset_bottom = 31.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 10
+text = "LOOT VALUE"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="MetricLoot" unique_id=329929924]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 26.0
+offset_right = 164.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_rakjo")
+theme_override_font_sizes/font_size = 22
+text = "$ 8,420"
+vertical_alignment = 1
+
+[node name="Detail" type="Label" parent="MetricLoot" unique_id=1026875579]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 57.0
+offset_right = 166.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 9
+text = "+$ 1,900 vs your average"
+vertical_alignment = 1
+
+[node name="MetricXP" type="Panel" parent="." unique_id=883067727]
+metadata/compact_group = "RaidSummary3"
+layout_mode = 0
+offset_left = 1512.0
+offset_top = 50.0
+offset_right = 1650.0
+offset_bottom = 130.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_05axv")
+
+[node name="Title" type="Label" parent="MetricXP" unique_id=1725351818]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 128.0
+offset_bottom = 31.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 10
+text = "XP"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="MetricXP" unique_id=1750957898]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 26.0
+offset_right = 128.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_rakjo")
+theme_override_font_sizes/font_size = 22
+text = "+2,140"
+vertical_alignment = 1
+
+[node name="Detail" type="Label" parent="MetricXP" unique_id=1131247051]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 57.0
+offset_right = 130.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 9
+text = "LVL 14 · 58% → 60%"
+vertical_alignment = 1
+
+[node name="MetricKills" type="Panel" parent="." unique_id=185677790]
+metadata/compact_group = "RaidSummary3"
+layout_mode = 0
+offset_left = 1653.0
+offset_top = 50.0
+offset_right = 1744.0
+offset_bottom = 130.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_oausq")
+
+[node name="Title" type="Label" parent="MetricKills" unique_id=1352175600]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 81.0
+offset_bottom = 31.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 10
+text = "KILLS"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="MetricKills" unique_id=1704646161]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 26.0
+offset_right = 81.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_rakjo")
+theme_override_font_sizes/font_size = 22
+text = "2"
+vertical_alignment = 1
+
+[node name="Detail" type="Label" parent="MetricKills" unique_id=1929107314]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 57.0
+offset_right = 83.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 9
+text = "1 headshot"
+vertical_alignment = 1
+
+[node name="MetricDamage" type="Panel" parent="." unique_id=2134589325]
+metadata/compact_group = "RaidSummary3"
+layout_mode = 0
+offset_left = 1747.0
+offset_top = 50.0
+offset_right = 1872.0
+offset_bottom = 130.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_avuwg")
+
+[node name="Title" type="Label" parent="MetricDamage" unique_id=642772253]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 115.0
+offset_bottom = 31.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 10
+text = "DAMAGE TAKEN"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="MetricDamage" unique_id=408597893]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 26.0
+offset_right = 115.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = SubResource("FontVariation_rakjo")
+theme_override_font_sizes/font_size = 22
+text = "510"
+vertical_alignment = 1
+
+[node name="Detail" type="Label" parent="MetricDamage" unique_id=1519574296]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 57.0
+offset_right = 117.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 9
+text = "bleed · fracture"
+vertical_alignment = 1
+
+[node name="TimelineTitle" type="Label" parent="." unique_id=1096121201]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 236.0
+offset_right = 478.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 13
+text = "TIMELINE"
+vertical_alignment = 1
+
+[node name="TimelineDuration" type="Label" parent="." unique_id=1085599710]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 478.0
+offset_top = 236.0
+offset_right = 608.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "24:10"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TimelineRule" type="ColorRect" parent="." unique_id=184535312]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 266.0
+offset_right = 608.0
+offset_bottom = 267.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="TimelineBar00" type="ColorRect" parent="." unique_id=520400193]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 279.0
+offset_right = 141.33334
+offset_bottom = 285.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="TimelineBar01" type="ColorRect" parent="." unique_id=690178232]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 141.33333
+offset_top = 279.0
+offset_right = 234.66666
+offset_bottom = 285.0
+mouse_filter = 2
+color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+
+[node name="TimelineBar02" type="ColorRect" parent="." unique_id=899279731]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 234.66667
+offset_top = 279.0
+offset_right = 328.0
+offset_bottom = 285.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="TimelineBar03" type="ColorRect" parent="." unique_id=2025302114]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 328.0
+offset_top = 279.0
+offset_right = 421.33334
+offset_bottom = 285.0
+mouse_filter = 2
+color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+
+[node name="TimelineBar04" type="ColorRect" parent="." unique_id=367550313]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 421.33334
+offset_top = 279.0
+offset_right = 514.6667
+offset_bottom = 285.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="TimelineBar05" type="ColorRect" parent="." unique_id=1389634912]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 514.6667
+offset_top = 279.0
+offset_right = 608.0
+offset_bottom = 285.0
+mouse_filter = 2
+color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+
+[node name="TimelineTime00" type="Label" parent="." unique_id=1869098437]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 296.0
+offset_right = 92.0
+offset_bottom = 319.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "00:00"
+vertical_alignment = 1
+
+[node name="TimelineDot00" type="ColorRect" parent="." unique_id=752202796]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 303.0
+offset_right = 112.0
+offset_bottom = 311.0
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="TimelineKind00" type="Label" parent="." unique_id=1781168413]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 296.0
+offset_right = 200.0
+offset_bottom = 319.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "SPAWN ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail00" type="Label" parent="." unique_id=403314753]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 170.0
+offset_top = 296.0
+offset_right = 608.0
+offset_bottom = 319.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Tree line, north"
+vertical_alignment = 1
+
+[node name="TimelineTime01" type="Label" parent="." unique_id=570970494]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 322.0
+offset_right = 92.0
+offset_bottom = 345.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "04:20"
+vertical_alignment = 1
+
+[node name="TimelineDot01" type="ColorRect" parent="." unique_id=1791528140]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 329.0
+offset_right = 112.0
+offset_bottom = 337.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="TimelineKind01" type="Label" parent="." unique_id=1764746705]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 322.0
+offset_right = 200.0
+offset_bottom = 345.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "LOOT ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail01" type="Label" parent="." unique_id=1996452227]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 164.0
+offset_top = 322.0
+offset_right = 608.0
+offset_bottom = 345.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Wooden crate · Tin cup · Ledger"
+vertical_alignment = 1
+
+[node name="TimelineTime02" type="Label" parent="." unique_id=1407222396]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 348.0
+offset_right = 92.0
+offset_bottom = 371.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "08:15"
+vertical_alignment = 1
+
+[node name="TimelineDot02" type="ColorRect" parent="." unique_id=1990233221]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 355.0
+offset_right = 112.0
+offset_bottom = 363.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="TimelineKind02" type="Label" parent="." unique_id=863912323]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 348.0
+offset_right = 200.0
+offset_bottom = 371.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "KILL ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail02" type="Label" parent="." unique_id=606099000]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 164.0
+offset_top = 348.0
+offset_right = 608.0
+offset_bottom = 371.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Scav · 34 m · headshot"
+vertical_alignment = 1
+
+[node name="TimelineTime03" type="Label" parent="." unique_id=1562240168]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 374.0
+offset_right = 92.0
+offset_bottom = 397.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "09:40"
+vertical_alignment = 1
+
+[node name="TimelineDot03" type="ColorRect" parent="." unique_id=1300539392]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 381.0
+offset_right = 112.0
+offset_bottom = 389.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="TimelineKind03" type="Label" parent="." unique_id=227587182]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 374.0
+offset_right = 200.0
+offset_bottom = 397.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "HIT ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail03" type="Label" parent="." unique_id=1428229355]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 158.0
+offset_top = 374.0
+offset_right = 608.0
+offset_bottom = 397.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "−210 · torso · heavy bleed"
+vertical_alignment = 1
+
+[node name="TimelineTime04" type="Label" parent="." unique_id=322367150]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 400.0
+offset_right = 92.0
+offset_bottom = 423.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "10:05"
+vertical_alignment = 1
+
+[node name="TimelineDot04" type="ColorRect" parent="." unique_id=1147819541]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 407.0
+offset_right = 112.0
+offset_bottom = 415.0
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="TimelineKind04" type="Label" parent="." unique_id=842090117]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 400.0
+offset_right = 200.0
+offset_bottom = 423.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "HEAL ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail04" type="Label" parent="." unique_id=2041346743]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 164.0
+offset_top = 400.0
+offset_right = 608.0
+offset_bottom = 423.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Quick heal · Bandage"
+vertical_alignment = 1
+
+[node name="TimelineTime05" type="Label" parent="." unique_id=405050358]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 426.0
+offset_right = 92.0
+offset_bottom = 449.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "15:50"
+vertical_alignment = 1
+
+[node name="TimelineDot05" type="ColorRect" parent="." unique_id=708365723]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 433.0
+offset_right = 112.0
+offset_bottom = 441.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="TimelineKind05" type="Label" parent="." unique_id=28438759]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 426.0
+offset_right = 200.0
+offset_bottom = 449.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "TASK ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail05" type="Label" parent="." unique_id=1950090224]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 164.0
+offset_top = 426.0
+offset_right = 608.0
+offset_bottom = 449.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Supply run 3 / 3 · complete"
+vertical_alignment = 1
+
+[node name="TimelineTime06" type="Label" parent="." unique_id=218844084]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 452.0
+offset_right = 92.0
+offset_bottom = 475.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "16:30"
+vertical_alignment = 1
+
+[node name="TimelineDot06" type="ColorRect" parent="." unique_id=1587737224]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 459.0
+offset_right = 112.0
+offset_bottom = 467.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="TimelineKind06" type="Label" parent="." unique_id=31518971]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 452.0
+offset_right = 200.0
+offset_bottom = 475.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "LOOT ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail06" type="Label" parent="." unique_id=114851232]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 164.0
+offset_top = 452.0
+offset_right = 608.0
+offset_bottom = 475.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Car battery · $ 2,400"
+vertical_alignment = 1
+
+[node name="TimelineTime07" type="Label" parent="." unique_id=765478692]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 478.0
+offset_right = 92.0
+offset_bottom = 501.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "21:00"
+vertical_alignment = 1
+
+[node name="TimelineDot07" type="ColorRect" parent="." unique_id=1921177174]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 485.0
+offset_right = 112.0
+offset_bottom = 493.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="TimelineKind07" type="Label" parent="." unique_id=1648722609]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 478.0
+offset_right = 200.0
+offset_bottom = 501.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "KILL ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail07" type="Label" parent="." unique_id=998180809]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 164.0
+offset_top = 478.0
+offset_right = 608.0
+offset_bottom = 501.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Wolf · 6 m · melee"
+vertical_alignment = 1
+
+[node name="TimelineTime08" type="Label" parent="." unique_id=365304287]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 48.0
+offset_top = 504.0
+offset_right = 92.0
+offset_bottom = 527.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "24:10"
+vertical_alignment = 1
+
+[node name="TimelineDot08" type="ColorRect" parent="." unique_id=527078582]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 104.0
+offset_top = 511.0
+offset_right = 112.0
+offset_bottom = 519.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="TimelineKind08" type="Label" parent="." unique_id=1076827537]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 124.0
+offset_top = 504.0
+offset_right = 200.0
+offset_bottom = 527.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "EXTRACT ·"
+vertical_alignment = 1
+
+[node name="TimelineDetail08" type="Label" parent="." unique_id=1073934654]
+metadata/compact_group = "RaidSummary1"
+layout_mode = 0
+offset_left = 182.0
+offset_top = 504.0
+offset_right = 608.0
+offset_bottom = 527.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Road gate"
+vertical_alignment = 1
+
+[node name="LootTitle" type="Label" parent="." unique_id=238096449]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 236.0
+offset_right = 1222.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 13
+text = "BROUGHT HOME · 9 ITEMS"
+vertical_alignment = 1
+
+[node name="LootTrailing" type="Label" parent="." unique_id=1324495104]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1222.0
+offset_top = 236.0
+offset_right = 1352.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "sorted by value"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRuleStart" type="ColorRect" parent="." unique_id=395741027]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 266.0
+offset_right = 1352.0
+offset_bottom = 267.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="LootRule00" type="ColorRect" parent="." unique_id=1718163823]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 327.0
+offset_right = 1352.0
+offset_bottom = 328.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem00" type="Panel" parent="." unique_id=172663525]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 282.0
+offset_right = 682.0
+offset_bottom = 316.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_j27mq")
+
+[node name="LootIcon00" type="TextureRect" parent="." unique_id=130108648]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 285.0
+offset_right = 679.0
+offset_bottom = 313.0
+mouse_filter = 2
+texture = ExtResource("9_3lfps")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName00" type="Label" parent="." unique_id=1143464669]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 282.0
+offset_right = 1033.0
+offset_bottom = 316.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Car battery"
+vertical_alignment = 1
+
+[node name="LootBadge00" type="Panel" parent="." unique_id=1099616508]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1256.0
+offset_top = 290.0
+offset_right = 1296.0
+offset_bottom = 308.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_njwn6")
+
+[node name="Label" type="Label" parent="LootBadge00" unique_id=668325599]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 9
+text = "NEW"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LootValue00" type="Label" parent="." unique_id=1365811113]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 282.0
+offset_right = 1352.0
+offset_bottom = 316.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 2,400"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule01" type="ColorRect" parent="." unique_id=1583194095]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 386.0
+offset_right = 1352.0
+offset_bottom = 387.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem01" type="Panel" parent="." unique_id=944851440]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 341.0
+offset_right = 682.0
+offset_bottom = 375.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_nm4ae")
+
+[node name="LootIcon01" type="TextureRect" parent="." unique_id=1150567790]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 344.0
+offset_right = 679.0
+offset_bottom = 372.0
+mouse_filter = 2
+texture = ExtResource("10_lind0")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName01" type="Label" parent="." unique_id=1768681081]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 341.0
+offset_right = 1033.0
+offset_bottom = 375.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Ledger"
+vertical_alignment = 1
+
+[node name="LootBadge01" type="Panel" parent="." unique_id=1436010383]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1256.0
+offset_top = 349.0
+offset_right = 1296.0
+offset_bottom = 367.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_elo4i")
+
+[node name="Label" type="Label" parent="LootBadge01" unique_id=1971922776]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 9
+text = "TASK"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LootValue01" type="Label" parent="." unique_id=1547388148]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 341.0
+offset_right = 1352.0
+offset_bottom = 375.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 1,450"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule02" type="ColorRect" parent="." unique_id=815373124]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 445.0
+offset_right = 1352.0
+offset_bottom = 446.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem02" type="Panel" parent="." unique_id=479305666]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 400.0
+offset_right = 682.0
+offset_bottom = 434.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_guuaf")
+
+[node name="LootIcon02" type="TextureRect" parent="." unique_id=404213894]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 403.0
+offset_right = 679.0
+offset_bottom = 431.0
+mouse_filter = 2
+texture = ExtResource("11_2ugvl")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName02" type="Label" parent="." unique_id=1799980978]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 400.0
+offset_right = 1033.0
+offset_bottom = 434.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Gun parts"
+vertical_alignment = 1
+
+[node name="LootValue02" type="Label" parent="." unique_id=77502907]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 400.0
+offset_right = 1352.0
+offset_bottom = 434.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 980"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule03" type="ColorRect" parent="." unique_id=1661626464]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 504.0
+offset_right = 1352.0
+offset_bottom = 505.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem03" type="Panel" parent="." unique_id=697583537]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 459.0
+offset_right = 682.0
+offset_bottom = 493.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_xmca2")
+
+[node name="LootIcon03" type="TextureRect" parent="." unique_id=583484240]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 462.0
+offset_right = 679.0
+offset_bottom = 490.0
+mouse_filter = 2
+texture = ExtResource("12_joogt")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName03" type="Label" parent="." unique_id=1853246991]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 459.0
+offset_right = 1033.0
+offset_bottom = 493.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Moonshine"
+vertical_alignment = 1
+
+[node name="LootValue03" type="Label" parent="." unique_id=958277200]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 459.0
+offset_right = 1352.0
+offset_bottom = 493.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 720"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule04" type="ColorRect" parent="." unique_id=1683615473]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 563.0
+offset_right = 1352.0
+offset_bottom = 564.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem04" type="Panel" parent="." unique_id=574740443]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 518.0
+offset_right = 682.0
+offset_bottom = 552.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_lm8oh")
+
+[node name="LootIcon04" type="TextureRect" parent="." unique_id=1192279221]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 521.0
+offset_right = 679.0
+offset_bottom = 549.0
+mouse_filter = 2
+texture = ExtResource("13_hofng")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName04" type="Label" parent="." unique_id=1538903488]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 518.0
+offset_right = 1033.0
+offset_bottom = 552.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Dried fish ×2"
+vertical_alignment = 1
+
+[node name="LootValue04" type="Label" parent="." unique_id=1520696778]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 518.0
+offset_right = 1352.0
+offset_bottom = 552.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 620"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule05" type="ColorRect" parent="." unique_id=1373824110]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 622.0
+offset_right = 1352.0
+offset_bottom = 623.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem05" type="Panel" parent="." unique_id=1304938359]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 577.0
+offset_right = 682.0
+offset_bottom = 611.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_y34f1")
+
+[node name="LootIcon05" type="TextureRect" parent="." unique_id=1914889469]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 580.0
+offset_right = 679.0
+offset_bottom = 608.0
+mouse_filter = 2
+texture = ExtResource("14_2kctx")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName05" type="Label" parent="." unique_id=938452122]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 577.0
+offset_right = 1033.0
+offset_bottom = 611.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Chess set"
+vertical_alignment = 1
+
+[node name="LootValue05" type="Label" parent="." unique_id=388295079]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 577.0
+offset_right = 1352.0
+offset_bottom = 611.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 540"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule06" type="ColorRect" parent="." unique_id=1365629423]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 681.0
+offset_right = 1352.0
+offset_bottom = 682.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem06" type="Panel" parent="." unique_id=1036171344]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 636.0
+offset_right = 682.0
+offset_bottom = 670.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_xgpb4")
+
+[node name="LootIcon06" type="TextureRect" parent="." unique_id=1040668661]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 639.0
+offset_right = 679.0
+offset_bottom = 667.0
+mouse_filter = 2
+texture = ExtResource("15_uex3n")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName06" type="Label" parent="." unique_id=490695866]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 636.0
+offset_right = 1033.0
+offset_bottom = 670.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "7.62×39 ×60"
+vertical_alignment = 1
+
+[node name="LootValue06" type="Label" parent="." unique_id=2080810027]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 636.0
+offset_right = 1352.0
+offset_bottom = 670.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 480"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule07" type="ColorRect" parent="." unique_id=866278373]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 740.0
+offset_right = 1352.0
+offset_bottom = 741.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem07" type="Panel" parent="." unique_id=1143087034]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 695.0
+offset_right = 682.0
+offset_bottom = 729.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_6y733")
+
+[node name="LootIcon07" type="TextureRect" parent="." unique_id=1027073412]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 698.0
+offset_right = 679.0
+offset_bottom = 726.0
+mouse_filter = 2
+texture = ExtResource("16_ui3wx")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName07" type="Label" parent="." unique_id=1995072161]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 695.0
+offset_right = 1033.0
+offset_bottom = 729.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Tin cup"
+vertical_alignment = 1
+
+[node name="LootValue07" type="Label" parent="." unique_id=2127879034]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 695.0
+offset_right = 1352.0
+offset_bottom = 729.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 120"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootRule08" type="ColorRect" parent="." unique_id=1124199660]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 799.0
+offset_right = 1352.0
+offset_bottom = 800.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.08)
+
+[node name="LootItem08" type="Panel" parent="." unique_id=72406476]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 754.0
+offset_right = 682.0
+offset_bottom = 788.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_il7go")
+
+[node name="LootIcon08" type="TextureRect" parent="." unique_id=667280506]
+metadata/compact_group = "RaidSummary0"
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 757.0
+offset_right = 679.0
+offset_bottom = 785.0
+mouse_filter = 2
+texture = ExtResource("17_qrmox")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LootName08" type="Label" parent="." unique_id=778527223]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 754.0
+offset_right = 1033.0
+offset_bottom = 788.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Coal ×2"
+vertical_alignment = 1
+
+[node name="LootValue08" type="Label" parent="." unique_id=1703634962]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1306.0
+offset_top = 754.0
+offset_right = 1352.0
+offset_bottom = 788.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "$ 60"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="UsedTitle" type="Label" parent="." unique_id=736746189]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 819.0
+offset_right = 1222.0
+offset_bottom = 843.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 13
+text = "USED · LOST"
+vertical_alignment = 1
+
+[node name="UsedTrailing" type="Label" parent="." unique_id=1397068191]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1222.0
+offset_top = 819.0
+offset_right = 1352.0
+offset_bottom = 843.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "−$ 380"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="UsedRule" type="ColorRect" parent="." unique_id=193919006]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 849.0
+offset_right = 1352.0
+offset_bottom = 850.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="UsedItem00" type="Panel" parent="." unique_id=1103031429]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 861.0
+offset_right = 682.0
+offset_bottom = 895.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_tqop7")
+
+[node name="UsedIcon00" type="TextureRect" parent="." unique_id=1978883445]
+metadata/compact_group = "RaidSummary0"
+modulate = Color(1, 1, 1, 0.42)
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 864.0
+offset_right = 679.0
+offset_bottom = 892.0
+mouse_filter = 2
+texture = ExtResource("18_eunhh")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UsedName00" type="Label" parent="." unique_id=719235429]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 861.0
+offset_right = 1073.0
+offset_bottom = 895.0
+theme_override_colors/font_color = Color(0.65, 0.68, 0.63, 0.55)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "Bandage ×2"
+vertical_alignment = 1
+
+[node name="UsedState00" type="Label" parent="." unique_id=2068846421]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1218.0
+offset_top = 861.0
+offset_right = 1326.0
+offset_bottom = 895.0
+theme_override_colors/font_color = Color(0.9, 0.58, 0.18, 0.55)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "used"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="UsedItem01" type="Panel" parent="." unique_id=1798932284]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 648.0
+offset_top = 908.0
+offset_right = 682.0
+offset_bottom = 942.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_s3evd")
+
+[node name="UsedIcon01" type="TextureRect" parent="." unique_id=762192824]
+metadata/compact_group = "RaidSummary0"
+modulate = Color(1, 1, 1, 0.42)
+texture_filter = 1
+layout_mode = 0
+offset_left = 651.0
+offset_top = 911.0
+offset_right = 679.0
+offset_bottom = 939.0
+mouse_filter = 2
+texture = ExtResource("15_uex3n")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UsedName01" type="Label" parent="." unique_id=1874147095]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 693.0
+offset_top = 908.0
+offset_right = 1073.0
+offset_bottom = 942.0
+theme_override_colors/font_color = Color(0.65, 0.68, 0.63, 0.55)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "7.62×39 ×41"
+vertical_alignment = 1
+
+[node name="UsedState01" type="Label" parent="." unique_id=755671129]
+metadata/compact_group = "RaidSummary0"
+layout_mode = 0
+offset_left = 1218.0
+offset_top = 908.0
+offset_right = 1326.0
+offset_bottom = 942.0
+theme_override_colors/font_color = Color(0.9, 0.58, 0.18, 0.55)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "fired"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ProgressTitle" type="Label" parent="." unique_id=37745757]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 236.0
+offset_right = 1742.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 13
+text = "PROGRESS"
+vertical_alignment = 1
+
+[node name="ProgressRule" type="ColorRect" parent="." unique_id=2119938414]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 266.0
+offset_right = 1872.0
+offset_bottom = 267.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="XPPanel" type="Panel" parent="." unique_id=141319049]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 279.0
+offset_right = 1872.0
+offset_bottom = 357.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_70vm2")
+
+[node name="Level" type="Label" parent="XPPanel" unique_id=1057187444]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 134.0
+offset_bottom = 33.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 12
+text = "LEVEL 14"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="XPPanel" unique_id=452980822]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 10.0
+offset_right = 460.0
+offset_bottom = 33.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "58,640 / 100,000"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Track" type="ColorRect" parent="XPPanel" unique_id=1776062225]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 35.0
+offset_right = 466.0
+offset_bottom = 41.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="Progress" type="ColorRect" parent="XPPanel" unique_id=798610059]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 35.0
+offset_right = 269.0
+offset_bottom = 41.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[node name="Marker" type="ColorRect" parent="XPPanel" unique_id=172585710]
+layout_mode = 0
+offset_left = 269.0
+offset_top = 35.0
+offset_right = 279.0
+offset_bottom = 41.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="Bonus" type="Label" parent="XPPanel" unique_id=134935838]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 50.0
+offset_right = 466.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 9
+text = "+2,140 XP · survive 1,000 · loot 640 · kills 300 · task 200"
+vertical_alignment = 1
+
+[node name="SkillEndurance" type="Panel" parent="." unique_id=675770326]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 365.0
+offset_right = 1872.0
+offset_bottom = 397.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_8ruyb")
+
+[node name="Dot" type="ColorRect" parent="SkillEndurance" unique_id=1570914425]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 20.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="Name" type="Label" parent="SkillEndurance" unique_id=1536057136]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 4.0
+offset_right = 291.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 11
+text = "ENDURANCE"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="SkillEndurance" unique_id=1650578994]
+layout_mode = 0
+offset_left = 330.0
+offset_top = 4.0
+offset_right = 464.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "+12%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="SkillVitality" type="Panel" parent="." unique_id=1589750094]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 399.0
+offset_right = 1872.0
+offset_bottom = 431.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_5ioi2")
+
+[node name="Dot" type="ColorRect" parent="SkillVitality" unique_id=1677651158]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 20.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="Name" type="Label" parent="SkillVitality" unique_id=1402274584]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 4.0
+offset_right = 291.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 11
+text = "VITALITY"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="SkillVitality" unique_id=778025832]
+layout_mode = 0
+offset_left = 330.0
+offset_top = 4.0
+offset_right = 464.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "+8%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="SkillAttention" type="Panel" parent="." unique_id=73278469]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 433.0
+offset_right = 1872.0
+offset_bottom = 465.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_0qjn3")
+
+[node name="Dot" type="ColorRect" parent="SkillAttention" unique_id=258372204]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 20.0
+offset_bottom = 18.0
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Name" type="Label" parent="SkillAttention" unique_id=1343400161]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 4.0
+offset_right = 291.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 11
+text = "ATTENTION"
+vertical_alignment = 1
+
+[node name="Value" type="Label" parent="SkillAttention" unique_id=1180686791]
+layout_mode = 0
+offset_left = 330.0
+offset_top = 4.0
+offset_right = 464.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "+5%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TaskPanel" type="Panel" parent="." unique_id=1656370447]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 477.0
+offset_right = 1872.0
+offset_bottom = 537.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_6q36r")
+
+[node name="Title" type="Label" parent="TaskPanel" unique_id=173012978]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 434.0
+offset_bottom = 33.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 11
+text = "TASK COMPLETE · SUPPLY RUN"
+vertical_alignment = 1
+
+[node name="Detail" type="Label" parent="TaskPanel" unique_id=2087911810]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 31.0
+offset_right = 464.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 10
+text = "Turn in at Fence · 2,400 XP · $ 3,000 · Dried fish ×2"
+vertical_alignment = 1
+
+[node name="HealthPanel" type="Panel" parent="." unique_id=1112905508]
+metadata/compact_group = "RaidSummary2"
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 550.0
+offset_right = 1872.0
+offset_bottom = 628.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_rscpb")
+
+[node name="Title" type="Label" parent="HealthPanel" unique_id=1770738979]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 274.0
+offset_bottom = 33.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_hdogv")
+theme_override_font_sizes/font_size = 10
+text = "HEALTH ON RETURN"
+vertical_alignment = 1
+
+[node name="TorsoLabel" type="Label" parent="HealthPanel" unique_id=158562952]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 32.0
+offset_right = 68.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Torso "
+vertical_alignment = 1
+
+[node name="TorsoValue" type="Label" parent="HealthPanel" unique_id=1590031284]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 32.0
+offset_right = 106.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "20%"
+vertical_alignment = 1
+
+[node name="LegsLabel" type="Label" parent="HealthPanel" unique_id=1292016002]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 32.0
+offset_right = 162.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Legs "
+vertical_alignment = 1
+
+[node name="LegsValue" type="Label" parent="HealthPanel" unique_id=1851995896]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 32.0
+offset_right = 200.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "50%"
+vertical_alignment = 1
+
+[node name="HeadLabel" type="Label" parent="HealthPanel" unique_id=1129812757]
+layout_mode = 0
+offset_left = 216.0
+offset_top = 32.0
+offset_right = 261.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Head "
+vertical_alignment = 1
+
+[node name="HeadValue" type="Label" parent="HealthPanel" unique_id=567011495]
+layout_mode = 0
+offset_left = 259.0
+offset_top = 32.0
+offset_right = 299.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "55%"
+vertical_alignment = 1
+
+[node name="Detail" type="Label" parent="HealthPanel" unique_id=157759841]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 53.0
+offset_right = 464.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 9
+text = "Heals at the Medical station · 12:00 · or sleep in the bunk"
+vertical_alignment = 1
+
+[node name="FooterHint" type="Label" parent="." unique_id=2059587579]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 1004.0
+offset_right = 758.0
+offset_bottom = 1028.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("7_xo1uv")
+theme_override_font_sizes/font_size = 11
+text = "Loot is already in your stash · insurance returned nothing (nothing lost)"
+vertical_alignment = 1
+
+[node name="TurnInTask" type="Button" parent="." unique_id=2068462791]
+layout_mode = 0
+offset_left = 1145.0
+offset_top = 986.0
+offset_right = 1290.0
+offset_bottom = 1032.0
+tooltip_text = "TURN IN TASK"
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBox_p2jki")
+theme_override_styles/pressed = SubResource("StyleBox_0g7yb")
+theme_override_styles/hover = SubResource("StyleBox_anp52")
+theme_override_styles/focus = SubResource("StyleBox_2nsrr")
+text = "TURN IN TASK"
+
+[node name="Reinsure" type="Button" parent="." unique_id=1629103765]
+layout_mode = 0
+offset_left = 1300.0
+offset_top = 986.0
+offset_right = 1562.0
+offset_bottom = 1032.0
+tooltip_text = "RE-INSURE LOADOUT · $ 340"
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBox_ekhce")
+theme_override_styles/pressed = SubResource("StyleBox_ubfbh")
+theme_override_styles/hover = SubResource("StyleBox_q4tuh")
+theme_override_styles/focus = SubResource("StyleBox_3tdr7")
+text = "RE-INSURE LOADOUT · $ 340"
+
+[node name="BackBunker" type="Button" parent="." unique_id=80084856]
+layout_mode = 0
+offset_left = 1573.0
+offset_top = 986.0
+offset_right = 1872.0
+offset_bottom = 1032.0
+tooltip_text = "ENTER   BACK TO BUNKER"
+theme_override_colors/font_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_fonts/font = SubResource("FontVariation_euqpt")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBox_m557d")
+theme_override_styles/pressed = SubResource("StyleBox_bbu7v")
+theme_override_styles/hover = SubResource("StyleBox_soxwh")
+theme_override_styles/focus = SubResource("StyleBox_cuxsa")
+text = "ENTER   BACK TO BUNKER"

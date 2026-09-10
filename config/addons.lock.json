@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "lock_id": "zerkov.addons.2026-09-10",
+  "generated_at": "2026-09-10T00:26:16Z",
+  "source_root": "/Volumes/Data/sdk/godot/addons",
+  "destination_root": "addons",
+  "engine": {
+    "project_feature": "4.7",
+    "compatibility_minimum": "4.7",
+    "renderer": "gl_compatibility"
+  },
+  "digest_policy": {
+    "artifact_algorithm": "sha256",
+    "package_tree_algorithm": "sha256-of-sorted-sha256-lines-v1",
+    "package_tree_description": "SHA-256 of newline-delimited `shasum -a 256` records for every distributable package file, sorted by relative path.",
+    "excluded_paths": [
+      "native/.build/**",
+      "native/tests/**",
+      "**/*.o",
+      "**/*.os",
+      "**/*.obj",
+      "**/*.d",
+      "**/*.pyc",
+      "**/.DS_Store"
+    ],
+    "dirty_git_worktrees_allowed_only_when_package_tree_matches": true
+  },
+  "addons": [
+    {
+      "id": "common_ui",
+      "version": "0.1.2",
+      "api_version": "0.1",
+      "protocol_version": null,
+      "schema_versions": {
+        "release_manifest": 1
+      },
+      "source": {
+        "repository_path": "/Volumes/Data/sdk/godot/addons/common_ui",
+        "package_path": "/Volumes/Data/sdk/godot/addons/common_ui/addons/common_ui",
+        "git_head": "ba098261695585905de9fec50de12de0112a5e98",
+        "release_source_revision": "38e5e5b5971fc5b0ab2d4a843ab49b8a2cd06afe",
+        "package_worktree_dirty": true,
+        "package_file_count": 94,
+        "package_tree_sha256": "4b5489f39c1942305e3554e083798f7263e1196cc4badac51932156bb52eaed5",
+        "release_manifest_sha256": "557a6c7cb36277d7d94b72f812e0532b4bafdf1cb69427543e952ee1c1ef15a8"
+      },
+      "destination": "addons/common_ui",
+      "integration": {
+        "editor_plugin_enabled": true,
+        "autoloads": [
+          "CommonUI"
+        ],
+        "feature_flags": [
+          "screen_lifecycle",
+          "input_contexts",
+          "binding_registry"
+        ]
+      },
+      "native_artifacts": [
+        {
+          "path": "bin/libcommon_ui.macos.template_debug.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "debug",
+          "sha256": "6b970684bbb008262616dfbd48b05789bd47d44647ae4729ce82b71d6a308473",
+          "release_manifest_sha256": "6c9b98c88da61963c9679c3ad9e25f18398228b1daa16694bee44ee933e5b03f",
+          "release_manifest_matches": false,
+          "status": "local_rebuilt_unmanifested"
+        },
+        {
+          "path": "bin/libcommon_ui.macos.template_release.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "release",
+          "sha256": "11d6727d6388ab0ac7202401bfc870a3156884a5e5d9d29587149471fab7e9f0",
+          "release_manifest_sha256": "e078d0ceec2216a541c84e2dafce04f666ab7ca2b60e49304734fa99f8dcf643",
+          "release_manifest_matches": false,
+          "status": "local_rebuilt_unmanifested"
+        }
+      ]
+    },
+    {
+      "id": "common_vision",
+      "version": "0.1.0",
+      "api_version": "0.1.0",
+      "protocol_version": 1,
+      "schema_versions": {
+        "release_manifest": 1,
+        "algorithm_contract": 1
+      },
+      "source": {
+        "repository_path": "/Volumes/Data/sdk/godot/addons/common_vision",
+        "package_path": "/Volumes/Data/sdk/godot/addons/common_vision/addons/common_vision",
+        "git_head": "d4157a666496b2e001076dcaff5afb2e1d2d8472",
+        "release_source_revision": "1d42579ac9899953a5a7b7f50f846a71706eae1d",
+        "package_worktree_dirty": true,
+        "package_file_count": 44,
+        "package_tree_sha256": "868119892c8d4ce16c9329f1f22129663c035bb59d6d11005bb351969ac63c10",
+        "release_manifest_sha256": "549ef93e061c5d39653e057bc9685c6117496a13a1d755f87584a08f1a3b0c34"
+      },
+      "destination": "addons/common_vision",
+      "integration": {
+        "editor_plugin_enabled": true,
+        "autoloads": [],
+        "feature_flags": [
+          "offline_authority",
+          "visibility",
+          "memory"
+        ]
+      },
+      "native_artifacts": [
+        {
+          "path": "bin/libcommon_vision.macos.template_debug.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "debug",
+          "sha256": "e03cc5322eff09e287dedf983262ebebc1e4bb9ad956a47a1ba06becbdf30791",
+          "release_manifest_sha256": "479a81be659d1bbbd6e8ecaa02502d699a92cbaa1cd96082a43c1d5b9c2b6b1e",
+          "release_manifest_matches": false,
+          "status": "local_rebuilt_unmanifested"
+        },
+        {
+          "path": "bin/libcommon_vision.macos.template_release.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "release",
+          "sha256": "a4b30328059c8329c68ab6e92a36ffdb208fa347b6094e68f6e15fd6c4dc4a55",
+          "release_manifest_sha256": "3e927bc088e119ae61137d13c28ef62ca86837902cf4de31c2f462a356483213",
+          "release_manifest_matches": false,
+          "status": "local_rebuilt_unmanifested"
+        }
+      ]
+    },
+    {
+      "id": "gameplay_abilities",
+      "version": "0.2.0",
+      "api_version": "0.2.0",
+      "protocol_version": 4,
+      "schema_versions": {
+        "release_manifest": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "source": {
+        "repository_path": "/Volumes/Data/sdk/godot/addons/gameplay_abilities",
+        "package_path": "/Volumes/Data/sdk/godot/addons/gameplay_abilities/addons/gameplay_abilities",
+        "git_head": "6620e50c868680bc947690db26dcb9a4ee77d15e",
+        "release_source_revision": "86090ec42070348f889eaa807e8c64ff33b6a53f",
+        "package_worktree_dirty": true,
+        "package_file_count": 214,
+        "package_tree_sha256": "0f22c6b10f2eee000dc47fcfa76a3db302ea87c9aa03c969960c1ba5db2dcd5d",
+        "release_manifest_sha256": "50665c85cf2783e2745ddedc8ac49cbed0027411bb46f5b4c06b6ea7bdc47450"
+      },
+      "destination": "addons/gameplay_abilities",
+      "integration": {
+        "editor_plugin_enabled": true,
+        "autoloads": [],
+        "feature_flags": [
+          "offline_authority",
+          "attributes",
+          "effects",
+          "abilities",
+          "tasks"
+        ]
+      },
+      "native_artifacts": [
+        {
+          "path": "bin/libgameplay_abilities.macos.template_debug.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "debug",
+          "sha256": "c5f6adb59bd1d1bb50268751831148bb812da7cf5899321eb21134b1eff0b963",
+          "release_manifest_sha256": "c5f6adb59bd1d1bb50268751831148bb812da7cf5899321eb21134b1eff0b963",
+          "release_manifest_matches": true,
+          "status": "built_experimental"
+        },
+        {
+          "path": "bin/libgameplay_abilities.macos.template_release.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "release",
+          "sha256": "ebd4dc0f452820cb1c914b5dccbf3218ab5d096b2fe0192996336ced719250c2",
+          "release_manifest_sha256": "ebd4dc0f452820cb1c914b5dccbf3218ab5d096b2fe0192996336ced719250c2",
+          "release_manifest_matches": true,
+          "status": "built_experimental"
+        }
+      ]
+    },
+    {
+      "id": "inventory_system",
+      "version": "0.4.0",
+      "api_version": "0.4.0",
+      "protocol_version": 1,
+      "schema_versions": {
+        "release_manifest": 1,
+        "resource": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "source": {
+        "repository_path": "/Volumes/Data/sdk/godot/addons/inventory_system",
+        "package_path": "/Volumes/Data/sdk/godot/addons/inventory_system/addons/inventory_system",
+        "git_head": "26c8499e03bc7642100bf429068c3435f86f5e78",
+        "release_source_revision": "26c8499e03bc7642100bf429068c3435f86f5e78",
+        "package_worktree_dirty": true,
+        "package_file_count": 231,
+        "package_tree_sha256": "648a0ab3e0007c019f39b179e3b24ae1f9ee556c4a77aa52060841513330375d",
+        "release_manifest_sha256": "cb9b9bf95e5c1d1649f2ea5f7d52001b65fa91471a6d6735a31c18cb9b975d6e"
+      },
+      "destination": "addons/inventory_system",
+      "integration": {
+        "editor_plugin_enabled": true,
+        "autoloads": [],
+        "feature_flags": [
+          "offline_authority",
+          "catalogs",
+          "transactions",
+          "snapshots",
+          "persistence"
+        ]
+      },
+      "native_artifacts": [
+        {
+          "path": "bin/libinventory_system.macos.template_debug.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "debug",
+          "sha256": "964b1824415758b4f7098137af13089810cdda2bbe0d16743378e0d0c28193f1",
+          "release_manifest_sha256": "964b1824415758b4f7098137af13089810cdda2bbe0d16743378e0d0c28193f1",
+          "release_manifest_matches": true,
+          "status": "built_experimental"
+        },
+        {
+          "path": "bin/libinventory_system.macos.template_release.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "release",
+          "sha256": "d290fe6f486a91dd9a28907ed3b28685896dfb65aa6de518c2e76ed33397042e",
+          "release_manifest_sha256": "d290fe6f486a91dd9a28907ed3b28685896dfb65aa6de518c2e76ed33397042e",
+          "release_manifest_matches": true,
+          "status": "built_experimental"
+        }
+      ]
+    },
+    {
+      "id": "level_task_system",
+      "version": "0.1.0",
+      "api_version": "0.1.0",
+      "protocol_version": 1,
+      "schema_versions": {
+        "release_manifest": 1,
+        "definition": 1,
+        "level_definition": 1,
+        "task_graph_definition": 1,
+        "conversation_definition": 1,
+        "speaker_definition": 1,
+        "provider_definition": 1,
+        "resource": 1,
+        "snapshot": 1,
+        "canonical_format": 1,
+        "canonicalization": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1",
+        "catalog_fingerprint_algorithm": "fnv1a64-canonical-v1"
+      },
+      "source": {
+        "repository_path": "/Volumes/Data/sdk/godot/addons/level_task_system",
+        "package_path": "/Volumes/Data/sdk/godot/addons/level_task_system/addons/level_task_system",
+        "git_head": null,
+        "release_source_revision": null,
+        "package_worktree_dirty": true,
+        "package_file_count": 172,
+        "package_tree_sha256": "638c0e60bb28c46ebe06c512f9ca53011626b712118b0e6dd58214eb9df62d6c",
+        "release_manifest_sha256": "cedd927d2c18b867d0afb983068fbb1f98e80a2518ff8bd36f7b8e64494ed78f"
+      },
+      "destination": "addons/level_task_system",
+      "destination_generated_paths": [
+        "editor/simulation/lts_task_simulator_panel.gd.uid"
+      ],
+      "integration": {
+        "editor_plugin_enabled": true,
+        "autoloads": [],
+        "feature_flags": [
+          "offline_authority",
+          "raid_scoped_tasks",
+          "persistent_resume_disabled"
+        ]
+      },
+      "native_artifacts": [
+        {
+          "path": "bin/liblevel_task_system.macos.template_debug.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "debug",
+          "sha256": "1460887a88799571ee9fe9309e0e99c888a1a8d320d2622d53218cca7e503a42",
+          "release_manifest_sha256": null,
+          "release_manifest_matches": false,
+          "status": "local_pre_release"
+        }
+      ]
+    },
+    {
+      "id": "weapon_system",
+      "version": "0.1.0",
+      "api_version": "0.1.0",
+      "protocol_version": 2,
+      "schema_versions": {
+        "release_manifest": 1,
+        "resource": 1,
+        "manifest_algorithm": "fnv1a64-canonical-v1"
+      },
+      "canonical_units": {
+        "distance": "milliworld-unit",
+        "direction": "micro-unit",
+        "angle": "microradian",
+        "damage": "milli-damage",
+        "time": "authority-tick"
+      },
+      "source": {
+        "repository_path": "/Volumes/Data/sdk/godot/addons/weapon_system",
+        "package_path": "/Volumes/Data/sdk/godot/addons/weapon_system/addons/weapon_system",
+        "git_head": "460183752a305aba8ca1c3018ffb440014f50e4c",
+        "release_source_revision": "9f2398239233457ba4f648a68c766b927d3f7460",
+        "package_worktree_dirty": true,
+        "package_file_count": 93,
+        "package_tree_sha256": "f18af699f85447b627ee746176e2ef7a31895cd5589f9ec067996a353e4d654e",
+        "release_manifest_sha256": "2f9cb9032180353ec35577edbfe0a503db9416f99610cdb8a35fe077cd5ad08f"
+      },
+      "destination": "addons/weapon_system",
+      "integration": {
+        "editor_plugin_enabled": true,
+        "autoloads": [],
+        "feature_flags": [
+          "offline_authority",
+          "firearms",
+          "reload",
+          "inventory_adapter",
+          "ability_adapter"
+        ]
+      },
+      "native_artifacts": [
+        {
+          "path": "bin/libweapon_system.macos.template_debug.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "debug",
+          "sha256": "013b453cddee5b7de7af95217e259f4c86d521f5a369108fc22ee8cfbc8995b9",
+          "release_manifest_sha256": "013b453cddee5b7de7af95217e259f4c86d521f5a369108fc22ee8cfbc8995b9",
+          "release_manifest_matches": true,
+          "status": "built_experimental"
+        },
+        {
+          "path": "bin/libweapon_system.macos.template_release.universal.dylib",
+          "platform": "macos",
+          "arch": "universal",
+          "build": "release",
+          "sha256": "b8003ea6cdc1dc375e684c092070faa18cf93c1d607d3d3faf145807a5dfdbfb",
+          "release_manifest_sha256": "b8003ea6cdc1dc375e684c092070faa18cf93c1d607d3d3faf145807a5dfdbfb",
+          "release_manifest_matches": true,
+          "status": "built_experimental"
+        }
+      ]
+    }
+  ]
+}

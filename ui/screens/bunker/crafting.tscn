@@ -1,0 +1,2641 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/screens/bunker/crafting.gd" id="1_lj5oh"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bunker_map.png" id="2_aiohy"]
+[ext_resource type="Texture2D" path="res://assets/handoff/logo_white_pixel.png" id="3_ypnon"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Bold.ttf" id="4_js145"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="5_cgciy"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-SemiBold.ttf" id="6_kv6cg"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="7_0njli"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_bottle.png" id="8_jmncs"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_tape.png" id="9_pug6r"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_potion.png" id="10_x7t4h"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_box.png" id="11_jeg0a"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_cup.png" id="12_x7ckw"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_fish.png" id="13_uglmm"]
+[ext_resource type="Texture2D" path="res://assets/handoff/craft_arrow.png" id="14_sqrr7"]
+[ext_resource type="Script" path="res://ui/theme/pixel_style.gd" id="15_u05kn"]
+[ext_resource type="PackedScene" path="res://ui/screens/bunker/components/top_chrome.tscn" id="16_top_chrome"]
+
+[ext_resource type="PackedScene" path="res://ui/screens/bunker/components/compact_workspace.tscn" id="compact_workspace"]
+
+[sub_resource type="Gradient" id="Gradient_xbnct"]
+colors = PackedColorArray(0.08235294, 0.09411765, 0.101960786, 1, 0.039215688, 0.043137256, 0.039215688, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_wjgl4"]
+gradient = SubResource("Gradient_xbnct")
+fill = 1
+fill_from = Vector2(0.4, 0.5)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="Shader" id="Shader_o62yd"]
+code = "shader_type canvas_item; void fragment(){vec4 c=vec4(0.0);for(int x=-3;x<=3;x++){for(int y=-3;y<=3;y++){c+=texture(TEXTURE,UV+vec2(float(x),float(y))*TEXTURE_PIXEL_SIZE*2.0);}}COLOR=c/49.0*vec4(vec3(0.35),1.0);}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_odc2v"]
+shader = SubResource("Shader_o62yd")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_32vt2"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="FontVariation" id="FontVariation_bxofm"]
+base_font = ExtResource("4_js145")
+spacing_glyph = 2
+
+[sub_resource type="FontVariation" id="FontVariation_p6wjq"]
+base_font = ExtResource("5_cgciy")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yxsqs"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="FontVariation" id="FontVariation_8gjv2"]
+base_font = ExtResource("7_0njli")
+spacing_glyph = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h0ugr"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4yer2"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4gy64"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y2jiy"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.64)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_usl5r"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fepw2"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fhjog"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iw8uo"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_merif"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kcsop"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r6w7y"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s8jsa"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hl0k4"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_663m4"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l1xr1"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yx4ns"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_en4ny"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8aj4m"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2ly54"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y2r15"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_03v0e"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m8hm6"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="FontVariation" id="FontVariation_gxpeg"]
+base_font = ExtResource("4_js145")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mi4te"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hyrfs"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v80ph"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cy4r3"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_grblc"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h0t1s"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lltm3"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ybp4l"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5gbgk"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pvvjj"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sb5yh"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yawhs"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0nru"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kdtur"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6vakm"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1c0g2"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0ku1e"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1ec1p"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uolai"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kaw7f"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3oe2b"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_av677"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_detbp"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u2tct"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7et1q"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t8ecy"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uhmoc"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ihd2c"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stg5q"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.64)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g0siw"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ifcyy"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ftvdf"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tg1jn"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.64)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n6uq3"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yo2au"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4tq70"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6480s"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j36mw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.3, 0.16, 0.03, 0.2)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_87iy6"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ogmfd"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r2ejj"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5m2wt"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_534ef"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ejwuf"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ujgl2"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xe86o"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7thhu"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lchub"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.42, 0.08, 0.05, 0.1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.28, 0.23, 0.55)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f6lvp"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mphl7"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o1xx5"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_454ml"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.66)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5arki"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.38)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p5pba"]
+bg_color = Color(0.91, 0.59, 0.18, 0.14)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.38)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ydsxl"]
+bg_color = Color(1, 1, 1, 0.08)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_05j6b"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.64)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g3jye"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_htad3"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ue645"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBox" id="StyleBox_gtpmy"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("15_u05kn")
+
+[sub_resource type="StyleBox" id="StyleBox_16h3l"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("15_u05kn")
+
+[sub_resource type="StyleBox" id="StyleBox_mlrai"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("15_u05kn")
+
+[sub_resource type="StyleBox" id="StyleBox_17vwn"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("15_u05kn")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j80yv"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iyo7c"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k706q"]
+bg_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d1yk5"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ynfxq"]
+bg_color = Color(0.91, 0.59, 0.18, 0.14)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.38)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7i600"]
+bg_color = Color(1, 1, 1, 0.08)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hcbe4"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.18)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_22kft"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.14)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rd2xw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qd5sm"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_haycq"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_elaot"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dbjsh"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0hvh2"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.045)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pyut6"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_grr25"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n34qb"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[node name="Crafting" type="Control" unique_id=708253482]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_lj5oh")
+
+[node name="Background" type="ColorRect" parent="." unique_id=594571931]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+
+[node name="Floor" type="ColorRect" parent="." unique_id=528680628]
+layout_mode = 0
+offset_top = 56.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.035, 0.043, 0.043, 1)
+
+[node name="Glow" type="TextureRect" parent="." unique_id=238100538]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_wjgl4")
+
+[node name="Floorplan" type="TextureRect" parent="." unique_id=2079549465]
+modulate = Color(0.42, 0.42, 0.42, 1)
+texture_filter = 1
+material = SubResource("ShaderMaterial_odc2v")
+layout_mode = 0
+offset_left = 300.0
+offset_top = 130.0
+offset_right = 1540.0
+offset_bottom = 939.0
+mouse_filter = 2
+texture = ExtResource("2_aiohy")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TopChrome" parent="." instance=ExtResource("16_top_chrome")]
+variant = "crafting"
+
+[node name="RecipePanel" type="Panel" parent="." unique_id=2131798739]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 94.0
+offset_right = 488.0
+offset_bottom = 1024.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_y2jiy")
+
+[node name="Title" type="Label" parent="RecipePanel" unique_id=524765167]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 440.0
+offset_bottom = 17.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 13
+text = "MEDICAL STATION"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Count" type="Label" parent="RecipePanel" unique_id=1408728009]
+layout_mode = 0
+offset_top = -2.0
+offset_right = 440.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 12
+text = "6 recipes"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Rule" type="ColorRect" parent="RecipePanel" unique_id=398635471]
+layout_mode = 0
+offset_top = 25.0
+offset_right = 440.0
+offset_bottom = 26.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="Level" type="Label" parent="RecipePanel" unique_id=540320333]
+layout_mode = 0
+offset_left = 166.0
+offset_top = -2.0
+offset_right = 236.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 12
+text = "LVL 2"
+vertical_alignment = 1
+clip_text = true
+
+[node name="FilterAll" type="Panel" parent="RecipePanel" unique_id=515401876]
+layout_mode = 0
+offset_top = 38.0
+offset_right = 48.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_usl5r")
+
+[node name="Label" type="Label" parent="RecipePanel/FilterAll" unique_id=1504821276]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 48.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 9
+text = "ALL"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="RecipePanel/FilterAll" unique_id=1172306647]
+layout_mode = 0
+offset_right = 48.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_fepw2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fhjog")
+theme_override_styles/hover = SubResource("StyleBoxFlat_iw8uo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_iw8uo")
+
+[node name="FilterCraftable" type="Panel" parent="RecipePanel" unique_id=10880303]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 38.0
+offset_right = 144.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_merif")
+
+[node name="Label" type="Label" parent="RecipePanel/FilterCraftable" unique_id=171936580]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 94.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 9
+text = "CRAFTABLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="RecipePanel/FilterCraftable" unique_id=2051011460]
+layout_mode = 0
+offset_right = 94.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_kcsop")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_r6w7y")
+theme_override_styles/hover = SubResource("StyleBoxFlat_s8jsa")
+theme_override_styles/focus = SubResource("StyleBoxFlat_s8jsa")
+
+[node name="FilterMeds" type="Panel" parent="RecipePanel" unique_id=368775189]
+layout_mode = 0
+offset_left = 146.0
+offset_top = 38.0
+offset_right = 206.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hl0k4")
+
+[node name="Label" type="Label" parent="RecipePanel/FilterMeds" unique_id=87873222]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 60.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 9
+text = "MEDS"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="RecipePanel/FilterMeds" unique_id=843087281]
+layout_mode = 0
+offset_right = 60.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_663m4")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_l1xr1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_yx4ns")
+theme_override_styles/focus = SubResource("StyleBoxFlat_yx4ns")
+
+[node name="FilterTools" type="Panel" parent="RecipePanel" unique_id=788052531]
+layout_mode = 0
+offset_left = 208.0
+offset_top = 38.0
+offset_right = 272.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_en4ny")
+
+[node name="Label" type="Label" parent="RecipePanel/FilterTools" unique_id=1784208703]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 64.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 9
+text = "TOOLS"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="RecipePanel/FilterTools" unique_id=1426910849]
+layout_mode = 0
+offset_right = 64.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_8aj4m")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_2ly54")
+theme_override_styles/hover = SubResource("StyleBoxFlat_y2r15")
+theme_override_styles/focus = SubResource("StyleBoxFlat_y2r15")
+
+[node name="StashHint" type="Label" parent="RecipePanel" unique_id=179054562]
+layout_mode = 0
+offset_left = 318.0
+offset_top = 44.0
+offset_right = 440.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 9
+text = "uses stash + loadout"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="RecipeBandage" type="Panel" parent="RecipePanel" unique_id=175812811]
+layout_mode = 0
+offset_top = 77.0
+offset_right = 440.0
+offset_bottom = 141.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_03v0e")
+
+[node name="IconCell" type="Panel" parent="RecipePanel/RecipeBandage" unique_id=2141474589]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 52.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_m8hm6")
+
+[node name="Icon" type="TextureRect" parent="RecipePanel/RecipeBandage/IconCell" unique_id=1662554897]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 34.0
+offset_bottom = 34.0
+mouse_filter = 2
+texture = ExtResource("8_jmncs")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="RecipePanel/RecipeBandage" unique_id=1821731496]
+layout_mode = 0
+offset_left = 35.0
+offset_top = 34.0
+offset_right = 53.0
+offset_bottom = 50.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "×2"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Name" type="Label" parent="RecipePanel/RecipeBandage" unique_id=1296717206]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 13.0
+offset_right = 306.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Bandage"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Duration" type="Label" parent="RecipePanel/RecipeBandage" unique_id=962560951]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 33.0
+offset_right = 316.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "00:45 · ×2 per craft"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Availability" type="ColorRect" parent="RecipePanel/RecipeBandage" unique_id=1758078339]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 26.0
+offset_right = 428.0
+offset_bottom = 34.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Hit" type="Button" parent="RecipePanel/RecipeBandage" unique_id=1506443758]
+layout_mode = 0
+offset_right = 440.0
+offset_bottom = 64.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_mi4te")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_hyrfs")
+theme_override_styles/hover = SubResource("StyleBoxFlat_v80ph")
+theme_override_styles/focus = SubResource("StyleBoxFlat_v80ph")
+
+[node name="RecipeSplint" type="Panel" parent="RecipePanel" unique_id=846919515]
+layout_mode = 0
+offset_top = 153.0
+offset_right = 440.0
+offset_bottom = 217.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cy4r3")
+
+[node name="IconCell" type="Panel" parent="RecipePanel/RecipeSplint" unique_id=591434639]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 52.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_grblc")
+
+[node name="Icon" type="TextureRect" parent="RecipePanel/RecipeSplint/IconCell" unique_id=612230538]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 34.0
+offset_bottom = 34.0
+mouse_filter = 2
+texture = ExtResource("9_pug6r")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="RecipePanel/RecipeSplint" unique_id=1871207533]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 13.0
+offset_right = 306.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Splint"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Duration" type="Label" parent="RecipePanel/RecipeSplint" unique_id=199819666]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 33.0
+offset_right = 316.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "01:30"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Availability" type="ColorRect" parent="RecipePanel/RecipeSplint" unique_id=1598522569]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 26.0
+offset_right = 428.0
+offset_bottom = 34.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Hit" type="Button" parent="RecipePanel/RecipeSplint" unique_id=866550357]
+layout_mode = 0
+offset_right = 440.0
+offset_bottom = 64.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_h0t1s")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_lltm3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ybp4l")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ybp4l")
+
+[node name="RecipePainkillers" type="Panel" parent="RecipePanel" unique_id=1196003892]
+layout_mode = 0
+offset_top = 229.0
+offset_right = 440.0
+offset_bottom = 293.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_5gbgk")
+
+[node name="IconCell" type="Panel" parent="RecipePanel/RecipePainkillers" unique_id=437875988]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 52.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pvvjj")
+
+[node name="Icon" type="TextureRect" parent="RecipePanel/RecipePainkillers/IconCell" unique_id=1012096529]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 34.0
+offset_bottom = 34.0
+mouse_filter = 2
+texture = ExtResource("10_x7t4h")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="RecipePanel/RecipePainkillers" unique_id=1631704649]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 13.0
+offset_right = 306.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Painkillers"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Duration" type="Label" parent="RecipePanel/RecipePainkillers" unique_id=1467335432]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 33.0
+offset_right = 316.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "02:00"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Availability" type="ColorRect" parent="RecipePanel/RecipePainkillers" unique_id=1384711455]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 26.0
+offset_right = 428.0
+offset_bottom = 34.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Hit" type="Button" parent="RecipePanel/RecipePainkillers" unique_id=96184989]
+layout_mode = 0
+offset_right = 440.0
+offset_bottom = 64.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_sb5yh")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_yawhs")
+theme_override_styles/hover = SubResource("StyleBoxFlat_x0nru")
+theme_override_styles/focus = SubResource("StyleBoxFlat_x0nru")
+
+[node name="RecipeAntiseptic" type="Panel" parent="RecipePanel" unique_id=748638445]
+modulate = Color(1, 1, 1, 0.55)
+layout_mode = 0
+offset_top = 305.0
+offset_right = 440.0
+offset_bottom = 369.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_kdtur")
+
+[node name="IconCell" type="Panel" parent="RecipePanel/RecipeAntiseptic" unique_id=194590979]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 52.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_6vakm")
+
+[node name="Icon" type="TextureRect" parent="RecipePanel/RecipeAntiseptic/IconCell" unique_id=1401366927]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 34.0
+offset_bottom = 34.0
+mouse_filter = 2
+texture = ExtResource("8_jmncs")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="RecipePanel/RecipeAntiseptic" unique_id=1822579786]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 13.0
+offset_right = 306.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Antiseptic"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Duration" type="Label" parent="RecipePanel/RecipeAntiseptic" unique_id=491353486]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 33.0
+offset_right = 316.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "03:00"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Availability" type="ColorRect" parent="RecipePanel/RecipeAntiseptic" unique_id=415822635]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 26.0
+offset_right = 428.0
+offset_bottom = 34.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="Hit" type="Button" parent="RecipePanel/RecipeAntiseptic" unique_id=1115400657]
+layout_mode = 0
+offset_right = 440.0
+offset_bottom = 64.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_1c0g2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_0ku1e")
+theme_override_styles/hover = SubResource("StyleBoxFlat_1ec1p")
+theme_override_styles/focus = SubResource("StyleBoxFlat_1ec1p")
+
+[node name="RecipeMedKit" type="Panel" parent="RecipePanel" unique_id=1662849430]
+modulate = Color(1, 1, 1, 0.55)
+layout_mode = 0
+offset_top = 381.0
+offset_right = 440.0
+offset_bottom = 445.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_uolai")
+
+[node name="IconCell" type="Panel" parent="RecipePanel/RecipeMedKit" unique_id=746154187]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 52.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_kaw7f")
+
+[node name="Icon" type="TextureRect" parent="RecipePanel/RecipeMedKit/IconCell" unique_id=221462504]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 34.0
+offset_bottom = 34.0
+mouse_filter = 2
+texture = ExtResource("11_jeg0a")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="RecipePanel/RecipeMedKit" unique_id=1189517567]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 13.0
+offset_right = 306.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Med kit · field"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Duration" type="Label" parent="RecipePanel/RecipeMedKit" unique_id=1100097772]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 33.0
+offset_right = 316.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "08:00"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Availability" type="ColorRect" parent="RecipePanel/RecipeMedKit" unique_id=1195320369]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 26.0
+offset_right = 428.0
+offset_bottom = 34.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="Hit" type="Button" parent="RecipePanel/RecipeMedKit" unique_id=1240196414]
+layout_mode = 0
+offset_right = 440.0
+offset_bottom = 64.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_3oe2b")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_av677")
+theme_override_styles/hover = SubResource("StyleBoxFlat_detbp")
+theme_override_styles/focus = SubResource("StyleBoxFlat_detbp")
+
+[node name="RecipeWater" type="Panel" parent="RecipePanel" unique_id=872267858]
+layout_mode = 0
+offset_top = 457.0
+offset_right = 440.0
+offset_bottom = 521.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_u2tct")
+
+[node name="IconCell" type="Panel" parent="RecipePanel/RecipeWater" unique_id=60531514]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 52.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_7et1q")
+
+[node name="Icon" type="TextureRect" parent="RecipePanel/RecipeWater/IconCell" unique_id=1153220832]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 34.0
+offset_bottom = 34.0
+mouse_filter = 2
+texture = ExtResource("12_x7ckw")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="RecipePanel/RecipeWater" unique_id=18065454]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 13.0
+offset_right = 306.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Clean water"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Duration" type="Label" parent="RecipePanel/RecipeWater" unique_id=2144990062]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 33.0
+offset_right = 316.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "00:20"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Availability" type="ColorRect" parent="RecipePanel/RecipeWater" unique_id=152003428]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 26.0
+offset_right = 428.0
+offset_bottom = 34.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Hit" type="Button" parent="RecipePanel/RecipeWater" unique_id=863640082]
+layout_mode = 0
+offset_right = 440.0
+offset_bottom = 64.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_t8ecy")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_uhmoc")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ihd2c")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ihd2c")
+
+[node name="UpgradePanel" type="Panel" parent="RecipePanel" unique_id=839800355]
+layout_mode = 0
+offset_top = 883.0
+offset_right = 440.0
+offset_bottom = 938.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_stg5q")
+
+[node name="Title" type="Label" parent="RecipePanel/UpgradePanel" unique_id=1225565843]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 224.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 11
+text = "UPGRADE TO LVL 3"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="RecipePanel/UpgradePanel" unique_id=1728320257]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 34.0
+offset_right = 304.0
+offset_bottom = 50.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "+1 slot · Med kit recipe · 1 / 3 items"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Action" type="Button" parent="RecipePanel/UpgradePanel" unique_id=221908248]
+layout_mode = 0
+offset_left = 346.0
+offset_top = 20.0
+offset_right = 426.0
+offset_bottom = 44.0
+tooltip_text = "VIEW ›"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_g0siw")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ifcyy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ftvdf")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ftvdf")
+text = "VIEW ›"
+
+[node name="DetailPanel" type="Panel" parent="." unique_id=2048995534]
+layout_mode = 0
+offset_left = 528.0
+offset_top = 94.0
+offset_right = 1352.0
+offset_bottom = 1024.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tg1jn")
+
+[node name="Title" type="Label" parent="DetailPanel" unique_id=777368066]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 824.0
+offset_bottom = 17.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 13
+text = "BANDAGE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Description" type="Label" parent="DetailPanel" unique_id=359100808]
+layout_mode = 0
+offset_top = -2.0
+offset_right = 824.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 12
+text = "stops light bleed · +40 HP over 10 s"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Rule" type="ColorRect" parent="DetailPanel" unique_id=2140653663]
+layout_mode = 0
+offset_top = 25.0
+offset_right = 824.0
+offset_bottom = 26.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="Ingredients" type="Panel" parent="DetailPanel" unique_id=1777791499]
+layout_mode = 0
+offset_top = 44.0
+offset_right = 824.0
+offset_bottom = 236.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_n6uq3")
+
+[node name="DuctTape" type="Panel" parent="DetailPanel/Ingredients" unique_id=1685954156]
+layout_mode = 0
+offset_left = 176.0
+offset_top = 50.0
+offset_right = 248.0
+offset_bottom = 122.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_yo2au")
+
+[node name="Icon" type="TextureRect" parent="DetailPanel/Ingredients/DuctTape" unique_id=1176068330]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 66.0
+offset_bottom = 66.0
+mouse_filter = 2
+texture = ExtResource("9_pug6r")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="DetailPanel/Ingredients/DuctTape" unique_id=1864173169]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 52.0
+offset_right = 68.0
+offset_bottom = 68.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 11
+text = "3/1"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="DuctTapeName" type="Label" parent="DetailPanel/Ingredients" unique_id=2014200280]
+layout_mode = 0
+offset_left = 166.0
+offset_top = 130.0
+offset_right = 258.0
+offset_bottom = 146.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 10
+text = "Duct tape"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cloth" type="Panel" parent="DetailPanel/Ingredients" unique_id=852600546]
+layout_mode = 0
+offset_left = 282.0
+offset_top = 50.0
+offset_right = 354.0
+offset_bottom = 122.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_4tq70")
+
+[node name="Icon" type="TextureRect" parent="DetailPanel/Ingredients/Cloth" unique_id=458472928]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 66.0
+offset_bottom = 66.0
+mouse_filter = 2
+texture = ExtResource("13_uglmm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="DetailPanel/Ingredients/Cloth" unique_id=1672836771]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 52.0
+offset_right = 68.0
+offset_bottom = 68.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 11
+text = "2/2"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="ClothName" type="Label" parent="DetailPanel/Ingredients" unique_id=1474489636]
+layout_mode = 0
+offset_left = 272.0
+offset_top = 130.0
+offset_right = 364.0
+offset_bottom = 146.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 10
+text = "Cloth"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Water" type="Panel" parent="DetailPanel/Ingredients" unique_id=746235849]
+layout_mode = 0
+offset_left = 388.0
+offset_top = 50.0
+offset_right = 460.0
+offset_bottom = 122.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_6480s")
+
+[node name="Icon" type="TextureRect" parent="DetailPanel/Ingredients/Water" unique_id=1558551598]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 66.0
+offset_bottom = 66.0
+mouse_filter = 2
+texture = ExtResource("12_x7ckw")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="DetailPanel/Ingredients/Water" unique_id=1964788655]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 52.0
+offset_right = 68.0
+offset_bottom = 68.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 11
+text = "0/1"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="WaterName" type="Label" parent="DetailPanel/Ingredients" unique_id=1848655680]
+layout_mode = 0
+offset_left = 378.0
+offset_top = 130.0
+offset_right = 470.0
+offset_bottom = 146.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 10
+text = "Clean water"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Arrow" type="TextureRect" parent="DetailPanel/Ingredients" unique_id=492916683]
+texture_filter = 1
+layout_mode = 0
+offset_left = 500.0
+offset_top = 64.0
+offset_right = 544.0
+offset_bottom = 108.0
+mouse_filter = 2
+texture = ExtResource("14_sqrr7")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Output" type="Panel" parent="DetailPanel/Ingredients" unique_id=1095979535]
+layout_mode = 0
+offset_left = 559.0
+offset_top = 37.0
+offset_right = 657.0
+offset_bottom = 135.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_j36mw")
+
+[node name="Icon" type="TextureRect" parent="DetailPanel/Ingredients/Output" unique_id=187646071]
+texture_filter = 1
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 82.0
+offset_bottom = 80.0
+mouse_filter = 2
+texture = ExtResource("8_jmncs")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="DetailPanel/Ingredients/Output" unique_id=1454470608]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 75.0
+offset_right = 90.0
+offset_bottom = 93.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 13
+text = "×2"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="OutputName" type="Label" parent="DetailPanel/Ingredients" unique_id=83023653]
+layout_mode = 0
+offset_left = 540.0
+offset_top = 139.0
+offset_right = 680.0
+offset_bottom = 155.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 11
+text = "BANDAGE"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="StatTime" type="Panel" parent="DetailPanel" unique_id=1066423320]
+layout_mode = 0
+offset_top = 254.0
+offset_right = 273.0
+offset_bottom = 311.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_87iy6")
+
+[node name="Label" type="Label" parent="DetailPanel/StatTime" unique_id=130280822]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 252.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 10
+text = "TIME PER CRAFT"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Value" type="Label" parent="DetailPanel/StatTime" unique_id=184657905]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 29.0
+offset_right = 260.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_kv6cg")
+theme_override_font_sizes/font_size = 14
+text = "00:45"
+vertical_alignment = 1
+clip_text = true
+
+[node name="StatQuantity" type="Panel" parent="DetailPanel" unique_id=608500260]
+layout_mode = 0
+offset_left = 275.0
+offset_top = 254.0
+offset_right = 548.0
+offset_bottom = 311.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ogmfd")
+
+[node name="Label" type="Label" parent="DetailPanel/StatQuantity" unique_id=526818408]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 252.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 10
+text = "QUANTITY"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Value" type="Label" parent="DetailPanel/StatQuantity" unique_id=1296042474]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 29.0
+offset_right = 260.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_kv6cg")
+theme_override_font_sizes/font_size = 14
+text = "    3     max 3"
+vertical_alignment = 1
+clip_text = true
+
+[node name="StatTotal" type="Panel" parent="DetailPanel" unique_id=214065843]
+layout_mode = 0
+offset_left = 550.0
+offset_top = 254.0
+offset_right = 823.0
+offset_bottom = 311.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_r2ejj")
+
+[node name="Label" type="Label" parent="DetailPanel/StatTotal" unique_id=1806860992]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 252.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 10
+text = "TOTAL"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Value" type="Label" parent="DetailPanel/StatTotal" unique_id=388786944]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 29.0
+offset_right = 260.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_kv6cg")
+theme_override_font_sizes/font_size = 14
+text = "02:15 · 6 bandage"
+vertical_alignment = 1
+clip_text = true
+
+[node name="QuantityMinus" type="Button" parent="DetailPanel" unique_id=367607940]
+layout_mode = 0
+offset_left = 280.0
+offset_top = 278.0
+offset_right = 304.0
+offset_bottom = 302.0
+tooltip_text = "−"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_5m2wt")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_534ef")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ejwuf")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ejwuf")
+text = "−"
+
+[node name="QuantityPlus" type="Button" parent="DetailPanel" unique_id=1150499449]
+layout_mode = 0
+offset_left = 331.0
+offset_top = 278.0
+offset_right = 355.0
+offset_bottom = 302.0
+tooltip_text = "+"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_ujgl2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_xe86o")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7thhu")
+theme_override_styles/focus = SubResource("StyleBoxFlat_7thhu")
+text = "+"
+
+[node name="MissingPanel" type="Panel" parent="DetailPanel" unique_id=999781063]
+layout_mode = 0
+offset_top = 330.0
+offset_right = 824.0
+offset_bottom = 390.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lchub")
+
+[node name="Label" type="Label" parent="DetailPanel/MissingPanel" unique_id=1808214040]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 11.0
+offset_right = 364.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 11
+text = "MISSING · CLEAN WATER ×1"
+vertical_alignment = 1
+clip_text = true
+
+[node name="CraftWater" type="Button" parent="DetailPanel/MissingPanel" unique_id=464405869]
+layout_mode = 0
+offset_left = 522.0
+offset_top = 9.0
+offset_right = 808.0
+offset_bottom = 31.0
+tooltip_text = "CRAFT IT HERE · 00:20 ›"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_f6lvp")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mphl7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_o1xx5")
+theme_override_styles/focus = SubResource("StyleBoxFlat_o1xx5")
+text = "CRAFT IT HERE · 00:20 ›"
+alignment = 2
+
+[node name="Detail" type="Label" parent="DetailPanel/MissingPanel" unique_id=1200426612]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 34.0
+offset_right = 514.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "Or: Food supplies water collector is full · collect 4"
+vertical_alignment = 1
+clip_text = true
+
+[node name="CraftFooter" type="Panel" parent="DetailPanel" unique_id=973442127]
+layout_mode = 0
+offset_top = 891.0
+offset_right = 655.0
+offset_bottom = 938.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_454ml")
+
+[node name="Label" type="Label" parent="DetailPanel/CraftFooter" unique_id=1534771812]
+layout_mode = 0
+offset_top = 14.0
+offset_right = 655.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0.36078432, 0.38431373, 0.35686275, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 13
+text = "SPACE  CRAFT ×3 · 1 MISSING"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="CraftNow" type="Button" parent="DetailPanel" unique_id=1980370938]
+layout_mode = 0
+offset_left = 665.0
+offset_top = 891.0
+offset_right = 824.0
+offset_bottom = 938.0
+tooltip_text = "CRAFT ×2 NOW"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_5arki")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_p5pba")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ydsxl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ydsxl")
+text = "CRAFT ×2 NOW"
+
+[node name="QueuePanel" type="Panel" parent="." unique_id=1241588255]
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 94.0
+offset_right = 1872.0
+offset_bottom = 1024.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_05j6b")
+
+[node name="Title" type="Label" parent="QueuePanel" unique_id=1609063443]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 480.0
+offset_bottom = 17.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 13
+text = "QUEUE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="QueuePanel" unique_id=1424593812]
+layout_mode = 0
+offset_top = -2.0
+offset_right = 480.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 12
+text = "2 slots · runs while you raid"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Rule" type="ColorRect" parent="QueuePanel" unique_id=135816587]
+layout_mode = 0
+offset_top = 25.0
+offset_right = 480.0
+offset_bottom = 26.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="QueueBandage" type="Panel" parent="QueuePanel" unique_id=978915325]
+layout_mode = 0
+offset_top = 38.0
+offset_right = 480.0
+offset_bottom = 102.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_g3jye")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/QueueBandage" unique_id=1874879286]
+texture_filter = 1
+layout_mode = 0
+offset_left = 12.0
+offset_top = 11.0
+offset_right = 52.0
+offset_bottom = 51.0
+mouse_filter = 2
+texture = ExtResource("8_jmncs")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="QueuePanel/QueueBandage" unique_id=820274488]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 11.0
+offset_right = 316.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Bandage ×4"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Status" type="Label" parent="QueuePanel/QueueBandage" unique_id=1984713883]
+layout_mode = 0
+offset_left = 332.0
+offset_top = 18.0
+offset_right = 462.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "02:14 left"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Progress" type="ProgressBar" parent="QueuePanel/QueueBandage" unique_id=18890591]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 41.0
+offset_right = 466.0
+offset_bottom = 45.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_htad3")
+theme_override_styles/fill = SubResource("StyleBoxFlat_ue645")
+value = 62.01
+show_percentage = false
+
+[node name="Collect" type="Button" parent="QueuePanel/QueueBandage" unique_id=960207767]
+visible = false
+layout_mode = 0
+offset_left = 391.0
+offset_top = 19.0
+offset_right = 467.0
+offset_bottom = 46.0
+tooltip_text = "COLLECT"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBox_gtpmy")
+theme_override_styles/pressed = SubResource("StyleBox_16h3l")
+theme_override_styles/hover = SubResource("StyleBox_mlrai")
+theme_override_styles/focus = SubResource("StyleBox_17vwn")
+text = "COLLECT"
+
+[node name="QueueSplint" type="Panel" parent="QueuePanel" unique_id=2040256991]
+layout_mode = 0
+offset_top = 114.0
+offset_right = 480.0
+offset_bottom = 178.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_j80yv")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/QueueSplint" unique_id=451511616]
+texture_filter = 1
+layout_mode = 0
+offset_left = 12.0
+offset_top = 11.0
+offset_right = 52.0
+offset_bottom = 51.0
+mouse_filter = 2
+texture = ExtResource("9_pug6r")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="QueuePanel/QueueSplint" unique_id=1526691556]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 11.0
+offset_right = 316.0
+offset_bottom = 27.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_gxpeg")
+theme_override_font_sizes/font_size = 12
+text = "Splint ×1"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Status" type="Label" parent="QueuePanel/QueueSplint" unique_id=372252338]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 18.0
+offset_right = 380.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "READY"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Progress" type="ProgressBar" parent="QueuePanel/QueueSplint" unique_id=455152640]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 41.0
+offset_right = 380.0
+offset_bottom = 45.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_iyo7c")
+theme_override_styles/fill = SubResource("StyleBoxFlat_k706q")
+value = 100.0
+show_percentage = false
+
+[node name="Collect" type="Button" parent="QueuePanel/QueueSplint" unique_id=1293810715]
+layout_mode = 0
+offset_left = 391.0
+offset_top = 19.0
+offset_right = 467.0
+offset_bottom = 46.0
+tooltip_text = "COLLECT"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_d1yk5")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ynfxq")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7i600")
+theme_override_styles/focus = SubResource("StyleBoxFlat_7i600")
+text = "COLLECT"
+
+[node name="Slot" type="Panel" parent="QueuePanel" unique_id=1602969544]
+layout_mode = 0
+offset_top = 190.0
+offset_right = 480.0
+offset_bottom = 238.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hcbe4")
+
+[node name="Label" type="Label" parent="QueuePanel/Slot" unique_id=1777332122]
+layout_mode = 0
+offset_top = 16.0
+offset_right = 480.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "slot 3 · unlock at LVL 3"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="StashTitle" type="Label" parent="QueuePanel" unique_id=140889422]
+layout_mode = 0
+offset_top = 250.0
+offset_right = 480.0
+offset_bottom = 270.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_bxofm")
+theme_override_font_sizes/font_size = 13
+text = "STASH · MEDS"
+vertical_alignment = 1
+clip_text = true
+
+[node name="StashDetail" type="Label" parent="QueuePanel" unique_id=830294442]
+layout_mode = 0
+offset_top = 251.0
+offset_right = 480.0
+offset_bottom = 269.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 12
+text = "filtered to this station"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="StashRule" type="ColorRect" parent="QueuePanel" unique_id=1008742442]
+layout_mode = 0
+offset_top = 278.0
+offset_right = 480.0
+offset_bottom = 279.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="Stash" type="Panel" parent="QueuePanel" unique_id=182799969]
+layout_mode = 0
+offset_top = 296.0
+offset_right = 444.0
+offset_bottom = 518.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_22kft")
+
+[node name="Grid0" type="ColorRect" parent="QueuePanel/Stash" unique_id=1499144789]
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 222.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid1" type="ColorRect" parent="QueuePanel/Stash" unique_id=804466]
+layout_mode = 0
+offset_left = 74.0
+offset_right = 75.0
+offset_bottom = 222.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid2" type="ColorRect" parent="QueuePanel/Stash" unique_id=14252087]
+layout_mode = 0
+offset_left = 148.0
+offset_right = 149.0
+offset_bottom = 222.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid3" type="ColorRect" parent="QueuePanel/Stash" unique_id=466971936]
+layout_mode = 0
+offset_left = 222.0
+offset_right = 223.0
+offset_bottom = 222.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid4" type="ColorRect" parent="QueuePanel/Stash" unique_id=2042608044]
+layout_mode = 0
+offset_left = 296.0
+offset_right = 297.0
+offset_bottom = 222.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid5" type="ColorRect" parent="QueuePanel/Stash" unique_id=1233486720]
+layout_mode = 0
+offset_left = 370.0
+offset_right = 371.0
+offset_bottom = 222.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid6" type="ColorRect" parent="QueuePanel/Stash" unique_id=713245427]
+layout_mode = 0
+offset_left = 444.0
+offset_right = 445.0
+offset_bottom = 222.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid7" type="ColorRect" parent="QueuePanel/Stash" unique_id=2089046068]
+layout_mode = 0
+offset_right = 444.0
+offset_bottom = 1.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid8" type="ColorRect" parent="QueuePanel/Stash" unique_id=1037503024]
+layout_mode = 0
+offset_top = 74.0
+offset_right = 444.0
+offset_bottom = 75.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid9" type="ColorRect" parent="QueuePanel/Stash" unique_id=1897681597]
+layout_mode = 0
+offset_top = 148.0
+offset_right = 444.0
+offset_bottom = 149.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="Grid10" type="ColorRect" parent="QueuePanel/Stash" unique_id=8327958]
+layout_mode = 0
+offset_top = 222.0
+offset_right = 444.0
+offset_bottom = 223.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="StashBottle" type="Panel" parent="QueuePanel/Stash" unique_id=889152437]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 72.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rd2xw")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/Stash/StashBottle" unique_id=1801529263]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 65.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("8_jmncs")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="QueuePanel/Stash/StashBottle" unique_id=249154294]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 51.0
+offset_right = 67.0
+offset_bottom = 67.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 11
+text = "2"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="StashTape" type="Panel" parent="QueuePanel/Stash" unique_id=636304332]
+layout_mode = 0
+offset_left = 75.0
+offset_top = 1.0
+offset_right = 146.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_qd5sm")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/Stash/StashTape" unique_id=902932093]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 65.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("9_pug6r")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="QueuePanel/Stash/StashTape" unique_id=2067977341]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 51.0
+offset_right = 67.0
+offset_bottom = 67.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 11
+text = "3"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="StashCloth" type="Panel" parent="QueuePanel/Stash" unique_id=698315074]
+layout_mode = 0
+offset_left = 149.0
+offset_top = 1.0
+offset_right = 294.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_haycq")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/Stash/StashCloth" unique_id=875991939]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 139.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("13_uglmm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StashPotion" type="Panel" parent="QueuePanel/Stash" unique_id=1094475082]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 75.0
+offset_right = 72.0
+offset_bottom = 220.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_elaot")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/Stash/StashPotion" unique_id=1294303501]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 65.0
+offset_bottom = 139.0
+mouse_filter = 2
+texture = ExtResource("10_x7t4h")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StashWater" type="Panel" parent="QueuePanel/Stash" unique_id=1420590445]
+layout_mode = 0
+offset_left = 223.0
+offset_top = 1.0
+offset_right = 294.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dbjsh")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/Stash/StashWater" unique_id=1566388004]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 65.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("12_x7ckw")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StashBox" type="Panel" parent="QueuePanel/Stash" unique_id=2029890731]
+layout_mode = 0
+offset_left = 297.0
+offset_top = 1.0
+offset_right = 368.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_0hvh2")
+
+[node name="Icon" type="TextureRect" parent="QueuePanel/Stash/StashBox" unique_id=1437478912]
+texture_filter = 1
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 65.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("11_jeg0a")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Hit" type="Button" parent="QueuePanel/Stash" unique_id=1816422764]
+layout_mode = 0
+offset_right = 444.0
+offset_bottom = 222.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_8gjv2")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_pyut6")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_grr25")
+theme_override_styles/hover = SubResource("StyleBoxFlat_n34qb")
+theme_override_styles/focus = SubResource("StyleBoxFlat_n34qb")
+
+[node name="HintRow" type="Label" parent="." unique_id=1917487838]
+layout_mode = 0
+offset_left = 1392.0
+offset_top = 1014.0
+offset_right = 1872.0
+offset_bottom = 1032.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_p6wjq")
+theme_override_font_sizes/font_size = 10
+text = "SPACE  CRAFT    F  COLLECT ALL    TAB  FULL STASH    ESC  LEAVE STATION"
+vertical_alignment = 1
+clip_text = true
+
+[node name="CompactWorkspace" parent="." instance=ExtResource("compact_workspace")]

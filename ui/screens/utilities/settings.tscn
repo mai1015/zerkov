@@ -1,0 +1,4797 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/utilities/settings.gd" id="1_settings"]
+[ext_resource type="Shader" path="res://ui/shaders/backdrop.gdshader" id="2_backdrop"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="3_bg"]
+[ext_resource type="Texture2D" path="res://assets/handoff/logo_white_pixel.png" id="4_logo"]
+[ext_resource type="PackedScene" path="res://ui/components/layout/navigation_chrome.tscn" id="5_navigation"]
+
+[sub_resource type="ShaderMaterial" id="BackdropMaterial"]
+shader = ExtResource("2_backdrop")
+
+[sub_resource type="StyleBoxFlat" id="StyleBackdrop"]
+bg_color = Color(0.03921569, 0.04313725, 0.03921569, 1.00000000)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleHeader"]
+bg_color = Color(0.027, 0.035, 0.031, 0.97)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StylePanel"]
+bg_color = Color(0.02700000, 0.03500000, 0.03500000, 0.86000000)
+border_color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleButton"]
+bg_color = Color(0.02700000, 0.03500000, 0.03500000, 0.86000000)
+border_color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 8.0
+content_margin_right = 8.0
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleButtonHover"]
+bg_color = Color(1, 1, 1, 0.05)
+border_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleButtonPressed"]
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_color = Color(0.90980392, 0.58823529, 0.18039216, 1.00000000)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleButtonFocus"]
+bg_color = Color(1, 1, 1, 0.06)
+border_color = Color(0.90980392, 0.58823529, 0.18039216, 1.00000000)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleClear"]
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[node name="Settings" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.00000000
+anchor_bottom = 1.00000000
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_settings")
+metadata/utility_route = "settings"
+
+[node name="BackdropBase" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 0
+offset_top = 0
+offset_right = 1920
+offset_bottom = 1080
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBackdrop")
+metadata/z_backdrop = true
+
+[node name="BackdropImage" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 0
+offset_top = 0
+offset_right = 1920
+offset_bottom = 1080
+texture_filter = 2
+material = SubResource("BackdropMaterial")
+mouse_filter = 2
+texture = ExtResource("3_bg")
+expand_mode = 1
+stretch_mode = 6
+metadata/z_backdrop = true
+
+[node name="BackdropShade" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 0
+offset_top = 0
+offset_right = 1920
+offset_bottom = 1080
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.72000000)
+metadata/z_backdrop = true
+
+[node name="NavigationChrome" parent="." instance=ExtResource("5_navigation")]
+active_route = "settings"
+
+
+[node name="SidebarHeaderTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 48
+offset_top = 92
+offset_right = 216
+offset_bottom = 120
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 13
+text = "SETTINGS"
+vertical_alignment = 1
+metadata/settings_section = "sidebar"
+metadata/settings_tracked = true
+metadata/compact_group = "UtilitySidebar"
+
+[node name="SidebarHeaderNote" type="Label" parent="."]
+layout_mode = 0
+offset_left = 171.20000000
+offset_top = 94
+offset_right = 328.00000000
+offset_bottom = 118
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "v1.1.2"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "sidebar"
+metadata/settings_mono = true
+metadata/settings_tracked_mono = true
+metadata/compact_group = "UtilitySidebar"
+
+[node name="SidebarHeaderRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 48
+offset_top = 123
+offset_right = 328
+offset_bottom = 124
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+metadata/settings_section = "sidebar"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="SidebarPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 48
+offset_top = 134
+offset_right = 328
+offset_bottom = 428
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StylePanel")
+metadata/settings_section = "sidebar"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="CategoryGameplay" type="Button" parent="."]
+layout_mode = 0
+offset_left = 49
+offset_top = 140
+offset_right = 327
+offset_bottom = 180
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "GAMEPLAY"
+metadata/settings_category = "gameplay"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="CategoryHud" type="Button" parent="."]
+layout_mode = 0
+offset_left = 49
+offset_top = 180
+offset_right = 327
+offset_bottom = 220
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "HUD"
+metadata/settings_category = "hud"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="CategoryControls" type="Button" parent="."]
+layout_mode = 0
+offset_left = 49
+offset_top = 220
+offset_right = 327
+offset_bottom = 260
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "CONTROLS"
+metadata/settings_category = "controls"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="CategoryGraphics" type="Button" parent="."]
+layout_mode = 0
+offset_left = 49
+offset_top = 260
+offset_right = 327
+offset_bottom = 300
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "GRAPHICS"
+metadata/settings_category = "video"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="CategoryAudio" type="Button" parent="."]
+layout_mode = 0
+offset_left = 49
+offset_top = 300
+offset_right = 327
+offset_bottom = 340
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "AUDIO"
+metadata/settings_category = "audio"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="CategoryAccessibility" type="Button" parent="."]
+layout_mode = 0
+offset_left = 49
+offset_top = 340
+offset_right = 327
+offset_bottom = 380
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "ACCESSIBILITY"
+metadata/settings_category = "accessibility"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="CategoryAccount" type="Button" parent="."]
+layout_mode = 0
+offset_left = 49
+offset_top = 380
+offset_right = 327
+offset_bottom = 420
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "ACCOUNT"
+metadata/settings_category = "account"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="SearchPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 48
+offset_top = 442
+offset_right = 328
+offset_bottom = 518
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StylePanel")
+metadata/settings_section = "sidebar"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="SearchTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 62
+offset_top = 454
+offset_right = 302
+offset_bottom = 472
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "SEARCH"
+vertical_alignment = 1
+metadata/settings_section = "sidebar"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="SearchField" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 62
+offset_top = 474
+offset_right = 312
+offset_bottom = 504
+focus_mode = 2
+clear_button_enabled = false
+placeholder_text = "e.g. \"crosshair\""
+metadata/settings_section = "sidebar"
+metadata/compact_group = "UtilitySidebar"
+
+[node name="SessionInfo" type="Label" parent="."]
+layout_mode = 0
+offset_left = 48
+offset_top = 1000
+offset_right = 328
+offset_bottom = 1018
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Session 00:42:10 · 61 fps · 34 ms"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "UtilitySidebar"
+
+[node name="BuildInfo" type="Label" parent="."]
+layout_mode = 0
+offset_left = 48
+offset_top = 1018
+offset_right = 328
+offset_bottom = 1036
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Build 1.1.2 · native Godot review"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "UtilitySidebar"
+
+[node name="HudSectionHeaderTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 92
+offset_right = 958.40000000
+offset_bottom = 120
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 13
+text = "HUD"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/settings_tracked = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudSectionHeaderNote" type="Label" parent="."]
+layout_mode = 0
+offset_left = 801
+offset_top = 94
+offset_right = 1352
+offset_bottom = 118
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "changes apply immediately · RESET SECTION"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/settings_tracked_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudSectionHeaderRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 123
+offset_right = 1352
+offset_bottom = 124
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudLayoutTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 136
+offset_right = 478
+offset_bottom = 154
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "LAYOUT"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudLayoutRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 478
+offset_top = 144
+offset_right = 1352
+offset_bottom = 145
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudScaleTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 162
+offset_right = 838
+offset_bottom = 182
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "HUD scale"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudScaleSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 180
+offset_right = 838
+offset_bottom = 198
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Scales all HUD text and bars · 80–130%"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudScaleSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 174
+offset_right = 1283
+offset_bottom = 196
+focus_mode = 2
+metadata/settings_section = "hud"
+metadata/settings_kind = "slider"
+metadata/settings_key = "hud_scale"
+metadata/settings_min = 80.00000000
+metadata/settings_max = 130.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = "%"
+metadata/settings_display = "SettingHudScaleValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudScaleValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 165
+offset_right = 1350
+offset_bottom = 187
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudScaleRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 209
+offset_right = 1352
+offset_bottom = 210
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOpacityTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 210
+offset_right = 838
+offset_bottom = 230
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "HUD opacity"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOpacitySlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 222
+offset_right = 1283
+offset_bottom = 244
+focus_mode = 2
+metadata/settings_section = "hud"
+metadata/settings_kind = "slider"
+metadata/settings_key = "hud_opacity"
+metadata/settings_min = 20.00000000
+metadata/settings_max = 100.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = "%"
+metadata/settings_display = "SettingHudOpacityValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOpacityValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 213
+offset_right = 1350
+offset_bottom = 235
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOpacityRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 257
+offset_right = 1352
+offset_bottom = 258
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudIdleFadeTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 258
+offset_right = 838
+offset_bottom = 278
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Idle fade"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudIdleFadeSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 276
+offset_right = 838
+offset_bottom = 294
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Vitals and ammo dim when nothing changes; return on damage, reload or key press"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudIdleFadeSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 266
+offset_right = 1142.00000000
+offset_bottom = 296
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "OFF"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_idle_fade"
+metadata/settings_value = "OFF"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudIdleFadeSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 266
+offset_right = 1246.00000000
+offset_bottom = 296
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "3 S"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_idle_fade"
+metadata/settings_value = "3 S"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudIdleFadeSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 266
+offset_right = 1350.00000000
+offset_bottom = 296
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "6 S"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_idle_fade"
+metadata/settings_value = "6 S"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudIdleFadeRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 305
+offset_right = 1352
+offset_bottom = 306
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSafeZoneTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 306
+offset_right = 838
+offset_bottom = 326
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Safe zone"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSafeZoneSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 318
+offset_right = 1283
+offset_bottom = 340
+focus_mode = 2
+metadata/settings_section = "hud"
+metadata/settings_kind = "slider"
+metadata/settings_key = "hud_safe_zone"
+metadata/settings_min = 0.00000000
+metadata/settings_max = 160.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = " px"
+metadata/settings_display = "SettingHudSafeZoneValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSafeZoneValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 309
+offset_right = 1350
+offset_bottom = 331
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSafeZoneRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 353
+offset_right = 1352
+offset_bottom = 354
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudCrosshairTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 354
+offset_right = 498
+offset_bottom = 372
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "CROSSHAIR"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudCrosshairRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 498
+offset_top = 362
+offset_right = 1352
+offset_bottom = 363
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairShapeTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 380
+offset_right = 838
+offset_bottom = 400
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Shape"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairShapeSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 388
+offset_right = 1100.40000000
+offset_bottom = 418
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "DOT"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_crosshair_shape"
+metadata/settings_value = "DOT"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairShapeSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1100.40000000
+offset_top = 388
+offset_right = 1162.80000000
+offset_bottom = 418
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "CROSS"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_crosshair_shape"
+metadata/settings_value = "CROSS"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairShapeSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1162.80000000
+offset_top = 388
+offset_right = 1225.20000000
+offset_bottom = 418
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "OPEN"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_crosshair_shape"
+metadata/settings_value = "OPEN"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairShapeSegment3" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1225.20000000
+offset_top = 388
+offset_right = 1287.60000000
+offset_bottom = 418
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "RING"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_crosshair_shape"
+metadata/settings_value = "RING"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairShapeSegment4" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1287.60000000
+offset_top = 388
+offset_right = 1350.00000000
+offset_bottom = 418
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "PIXEL"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_crosshair_shape"
+metadata/settings_value = "PIXEL"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairShapeRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 427
+offset_right = 1352
+offset_bottom = 428
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 428
+offset_right = 838
+offset_bottom = 448
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Color"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatch0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1138
+offset_top = 430
+offset_right = 1162
+offset_bottom = 454
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "color"
+metadata/settings_key = "hud_crosshair_color"
+metadata/settings_value = "WHITE"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatchFill0" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1140
+offset_top = 432
+offset_right = 1160
+offset_bottom = 452
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatch1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1172
+offset_top = 430
+offset_right = 1196
+offset_bottom = 454
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "color"
+metadata/settings_key = "hud_crosshair_color"
+metadata/settings_value = "GREEN"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatchFill1" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1174
+offset_top = 432
+offset_right = 1194
+offset_bottom = 452
+mouse_filter = 2
+color = Color(0.37254902, 0.82745098, 0.41960784, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatch2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1206
+offset_top = 430
+offset_right = 1230
+offset_bottom = 454
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "color"
+metadata/settings_key = "hud_crosshair_color"
+metadata/settings_value = "BLUE"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatchFill2" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1208
+offset_top = 432
+offset_right = 1228
+offset_bottom = 452
+mouse_filter = 2
+color = Color(0.29803922, 0.55294118, 1.00000000, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatch3" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1240
+offset_top = 430
+offset_right = 1264
+offset_bottom = 454
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "color"
+metadata/settings_key = "hud_crosshair_color"
+metadata/settings_value = "ORANGE"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatchFill3" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1242
+offset_top = 432
+offset_right = 1262
+offset_bottom = 452
+mouse_filter = 2
+color = Color(0.90980392, 0.58823529, 0.18039216, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatch4" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1274
+offset_top = 430
+offset_right = 1298
+offset_bottom = 454
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "color"
+metadata/settings_key = "hud_crosshair_color"
+metadata/settings_value = "RED"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatchFill4" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1276
+offset_top = 432
+offset_right = 1296
+offset_bottom = 452
+mouse_filter = 2
+color = Color(0.85098039, 0.28235294, 0.23137255, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatch5" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1308
+offset_top = 430
+offset_right = 1332
+offset_bottom = 454
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "color"
+metadata/settings_key = "hud_crosshair_color"
+metadata/settings_value = "YELLOW"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorSwatchFill5" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1310
+offset_top = 432
+offset_right = 1330
+offset_bottom = 452
+mouse_filter = 2
+color = Color(0.91372549, 0.82745098, 0.35294118, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudCrosshairColorRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 475
+offset_right = 1352
+offset_bottom = 476
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudDynamicSpreadTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 476
+offset_right = 928
+offset_bottom = 496
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Dynamic spread"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudDynamicSpreadState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 484
+offset_right = 1290
+offset_bottom = 502
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudDynamicSpreadToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 484
+offset_right = 1338
+offset_bottom = 502
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "hud_dynamic_spread"
+metadata/settings_state = "SettingHudDynamicSpreadState"
+metadata/settings_indicator = "SettingHudDynamicSpreadIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudDynamicSpreadIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 487
+offset_right = 1334
+offset_bottom = 499
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudDynamicSpreadRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 523
+offset_right = 1352
+offset_bottom = 524
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHitMarkerTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 524
+offset_right = 838
+offset_bottom = 544
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Hit marker"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHitMarkerSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 532
+offset_right = 1142.00000000
+offset_bottom = 562
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "OFF"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_hit_marker"
+metadata/settings_value = "OFF"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHitMarkerSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 532
+offset_right = 1246.00000000
+offset_bottom = 562
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "ON"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_hit_marker"
+metadata/settings_value = "ON"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHitMarkerSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 532
+offset_right = 1350.00000000
+offset_bottom = 562
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "KILL ONLY"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_hit_marker"
+metadata/settings_value = "KILL ONLY"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHitMarkerRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 571
+offset_right = 1352
+offset_bottom = 572
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudInformationTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 572
+offset_right = 518
+offset_bottom = 590
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "INFORMATION"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="HudInformationRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 518
+offset_top = 580
+offset_right = 1352
+offset_bottom = 581
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHealthReadoutTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 598
+offset_right = 838
+offset_bottom = 618
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Health readout"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHealthReadoutSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 606
+offset_right = 1194.00000000
+offset_bottom = 636
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "BAR"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_health_readout"
+metadata/settings_value = "BAR"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHealthReadoutSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1194.00000000
+offset_top = 606
+offset_right = 1350.00000000
+offset_bottom = 636
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "BAR + NUMBER"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_health_readout"
+metadata/settings_value = "BAR + NUMBER"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudHealthReadoutRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 645
+offset_right = 1352
+offset_bottom = 646
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudAmmoCounterTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 646
+offset_right = 838
+offset_bottom = 666
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Ammo counter"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudAmmoCounterSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 664
+offset_right = 838
+offset_bottom = 682
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Rough shows a mag icon that empties instead of a number"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudAmmoCounterSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 654
+offset_right = 1142.00000000
+offset_bottom = 684
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "EXACT"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_ammo_counter"
+metadata/settings_value = "EXACT"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudAmmoCounterSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 654
+offset_right = 1246.00000000
+offset_bottom = 684
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "ROUGH"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_ammo_counter"
+metadata/settings_value = "ROUGH"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudAmmoCounterSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 654
+offset_right = 1350.00000000
+offset_bottom = 684
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "OFF"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_ammo_counter"
+metadata/settings_value = "OFF"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudAmmoCounterRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 693
+offset_right = 1352
+offset_bottom = 694
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSquadTagsTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 694
+offset_right = 928
+offset_bottom = 714
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Squadmate name tags"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSquadTagsSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 712
+offset_right = 928
+offset_bottom = 730
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "White names over co-op players · always friendly"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSquadTagsState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 702
+offset_right = 1290
+offset_bottom = 720
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSquadTagsToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 702
+offset_right = 1338
+offset_bottom = 720
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "hud_squad_tags"
+metadata/settings_state = "SettingHudSquadTagsState"
+metadata/settings_indicator = "SettingHudSquadTagsIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSquadTagsIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 705
+offset_right = 1334
+offset_bottom = 717
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudSquadTagsRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 741
+offset_right = 1352
+offset_bottom = 742
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudLootFeedTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 742
+offset_right = 838
+offset_bottom = 762
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Loot / kill feed"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudLootFeedSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 750
+offset_right = 1142.00000000
+offset_bottom = 780
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "FULL"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_loot_feed"
+metadata/settings_value = "FULL"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudLootFeedSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 750
+offset_right = 1246.00000000
+offset_bottom = 780
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "LOOT ONLY"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_loot_feed"
+metadata/settings_value = "LOOT ONLY"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudLootFeedSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 750
+offset_right = 1350.00000000
+offset_bottom = 780
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "OFF"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_loot_feed"
+metadata/settings_value = "OFF"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudLootFeedRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 789
+offset_right = 1352
+offset_bottom = 790
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudTrackedTaskTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 790
+offset_right = 928
+offset_bottom = 810
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Tracked task on HUD"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudTrackedTaskSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 808
+offset_right = 928
+offset_bottom = 826
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Objective and crate count show in the raid feed · one task at a time"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudTrackedTaskState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 798
+offset_right = 1290
+offset_bottom = 816
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudTrackedTaskToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 798
+offset_right = 1338
+offset_bottom = 816
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "hud_tracked_task"
+metadata/settings_state = "SettingHudTrackedTaskState"
+metadata/settings_indicator = "SettingHudTrackedTaskIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudTrackedTaskIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 801
+offset_right = 1334
+offset_bottom = 813
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudTrackedTaskRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 837
+offset_right = 1352
+offset_bottom = 838
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOverheadReloadTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 838
+offset_right = 928
+offset_bottom = 858
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Over-head reload indicator"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOverheadReloadState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 846
+offset_right = 1290
+offset_bottom = 864
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "hud"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOverheadReloadToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 846
+offset_right = 1338
+offset_bottom = 864
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "hud"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "hud_overhead_reload"
+metadata/settings_state = "SettingHudOverheadReloadState"
+metadata/settings_indicator = "SettingHudOverheadReloadIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOverheadReloadIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 849
+offset_right = 1334
+offset_bottom = 861
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudOverheadReloadRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 885
+offset_right = 1352
+offset_bottom = 886
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudStatusIconsTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 886
+offset_right = 838
+offset_bottom = 906
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Status effect icons"
+vertical_alignment = 1
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudStatusIconsSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 894
+offset_right = 1194.00000000
+offset_bottom = 924
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "ICON + LABEL"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_status_icons"
+metadata/settings_value = "ICON + LABEL"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudStatusIconsSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1194.00000000
+offset_top = 894
+offset_right = 1350.00000000
+offset_bottom = 924
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "ICON"
+metadata/settings_section = "hud"
+metadata/settings_kind = "segment"
+metadata/settings_key = "hud_status_icons"
+metadata/settings_value = "ICON"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingHudStatusIconsRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 933
+offset_right = 1352
+offset_bottom = 934
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "hud"
+metadata/compact_group = "SettingsOptions"
+
+[node name="GameplaySectionHeaderTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 92
+offset_right = 958.40000000
+offset_bottom = 120
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 13
+text = "GAMEPLAY"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_tracked = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="GameplaySectionHeaderNote" type="Label" parent="."]
+layout_mode = 0
+offset_left = 801
+offset_top = 94
+offset_right = 1352
+offset_bottom = 118
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "changes apply immediately"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/settings_tracked_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="GameplaySectionHeaderRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 123
+offset_right = 1352
+offset_bottom = 124
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="GameplayMovementTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 136
+offset_right = 488
+offset_bottom = 154
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "MOVEMENT"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="GameplayMovementRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 488
+offset_top = 144
+offset_right = 1352
+offset_bottom = 145
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayAutoSprintTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 162
+offset_right = 928
+offset_bottom = 182
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Auto sprint"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayAutoSprintSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 180
+offset_right = 928
+offset_bottom = 198
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Sprint while moving beyond the walk threshold"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayAutoSprintState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 170
+offset_right = 1290
+offset_bottom = 188
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayAutoSprintToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 170
+offset_right = 1338
+offset_bottom = 188
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "gameplay_auto_sprint"
+metadata/settings_state = "SettingGameplayAutoSprintState"
+metadata/settings_indicator = "SettingGameplayAutoSprintIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayAutoSprintIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 173
+offset_right = 1334
+offset_bottom = 185
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayAutoSprintRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 209
+offset_right = 1352
+offset_bottom = 210
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayHoldCrouchTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 220
+offset_right = 928
+offset_bottom = 240
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Hold to crouch"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayHoldCrouchSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 238
+offset_right = 928
+offset_bottom = 256
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Release the key to return to a standing stance"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayHoldCrouchState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 228
+offset_right = 1290
+offset_bottom = 246
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayHoldCrouchToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 228
+offset_right = 1338
+offset_bottom = 246
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "gameplay_hold_crouch"
+metadata/settings_state = "SettingGameplayHoldCrouchState"
+metadata/settings_indicator = "SettingGameplayHoldCrouchIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayHoldCrouchIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 231
+offset_right = 1334
+offset_bottom = 243
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayHoldCrouchRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 267
+offset_right = 1352
+offset_bottom = 268
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayContextualLeanTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 278
+offset_right = 928
+offset_bottom = 298
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Contextual lean"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayContextualLeanSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 296
+offset_right = 928
+offset_bottom = 314
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Lean around cover when the camera has a clear edge"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayContextualLeanState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 286
+offset_right = 1290
+offset_bottom = 304
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayContextualLeanToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 286
+offset_right = 1338
+offset_bottom = 304
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "gameplay_contextual_lean"
+metadata/settings_state = "SettingGameplayContextualLeanState"
+metadata/settings_indicator = "SettingGameplayContextualLeanIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayContextualLeanIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 289
+offset_right = 1334
+offset_bottom = 301
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayContextualLeanRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 325
+offset_right = 1352
+offset_bottom = 326
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayConfirmExtractTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 336
+offset_right = 928
+offset_bottom = 356
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Confirm extract"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayConfirmExtractSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 354
+offset_right = 928
+offset_bottom = 372
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Require a second press at the extraction boundary"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayConfirmExtractState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 344
+offset_right = 1290
+offset_bottom = 362
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayConfirmExtractToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 344
+offset_right = 1338
+offset_bottom = 362
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "gameplay_confirm_extract"
+metadata/settings_state = "SettingGameplayConfirmExtractState"
+metadata/settings_indicator = "SettingGameplayConfirmExtractIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayConfirmExtractIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 347
+offset_right = 1334
+offset_bottom = 359
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayConfirmExtractRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 383
+offset_right = 1352
+offset_bottom = 384
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayShowTipsTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 394
+offset_right = 928
+offset_bottom = 414
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Show raid tips"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayShowTipsSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 412
+offset_right = 928
+offset_bottom = 430
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Show one practical hint on deployment and summary screens"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayShowTipsState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 402
+offset_right = 1290
+offset_bottom = 420
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayShowTipsToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 402
+offset_right = 1338
+offset_bottom = 420
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "gameplay_show_tips"
+metadata/settings_state = "SettingGameplayShowTipsState"
+metadata/settings_indicator = "SettingGameplayShowTipsIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayShowTipsIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 405
+offset_right = 1334
+offset_bottom = 417
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayShowTipsRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 441
+offset_right = 1352
+offset_bottom = 442
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPauseOnFocusLossTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 452
+offset_right = 928
+offset_bottom = 472
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Pause when focus is lost"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPauseOnFocusLossSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 470
+offset_right = 928
+offset_bottom = 488
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Pause the local prototype when the window loses focus"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPauseOnFocusLossState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 460
+offset_right = 1290
+offset_bottom = 478
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPauseOnFocusLossToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 460
+offset_right = 1338
+offset_bottom = 478
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "gameplay_pause_on_focus_loss"
+metadata/settings_state = "SettingGameplayPauseOnFocusLossState"
+metadata/settings_indicator = "SettingGameplayPauseOnFocusLossIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPauseOnFocusLossIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 463
+offset_right = 1334
+offset_bottom = 475
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPauseOnFocusLossRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 499
+offset_right = 1352
+offset_bottom = 500
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="GameplayInteractionTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 514
+offset_right = 498
+offset_bottom = 532
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "INTERACTION"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="GameplayInteractionRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 498
+offset_top = 522
+offset_right = 1352
+offset_bottom = 523
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplaySortModeTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 540
+offset_right = 838
+offset_bottom = 560
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Inventory sorting"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplaySortModeSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 558
+offset_right = 838
+offset_bottom = 576
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Used by the local stash preview"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplaySortModeSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 548
+offset_right = 1142.00000000
+offset_bottom = 578
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "VALUE"
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "segment"
+metadata/settings_key = "gameplay_sort_mode"
+metadata/settings_value = "VALUE"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplaySortModeSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 548
+offset_right = 1246.00000000
+offset_bottom = 578
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "TYPE"
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "segment"
+metadata/settings_key = "gameplay_sort_mode"
+metadata/settings_value = "TYPE"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplaySortModeSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 548
+offset_right = 1350.00000000
+offset_bottom = 578
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "RECENT"
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "segment"
+metadata/settings_key = "gameplay_sort_mode"
+metadata/settings_value = "RECENT"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplaySortModeRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 587
+offset_right = 1352
+offset_bottom = 588
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPromptStyleTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 598
+offset_right = 838
+offset_bottom = 618
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Prompt style"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPromptStyleSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 616
+offset_right = 838
+offset_bottom = 634
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Show keyboard glyphs beside contextual actions"
+vertical_alignment = 1
+metadata/settings_section = "gameplay"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPromptStyleSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 606
+offset_right = 1194.00000000
+offset_bottom = 636
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "FULL"
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "segment"
+metadata/settings_key = "gameplay_prompt_style"
+metadata/settings_value = "FULL"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPromptStyleSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1194.00000000
+offset_top = 606
+offset_right = 1350.00000000
+offset_bottom = 636
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "COMPACT"
+metadata/settings_section = "gameplay"
+metadata/settings_kind = "segment"
+metadata/settings_key = "gameplay_prompt_style"
+metadata/settings_value = "COMPACT"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingGameplayPromptStyleRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 645
+offset_right = 1352
+offset_bottom = 646
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "gameplay"
+metadata/compact_group = "SettingsOptions"
+
+[node name="VideoSectionHeaderTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 92
+offset_right = 958.40000000
+offset_bottom = 120
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 13
+text = "VIDEO"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_tracked = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="VideoSectionHeaderNote" type="Label" parent="."]
+layout_mode = 0
+offset_left = 801
+offset_top = 94
+offset_right = 1352
+offset_bottom = 118
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "APPLY is required for display changes"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/settings_tracked_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="VideoSectionHeaderRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 123
+offset_right = 1352
+offset_bottom = 124
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="VideoDisplayTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 136
+offset_right = 488
+offset_bottom = 154
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "DISPLAY"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="VideoDisplayRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 488
+offset_top = 144
+offset_right = 1352
+offset_bottom = 145
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoDisplayModeTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 162
+offset_right = 838
+offset_bottom = 182
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Display mode"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoDisplayModeSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 180
+offset_right = 838
+offset_bottom = 198
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Window chrome and border behavior"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoDisplayModeSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 170
+offset_right = 1142.00000000
+offset_bottom = 200
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "FULLSCREEN"
+metadata/settings_section = "video"
+metadata/settings_kind = "segment"
+metadata/settings_key = "video_display_mode"
+metadata/settings_value = "FULLSCREEN"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoDisplayModeSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 170
+offset_right = 1246.00000000
+offset_bottom = 200
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "BORDERLESS"
+metadata/settings_section = "video"
+metadata/settings_kind = "segment"
+metadata/settings_key = "video_display_mode"
+metadata/settings_value = "BORDERLESS"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoDisplayModeSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 170
+offset_right = 1350.00000000
+offset_bottom = 200
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "WINDOWED"
+metadata/settings_section = "video"
+metadata/settings_kind = "segment"
+metadata/settings_key = "video_display_mode"
+metadata/settings_value = "WINDOWED"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoDisplayModeRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 209
+offset_right = 1352
+offset_bottom = 210
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoResolutionTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 220
+offset_right = 838
+offset_bottom = 240
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Resolution"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoResolutionSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 238
+offset_right = 838
+offset_bottom = 256
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Design canvas remains 1920 × 1080"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoResolutionSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 228
+offset_right = 1142.00000000
+offset_bottom = 258
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "1920 × 1080"
+metadata/settings_section = "video"
+metadata/settings_kind = "segment"
+metadata/settings_key = "video_resolution"
+metadata/settings_value = "1920 × 1080"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoResolutionSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 228
+offset_right = 1246.00000000
+offset_bottom = 258
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "1600 × 900"
+metadata/settings_section = "video"
+metadata/settings_kind = "segment"
+metadata/settings_key = "video_resolution"
+metadata/settings_value = "1600 × 900"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoResolutionSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 228
+offset_right = 1350.00000000
+offset_bottom = 258
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "1280 × 720"
+metadata/settings_section = "video"
+metadata/settings_kind = "segment"
+metadata/settings_key = "video_resolution"
+metadata/settings_value = "1280 × 720"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoResolutionRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 267
+offset_right = 1352
+offset_bottom = 268
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoFrameLimitTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 278
+offset_right = 838
+offset_bottom = 298
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Frame limit"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoFrameLimitSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 296
+offset_right = 838
+offset_bottom = 314
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "0 = uncapped · prototype preview is local only"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoFrameLimitSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 290
+offset_right = 1283
+offset_bottom = 312
+focus_mode = 2
+metadata/settings_section = "video"
+metadata/settings_kind = "slider"
+metadata/settings_key = "video_frame_limit"
+metadata/settings_min = 30.00000000
+metadata/settings_max = 144.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = " fps"
+metadata/settings_display = "SettingVideoFrameLimitValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoFrameLimitValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 281
+offset_right = 1350
+offset_bottom = 303
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoFrameLimitRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 325
+offset_right = 1352
+offset_bottom = 326
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoBrightnessTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 336
+offset_right = 838
+offset_bottom = 356
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Brightness"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoBrightnessSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 354
+offset_right = 838
+offset_bottom = 372
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Adjust the raid frame without changing the UI contrast"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoBrightnessSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 348
+offset_right = 1283
+offset_bottom = 370
+focus_mode = 2
+metadata/settings_section = "video"
+metadata/settings_kind = "slider"
+metadata/settings_key = "video_brightness"
+metadata/settings_min = 0.00000000
+metadata/settings_max = 100.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = "%"
+metadata/settings_display = "SettingVideoBrightnessValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoBrightnessValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 339
+offset_right = 1350
+offset_bottom = 361
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoBrightnessRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 383
+offset_right = 1352
+offset_bottom = 384
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoVsyncTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 394
+offset_right = 928
+offset_bottom = 414
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "V-sync"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoVsyncSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 412
+offset_right = 928
+offset_bottom = 430
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Prevent tearing on the review canvas"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoVsyncState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 402
+offset_right = 1290
+offset_bottom = 420
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoVsyncToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 402
+offset_right = 1338
+offset_bottom = 420
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "video"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "video_vsync"
+metadata/settings_state = "SettingVideoVsyncState"
+metadata/settings_indicator = "SettingVideoVsyncIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoVsyncIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 405
+offset_right = 1334
+offset_bottom = 417
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoVsyncRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 441
+offset_right = 1352
+offset_bottom = 442
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoPixelFilterTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 452
+offset_right = 928
+offset_bottom = 472
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Pixel filter"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoPixelFilterSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 470
+offset_right = 928
+offset_bottom = 488
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Keep handoff sprites nearest-filtered"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoPixelFilterState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 460
+offset_right = 1290
+offset_bottom = 478
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoPixelFilterToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 460
+offset_right = 1338
+offset_bottom = 478
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "video"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "video_pixel_filter"
+metadata/settings_state = "SettingVideoPixelFilterState"
+metadata/settings_indicator = "SettingVideoPixelFilterIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoPixelFilterIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 463
+offset_right = 1334
+offset_bottom = 475
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoPixelFilterRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 499
+offset_right = 1352
+offset_bottom = 500
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="VideoAccessibilityTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 514
+offset_right = 518
+offset_bottom = 532
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "ACCESSIBILITY"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="VideoAccessibilityRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 518
+offset_top = 522
+offset_right = 1352
+offset_bottom = 523
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoReduceFlashesTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 540
+offset_right = 928
+offset_bottom = 560
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Reduce screen flashes"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoReduceFlashesSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 558
+offset_right = 928
+offset_bottom = 576
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Suppress the most intense simulated hit feedback"
+vertical_alignment = 1
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoReduceFlashesState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 548
+offset_right = 1290
+offset_bottom = 566
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "video"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoReduceFlashesToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 548
+offset_right = 1338
+offset_bottom = 566
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "video"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "video_reduce_flashes"
+metadata/settings_state = "SettingVideoReduceFlashesState"
+metadata/settings_indicator = "SettingVideoReduceFlashesIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoReduceFlashesIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 551
+offset_right = 1334
+offset_bottom = 563
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingVideoReduceFlashesRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 587
+offset_right = 1352
+offset_bottom = 588
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "video"
+metadata/compact_group = "SettingsOptions"
+
+[node name="AudioSectionHeaderTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 92
+offset_right = 958.40000000
+offset_bottom = 120
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 13
+text = "AUDIO"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/settings_tracked = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="AudioSectionHeaderNote" type="Label" parent="."]
+layout_mode = 0
+offset_left = 801
+offset_top = 94
+offset_right = 1352
+offset_bottom = 118
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "changes apply immediately"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/settings_tracked_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="AudioSectionHeaderRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 123
+offset_right = 1352
+offset_bottom = 124
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="AudioMixTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 136
+offset_right = 468
+offset_bottom = 154
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "MIX"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="AudioMixRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 468
+offset_top = 144
+offset_right = 1352
+offset_bottom = 145
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMasterTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 162
+offset_right = 838
+offset_bottom = 182
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Master volume"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMasterSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 180
+offset_right = 838
+offset_bottom = 198
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Overall output level"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMasterSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 174
+offset_right = 1283
+offset_bottom = 196
+focus_mode = 2
+metadata/settings_section = "audio"
+metadata/settings_kind = "slider"
+metadata/settings_key = "audio_master"
+metadata/settings_min = 0.00000000
+metadata/settings_max = 100.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = "%"
+metadata/settings_display = "SettingAudioMasterValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMasterValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 165
+offset_right = 1350
+offset_bottom = 187
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMasterRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 209
+offset_right = 1352
+offset_bottom = 210
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioSfxTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 220
+offset_right = 838
+offset_bottom = 240
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Sound effects"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioSfxSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 238
+offset_right = 838
+offset_bottom = 256
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Weapons, interaction and world feedback"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioSfxSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 232
+offset_right = 1283
+offset_bottom = 254
+focus_mode = 2
+metadata/settings_section = "audio"
+metadata/settings_kind = "slider"
+metadata/settings_key = "audio_sfx"
+metadata/settings_min = 0.00000000
+metadata/settings_max = 100.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = "%"
+metadata/settings_display = "SettingAudioSfxValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioSfxValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 223
+offset_right = 1350
+offset_bottom = 245
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioSfxRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 267
+offset_right = 1352
+offset_bottom = 268
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMusicTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 278
+offset_right = 838
+offset_bottom = 298
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Music"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMusicSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 296
+offset_right = 838
+offset_bottom = 314
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Menu and extraction score"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMusicSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 290
+offset_right = 1283
+offset_bottom = 312
+focus_mode = 2
+metadata/settings_section = "audio"
+metadata/settings_kind = "slider"
+metadata/settings_key = "audio_music"
+metadata/settings_min = 0.00000000
+metadata/settings_max = 100.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = "%"
+metadata/settings_display = "SettingAudioMusicValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMusicValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 281
+offset_right = 1350
+offset_bottom = 303
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioMusicRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 325
+offset_right = 1352
+offset_bottom = 326
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioVoiceTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 336
+offset_right = 838
+offset_bottom = 356
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Voice"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioVoiceSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 354
+offset_right = 838
+offset_bottom = 372
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Squad and trader speech"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioVoiceSlider" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1038
+offset_top = 348
+offset_right = 1283
+offset_bottom = 370
+focus_mode = 2
+metadata/settings_section = "audio"
+metadata/settings_kind = "slider"
+metadata/settings_key = "audio_voice"
+metadata/settings_min = 0.00000000
+metadata/settings_max = 100.00000000
+metadata/settings_step = 1.00000000
+metadata/settings_suffix = "%"
+metadata/settings_display = "SettingAudioVoiceValue"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioVoiceValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1292
+offset_top = 339
+offset_right = 1350
+offset_bottom = 361
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = ""
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioVoiceRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 383
+offset_right = 1352
+offset_bottom = 384
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioDynamicRangeTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 394
+offset_right = 838
+offset_bottom = 414
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Dynamic range"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioDynamicRangeSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 412
+offset_right = 838
+offset_bottom = 430
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Compression for headphones and small speakers"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioDynamicRangeSegment0" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1038.00000000
+offset_top = 402
+offset_right = 1142.00000000
+offset_bottom = 432
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "FULL"
+metadata/settings_section = "audio"
+metadata/settings_kind = "segment"
+metadata/settings_key = "audio_dynamic_range"
+metadata/settings_value = "FULL"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioDynamicRangeSegment1" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1142.00000000
+offset_top = 402
+offset_right = 1246.00000000
+offset_bottom = 432
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "MEDIUM"
+metadata/settings_section = "audio"
+metadata/settings_kind = "segment"
+metadata/settings_key = "audio_dynamic_range"
+metadata/settings_value = "MEDIUM"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioDynamicRangeSegment2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1246.00000000
+offset_top = 402
+offset_right = 1350.00000000
+offset_bottom = 432
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "NIGHT"
+metadata/settings_section = "audio"
+metadata/settings_kind = "segment"
+metadata/settings_key = "audio_dynamic_range"
+metadata/settings_value = "NIGHT"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioDynamicRangeRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 441
+offset_right = 1352
+offset_bottom = 442
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioPushToTalkTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 452
+offset_right = 928
+offset_bottom = 472
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Push to talk"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioPushToTalkSubtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 470
+offset_right = 928
+offset_bottom = 488
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Only transmit while the bound key is held"
+vertical_alignment = 1
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioPushToTalkState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1252
+offset_top = 460
+offset_right = 1290
+offset_bottom = 478
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OFF"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_section = "audio"
+metadata/settings_mono = true
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioPushToTalkToggle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1300
+offset_top = 460
+offset_right = 1338
+offset_bottom = 478
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_section = "audio"
+metadata/settings_kind = "toggle"
+metadata/settings_key = "audio_push_to_talk"
+metadata/settings_state = "SettingAudioPushToTalkState"
+metadata/settings_indicator = "SettingAudioPushToTalkIndicator"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioPushToTalkIndicator" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1320
+offset_top = 463
+offset_right = 1334
+offset_bottom = 475
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="SettingAudioPushToTalkRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 368
+offset_top = 499
+offset_right = 1352
+offset_bottom = 500
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/settings_section = "audio"
+metadata/compact_group = "SettingsOptions"
+
+[node name="PreviewSectionHeaderTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1392
+offset_top = 92
+offset_right = 1680
+offset_bottom = 120
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 13
+text = "PREVIEW"
+vertical_alignment = 1
+metadata/settings_tracked = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewSectionHeaderNote" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1603.20000000
+offset_top = 94
+offset_right = 1872
+offset_bottom = 118
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "HUD · 1920×1080"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_mono = true
+metadata/settings_tracked_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewSectionHeaderRule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1392
+offset_top = 123
+offset_right = 1872
+offset_bottom = 124
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.12000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1392
+offset_top = 134
+offset_right = 1872
+offset_bottom = 326
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StylePanel")
+clip_contents = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewImage" type="TextureRect" parent="PreviewPanel"]
+layout_mode = 0
+offset_left = -360
+offset_top = -320
+offset_right = 960
+offset_bottom = 422
+texture_filter = 1
+mouse_filter = 2
+texture = ExtResource("3_bg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PreviewShade" type="ColorRect" parent="PreviewPanel"]
+layout_mode = 0
+offset_left = 0
+offset_top = 0
+offset_right = 480
+offset_bottom = 190
+mouse_filter = 2
+color = Color(0.02000000, 0.03000000, 0.03000000, 0.30000000)
+
+[node name="PreviewPlayerName" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1408
+offset_top = 255
+offset_right = 1558
+offset_bottom = 273
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "OAK_JHONSON"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewHealth" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1408
+offset_top = 277
+offset_right = 1538
+offset_bottom = 281
+mouse_filter = 2
+color = Color(0.37254902, 0.82745098, 0.41960784, 1.00000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewArmor" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1408
+offset_top = 284
+offset_right = 1520
+offset_bottom = 287
+mouse_filter = 2
+color = Color(0.29803922, 0.55294118, 1.00000000, 1.00000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewWeapon" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1746
+offset_top = 196
+offset_right = 1848
+offset_bottom = 211
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.71764706, 0.73725490, 0.70588235, 1.00000000)
+theme_override_font_sizes/font_size = 9
+text = "AKM · SEMI"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewAmmo" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1758
+offset_top = 218
+offset_right = 1828
+offset_bottom = 256
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 28
+text = "24"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewReserve" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1826
+offset_top = 238
+offset_right = 1860
+offset_bottom = 254
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "/ 90"
+vertical_alignment = 1
+horizontal_alignment = 2
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossDarkTop" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 212.75000000
+offset_right = 1633
+offset_bottom = 220.25000000
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "CROSS"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossDarkBottom" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 227.75000000
+offset_right = 1633
+offset_bottom = 235.25000000
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "CROSS"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossDarkLeft" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1620.75000000
+offset_top = 223
+offset_right = 1628.25000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "CROSS"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossDarkRight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1635.75000000
+offset_top = 223
+offset_right = 1643.25000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "CROSS"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossColorTop" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 213.75000000
+offset_right = 1633
+offset_bottom = 219.25000000
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "CROSS_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossColorBottom" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 228.75000000
+offset_right = 1633
+offset_bottom = 234.25000000
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "CROSS_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossColorLeft" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1621.75000000
+offset_top = 223
+offset_right = 1627.25000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "CROSS_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairCrossColorRight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1636.75000000
+offset_top = 223
+offset_right = 1642.25000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "CROSS_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenDarkTop" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 201.50000000
+offset_right = 1633
+offset_bottom = 209.00000000
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "OPEN"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenDarkBottom" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 227.75000000
+offset_right = 1633
+offset_bottom = 235.25000000
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "OPEN"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenDarkLeft" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1609.50000000
+offset_top = 223
+offset_right = 1617.00000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "OPEN"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenDarkRight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1636.50000000
+offset_top = 223
+offset_right = 1644.00000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "OPEN"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenColorTop" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 203.50000000
+offset_right = 1633
+offset_bottom = 208.00000000
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "OPEN_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenColorBottom" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 227.75000000
+offset_right = 1633
+offset_bottom = 233.25000000
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "OPEN_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenColorLeft" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1611.50000000
+offset_top = 223
+offset_right = 1616.00000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "OPEN_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairOpenColorRight" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1636.50000000
+offset_top = 223
+offset_right = 1642.00000000
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "OPEN_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairDotDark" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1630
+offset_top = 222
+offset_right = 1634
+offset_bottom = 226
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "DOT"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairDotColor" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1631
+offset_top = 223
+offset_right = 1633
+offset_bottom = 225
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "DOT_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairPixelDark" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1627
+offset_top = 219
+offset_right = 1637
+offset_bottom = 229
+mouse_filter = 2
+color = Color(0.00000000, 0.00000000, 0.00000000, 0.76000000)
+metadata/settings_crosshair_variant = "PIXEL"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairPixelColor" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1629
+offset_top = 221
+offset_right = 1635
+offset_bottom = 227
+mouse_filter = 2
+color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+metadata/settings_crosshair_variant = "PIXEL_COLOR"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairRingOuter" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1617
+offset_top = 209
+offset_right = 1647
+offset_bottom = 239
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleClear")
+metadata/settings_crosshair_variant = "RING"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewCrosshairRingInner" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1620
+offset_top = 212
+offset_right = 1644
+offset_bottom = 236
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleClear")
+metadata/settings_crosshair_variant = "RING"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1392
+offset_top = 340
+offset_right = 1872
+offset_bottom = 604
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StylePanel")
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetHeading" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 354
+offset_right = 1846
+offset_bottom = 372
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "PRESETS"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetDEFAULT" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1407
+offset_top = 380
+offset_right = 1857
+offset_bottom = 432
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_preset = "DEFAULT"
+metadata/settings_preset_title = "PresetDEFAULT"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetDEFAULTTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 389
+offset_right = 1600
+offset_bottom = 405
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "DEFAULT"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetDEFAULTDescription" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 408
+offset_right = 1810
+offset_bottom = 423
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Everything on · 100% · idle fade 3 s"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetMINIMAL" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1407
+offset_top = 435
+offset_right = 1857
+offset_bottom = 487
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_preset = "MINIMAL"
+metadata/settings_preset_title = "PresetMINIMAL"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetMINIMALTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 444
+offset_right = 1600
+offset_bottom = 460
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "MINIMAL"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetMINIMALDescription" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 463
+offset_right = 1810
+offset_bottom = 478
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Bars only · no feed · rough ammo · fade 3 s"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetCOMPETITIVE" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1407
+offset_top = 490
+offset_right = 1857
+offset_bottom = 542
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_preset = "COMPETITIVE"
+metadata/settings_preset_title = "PresetCOMPETITIVE"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetCOMPETITIVETitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 499
+offset_right = 1600
+offset_bottom = 515
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "COMPETITIVE"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetCOMPETITIVEDescription" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 518
+offset_right = 1810
+offset_bottom = 533
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "No fade · exact ammo · dot crosshair · kill-only hit marker"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetCUSTOM" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1407
+offset_top = 545
+offset_right = 1857
+offset_bottom = 597
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = ""
+metadata/settings_preset = "CUSTOM"
+metadata/settings_preset_title = "PresetCUSTOM"
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetCUSTOMTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 554
+offset_right = 1600
+offset_bottom = 570
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "CUSTOM"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="PresetCUSTOMDescription" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1420
+offset_top = 573
+offset_right = 1810
+offset_bottom = 588
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Your current changes"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBindsPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 1392
+offset_top = 618
+offset_right = 1872
+offset_bottom = 938
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StylePanel")
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBindsHeading" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 632
+offset_right = 1846
+offset_bottom = 650
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "QUICK BINDS · CONTROLS"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind0Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 667
+offset_right = 1656
+offset_bottom = 685
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Quick move item"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind0Primary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1760
+offset_top = 664
+offset_right = 1802
+offset_bottom = 690
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "F"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind0Secondary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1810
+offset_top = 664
+offset_right = 1858
+offset_bottom = 690
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "—"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind0Rule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 697
+offset_right = 1858
+offset_bottom = 698
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind1Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 710
+offset_right = 1656
+offset_bottom = 728
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Quick heal"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind1Primary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1760
+offset_top = 707
+offset_right = 1802
+offset_bottom = 733
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "Y"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind1Secondary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1810
+offset_top = 707
+offset_right = 1858
+offset_bottom = 733
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "—"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind1Rule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 740
+offset_right = 1858
+offset_bottom = 741
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind2Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 753
+offset_right = 1656
+offset_bottom = 771
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Reload"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind2Primary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1760
+offset_top = 750
+offset_right = 1802
+offset_bottom = 776
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "R"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind2Secondary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1810
+offset_top = 750
+offset_right = 1858
+offset_bottom = 776
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "—"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind2Rule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 783
+offset_right = 1858
+offset_bottom = 784
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind3Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 796
+offset_right = 1656
+offset_bottom = 814
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Interact / loot"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind3Primary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1760
+offset_top = 793
+offset_right = 1802
+offset_bottom = 819
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "E"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind3Secondary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1810
+offset_top = 793
+offset_right = 1858
+offset_bottom = 819
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "HOLD E"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind3Rule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 826
+offset_right = 1858
+offset_bottom = 827
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind4Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 839
+offset_right = 1656
+offset_bottom = 857
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Inventory"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind4Primary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1760
+offset_top = 836
+offset_right = 1802
+offset_bottom = 862
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "TAB"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind4Secondary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1810
+offset_top = 836
+offset_right = 1858
+offset_bottom = 862
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "I"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind4Rule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 869
+offset_right = 1858
+offset_bottom = 870
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind5Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 882
+offset_right = 1656
+offset_bottom = 900
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 12
+text = "Push to talk"
+vertical_alignment = 1
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind5Primary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1760
+offset_top = 879
+offset_right = 1802
+offset_bottom = 905
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.90196078, 0.90980392, 0.89019608, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "V"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind5Secondary" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1810
+offset_top = 879
+offset_right = 1858
+offset_bottom = 905
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 11
+text = "—"
+vertical_alignment = 1
+horizontal_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBind5Rule" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 912
+offset_right = 1858
+offset_bottom = 913
+mouse_filter = 2
+color = Color(1.00000000, 1.00000000, 1.00000000, 0.08000000)
+metadata/compact_group = "SettingsPreview"
+
+[node name="QuickBindsNote" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1406
+offset_top = 920
+offset_right = 1856
+offset_bottom = 936
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.54509804, 0.56862745, 0.54117647, 1.00000000)
+theme_override_font_sizes/font_size = 10
+text = "Full list under Controls · click a key to rebind · ESC cancels"
+vertical_alignment = 1
+metadata/settings_mono = true
+metadata/compact_group = "SettingsPreview"
+
+[node name="PreviewApply" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1392
+offset_top = 985
+offset_right = 1630
+offset_bottom = 1032
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "APPLY · GRAPHICS ONLY"
+
+[node name="PreviewRevert" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1640
+offset_top = 985
+offset_right = 1742
+offset_bottom = 1032
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "REVERT"
+
+[node name="PreviewDefaults" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1752
+offset_top = 985
+offset_right = 1872
+offset_bottom = 1032
+mouse_default_cursor_shape = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/hover = SubResource("StyleButtonHover")
+theme_override_styles/pressed = SubResource("StyleButtonPressed")
+theme_override_styles/focus = SubResource("StyleButtonFocus")
+text = "DEFAULTS"

@@ -1,0 +1,1618 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/theme/pixel_style.gd" id="1_ufp0e"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="2_l3cuv"]
+[ext_resource type="Script" path="res://ui/screens/raid/hud_coop.gd" id="3_uobfl"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="4_tope6"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="5_puw6u"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="6_yohbt"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-SemiBold.ttf" id="7_aia65"]
+[ext_resource type="Texture2D" path="res://assets/handoff/player_sprite.png" id="8_0cblk"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_energy.png" id="9_sy72g"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_thirst.png" id="10_u1tf6"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_longgun.png" id="11_flfc0"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_shortgun.png" id="12_qxl6s"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_melee.png" id="13_i3gje"]
+[ext_resource type="Script" path="res://ui/screens/raid/components/hud_crosshair.gd" id="14_hud_crosshair"]
+[ext_resource type="Script" path="res://ui/screens/raid/components/hud_ring.gd" id="15_hud_ring"]
+
+[sub_resource type="StyleBox" id="StyleBox_seftl"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_7gj03"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_lcigc"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_psrlx"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_ug3mt"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0jtgn"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_opc8w"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ipvus"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16470589, 0.16470589, 0.16470589, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBox" id="StyleBox_gukjl"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_gc08c"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_gsev2"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_8imf0"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_ss2up"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_th7se"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_kdc7v"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_1y18n"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_pgvrj"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_qwse2"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_vlrk4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBox" id="StyleBox_txd4a"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_ufp0e")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a23bw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_up200"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="Theme" id="Theme_a5yh5"]
+default_font = ExtResource("2_l3cuv")
+default_font_size = 14
+Button/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Button/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+Button/styles/disabled = SubResource("StyleBox_seftl")
+Button/styles/focus = SubResource("StyleBox_7gj03")
+Button/styles/hover = SubResource("StyleBox_lcigc")
+Button/styles/normal = SubResource("StyleBox_psrlx")
+Button/styles/pressed = SubResource("StyleBox_ug3mt")
+CheckBox/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckBox/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+CheckButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_0jtgn")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_opc8w")
+HSlider/styles/slider = SubResource("StyleBoxFlat_ipvus")
+Label/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Label/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+LineEdit/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/styles/disabled = SubResource("StyleBox_gukjl")
+LineEdit/styles/focus = SubResource("StyleBox_gc08c")
+LineEdit/styles/hover = SubResource("StyleBox_gsev2")
+LineEdit/styles/normal = SubResource("StyleBox_8imf0")
+LineEdit/styles/pressed = SubResource("StyleBox_ss2up")
+OptionButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+OptionButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+OptionButton/styles/disabled = SubResource("StyleBox_th7se")
+OptionButton/styles/focus = SubResource("StyleBox_kdc7v")
+OptionButton/styles/hover = SubResource("StyleBox_1y18n")
+OptionButton/styles/normal = SubResource("StyleBox_pgvrj")
+OptionButton/styles/pressed = SubResource("StyleBox_qwse2")
+Panel/styles/panel = SubResource("StyleBox_vlrk4")
+PopupMenu/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+PopupMenu/colors/font_hover_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+PopupMenu/styles/panel = SubResource("StyleBox_txd4a")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_a23bw")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_up200")
+
+[sub_resource type="Gradient" id="Gradient_vyjb4"]
+offsets = PackedFloat32Array(0, 0.18, 0.78, 1)
+colors = PackedColorArray(0, 0, 0, 0.28, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0.38)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_v612j"]
+gradient = SubResource("Gradient_vyjb4")
+fill_to = Vector2(0, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_b8p5p"]
+base_font = ExtResource("6_yohbt")
+spacing_glyph = 2
+
+[sub_resource type="FontVariation" id="FontVariation_ludbc"]
+base_font = ExtResource("7_aia65")
+spacing_glyph = 1
+
+[sub_resource type="FontVariation" id="FontVariation_c82ra"]
+base_font = ExtResource("6_yohbt")
+spacing_glyph = 1
+
+[sub_resource type="FontVariation" id="FontVariation_qmqvi"]
+base_font = ExtResource("7_aia65")
+spacing_glyph = -1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status_bleeding"]
+bg_color = Color(0, 0, 0, 0.5)
+border_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status_fracture"]
+bg_color = Color(0, 0, 0, 0.5)
+border_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_status_dehydrated"]
+bg_color = Color(0, 0, 0, 0.5)
+border_color = Color(0.29803923, 0.5529412, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_rough_ammo"]
+bg_color = Color(0, 0, 0, 0.55)
+border_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_quick_heal"]
+bg_color = Color(0, 0, 0, 0.48)
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_empty_mag"]
+bg_color = Color(0, 0, 0, 0.48)
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+
+
+[node name="HudCoop" type="Control" unique_id=1583334612]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = SubResource("Theme_a5yh5")
+script = ExtResource("3_uobfl")
+metadata/screen_route = "hud_coop"
+
+[node name="BackgroundFrame" type="TextureRect" parent="." unique_id=805450825]
+texture_filter = 1
+layout_mode = 0
+offset_left = -30.0
+offset_top = -16.0
+offset_right = 1950.0
+offset_bottom = 1097.0
+mouse_filter = 2
+texture = ExtResource("4_tope6")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Atmosphere" type="TextureRect" parent="." unique_id=1669251933]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_v612j")
+
+[node name="SquadGroup" type="Control" parent="." unique_id=1934995955]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 0
+pivot_offset = Vector2(56, 36)
+mouse_filter = 2
+metadata/hud_anchor = Vector2(56, 36)
+
+[node name="SquadTitle" type="Label" parent="SquadGroup" unique_id=3384369]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 36.0
+offset_right = 236.0
+offset_bottom = 59.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 9
+text = "SQUAD · 3 / 4"
+vertical_alignment = 1
+
+[node name="KevinRow" type="Control" parent="SquadGroup" unique_id=1697807314]
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Dot" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=857983369]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 62.0
+offset_right = 62.0
+offset_bottom = 68.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Name" type="Label" parent="SquadGroup/KevinRow" unique_id=1216046254]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 54.0
+offset_right = 178.0
+offset_bottom = 77.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_b8p5p")
+theme_override_font_sizes/font_size = 12
+text = "KEVIN_J"
+vertical_alignment = 1
+
+[node name="Track" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=1110540310]
+layout_mode = 0
+offset_left = 178.0
+offset_top = 63.0
+offset_right = 238.0
+offset_bottom = 66.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.48)
+
+[node name="Health" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=702343807]
+layout_mode = 0
+offset_left = 178.0
+offset_top = 63.0
+offset_right = 227.2
+offset_bottom = 66.0
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave1" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=1669788878]
+layout_mode = 0
+offset_left = 248.0
+offset_top = 61.2
+offset_right = 250.4
+offset_bottom = 66.8
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave2" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=2134437191]
+layout_mode = 0
+offset_left = 250.4
+offset_top = 59.6
+offset_right = 252.79999
+offset_bottom = 68.4
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave3" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=251572924]
+layout_mode = 0
+offset_left = 252.8
+offset_top = 58.0
+offset_right = 254.40001
+offset_bottom = 70.0
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave4" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=1501261571]
+layout_mode = 0
+offset_left = 255.2
+offset_top = 59.6
+offset_right = 256.8
+offset_bottom = 62.0
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave5" type="ColorRect" parent="SquadGroup/KevinRow" unique_id=19032528]
+layout_mode = 0
+offset_left = 256.8
+offset_top = 61.2
+offset_right = 258.4
+offset_bottom = 66.8
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="OyoRow" type="Control" parent="SquadGroup" unique_id=1720457500]
+modulate = Color(1, 1, 1, 0.8)
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Dot" type="ColorRect" parent="SquadGroup/OyoRow" unique_id=1620682557]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 86.0
+offset_right = 62.0
+offset_bottom = 92.0
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Name" type="Label" parent="SquadGroup/OyoRow" unique_id=937003234]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 78.0
+offset_right = 178.0
+offset_bottom = 101.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_b8p5p")
+theme_override_font_sizes/font_size = 12
+text = "OYO_TRPLE"
+vertical_alignment = 1
+
+[node name="Track" type="ColorRect" parent="SquadGroup/OyoRow" unique_id=739236176]
+layout_mode = 0
+offset_left = 178.0
+offset_top = 87.0
+offset_right = 238.0
+offset_bottom = 90.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.48)
+
+[node name="Health" type="ColorRect" parent="SquadGroup/OyoRow" unique_id=1651391971]
+layout_mode = 0
+offset_left = 178.0
+offset_top = 87.0
+offset_right = 196.6
+offset_bottom = 90.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="OakRow" type="Control" parent="SquadGroup" unique_id=2062872757]
+modulate = Color(1, 1, 1, 0.8)
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Dot" type="ColorRect" parent="SquadGroup/OakRow" unique_id=1602081209]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 110.0
+offset_right = 62.0
+offset_bottom = 116.0
+mouse_filter = 2
+color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[node name="Name" type="Label" parent="SquadGroup/OakRow" unique_id=1029910130]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 102.0
+offset_right = 178.0
+offset_bottom = 125.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_b8p5p")
+theme_override_font_sizes/font_size = 12
+text = "OAK_JHONSON"
+vertical_alignment = 1
+
+[node name="Track" type="ColorRect" parent="SquadGroup/OakRow" unique_id=1700413953]
+layout_mode = 0
+offset_left = 178.0
+offset_top = 111.0
+offset_right = 238.0
+offset_bottom = 114.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.48)
+
+[node name="Health" type="ColorRect" parent="SquadGroup/OakRow" unique_id=1400894378]
+layout_mode = 0
+offset_left = 178.0
+offset_top = 111.0
+offset_right = 194.2
+offset_bottom = 114.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="TimerGroup" type="Control" parent="." unique_id=417446375]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 0
+pivot_offset = Vector2(960, 32)
+mouse_filter = 2
+metadata/hud_anchor = Vector2(960, 32)
+
+[node name="Timer" type="Label" parent="TimerGroup" unique_id=1658650809]
+layout_mode = 0
+offset_left = 840.0
+offset_top = 26.0
+offset_right = 1080.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_ludbc")
+theme_override_font_sizes/font_size = 30
+text = "32:14"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Extract" type="Label" parent="TimerGroup" unique_id=1213699161]
+layout_mode = 0
+offset_left = 760.0
+offset_top = 61.0
+offset_right = 1160.0
+offset_bottom = 84.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_b8p5p")
+theme_override_font_sizes/font_size = 11
+text = "EXTRACT · RAIL BRIDGE · 340 m"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FeedGroup" type="Control" parent="." unique_id=1082971251]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 0
+pivot_offset = Vector2(1864, 36)
+mouse_filter = 2
+metadata/hud_anchor = Vector2(1864, 36)
+
+[node name="LootText" type="Label" parent="FeedGroup" unique_id=975414345]
+layout_mode = 0
+offset_left = 1520.0
+offset_top = 36.0
+offset_right = 1814.0
+offset_bottom = 59.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 14
+text = "Car battery ×1"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LootKind" type="Label" parent="FeedGroup" unique_id=1529490469]
+layout_mode = 0
+offset_left = 1826.0
+offset_top = 36.0
+offset_right = 1864.0
+offset_bottom = 59.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "LOOT"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="KillText" type="Label" parent="FeedGroup" unique_id=908790305]
+layout_mode = 0
+offset_left = 1520.0
+offset_top = 60.0
+offset_right = 1814.0
+offset_bottom = 83.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 14
+text = "Scav · 34 m · headshot"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="KillKind" type="Label" parent="FeedGroup" unique_id=1405646546]
+layout_mode = 0
+offset_left = 1826.0
+offset_top = 60.0
+offset_right = 1864.0
+offset_bottom = 83.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "KILL"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TaskText" type="Label" parent="FeedGroup" unique_id=120394147]
+layout_mode = 0
+offset_left = 1520.0
+offset_top = 84.0
+offset_right = 1814.0
+offset_bottom = 107.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 14
+text = "Supply run 2/3"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TaskKind" type="Label" parent="FeedGroup" unique_id=1038651139]
+layout_mode = 0
+offset_left = 1826.0
+offset_top = 84.0
+offset_right = 1864.0
+offset_bottom = 107.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "TASK"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TeammateGroup" type="Control" parent="." unique_id=1924857896]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 0
+pivot_offset = Vector2(1146, 642)
+mouse_filter = 2
+metadata/hud_anchor = Vector2(1146, 642)
+
+[node name="TeammateSprite" type="TextureRect" parent="TeammateGroup" unique_id=341160452]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1128.0
+offset_top = 650.0
+offset_right = 1164.0
+offset_bottom = 710.0
+mouse_filter = 2
+texture = ExtResource("8_0cblk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TeammateName" type="Label" parent="TeammateGroup" unique_id=675868713]
+layout_mode = 0
+offset_left = 1108.0
+offset_top = 615.0
+offset_right = 1180.0
+offset_bottom = 638.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_c82ra")
+theme_override_font_sizes/font_size = 13
+text = "KEVIN_J"
+vertical_alignment = 1
+
+[node name="TeammateDistance" type="Label" parent="TeammateGroup" unique_id=1136657132]
+layout_mode = 0
+offset_left = 1180.0
+offset_top = 617.0
+offset_right = 1218.0
+offset_bottom = 640.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "14 m"
+vertical_alignment = 1
+
+[node name="HealthTrack" type="ColorRect" parent="TeammateGroup" unique_id=102527233]
+layout_mode = 0
+offset_left = 1124.0
+offset_top = 638.0
+offset_right = 1168.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Health" type="ColorRect" parent="TeammateGroup" unique_id=1525901805]
+layout_mode = 0
+offset_left = 1124.0
+offset_top = 638.0
+offset_right = 1160.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="SpeakerWave1" type="ColorRect" parent="TeammateGroup" unique_id=2118597979]
+layout_mode = 0
+offset_left = 1091.0
+offset_top = 622.6
+offset_right = 1092.95
+offset_bottom = 627.14996
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave2" type="ColorRect" parent="TeammateGroup" unique_id=265956557]
+layout_mode = 0
+offset_left = 1092.95
+offset_top = 621.3
+offset_right = 1094.8999
+offset_bottom = 628.45
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave3" type="ColorRect" parent="TeammateGroup" unique_id=316998820]
+layout_mode = 0
+offset_left = 1094.9
+offset_top = 620.0
+offset_right = 1096.2001
+offset_bottom = 629.75
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave4" type="ColorRect" parent="TeammateGroup" unique_id=1749262305]
+layout_mode = 0
+offset_left = 1096.85
+offset_top = 621.3
+offset_right = 1098.15
+offset_bottom = 623.25
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="SpeakerWave5" type="ColorRect" parent="TeammateGroup" unique_id=709844657]
+layout_mode = 0
+offset_left = 1098.15
+offset_top = 622.6
+offset_right = 1099.4501
+offset_bottom = 627.14996
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="RemoteSquadLabel" type="Label" parent="TeammateGroup" unique_id=448641849]
+modulate = Color(1, 1, 1, 0.75)
+layout_mode = 0
+offset_left = 24.0
+offset_top = 540.0
+offset_right = 184.0
+offset_bottom = 563.0
+theme_override_colors/font_color = Color(0.29803923, 0.5529412, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 9
+text = "◂ OYO_TRPLE · 140 m"
+vertical_alignment = 1
+
+[node name="VitalsGroup" type="Control" parent="." unique_id=661172220]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 0
+pivot_offset = Vector2(56, 1024)
+mouse_filter = 2
+metadata/hud_anchor = Vector2(56, 1024)
+
+[node name="PlayerName" type="Label" parent="VitalsGroup" unique_id=106203615]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 958.0
+offset_right = 356.0
+offset_bottom = 981.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_b8p5p")
+theme_override_font_sizes/font_size = 11
+text = "OAK JHONSON"
+vertical_alignment = 1
+
+[node name="HealthSegment1" type="ColorRect" parent="VitalsGroup" unique_id=1400460354]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 982.0
+offset_right = 102.85715
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="HealthSegment2" type="ColorRect" parent="VitalsGroup" unique_id=2055160010]
+layout_mode = 0
+offset_left = 104.85714
+offset_top = 982.0
+offset_right = 151.71428
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="HealthSegment3" type="ColorRect" parent="VitalsGroup" unique_id=1936517218]
+layout_mode = 0
+offset_left = 153.71428
+offset_top = 982.0
+offset_right = 200.57143
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="HealthSegment4" type="ColorRect" parent="VitalsGroup" unique_id=1757309783]
+layout_mode = 0
+offset_left = 202.57143
+offset_top = 982.0
+offset_right = 249.42857
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="HealthSegment5" type="ColorRect" parent="VitalsGroup" unique_id=2114129869]
+layout_mode = 0
+offset_left = 251.42857
+offset_top = 982.0
+offset_right = 298.2857
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="HealthSegment6" type="ColorRect" parent="VitalsGroup" unique_id=1767394534]
+layout_mode = 0
+offset_left = 300.2857
+offset_top = 982.0
+offset_right = 347.14285
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="HealthSegment7" type="ColorRect" parent="VitalsGroup" unique_id=2121372038]
+layout_mode = 0
+offset_left = 349.14285
+offset_top = 982.0
+offset_right = 396.0
+offset_bottom = 990.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="HealthTrack" type="ColorRect" parent="VitalsGroup" unique_id=461590103]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 998.0
+offset_right = 396.0
+offset_bottom = 1001.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="HealthFill" type="ColorRect" parent="VitalsGroup" unique_id=2055545760]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 998.0
+offset_right = 321.0
+offset_bottom = 1001.0
+mouse_filter = 2
+color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+
+[node name="EnergyIcon" type="TextureRect" parent="VitalsGroup" unique_id=101094293]
+texture_filter = 1
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1012.0
+offset_right = 68.0
+offset_bottom = 1024.0
+mouse_filter = 2
+texture = ExtResource("9_sy72g")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnergyTrack" type="ColorRect" parent="VitalsGroup" unique_id=525228039]
+layout_mode = 0
+offset_left = 74.0
+offset_top = 1017.0
+offset_right = 213.0
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.52)
+
+[node name="EnergyFill" type="ColorRect" parent="VitalsGroup" unique_id=61325247]
+layout_mode = 0
+offset_left = 74.0
+offset_top = 1017.0
+offset_right = 162.95999
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="ThirstIcon" type="TextureRect" parent="VitalsGroup" unique_id=476830279]
+texture_filter = 1
+layout_mode = 0
+offset_left = 234.0
+offset_top = 1012.0
+offset_right = 246.0
+offset_bottom = 1024.0
+mouse_filter = 2
+texture = ExtResource("10_u1tf6")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ThirstTrack" type="ColorRect" parent="VitalsGroup" unique_id=882173498]
+layout_mode = 0
+offset_left = 252.0
+offset_top = 1017.0
+offset_right = 391.0
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.52)
+
+[node name="ThirstFill" type="ColorRect" parent="VitalsGroup" unique_id=91134599]
+layout_mode = 0
+offset_left = 252.0
+offset_top = 1017.0
+offset_right = 282.58
+offset_bottom = 1020.0
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="WeaponGroup" type="Control" parent="." unique_id=1707253115]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 0
+pivot_offset = Vector2(1864, 1024)
+mouse_filter = 2
+metadata/hud_anchor = Vector2(1864, 1024)
+
+[node name="WeaponName" type="Label" parent="WeaponGroup" unique_id=1852164900]
+layout_mode = 0
+offset_left = 1646.0
+offset_top = 890.0
+offset_right = 1817.0
+offset_bottom = 913.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_b8p5p")
+theme_override_font_sizes/font_size = 11
+text = "AKM · 7.62×39"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="FireMode" type="Label" parent="WeaponGroup" unique_id=511178984]
+layout_mode = 0
+offset_left = 1827.0
+offset_top = 890.0
+offset_right = 1864.0
+offset_bottom = 913.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_b8p5p")
+theme_override_font_sizes/font_size = 11
+text = "SEMI"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="AmmoCounter" type="Label" parent="WeaponGroup" unique_id=64474793]
+layout_mode = 0
+offset_left = 1722.0
+offset_top = 909.0
+offset_right = 1820.0
+offset_bottom = 974.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_qmqvi")
+theme_override_font_sizes/font_size = 60
+text = "24"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="AmmoReserve" type="Label" parent="WeaponGroup" unique_id=233064563]
+layout_mode = 0
+offset_left = 1828.0
+offset_top = 946.0
+offset_right = 1876.0
+offset_bottom = 974.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 16
+text = "/ 90"
+vertical_alignment = 1
+
+[node name="PrimaryIcon" type="TextureRect" parent="WeaponGroup" unique_id=905669510]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1742.0
+offset_top = 987.0
+offset_right = 1776.0
+offset_bottom = 1001.0
+mouse_filter = 2
+texture = ExtResource("11_flfc0")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PrimaryUnderline" type="ColorRect" parent="WeaponGroup" unique_id=541653523]
+layout_mode = 0
+offset_left = 1742.0
+offset_top = 1005.0
+offset_right = 1776.0
+offset_bottom = 1007.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[node name="PrimarySlot" type="Label" parent="WeaponGroup" unique_id=247125881]
+layout_mode = 0
+offset_left = 1742.0
+offset_top = 1010.0
+offset_right = 1776.0
+offset_bottom = 1033.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SecondaryIcon" type="TextureRect" parent="WeaponGroup" unique_id=1749314769]
+modulate = Color(1, 1, 1, 0.7)
+texture_filter = 1
+layout_mode = 0
+offset_left = 1785.0
+offset_top = 987.0
+offset_right = 1819.0
+offset_bottom = 1001.0
+mouse_filter = 2
+texture = ExtResource("12_qxl6s")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SecondarySlot" type="Label" parent="WeaponGroup" unique_id=73410732]
+layout_mode = 0
+offset_left = 1785.0
+offset_top = 1010.0
+offset_right = 1819.0
+offset_bottom = 1033.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MeleeIcon" type="TextureRect" parent="WeaponGroup" unique_id=878891388]
+modulate = Color(1, 1, 1, 0.7)
+texture_filter = 1
+layout_mode = 0
+offset_left = 1828.0
+offset_top = 987.0
+offset_right = 1862.0
+offset_bottom = 1001.0
+mouse_filter = 2
+texture = ExtResource("13_i3gje")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MeleeSlot" type="Label" parent="WeaponGroup" unique_id=208715870]
+layout_mode = 0
+offset_left = 1828.0
+offset_top = 1010.0
+offset_right = 1862.0
+offset_bottom = 1033.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CrosshairGroup" type="Control" parent="." unique_id=1671440295]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 0
+pivot_offset = Vector2(960, 540)
+mouse_filter = 2
+metadata/hud_anchor = Vector2(960, 540)
+
+[node name="Crosshair" type="Control" parent="CrosshairGroup" unique_id=65942508]
+anchors_preset = 0
+offset_left = 940.0
+offset_top = 520.0
+offset_right = 980.0
+offset_bottom = 560.0
+mouse_filter = 2
+script = ExtResource("14_hud_crosshair")
+
+[node name="HealthReadout" type="Label" parent="VitalsGroup" unique_id=100000001]
+visible = false
+layout_mode = 0
+offset_left = 306.0
+offset_top = 958.0
+offset_right = 396.0
+offset_bottom = 978.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 11
+text = "435 / 435"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="StatusBleeding" type="Panel" parent="VitalsGroup"]
+visible = false
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1031.0
+offset_right = 182.0
+offset_bottom = 1056.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_status_bleeding")
+
+[node name="Stripe" type="ColorRect" parent="VitalsGroup/StatusBleeding"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 25.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="Icon" type="Control" parent="VitalsGroup/StatusBleeding"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 7.0
+offset_right = 21.0
+offset_bottom = 19.0
+mouse_filter = 2
+
+[node name="Block1" type="ColorRect" parent="VitalsGroup/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 0.0
+offset_right = 5.6
+offset_bottom = 1.6
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="Block2" type="ColorRect" parent="VitalsGroup/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 2.4
+offset_top = 1.6
+offset_right = 7.2
+offset_bottom = 4.8
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="Block3" type="ColorRect" parent="VitalsGroup/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 1.6
+offset_top = 4.8
+offset_right = 8.0
+offset_bottom = 8.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="Block4" type="ColorRect" parent="VitalsGroup/StatusBleeding/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 8.0
+offset_right = 6.4
+offset_bottom = 9.6
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[node name="StatusFracture" type="Panel" parent="VitalsGroup"]
+visible = false
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1031.0
+offset_right = 182.0
+offset_bottom = 1056.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_status_fracture")
+
+[node name="Stripe" type="ColorRect" parent="VitalsGroup/StatusFracture"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 25.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Icon" type="Control" parent="VitalsGroup/StatusFracture"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 7.0
+offset_right = 21.0
+offset_bottom = 19.0
+mouse_filter = 2
+
+[node name="Block1" type="ColorRect" parent="VitalsGroup/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 0.0
+offset_right = 6.4
+offset_bottom = 1.6
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block2" type="ColorRect" parent="VitalsGroup/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 1.6
+offset_right = 5.6
+offset_bottom = 4.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block3" type="ColorRect" parent="VitalsGroup/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 2.4
+offset_top = 4.0
+offset_right = 4.8
+offset_bottom = 5.6
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block4" type="ColorRect" parent="VitalsGroup/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 5.6
+offset_top = 4.8
+offset_right = 7.2
+offset_bottom = 6.4
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="Block5" type="ColorRect" parent="VitalsGroup/StatusFracture/Icon"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 6.4
+offset_right = 5.6
+offset_bottom = 9.6
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[node name="StatusDehydrated" type="Panel" parent="VitalsGroup"]
+visible = false
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1031.0
+offset_right = 182.0
+offset_bottom = 1056.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_status_dehydrated")
+
+[node name="Stripe" type="ColorRect" parent="VitalsGroup/StatusDehydrated"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 25.0
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Icon" type="Control" parent="VitalsGroup/StatusDehydrated"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 7.0
+offset_right = 21.0
+offset_bottom = 19.0
+mouse_filter = 2
+
+[node name="Block1" type="ColorRect" parent="VitalsGroup/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 0.8
+offset_right = 5.6
+offset_bottom = 2.4
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Block2" type="ColorRect" parent="VitalsGroup/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 2.4
+offset_right = 6.4
+offset_bottom = 3.2
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Block3" type="ColorRect" parent="VitalsGroup/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 2.4
+offset_top = 3.2
+offset_right = 7.2
+offset_bottom = 6.4
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Block4" type="ColorRect" parent="VitalsGroup/StatusDehydrated/Icon"]
+layout_mode = 0
+offset_left = 3.2
+offset_top = 6.4
+offset_right = 6.4
+offset_bottom = 8.8
+mouse_filter = 2
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Caption" type="Label" parent="VitalsGroup/StatusBleeding"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 1.0
+offset_right = 104.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_font_sizes/font_size = 9
+text = "BLEEDING"
+vertical_alignment = 1
+
+[node name="Suffix" type="Label" parent="VitalsGroup/StatusBleeding"]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 1.0
+offset_right = 123.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9490196, 0.6901961, 0.65882355, 1)
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 9
+text = "−3/s"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Caption" type="Label" parent="VitalsGroup/StatusFracture"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 1.0
+offset_right = 104.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_font_sizes/font_size = 9
+text = "FRACTURE"
+vertical_alignment = 1
+
+[node name="Suffix" type="Label" parent="VitalsGroup/StatusFracture"]
+visible = false
+layout_mode = 0
+offset_left = 97.0
+offset_top = 1.0
+offset_right = 123.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9490196, 0.6901961, 0.65882355, 1)
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Caption" type="Label" parent="VitalsGroup/StatusDehydrated"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 1.0
+offset_right = 104.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.29803923, 0.5529412, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "DEHYDRATED"
+vertical_alignment = 1
+
+[node name="Suffix" type="Label" parent="VitalsGroup/StatusDehydrated"]
+visible = false
+layout_mode = 0
+offset_left = 97.0
+offset_top = 1.0
+offset_right = 123.0
+offset_bottom = 22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9490196, 0.6901961, 0.65882355, 1)
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="QuickHealKey" type="Panel" parent="VitalsGroup" unique_id=100000050]
+visible = false
+layout_mode = 0
+offset_left = 56.0
+offset_top = 1060.0
+offset_right = 84.0
+offset_bottom = 1087.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_quick_heal")
+
+[node name="Key" type="Label" parent="VitalsGroup/QuickHealKey"]
+layout_mode = 0
+offset_right = 28.0
+offset_bottom = 27.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 11
+text = "Y"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="QuickHealTitle" type="Label" parent="VitalsGroup" unique_id=100000051]
+visible = false
+layout_mode = 0
+offset_left = 96.0
+offset_top = 1058.0
+offset_right = 216.0
+offset_bottom = 1085.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_font_sizes/font_size = 11
+text = "QUICK HEAL"
+vertical_alignment = 1
+
+[node name="QuickHealDetail" type="Label" parent="VitalsGroup" unique_id=100000052]
+visible = false
+layout_mode = 0
+offset_left = 221.0
+offset_top = 1058.0
+offset_right = 481.0
+offset_bottom = 1085.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85098, 0.658824, 1)
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 10
+text = "Bandage ×2 · stops bleed · +40 HP"
+vertical_alignment = 1
+
+[node name="RoughAmmoPanel" type="Panel" parent="WeaponGroup" unique_id=100000060]
+visible = false
+layout_mode = 0
+offset_left = 1798.0
+offset_top = 920.0
+offset_right = 1826.0
+offset_bottom = 969.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_rough_ammo")
+
+[node name="RoughAmmoFill" type="ColorRect" parent="WeaponGroup/RoughAmmoPanel" unique_id=100000061]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 23.0
+offset_bottom = 44.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[node name="ReloadOverlay" type="Control" parent="." unique_id=100000070]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="ReloadRing" type="Control" parent="ReloadOverlay" unique_id=100000071]
+visible = false
+layout_mode = 0
+offset_left = 954.0
+offset_top = 664.0
+offset_right = 988.0
+offset_bottom = 698.0
+mouse_filter = 2
+script = ExtResource("15_hud_ring")
+
+[node name="ReloadConnector" type="ColorRect" parent="ReloadOverlay" unique_id=100000072]
+visible = false
+layout_mode = 0
+offset_left = 971.0
+offset_top = 706.0
+offset_right = 972.0
+offset_bottom = 720.0
+mouse_filter = 2
+color = Color(0.9, 0.92, 0.89, 0.66)
+
+[node name="EmptyMagOverlay" type="Control" parent="." unique_id=100000080]
+visible = false
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="EmptyMagKey" type="Panel" parent="EmptyMagOverlay" unique_id=100000081]
+layout_mode = 0
+offset_left = 921.0
+offset_top = 670.0
+offset_right = 941.0
+offset_bottom = 690.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_empty_mag")
+
+[node name="Key" type="Label" parent="EmptyMagOverlay/EmptyMagKey"]
+layout_mode = 0
+offset_right = 20.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("5_puw6u")
+theme_override_font_sizes/font_size = 11
+text = "R"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MagEmpty" type="Label" parent="EmptyMagOverlay" unique_id=100000082]
+layout_mode = 0
+offset_left = 949.0
+offset_top = 670.0
+offset_right = 1049.0
+offset_bottom = 690.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_font_sizes/font_size = 11
+text = "MAG EMPTY"
+vertical_alignment = 1

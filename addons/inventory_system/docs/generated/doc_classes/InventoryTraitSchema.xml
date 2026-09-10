@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryTraitSchema" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="authority_affecting" type="bool" setter="set_authority_affecting" getter="get_authority_affecting" default="true">
+		</member>
+		<member name="identifier" type="StringName" setter="set_identifier" getter="get_identifier" default="&amp;&quot;&quot;">
+		</member>
+		<member name="max_payload_bytes" type="int" setter="set_max_payload_bytes" getter="get_max_payload_bytes" default="1024">
+		</member>
+		<member name="version" type="int" setter="set_version" getter="get_version" default="1">
+		</member>
+	</members>
+</class>

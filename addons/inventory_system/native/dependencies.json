@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "engine": {
+    "name": "godot",
+    "compatibility_minimum": "4.7",
+    "validated_against": "4.7.1-stable",
+    "float_precision": "single"
+  },
+  "godot_cpp": {
+    "repository": "https://github.com/godotengine/godot-cpp.git",
+    "ref": "master",
+    "commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731",
+    "commit_short": "5ffd70e",
+    "commit_subject": "gdextension: Sync with upstream commit 5b4e0cb0 (4.7-stable)",
+    "extension_api": "4.7.0-stable",
+    "path": "thirdparty/godot-cpp",
+    "note": "godot-cpp has no 4.7 release branch yet. This pin is the master commit that syncs exactly to 4.7-stable; later master commits (Memory/defs/math syncs) target Godot master and are not required here. Re-pin to the 4.7 branch once upstream cuts it."
+  },
+  "toolchains": {
+    "build_system": "SCons >= 4.7",
+    "python": ">= 3.8",
+    "windows": {
+      "compiler": "MSVC 19.3x (Visual Studio 2022) or MinGW GCC >= 12",
+      "sdk": "Windows 10 SDK 10.0.20348 or newer"
+    },
+    "macos": {
+      "compiler": "Apple Clang 15 or newer",
+      "sdk": "macOS 14 SDK or newer",
+      "deployment_target": "10.13"
+    },
+    "linux": {
+      "compiler": "GCC >= 12 or Clang >= 15",
+      "sdk": "glibc >= 2.31"
+    },
+    "android": {
+      "compiler": "Android NDK r27 Clang",
+      "sdk": "Android API level 24 or newer"
+    },
+    "ios": {
+      "compiler": "Apple Clang 15 or newer",
+      "sdk": "iOS 14 SDK or newer"
+    },
+    "web": {
+      "compiler": "Emscripten 3.1.64 or newer",
+      "note": "Requires a Godot Web export template with Extension Support enabled."
+    }
+  }
+}

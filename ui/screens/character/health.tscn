@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://ui/screens/character/character_workspace.tscn" id="workspace"]
+
+[node name="health" instance=ExtResource("workspace")]
+forced_tab = "health"

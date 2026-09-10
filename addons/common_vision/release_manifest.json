@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "addon": "common_vision",
+  "version": "0.1.0",
+  "api_version": "0.1.0",
+  "protocol_version": 1,
+  "algorithm_contract_version": 1,
+  "coordinate_unit": "microunit",
+  "checksum_algorithm": "sha256",
+  "engine": {
+    "compatibility_minimum": "4.7",
+    "compatibility_maximum": null,
+    "canonical_precision": "signed-fixed-point-int64"
+  },
+  "support_policy": "A platform is supported only after its artifact builds, loads, exports, and passes role-applicable conformance tests.",
+  "provenance": {
+    "source_revision": "1d42579ac9899953a5a7b7f50f846a71706eae1d",
+    "built_at": "2026-07-28T19:36:26Z"
+  },
+  "targets": [
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "debug",
+      "roles": ["client", "offline_authority", "server_authority"],
+      "artifact": "bin/libcommon_vision.macos.template_debug.universal.dylib",
+      "status": "built",
+      "sha256": "479a81be659d1bbbd6e8ecaa02502d699a92cbaa1cd96082a43c1d5b9c2b6b1e",
+      "support_state": "experimental",
+      "verified_by": [
+        "scons vision_tests run_vision_tests=yes (30/30; boundary check passed)",
+        "Godot 4.7.1 headless import",
+        "tests/vision/common_vision_smoke.gd"
+      ]
+    },
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "release",
+      "roles": ["client", "offline_authority", "server_authority"],
+      "artifact": "bin/libcommon_vision.macos.template_release.universal.dylib",
+      "status": "built",
+      "sha256": "3e927bc088e119ae61137d13c28ef62ca86837902cf4de31c2f462a356483213",
+      "support_state": "experimental",
+      "verified_by": [
+        "scons platform=macos target=template_release arch=universal"
+      ],
+      "notes": "Built successfully; a non-exported editor run selects the debug artifact, so release loading remains unverified until export smoke."
+    }
+  ]
+}

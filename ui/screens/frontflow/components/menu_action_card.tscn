@@ -1,0 +1,108 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/frontflow/components/menu_action_card.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://ui/components/controls/zerkov_button.tscn" id="2_common_button"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="3_chakra_semibold"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="4_ibm_regular"]
+
+[sub_resource type="FontVariation" id="FontVariation_chakra_s4"]
+base_font = ExtResource("3_chakra_semibold")
+spacing_glyph = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel_clear"]
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_accent"]
+bg_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_normal"]
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_hover"]
+bg_color = Color(1, 1, 1, 0.04)
+border_color = Color(1, 1, 1, 0.12)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_pressed"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+border_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hit_focus"]
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_width_left = 2
+
+[node name="MenuActionCard" type="Panel"]
+layout_mode = 0
+offset_right = 510.0
+offset_bottom = 76.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_panel_clear")
+script = ExtResource("1_script")
+active_accent_style = SubResource("StyleBox_accent")
+inactive_accent_style = SubResource("StyleBox_panel_clear")
+
+[node name="Accent" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 76.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_accent")
+metadata/active_accent = false
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 6.0
+offset_right = 504.0
+offset_bottom = 40.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.717647, 0.737255, 0.705882, 1)
+theme_override_fonts/font = SubResource("FontVariation_chakra_s4")
+theme_override_font_sizes/font_size = 28
+text = "CONTINUE"
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 43.0
+offset_right = 504.0
+offset_bottom = 63.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "OAK'S BUNKER · Bunker LVL 3 · LVL 14 · 2 h ago"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" parent="." instance=ExtResource("2_common_button")]
+variant = "hit"
+layout_mode = 0
+offset_right = 510.0
+offset_bottom = 76.0
+mouse_default_cursor_shape = 2
+focus_mode = 2
+flat = false
+mouse_filter = 0
+show_glyph = false
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 0)
+theme_override_styles/normal = SubResource("StyleBox_hit_normal")
+theme_override_styles/hover = SubResource("StyleBox_hit_hover")
+theme_override_styles/pressed = SubResource("StyleBox_hit_pressed")
+theme_override_styles/focus = SubResource("StyleBox_hit_focus")
+text = ""

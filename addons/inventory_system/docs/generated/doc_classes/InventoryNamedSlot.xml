@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryNamedSlot" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="blocked_traits" type="PackedStringArray" setter="set_blocked_traits" getter="get_blocked_traits" default="PackedStringArray()">
+		</member>
+		<member name="identifier" type="StringName" setter="set_identifier" getter="get_identifier" default="&amp;&quot;&quot;">
+		</member>
+		<member name="max_items" type="int" setter="set_max_items" getter="get_max_items" default="1">
+		</member>
+		<member name="required_traits" type="PackedStringArray" setter="set_required_traits" getter="get_required_traits" default="PackedStringArray()">
+		</member>
+	</members>
+</class>

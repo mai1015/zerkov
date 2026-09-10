@@ -1,0 +1,102 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://ui/components/backgrounds/parallax_background.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/original/UI/UI/Background UI/background_layer-4_sky.png" id="2_sky"]
+[ext_resource type="Texture2D" path="res://assets/original/UI/UI/Background UI/background_layer-5_clouds.png" id="3_clouds"]
+[ext_resource type="Texture2D" path="res://assets/original/UI/UI/Background UI/background_layer-3_mountains.png" id="4_mountains"]
+[ext_resource type="Texture2D" path="res://assets/original/UI/UI/Background UI/background_layer-6_logo-clouds.png" id="5_logo"]
+[ext_resource type="Texture2D" path="res://assets/original/UI/UI/Background UI/background_layer-2_house.png" id="6_house"]
+[ext_resource type="Texture2D" path="res://assets/original/UI/UI/Background UI/background_Layer-1_Front_CORRECTED.png" id="7_foreground"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_background"]
+bg_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+
+[node name="ParallaxBackground" type="Panel"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_background")
+script = ExtResource("1_script")
+metadata/z_backdrop = true
+
+[node name="Sky" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 0
+offset_left = -44.0
+offset_top = -30.0
+offset_right = 1964.0
+offset_bottom = 1110.0
+mouse_filter = 2
+texture = ExtResource("2_sky")
+expand_mode = 1
+stretch_mode = 6
+metadata/parallax_depth = 0.08
+
+[node name="Clouds" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 0
+offset_left = -44.0
+offset_top = -30.0
+offset_right = 1964.0
+offset_bottom = 1110.0
+mouse_filter = 2
+texture = ExtResource("3_clouds")
+expand_mode = 1
+stretch_mode = 6
+metadata/parallax_depth = 0.18
+
+[node name="Mountains" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 0
+offset_left = -44.0
+offset_top = -30.0
+offset_right = 1964.0
+offset_bottom = 1110.0
+mouse_filter = 2
+texture = ExtResource("4_mountains")
+expand_mode = 1
+stretch_mode = 6
+metadata/parallax_depth = 0.36
+
+[node name="Logo" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 0
+offset_left = -44.0
+offset_top = -30.0
+offset_right = 1964.0
+offset_bottom = 1110.0
+mouse_filter = 2
+texture = ExtResource("5_logo")
+expand_mode = 1
+stretch_mode = 6
+metadata/parallax_depth = 0.24
+
+[node name="House" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 0
+offset_left = -44.0
+offset_top = -30.0
+offset_right = 1964.0
+offset_bottom = 1110.0
+mouse_filter = 2
+texture = ExtResource("6_house")
+expand_mode = 1
+stretch_mode = 6
+metadata/parallax_depth = 0.68
+
+[node name="Foreground" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 0
+offset_left = -44.0
+offset_top = -30.0
+offset_right = 1964.0
+offset_bottom = 1110.0
+mouse_filter = 2
+texture = ExtResource("7_foreground")
+expand_mode = 1
+stretch_mode = 6
+metadata/parallax_depth = 1.0

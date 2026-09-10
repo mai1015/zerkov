@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://ui/components/controls/zerkov_button.tscn" id="button"]
+
+[node name="CompactWorkspace" type="Control"]
+visible = false
+mouse_filter = 2
+
+[node name="Section_loadout" parent="." instance=ExtResource("button")]
+offset_left = 0.0
+offset_right = 96.0
+offset_bottom = 36.0
+text = "LOADOUT"
+
+[node name="Section_stash" parent="." instance=ExtResource("button")]
+offset_left = 100.0
+offset_right = 196.0
+offset_bottom = 36.0
+text = "STASH"
+
+[node name="Section_gear" parent="." instance=ExtResource("button")]
+offset_left = 200.0
+offset_right = 296.0
+offset_bottom = 36.0
+text = "GEAR"
+
+[node name="Section_health" parent="." instance=ExtResource("button")]
+offset_left = 300.0
+offset_right = 396.0
+offset_bottom = 36.0
+text = "HEALTH"
+
+[node name="Section_stats" parent="." instance=ExtResource("button")]
+offset_left = 400.0
+offset_right = 496.0
+offset_bottom = 36.0
+text = "STATS"
+
+[node name="LoadoutScroll" type="ScrollContainer" parent="."]
+clip_contents = true
+follow_focus = true
+offset_right = 518.0
+offset_bottom = 500.0
+
+[node name="Content" type="Control" parent="LoadoutScroll"]
+custom_minimum_size = Vector2(518, 1000)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CharacterScroll" type="ScrollContainer" parent="."]
+clip_contents = true
+follow_focus = true
+offset_right = 480.0
+offset_bottom = 500.0
+
+[node name="Content" type="Control" parent="CharacterScroll"]
+custom_minimum_size = Vector2(480, 852)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="StashScroll" type="ScrollContainer" parent="."]
+clip_contents = true
+follow_focus = true
+offset_right = 518.0
+offset_bottom = 500.0
+
+[node name="Content" type="Control" parent="StashScroll"]
+custom_minimum_size = Vector2(518, 740)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CompactStash" type="Control" parent="."]
+mouse_filter = 2
+
+[node name="InventoryHints" type="Label" parent="."]
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "WHEEL  SCROLL    CTRL+CLICK  QUICK MOVE    DRAG  MOVE    RMB  OPTIONS    Y  QUICK HEAL"

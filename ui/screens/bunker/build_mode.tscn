@@ -1,0 +1,3037 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/theme/pixel_style.gd" id="1_i7mi7"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="2_jhecu"]
+[ext_resource type="Script" path="res://ui/screens/bunker/build_mode.gd" id="3_1p86s"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bunker_map.png" id="4_f6dmb"]
+[ext_resource type="Texture2D" path="res://assets/handoff/logo_white_pixel.png" id="5_xp5ix"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Bold.ttf" id="6_wm5pb"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="7_unko0"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-SemiBold.ttf" id="8_ce7g2"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="9_sxiuv"]
+[ext_resource type="PackedScene" path="res://ui/screens/bunker/components/top_chrome.tscn" id="10_top_chrome"]
+
+[ext_resource type="PackedScene" path="res://ui/screens/bunker/components/compact_workspace.tscn" id="compact_workspace"]
+
+[sub_resource type="StyleBox" id="StyleBox_hcx63"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_tvbd4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_wwrl8"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_yiekd"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_82dsy"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_okvvp"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3u7bt"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1ku0"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.16470589, 0.16470589, 0.16470589, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBox" id="StyleBox_70bmp"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_w5cx4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_fthf2"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_ghby4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_2tphl"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_f78ew"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_6xopb"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_5jvvo"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_rr241"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_v61rq"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_olb0t"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_14fwy"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfpd6"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rvqsb"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="Theme" id="Theme_wim7o"]
+default_font = ExtResource("2_jhecu")
+default_font_size = 14
+Button/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Button/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Button/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+Button/styles/disabled = SubResource("StyleBox_hcx63")
+Button/styles/focus = SubResource("StyleBox_tvbd4")
+Button/styles/hover = SubResource("StyleBox_wwrl8")
+Button/styles/normal = SubResource("StyleBox_yiekd")
+Button/styles/pressed = SubResource("StyleBox_82dsy")
+CheckBox/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckBox/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckBox/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+CheckButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+CheckButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+CheckButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+HSlider/styles/grabber_area = SubResource("StyleBoxFlat_okvvp")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_3u7bt")
+HSlider/styles/slider = SubResource("StyleBoxFlat_y1ku0")
+Label/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+Label/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+Label/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+LineEdit/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+LineEdit/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+LineEdit/styles/disabled = SubResource("StyleBox_70bmp")
+LineEdit/styles/focus = SubResource("StyleBox_w5cx4")
+LineEdit/styles/hover = SubResource("StyleBox_fthf2")
+LineEdit/styles/normal = SubResource("StyleBox_ghby4")
+LineEdit/styles/pressed = SubResource("StyleBox_2tphl")
+OptionButton/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_disabled_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+OptionButton/colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+OptionButton/colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+OptionButton/styles/disabled = SubResource("StyleBox_f78ew")
+OptionButton/styles/focus = SubResource("StyleBox_6xopb")
+OptionButton/styles/hover = SubResource("StyleBox_5jvvo")
+OptionButton/styles/normal = SubResource("StyleBox_rr241")
+OptionButton/styles/pressed = SubResource("StyleBox_v61rq")
+Panel/styles/panel = SubResource("StyleBox_olb0t")
+PopupMenu/colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+PopupMenu/colors/font_hover_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+PopupMenu/styles/panel = SubResource("StyleBox_14fwy")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_lfpd6")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_rvqsb")
+
+[sub_resource type="Gradient" id="Gradient_5bhnp"]
+colors = PackedColorArray(0.08235294, 0.09411765, 0.101960786, 1, 0.039215688, 0.043137256, 0.039215688, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ca73i"]
+gradient = SubResource("Gradient_5bhnp")
+fill = 1
+fill_from = Vector2(0.4, 0.5)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="StyleBox" id="StyleBox_ymdb4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="FontVariation" id="FontVariation_hq2e2"]
+base_font = ExtResource("6_wm5pb")
+spacing_glyph = 2
+
+[sub_resource type="FontVariation" id="FontVariation_t641k"]
+base_font = ExtResource("7_unko0")
+
+[sub_resource type="StyleBox" id="StyleBox_j78l4"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_o7y7b"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="FontVariation" id="FontVariation_w0pbw"]
+base_font = ExtResource("9_sxiuv")
+spacing_glyph = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cgwdr"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cbhto"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0xmfq"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_xxc5b"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_h13ij"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5dfkw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.64)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBox" id="StyleBox_lxeyi"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_wf5lj"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_rp37y"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_nfvvu"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_7qxiu"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_bks3i"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_o1gro"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_es3f7"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_1xoep"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_471ag"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_deftr"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vd38u"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_mhq5t"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_15jd0"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mwtif"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j2ge0"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2v5ui"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_jrnic"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ih3nk"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7vkrd"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3831j"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_k3cgs"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bc1l1"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f7xxa"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ry5bd"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_ag8up"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5r2ot"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2klgh"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ctj3m"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_jtpol"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ay5p8"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d8oy4"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yhp88"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_6npm8"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i7tik"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_twtpl"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jgw52"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_wii2x"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_0nxie"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wr6jb"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n0rpm"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vrhpp"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_to051"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_exs63"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lxdf1"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kd523"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_85p34"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_vxccb"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_4bit0"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0ponr"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ma5v7"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l3lq8"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_dwgjo"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_e6yi0"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0mkwf"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aiqff"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vivxu"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_1qxt6"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_lshi1"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qjycm"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2uxbd"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8iyvb"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_v4d5h"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_hb7js"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7onaf"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8pryy"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uuksh"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_wlg6x"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_l62i3"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wkvlf"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_81bys"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8q1lo"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBox" id="StyleBox_god51"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBox" id="StyleBox_jhy2n"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+script = ExtResource("1_i7mi7")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qqo4s"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g111a"]
+bg_color = Color(0.91, 0.59, 0.18, 0.16)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b3lcp"]
+bg_color = Color(1, 1, 1, 0.04)
+
+[node name="BuildMode" type="Control" unique_id=1823359184]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = SubResource("Theme_wim7o")
+script = ExtResource("3_1p86s")
+
+[node name="BackgroundColor" type="ColorRect" parent="." unique_id=1329531448]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+
+[node name="FloorplanColor" type="ColorRect" parent="." unique_id=794034916]
+layout_mode = 0
+offset_top = 56.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.035, 0.043, 0.043, 1)
+
+[node name="FloorplanGlow" type="TextureRect" parent="." unique_id=744361712]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_ca73i")
+
+[node name="BunkerMap" type="TextureRect" parent="." unique_id=1093255372]
+modulate = Color(0.72, 0.72, 0.72, 1)
+texture_filter = 1
+layout_mode = 0
+offset_left = 300.0
+offset_top = 130.0
+offset_right = 1540.0
+offset_bottom = 939.0
+mouse_filter = 2
+texture = ExtResource("4_f6dmb")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BuildDim" type="ColorRect" parent="." unique_id=557526369]
+layout_mode = 0
+offset_top = 56.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.02, 0.025, 0.025, 0.1404)
+
+[node name="TopChrome" parent="." instance=ExtResource("10_top_chrome")]
+variant = "build"
+
+[node name="Grid00" type="ColorRect" parent="." unique_id=1923919637]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 130.0
+offset_right = 301.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid01" type="ColorRect" parent="." unique_id=840003786]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 130.0
+offset_right = 341.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid02" type="ColorRect" parent="." unique_id=1422305288]
+layout_mode = 0
+offset_left = 380.0
+offset_top = 130.0
+offset_right = 381.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid03" type="ColorRect" parent="." unique_id=987971592]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 130.0
+offset_right = 421.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid04" type="ColorRect" parent="." unique_id=990533403]
+layout_mode = 0
+offset_left = 460.0
+offset_top = 130.0
+offset_right = 461.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid05" type="ColorRect" parent="." unique_id=562218030]
+layout_mode = 0
+offset_left = 500.0
+offset_top = 130.0
+offset_right = 501.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid06" type="ColorRect" parent="." unique_id=33881416]
+layout_mode = 0
+offset_left = 540.0
+offset_top = 130.0
+offset_right = 541.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid07" type="ColorRect" parent="." unique_id=382632447]
+layout_mode = 0
+offset_left = 580.0
+offset_top = 130.0
+offset_right = 581.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid08" type="ColorRect" parent="." unique_id=1721083392]
+layout_mode = 0
+offset_left = 620.0
+offset_top = 130.0
+offset_right = 621.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid09" type="ColorRect" parent="." unique_id=413937212]
+layout_mode = 0
+offset_left = 660.0
+offset_top = 130.0
+offset_right = 661.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid10" type="ColorRect" parent="." unique_id=1918333642]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 130.0
+offset_right = 701.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid11" type="ColorRect" parent="." unique_id=1184660734]
+layout_mode = 0
+offset_left = 740.0
+offset_top = 130.0
+offset_right = 741.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid12" type="ColorRect" parent="." unique_id=1984062966]
+layout_mode = 0
+offset_left = 780.0
+offset_top = 130.0
+offset_right = 781.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid13" type="ColorRect" parent="." unique_id=282876903]
+layout_mode = 0
+offset_left = 820.0
+offset_top = 130.0
+offset_right = 821.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid14" type="ColorRect" parent="." unique_id=915342199]
+layout_mode = 0
+offset_left = 860.0
+offset_top = 130.0
+offset_right = 861.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid15" type="ColorRect" parent="." unique_id=2051377855]
+layout_mode = 0
+offset_left = 900.0
+offset_top = 130.0
+offset_right = 901.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid16" type="ColorRect" parent="." unique_id=162160818]
+layout_mode = 0
+offset_left = 940.0
+offset_top = 130.0
+offset_right = 941.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid17" type="ColorRect" parent="." unique_id=359439067]
+layout_mode = 0
+offset_left = 980.0
+offset_top = 130.0
+offset_right = 981.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid18" type="ColorRect" parent="." unique_id=2013190467]
+layout_mode = 0
+offset_left = 1020.0
+offset_top = 130.0
+offset_right = 1021.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid19" type="ColorRect" parent="." unique_id=579924032]
+layout_mode = 0
+offset_left = 1060.0
+offset_top = 130.0
+offset_right = 1061.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid20" type="ColorRect" parent="." unique_id=1337366420]
+layout_mode = 0
+offset_left = 1100.0
+offset_top = 130.0
+offset_right = 1101.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid21" type="ColorRect" parent="." unique_id=1495833849]
+layout_mode = 0
+offset_left = 1140.0
+offset_top = 130.0
+offset_right = 1141.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid22" type="ColorRect" parent="." unique_id=1785560469]
+layout_mode = 0
+offset_left = 1180.0
+offset_top = 130.0
+offset_right = 1181.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid23" type="ColorRect" parent="." unique_id=147358501]
+layout_mode = 0
+offset_left = 1220.0
+offset_top = 130.0
+offset_right = 1221.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid24" type="ColorRect" parent="." unique_id=1354614444]
+layout_mode = 0
+offset_left = 1260.0
+offset_top = 130.0
+offset_right = 1261.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid25" type="ColorRect" parent="." unique_id=1290238647]
+layout_mode = 0
+offset_left = 1300.0
+offset_top = 130.0
+offset_right = 1301.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid26" type="ColorRect" parent="." unique_id=668230168]
+layout_mode = 0
+offset_left = 1340.0
+offset_top = 130.0
+offset_right = 1341.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid27" type="ColorRect" parent="." unique_id=2052230709]
+layout_mode = 0
+offset_left = 1380.0
+offset_top = 130.0
+offset_right = 1381.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid28" type="ColorRect" parent="." unique_id=962358399]
+layout_mode = 0
+offset_left = 1420.0
+offset_top = 130.0
+offset_right = 1421.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid29" type="ColorRect" parent="." unique_id=183520344]
+layout_mode = 0
+offset_left = 1460.0
+offset_top = 130.0
+offset_right = 1461.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid30" type="ColorRect" parent="." unique_id=2028921637]
+layout_mode = 0
+offset_left = 1500.0
+offset_top = 130.0
+offset_right = 1501.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid31" type="ColorRect" parent="." unique_id=772025459]
+layout_mode = 0
+offset_left = 1540.0
+offset_top = 130.0
+offset_right = 1541.0
+offset_bottom = 939.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid32" type="ColorRect" parent="." unique_id=1579959651]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 130.0
+offset_right = 1540.0
+offset_bottom = 131.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid33" type="ColorRect" parent="." unique_id=632950323]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 170.0
+offset_right = 1540.0
+offset_bottom = 171.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid34" type="ColorRect" parent="." unique_id=2138661596]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 210.0
+offset_right = 1540.0
+offset_bottom = 211.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid35" type="ColorRect" parent="." unique_id=1848154656]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 250.0
+offset_right = 1540.0
+offset_bottom = 251.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid36" type="ColorRect" parent="." unique_id=1200415727]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 290.0
+offset_right = 1540.0
+offset_bottom = 291.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid37" type="ColorRect" parent="." unique_id=1514762972]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 330.0
+offset_right = 1540.0
+offset_bottom = 331.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid38" type="ColorRect" parent="." unique_id=890852699]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 370.0
+offset_right = 1540.0
+offset_bottom = 371.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid39" type="ColorRect" parent="." unique_id=1441772500]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 410.0
+offset_right = 1540.0
+offset_bottom = 411.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid40" type="ColorRect" parent="." unique_id=707299281]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 450.0
+offset_right = 1540.0
+offset_bottom = 451.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid41" type="ColorRect" parent="." unique_id=1889305524]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 490.0
+offset_right = 1540.0
+offset_bottom = 491.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid42" type="ColorRect" parent="." unique_id=2059551384]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 530.0
+offset_right = 1540.0
+offset_bottom = 531.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid43" type="ColorRect" parent="." unique_id=2059273166]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 570.0
+offset_right = 1540.0
+offset_bottom = 571.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid44" type="ColorRect" parent="." unique_id=1487388032]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 610.0
+offset_right = 1540.0
+offset_bottom = 611.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid45" type="ColorRect" parent="." unique_id=2071499809]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 650.0
+offset_right = 1540.0
+offset_bottom = 651.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid46" type="ColorRect" parent="." unique_id=643967185]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 690.0
+offset_right = 1540.0
+offset_bottom = 691.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid47" type="ColorRect" parent="." unique_id=1819443665]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 730.0
+offset_right = 1540.0
+offset_bottom = 731.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid48" type="ColorRect" parent="." unique_id=579876577]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 770.0
+offset_right = 1540.0
+offset_bottom = 771.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid49" type="ColorRect" parent="." unique_id=981991468]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 810.0
+offset_right = 1540.0
+offset_bottom = 811.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid50" type="ColorRect" parent="." unique_id=1257028812]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 850.0
+offset_right = 1540.0
+offset_bottom = 851.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid51" type="ColorRect" parent="." unique_id=1033177853]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 890.0
+offset_right = 1540.0
+offset_bottom = 891.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="Grid52" type="ColorRect" parent="." unique_id=2088475941]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 930.0
+offset_right = 1540.0
+offset_bottom = 931.0
+mouse_filter = 2
+color = Color(0.37, 0.83, 0.42, 0.14)
+
+[node name="StorageMarker" type="Panel" parent="." unique_id=330541140]
+layout_mode = 0
+offset_left = 362.0
+offset_top = 179.0
+offset_right = 459.0
+offset_bottom = 201.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_xxc5b")
+
+[node name="Label" type="Label" parent="StorageMarker" unique_id=189410426]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 89.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 9
+text = "STORAGE UNIT"
+vertical_alignment = 1
+clip_text = true
+
+[node name="UtilitiesMarker" type="Panel" parent="." unique_id=1646785637]
+layout_mode = 0
+offset_left = 920.0
+offset_top = 308.0
+offset_right = 1081.0
+offset_bottom = 330.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_h13ij")
+
+[node name="Label" type="Label" parent="UtilitiesMarker" unique_id=12895890]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 3.0
+offset_right = 153.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 9
+text = "UTILITIES · POWER RANGE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="PowerArc000" type="Line2D" parent="." unique_id=749799440]
+points = PackedVector2Array(1080, 338, 1079.8667, 344.10672)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc001" type="Line2D" parent="." unique_id=1258487367]
+points = PackedVector2Array(1079.4673, 350.2018, 1078.8022, 356.27368)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc002" type="Line2D" parent="." unique_id=1621732727]
+points = PackedVector2Array(1077.873, 362.31073, 1076.6814, 368.30154)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc003" type="Line2D" parent="." unique_id=1702693743]
+points = PackedVector2Array(1075.2296, 374.23468, 1073.5204, 380.09882)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc004" type="Line2D" parent="." unique_id=1632530559]
+points = PackedVector2Array(1071.557, 385.8828, 1069.3431, 391.57568)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc005" type="Line2D" parent="." unique_id=925275099]
+points = PackedVector2Array(1066.883, 397.16656, 1064.1815, 402.6448)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc006" type="Line2D" parent="." unique_id=722095410]
+points = PackedVector2Array(1061.2435, 408, 1058.0748, 413.22195)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc007" type="Line2D" parent="." unique_id=1259879062]
+points = PackedVector2Array(1054.6813, 418.30072, 1051.0695, 423.2266)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc008" type="Line2D" parent="." unique_id=1072835864]
+points = PackedVector2Array(1047.2462, 427.99026, 1043.2189, 432.5826)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc009" type="Line2D" parent="." unique_id=1382633131]
+points = PackedVector2Array(1038.995, 436.99493, 1034.5826, 441.2188)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc010" type="Line2D" parent="." unique_id=386017888]
+points = PackedVector2Array(1029.9902, 445.24622, 1025.2266, 449.06946)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc011" type="Line2D" parent="." unique_id=307814308]
+points = PackedVector2Array(1020.3007, 452.68127, 1015.2219, 456.0748)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc012" type="Line2D" parent="." unique_id=1877912163]
+points = PackedVector2Array(1010, 459.24356, 1004.6448, 462.18152)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc013" type="Line2D" parent="." unique_id=436343725]
+points = PackedVector2Array(999.16656, 464.8831, 993.5757, 467.34314)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc014" type="Line2D" parent="." unique_id=595643100]
+points = PackedVector2Array(987.8828, 469.55695, 982.0988, 471.5204)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc015" type="Line2D" parent="." unique_id=859701295]
+points = PackedVector2Array(976.2347, 473.2296, 970.3016, 474.68146)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc016" type="Line2D" parent="." unique_id=946937751]
+points = PackedVector2Array(964.3107, 475.87308, 958.2737, 476.80228)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc017" type="Line2D" parent="." unique_id=359090449]
+points = PackedVector2Array(952.2018, 477.46725, 946.1067, 477.86676)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc018" type="Line2D" parent="." unique_id=2092523074]
+points = PackedVector2Array(940, 478, 933.8933, 477.86676)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc019" type="Line2D" parent="." unique_id=506691359]
+points = PackedVector2Array(927.7982, 477.46725, 921.7263, 476.80228)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc020" type="Line2D" parent="." unique_id=978589602]
+points = PackedVector2Array(915.6893, 475.87308, 909.6984, 474.68146)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc021" type="Line2D" parent="." unique_id=2004890532]
+points = PackedVector2Array(903.7653, 473.2296, 897.9012, 471.5204)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc022" type="Line2D" parent="." unique_id=1380519170]
+points = PackedVector2Array(892.1172, 469.55695, 886.4243, 467.34314)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc023" type="Line2D" parent="." unique_id=1045550019]
+points = PackedVector2Array(880.83344, 464.8831, 875.35516, 462.18152)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc024" type="Line2D" parent="." unique_id=30819219]
+points = PackedVector2Array(870, 459.24356, 864.7781, 456.0748)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc025" type="Line2D" parent="." unique_id=237965787]
+points = PackedVector2Array(859.6993, 452.68127, 854.7734, 449.06946)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc026" type="Line2D" parent="." unique_id=1253991944]
+points = PackedVector2Array(850.0097, 445.24622, 845.41736, 441.2188)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc027" type="Line2D" parent="." unique_id=1013502456]
+points = PackedVector2Array(841.00507, 436.99493, 836.7812, 432.58264)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc028" type="Line2D" parent="." unique_id=1397261849]
+points = PackedVector2Array(832.7538, 427.99026, 828.93054, 423.2266)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc029" type="Line2D" parent="." unique_id=2129503971]
+points = PackedVector2Array(825.3187, 418.30072, 821.9252, 413.22195)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc030" type="Line2D" parent="." unique_id=150055583]
+points = PackedVector2Array(818.7565, 408, 815.8185, 402.6448)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc031" type="Line2D" parent="." unique_id=982490601]
+points = PackedVector2Array(813.11694, 397.16656, 810.65686, 391.57568)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc032" type="Line2D" parent="." unique_id=1980424350]
+points = PackedVector2Array(808.44305, 385.88284, 806.4796, 380.09882)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc033" type="Line2D" parent="." unique_id=831229400]
+points = PackedVector2Array(804.7704, 374.23468, 803.31854, 368.30157)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc034" type="Line2D" parent="." unique_id=1381376320]
+points = PackedVector2Array(802.12695, 362.31076, 801.19775, 356.27365)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc035" type="Line2D" parent="." unique_id=1653301042]
+points = PackedVector2Array(800.5327, 350.20178, 800.13324, 344.1067)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc036" type="Line2D" parent="." unique_id=246806924]
+points = PackedVector2Array(800, 338, 800.13324, 331.89328)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc037" type="Line2D" parent="." unique_id=854950361]
+points = PackedVector2Array(800.5327, 325.7982, 801.19775, 319.72632)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc038" type="Line2D" parent="." unique_id=4744160]
+points = PackedVector2Array(802.12695, 313.68924, 803.31854, 307.69846)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc039" type="Line2D" parent="." unique_id=1595487873]
+points = PackedVector2Array(804.7704, 301.76532, 806.4796, 295.90118)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc040" type="Line2D" parent="." unique_id=1115896556]
+points = PackedVector2Array(808.44305, 290.1172, 810.65686, 284.42432)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc041" type="Line2D" parent="." unique_id=1997196925]
+points = PackedVector2Array(813.1169, 278.83344, 815.8185, 273.3552)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc042" type="Line2D" parent="." unique_id=1359308315]
+points = PackedVector2Array(818.7565, 268, 821.9252, 262.77808)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc043" type="Line2D" parent="." unique_id=2000937527]
+points = PackedVector2Array(825.3187, 257.6993, 828.93054, 252.7734)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc044" type="Line2D" parent="." unique_id=1939253680]
+points = PackedVector2Array(832.7538, 248.00974, 836.7812, 243.41739)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc045" type="Line2D" parent="." unique_id=821329808]
+points = PackedVector2Array(841.00507, 239.00507, 845.41736, 234.78119)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc046" type="Line2D" parent="." unique_id=2097359030]
+points = PackedVector2Array(850.00977, 230.75375, 854.7734, 226.93054)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc047" type="Line2D" parent="." unique_id=1310741377]
+points = PackedVector2Array(859.69934, 223.3187, 864.7781, 219.9252)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc048" type="Line2D" parent="." unique_id=672055356]
+points = PackedVector2Array(870, 216.75644, 875.35516, 213.8185)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc049" type="Line2D" parent="." unique_id=507523433]
+points = PackedVector2Array(880.83344, 211.11691, 886.4243, 208.65688)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc050" type="Line2D" parent="." unique_id=155065292]
+points = PackedVector2Array(892.1172, 206.44302, 897.9012, 204.47964)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc051" type="Line2D" parent="." unique_id=2141992872]
+points = PackedVector2Array(903.7653, 202.77037, 909.6984, 201.31857)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc052" type="Line2D" parent="." unique_id=1121272952]
+points = PackedVector2Array(915.6893, 200.1269, 921.7263, 199.19772)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc053" type="Line2D" parent="." unique_id=1786818104]
+points = PackedVector2Array(927.7982, 198.53275, 933.89325, 198.13324)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc054" type="Line2D" parent="." unique_id=158990470]
+points = PackedVector2Array(940, 198, 946.1067, 198.13324)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc055" type="Line2D" parent="." unique_id=1231326412]
+points = PackedVector2Array(952.2018, 198.53275, 958.2737, 199.19772)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc056" type="Line2D" parent="." unique_id=670355383]
+points = PackedVector2Array(964.3107, 200.12692, 970.3016, 201.31857)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc057" type="Line2D" parent="." unique_id=49303931]
+points = PackedVector2Array(976.2347, 202.77039, 982.0988, 204.47964)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc058" type="Line2D" parent="." unique_id=574956501]
+points = PackedVector2Array(987.8828, 206.44304, 993.5757, 208.65688)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc059" type="Line2D" parent="." unique_id=458996110]
+points = PackedVector2Array(999.16656, 211.11691, 1004.64484, 213.8185)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc060" type="Line2D" parent="." unique_id=251733375]
+points = PackedVector2Array(1010, 216.75644, 1015.222, 219.9252)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc061" type="Line2D" parent="." unique_id=1988877333]
+points = PackedVector2Array(1020.30066, 223.3187, 1025.2266, 226.93054)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc062" type="Line2D" parent="." unique_id=1905918264]
+points = PackedVector2Array(1029.9902, 230.75377, 1034.5826, 234.78119)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc063" type="Line2D" parent="." unique_id=44417366]
+points = PackedVector2Array(1038.9949, 239.00504, 1043.2189, 243.41739)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc064" type="Line2D" parent="." unique_id=458408525]
+points = PackedVector2Array(1047.2462, 248.0097, 1051.0695, 252.7734)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc065" type="Line2D" parent="." unique_id=1321419402]
+points = PackedVector2Array(1054.6813, 257.69928, 1058.0748, 262.77808)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc066" type="Line2D" parent="." unique_id=1693175231]
+points = PackedVector2Array(1061.2435, 267.99997, 1064.1815, 273.3552)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc067" type="Line2D" parent="." unique_id=1578352002]
+points = PackedVector2Array(1066.883, 278.8334, 1069.3431, 284.42432)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc068" type="Line2D" parent="." unique_id=1714976260]
+points = PackedVector2Array(1071.557, 290.11716, 1073.5204, 295.90118)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc069" type="Line2D" parent="." unique_id=708454128]
+points = PackedVector2Array(1075.2296, 301.76535, 1076.6814, 307.69846)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc070" type="Line2D" parent="." unique_id=175181001]
+points = PackedVector2Array(1077.873, 313.68927, 1078.8022, 319.72632)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PowerArc071" type="Line2D" parent="." unique_id=782253850]
+points = PackedVector2Array(1079.4673, 325.79822, 1079.8667, 331.89328)
+width = 1.0
+default_color = Color(0.9137255, 0.827451, 0.3529412, 0.45)
+
+[node name="PlacementPanel" type="Panel" parent="." unique_id=26481528]
+layout_mode = 0
+offset_left = 1572.0
+offset_top = 94.0
+offset_right = 1872.0
+offset_bottom = 494.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_5dfkw")
+
+[node name="Title" type="Label" parent="PlacementPanel" unique_id=2089622219]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 300.0
+offset_bottom = 17.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_hq2e2")
+theme_override_font_sizes/font_size = 13
+text = "PLACING · WORKBENCH"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Subtitle" type="Label" parent="PlacementPanel" unique_id=785449822]
+layout_mode = 0
+offset_top = -2.0
+offset_right = 300.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="RuleTop" type="ColorRect" parent="PlacementPanel" unique_id=1500594443]
+layout_mode = 0
+offset_top = 25.0
+offset_right = 300.0
+offset_bottom = 26.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="SizeLabel" type="Label" parent="PlacementPanel" unique_id=238640129]
+layout_mode = 0
+offset_top = 52.0
+offset_right = 80.0
+offset_bottom = 68.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "SIZE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="SizeValue" type="Label" parent="PlacementPanel" unique_id=813916600]
+layout_mode = 0
+offset_left = 220.0
+offset_top = 52.0
+offset_right = 290.0
+offset_bottom = 68.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 11
+text = "3 × 2"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="RuleCost" type="ColorRect" parent="PlacementPanel" unique_id=459274733]
+layout_mode = 0
+offset_top = 76.0
+offset_right = 300.0
+offset_bottom = 77.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="CostLabel" type="Label" parent="PlacementPanel" unique_id=1026583636]
+layout_mode = 0
+offset_top = 92.0
+offset_right = 80.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "COST"
+vertical_alignment = 1
+clip_text = true
+
+[node name="CostValue" type="Label" parent="PlacementPanel" unique_id=2101926547]
+layout_mode = 0
+offset_left = 82.0
+offset_top = 92.0
+offset_right = 290.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 11
+text = "$ 1,200 · Gun parts ×1"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="RulePower" type="ColorRect" parent="PlacementPanel" unique_id=125060110]
+layout_mode = 0
+offset_top = 116.0
+offset_right = 300.0
+offset_bottom = 117.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="PowerLabel" type="Label" parent="PlacementPanel" unique_id=1840118865]
+layout_mode = 0
+offset_top = 132.0
+offset_right = 80.0
+offset_bottom = 148.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "POWER"
+vertical_alignment = 1
+clip_text = true
+
+[node name="PowerValue" type="Label" parent="PlacementPanel" unique_id=1438392917]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 132.0
+offset_right = 290.0
+offset_bottom = 148.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 11
+text = "1 · within range ✓"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="RuleUnlocks" type="ColorRect" parent="PlacementPanel" unique_id=1175337170]
+layout_mode = 0
+offset_top = 156.0
+offset_right = 300.0
+offset_bottom = 157.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="UnlocksLabel" type="Label" parent="PlacementPanel" unique_id=1667822290]
+layout_mode = 0
+offset_top = 172.0
+offset_right = 80.0
+offset_bottom = 188.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "UNLOCKS"
+vertical_alignment = 1
+clip_text = true
+
+[node name="UnlocksValue" type="Label" parent="PlacementPanel" unique_id=1427796599]
+layout_mode = 0
+offset_left = 118.0
+offset_top = 172.0
+offset_right = 290.0
+offset_bottom = 188.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 11
+text = "Weapon mods · repairs"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Place" type="Button" parent="PlacementPanel" unique_id=689635944]
+layout_mode = 0
+offset_top = 208.0
+offset_right = 176.0
+offset_bottom = 252.0
+tooltip_text = "LMB  PLACE"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBox_lxeyi")
+theme_override_styles/pressed = SubResource("StyleBox_wf5lj")
+theme_override_styles/hover = SubResource("StyleBox_rp37y")
+theme_override_styles/focus = SubResource("StyleBox_nfvvu")
+text = "LMB  PLACE"
+
+[node name="Rotate" type="Button" parent="PlacementPanel" unique_id=1064160131]
+layout_mode = 0
+offset_left = 184.0
+offset_top = 208.0
+offset_right = 290.0
+offset_bottom = 252.0
+tooltip_text = "R  ROTATE"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBox_7qxiu")
+theme_override_styles/pressed = SubResource("StyleBox_bks3i")
+theme_override_styles/hover = SubResource("StyleBox_o1gro")
+theme_override_styles/focus = SubResource("StyleBox_es3f7")
+text = "R  ROTATE"
+
+[node name="PlacedHint" type="Label" parent="." unique_id=1431695243]
+layout_mode = 0
+offset_left = 1572.0
+offset_top = 850.0
+offset_right = 1872.0
+offset_bottom = 868.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "Placed 7 / 12 · space unlocks with Bunker LVL"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Preview" type="Panel" parent="." unique_id=1050567047]
+layout_mode = 0
+offset_left = 672.0
+offset_top = 421.0
+offset_right = 796.0
+offset_bottom = 505.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_1xoep")
+
+[node name="Status" type="Label" parent="Preview" unique_id=968685653]
+layout_mode = 0
+offset_left = 4.0
+offset_top = -22.0
+offset_right = 174.0
+offset_bottom = -4.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "✓ valid · near power"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Selection" type="Label" parent="Preview" unique_id=523538980]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 33.0
+offset_right = 122.0
+offset_bottom = 51.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 10
+text = "WORKBENCH · 3×2"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="Preview" unique_id=1376279993]
+layout_mode = 0
+offset_right = 126.0
+offset_bottom = 84.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_471ag")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_deftr")
+theme_override_styles/hover = SubResource("StyleBoxFlat_vd38u")
+theme_override_styles/focus = SubResource("StyleBoxFlat_vd38u")
+
+[node name="InvalidPreview" type="Panel" parent="." unique_id=886012279]
+layout_mode = 0
+offset_left = 1068.0
+offset_top = 550.0
+offset_right = 1152.0
+offset_bottom = 634.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_mhq5t")
+
+[node name="Label" type="Label" parent="InvalidPreview" unique_id=1290459528]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 24.0
+offset_right = 76.0
+offset_bottom = 56.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "GENERATOR
+blocked · wall"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="CategoryAll" type="Panel" parent="." unique_id=550739628]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 844.0
+offset_right = 100.0
+offset_bottom = 872.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_15jd0")
+
+[node name="Label" type="Label" parent="CategoryAll" unique_id=1498055304]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 52.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "ALL"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CategoryAll" unique_id=2095586432]
+layout_mode = 0
+offset_right = 52.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_mwtif")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_j2ge0")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2v5ui")
+theme_override_styles/focus = SubResource("StyleBoxFlat_2v5ui")
+
+[node name="CategoryStations" type="Panel" parent="." unique_id=203625208]
+layout_mode = 0
+offset_left = 102.0
+offset_top = 844.0
+offset_right = 190.0
+offset_bottom = 872.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_jrnic")
+
+[node name="Label" type="Label" parent="CategoryStations" unique_id=1429891429]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 88.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "STATIONS"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CategoryStations" unique_id=1679703742]
+layout_mode = 0
+offset_right = 88.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_ih3nk")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7vkrd")
+theme_override_styles/hover = SubResource("StyleBoxFlat_3831j")
+theme_override_styles/focus = SubResource("StyleBoxFlat_3831j")
+
+[node name="CategoryPower" type="Panel" parent="." unique_id=1152681183]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 844.0
+offset_right = 266.0
+offset_bottom = 872.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_k3cgs")
+
+[node name="Label" type="Label" parent="CategoryPower" unique_id=1400719965]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 74.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "POWER"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CategoryPower" unique_id=1869988028]
+layout_mode = 0
+offset_right = 74.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_bc1l1")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_f7xxa")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ry5bd")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ry5bd")
+
+[node name="CategoryStorage" type="Panel" parent="." unique_id=1111340254]
+layout_mode = 0
+offset_left = 268.0
+offset_top = 844.0
+offset_right = 354.0
+offset_bottom = 872.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_ag8up")
+
+[node name="Label" type="Label" parent="CategoryStorage" unique_id=2094834748]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 86.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "STORAGE"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CategoryStorage" unique_id=1970297515]
+layout_mode = 0
+offset_right = 86.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_5r2ot")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_2klgh")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ctj3m")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ctj3m")
+
+[node name="CategoryComfort" type="Panel" parent="." unique_id=2055700630]
+layout_mode = 0
+offset_left = 356.0
+offset_top = 844.0
+offset_right = 444.0
+offset_bottom = 872.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_jtpol")
+
+[node name="Label" type="Label" parent="CategoryComfort" unique_id=1646754814]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 88.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "COMFORT"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CategoryComfort" unique_id=1310322102]
+layout_mode = 0
+offset_right = 88.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_ay5p8")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_d8oy4")
+theme_override_styles/hover = SubResource("StyleBoxFlat_yhp88")
+theme_override_styles/focus = SubResource("StyleBoxFlat_yhp88")
+
+[node name="CategoryDecor" type="Panel" parent="." unique_id=1981914775]
+layout_mode = 0
+offset_left = 446.0
+offset_top = 844.0
+offset_right = 518.0
+offset_bottom = 872.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_6npm8")
+
+[node name="Label" type="Label" parent="CategoryDecor" unique_id=1550842765]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 72.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "DECOR"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CategoryDecor" unique_id=1746463006]
+layout_mode = 0
+offset_right = 72.0
+offset_bottom = 28.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_i7tik")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_twtpl")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jgw52")
+theme_override_styles/focus = SubResource("StyleBoxFlat_jgw52")
+
+[node name="CardWorkbench" type="Panel" parent="." unique_id=2040900290]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 882.0
+offset_right = 264.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_wii2x")
+
+[node name="Sprite" type="Panel" parent="CardWorkbench" unique_id=1817191626]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_0nxie")
+
+[node name="Label" type="Label" parent="CardWorkbench/Sprite" unique_id=264280054]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "workbench sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardWorkbench" unique_id=223593480]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "WORKBENCH"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardWorkbench" unique_id=1837764584]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "3×2"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardWorkbench" unique_id=1209800904]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 1,200"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardWorkbench" unique_id=1084427131]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "power 1"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardWorkbench" unique_id=554512538]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_wr6jb")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_n0rpm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_vrhpp")
+theme_override_styles/focus = SubResource("StyleBoxFlat_vrhpp")
+
+[node name="CardGenerator" type="Panel" parent="." unique_id=615775595]
+layout_mode = 0
+offset_left = 274.0
+offset_top = 882.0
+offset_right = 490.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_to051")
+
+[node name="Sprite" type="Panel" parent="CardGenerator" unique_id=1826132250]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_exs63")
+
+[node name="Label" type="Label" parent="CardGenerator/Sprite" unique_id=1464373725]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "generator sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardGenerator" unique_id=62165409]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "GENERATOR"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardGenerator" unique_id=357561253]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "2×2"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardGenerator" unique_id=992861503]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 3,400"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardGenerator" unique_id=621932158]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "fuel · +2 power"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardGenerator" unique_id=1404233142]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_lxdf1")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_kd523")
+theme_override_styles/hover = SubResource("StyleBoxFlat_85p34")
+theme_override_styles/focus = SubResource("StyleBoxFlat_85p34")
+
+[node name="CardWatercollector" type="Panel" parent="." unique_id=1297395125]
+layout_mode = 0
+offset_left = 500.0
+offset_top = 882.0
+offset_right = 716.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_vxccb")
+
+[node name="Sprite" type="Panel" parent="CardWatercollector" unique_id=433613743]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_4bit0")
+
+[node name="Label" type="Label" parent="CardWatercollector/Sprite" unique_id=373904334]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "water collector sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardWatercollector" unique_id=4226115]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "WATER COLLECTOR"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardWatercollector" unique_id=1468627003]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "2×2"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardWatercollector" unique_id=1843980446]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 900"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardWatercollector" unique_id=357475115]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "outdoor wall"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardWatercollector" unique_id=1585967193]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_0ponr")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ma5v7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l3lq8")
+theme_override_styles/focus = SubResource("StyleBoxFlat_l3lq8")
+
+[node name="CardShelves" type="Panel" parent="." unique_id=1855236954]
+layout_mode = 0
+offset_left = 726.0
+offset_top = 882.0
+offset_right = 942.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_dwgjo")
+
+[node name="Sprite" type="Panel" parent="CardShelves" unique_id=17249412]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_e6yi0")
+
+[node name="Label" type="Label" parent="CardShelves/Sprite" unique_id=838478275]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "shelves sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardShelves" unique_id=1059768193]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "SHELVES"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardShelves" unique_id=608135893]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "1×3"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardShelves" unique_id=271354505]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 400"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardShelves" unique_id=811497262]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "+6 stash"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardShelves" unique_id=61101533]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_0mkwf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_aiqff")
+theme_override_styles/hover = SubResource("StyleBoxFlat_vivxu")
+theme_override_styles/focus = SubResource("StyleBoxFlat_vivxu")
+
+[node name="CardBunk" type="Panel" parent="." unique_id=866743169]
+layout_mode = 0
+offset_left = 952.0
+offset_top = 882.0
+offset_right = 1168.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_1qxt6")
+
+[node name="Sprite" type="Panel" parent="CardBunk" unique_id=265875696]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_lshi1")
+
+[node name="Label" type="Label" parent="CardBunk/Sprite" unique_id=182885669]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "bunk sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardBunk" unique_id=955269632]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "BUNK"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardBunk" unique_id=1560456709]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "2×1"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardBunk" unique_id=543338025]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 600"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardBunk" unique_id=1283288964]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "+comfort"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardBunk" unique_id=1019879803]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_qjycm")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_2uxbd")
+theme_override_styles/hover = SubResource("StyleBoxFlat_8iyvb")
+theme_override_styles/focus = SubResource("StyleBoxFlat_8iyvb")
+
+[node name="CardRadio" type="Panel" parent="." unique_id=1318248591]
+layout_mode = 0
+offset_left = 1178.0
+offset_top = 882.0
+offset_right = 1394.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_v4d5h")
+
+[node name="Sprite" type="Panel" parent="CardRadio" unique_id=1981620230]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_hb7js")
+
+[node name="Label" type="Label" parent="CardRadio/Sprite" unique_id=570108696]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "radio sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardRadio" unique_id=3752107]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "RADIO"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardRadio" unique_id=1375978573]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "1×1"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardRadio" unique_id=1739381584]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 2,000"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardRadio" unique_id=2070918143]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "task intel"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardRadio" unique_id=1373820921]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_7onaf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_8pryy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_uuksh")
+theme_override_styles/focus = SubResource("StyleBoxFlat_uuksh")
+
+[node name="CardArmoryrack" type="Panel" parent="." unique_id=2032213974]
+modulate = Color(1, 1, 1, 0.4)
+layout_mode = 0
+offset_left = 1404.0
+offset_top = 882.0
+offset_right = 1620.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_wlg6x")
+
+[node name="Sprite" type="Panel" parent="CardArmoryrack" unique_id=969000039]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_l62i3")
+
+[node name="Label" type="Label" parent="CardArmoryrack/Sprite" unique_id=1812998125]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "armory rack sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardArmoryrack" unique_id=1893853509]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "ARMORY RACK"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardArmoryrack" unique_id=1675746721]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "1×4"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardArmoryrack" unique_id=1720695494]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 5,000"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardArmoryrack" unique_id=624317246]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "Bunker LVL 4"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardArmoryrack" unique_id=1741686729]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_wkvlf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_81bys")
+theme_override_styles/hover = SubResource("StyleBoxFlat_8q1lo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_8q1lo")
+
+[node name="CardGreenhouse" type="Panel" parent="." unique_id=1161727553]
+modulate = Color(1, 1, 1, 0.4)
+layout_mode = 0
+offset_left = 1630.0
+offset_top = 882.0
+offset_right = 1846.0
+offset_bottom = 1009.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_god51")
+
+[node name="Sprite" type="Panel" parent="CardGreenhouse" unique_id=534235723]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 202.0
+offset_bottom = 70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_jhy2n")
+
+[node name="Label" type="Label" parent="CardGreenhouse/Sprite" unique_id=1408307497]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "greenhouse sprite"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Title" type="Label" parent="CardGreenhouse" unique_id=1946375052]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+text = "GREENHOUSE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Size" type="Label" parent="CardGreenhouse" unique_id=1029467946]
+layout_mode = 0
+offset_left = 177.0
+offset_top = 78.0
+offset_right = 203.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "4×3"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Cost" type="Label" parent="CardGreenhouse" unique_id=1498324579]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 95.0
+offset_right = 112.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "$ 8,500"
+vertical_alignment = 1
+clip_text = true
+
+[node name="Detail" type="Label" parent="CardGreenhouse" unique_id=1538277130]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 95.0
+offset_right = 204.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 9
+text = "Bunker LVL 5"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+
+[node name="Hit" type="Button" parent="CardGreenhouse" unique_id=1106697245]
+layout_mode = 0
+offset_right = 216.0
+offset_bottom = 124.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = SubResource("FontVariation_w0pbw")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_qqo4s")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_g111a")
+theme_override_styles/hover = SubResource("StyleBoxFlat_b3lcp")
+theme_override_styles/focus = SubResource("StyleBoxFlat_b3lcp")
+
+[node name="FooterHint" type="Label" parent="." unique_id=1489823794]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 1014.0
+offset_right = 1148.0
+offset_bottom = 1032.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = SubResource("FontVariation_t641k")
+theme_override_font_sizes/font_size = 10
+text = "LMB  PLACE      R  ROTATE      RMB  MOVE PLACED      DEL  DISMANTLE · 70% REFUND      ESC  EXIT BUILD MODE"
+vertical_alignment = 1
+clip_text = true
+
+[node name="CompactWorkspace" parent="." instance=ExtResource("compact_workspace")]

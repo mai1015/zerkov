@@ -1,0 +1,1105 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/screens/character/character_screen.gd" id="1_p1a4t"]
+[ext_resource type="PackedScene" path="res://ui/components/layout/navigation_chrome.tscn" id="28_navigation"]
+[ext_resource type="Shader" path="res://ui/shaders/backdrop.gdshader" id="2_bn087"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="3_qemm2"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="5_n753q"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="6_b15tx"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="8_kqyny"]
+[ext_resource type="Texture2D" path="res://assets/handoff/tab_health.png" id="9_khhm6"]
+[ext_resource type="Texture2D" path="res://assets/handoff/tab_gear.png" id="10_awtrr"]
+[ext_resource type="Texture2D" path="res://assets/handoff/tab_stats.png" id="11_xjst0"]
+[ext_resource type="Script" path="res://ui/screens/character/components/inventory_grid.gd" id="17_awown"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_rig.png" id="18_kklg7"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ph_backpack.png" id="19_g6u1c"]
+[ext_resource type="Texture2D" path="res://assets/handoff/item_bottle.png" id="20_xasag"]
+[ext_resource type="Texture2D" path="res://assets/handoff/st_all.png" id="21_kb5nt"]
+[ext_resource type="Texture2D" path="res://assets/handoff/st_guns.png" id="22_6ku2c"]
+[ext_resource type="Texture2D" path="res://assets/handoff/st_ammo.png" id="23_clc1d"]
+[ext_resource type="Texture2D" path="res://assets/handoff/st_armor.png" id="24_patk2"]
+[ext_resource type="Texture2D" path="res://assets/handoff/st_clothing.png" id="25_7clf6"]
+[ext_resource type="Texture2D" path="res://assets/handoff/st_food.png" id="26_usp24"]
+[ext_resource type="Texture2D" path="res://assets/handoff/st_util.png" id="27_drowf"]
+
+[ext_resource type="PackedScene" path="res://ui/screens/character/components/gear_section.tscn" id="section_0"]
+
+[ext_resource type="PackedScene" path="res://ui/screens/character/components/health_section.tscn" id="section_1"]
+
+[ext_resource type="PackedScene" path="res://ui/screens/character/components/stats_section.tscn" id="section_2"]
+
+[ext_resource type="PackedScene" path="res://ui/screens/character/components/compact_workspace.tscn" id="compact_workspace"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1ysf4"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jovcq"]
+shader = ExtResource("2_bn087")
+
+[sub_resource type="FontVariation" id="FontVariation_0r53h"]
+base_font = ExtResource("5_n753q")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k7uip"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.06, 0.14, 0.08, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.37, 0.83, 0.42, 0.38)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dq1ij"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_66byi"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7pcna"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i4lq1"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l16bj"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_isxlg"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_drcyh"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4rnyg"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.18, 0.19, 0.17, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_73d5n"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xf3u1"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_maaoh"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.18, 0.19, 0.17, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_40nc4"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_etukc"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6tkjo"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.11, 0.13, 0.11, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dbwrx"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q1sqo"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.11, 0.13, 0.11, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c2ugj"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_juxsc"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.11, 0.13, 0.11, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mha8g"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3j23a"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.11, 0.13, 0.11, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gsbs8"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u12pw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.72784317, 0.47058827, 0.14431374, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w26bw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[node name="Inventory" type="Control" unique_id=192161909]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_p1a4t")
+
+[node name="BackgroundBase" type="Panel" parent="." unique_id=1023333721]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1ysf4")
+metadata/z_backdrop = true
+
+[node name="BackgroundImage" type="TextureRect" parent="." unique_id=165633567]
+texture_filter = 2
+material = SubResource("ShaderMaterial_jovcq")
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("3_qemm2")
+expand_mode = 1
+stretch_mode = 6
+metadata/z_backdrop = true
+
+[node name="BackgroundShade" type="ColorRect" parent="." unique_id=57596324]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.74)
+metadata/z_backdrop = true
+
+[node name="NavigationChrome" parent="." instance=ExtResource("28_navigation")]
+layout_mode = 0
+active_route = "inventory"
+
+[node name="InventoryContent" type="Control" parent="." unique_id=1994977281]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="PostRaidBar" type="Panel" parent="InventoryContent" unique_id=692713176]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 72.0
+offset_right = 1872.0
+offset_bottom = 116.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_k7uip")
+
+[node name="Marker" type="ColorRect" parent="InventoryContent/PostRaidBar" unique_id=58248094]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 17.0
+offset_right = 24.0
+offset_bottom = 25.0
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[node name="Title" type="Label" parent="InventoryContent/PostRaidBar" unique_id=1815528085]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 7.0
+offset_right = 286.0
+offset_bottom = 35.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 12
+text = "RAID COMPLETE · SURVIVED"
+vertical_alignment = 1
+
+[node name="Details" type="Label" parent="InventoryContent/PostRaidBar" unique_id=286275928]
+layout_mode = 0
+offset_left = 278.0
+offset_top = 7.0
+offset_right = 544.0
+offset_bottom = 35.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 12
+text = "Rail bridge · 24:10 · 2 kills · loot"
+vertical_alignment = 1
+
+[node name="LootValue" type="Label" parent="InventoryContent/PostRaidBar" unique_id=804659375]
+layout_mode = 0
+offset_left = 552.0
+offset_top = 7.0
+offset_right = 642.0
+offset_bottom = 35.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 12
+text = "$ 8,420"
+vertical_alignment = 1
+
+[node name="MoveLoot" type="Button" parent="InventoryContent/PostRaidBar" unique_id=1951854595]
+layout_mode = 0
+offset_left = 1142.0
+offset_top = 7.0
+offset_right = 1436.0
+offset_bottom = 38.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 11
+text = "G  MOVE LOOT TO STASH"
+
+[node name="Reinsure" type="Button" parent="InventoryContent/PostRaidBar" unique_id=1529612001]
+layout_mode = 0
+offset_left = 1444.0
+offset_top = 7.0
+offset_right = 1669.0
+offset_bottom = 38.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 10
+text = "RE-INSURE LOADOUT   $ 340"
+
+[node name="SellJunk" type="Button" parent="InventoryContent/PostRaidBar" unique_id=1004027479]
+layout_mode = 0
+offset_left = 1664.0
+offset_top = 7.0
+offset_right = 1808.0
+offset_bottom = 38.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 10
+text = "SELL JUNK   $ 620"
+
+[node name="TabRule" type="ColorRect" parent="InventoryContent" unique_id=1318020679]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 173.0
+offset_right = 528.0
+offset_bottom = 174.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="HealthTab" type="Button" parent="InventoryContent" unique_id=83391043]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 130.0
+offset_right = 170.0
+offset_bottom = 174.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 16
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_dq1ij")
+text = "HEALTH"
+icon = ExtResource("9_khhm6")
+alignment = 0
+expand_icon = true
+
+[node name="GearTab" type="Button" parent="InventoryContent" unique_id=1179325079]
+layout_mode = 0
+offset_left = 170.0
+offset_top = 130.0
+offset_right = 292.0
+offset_bottom = 174.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_constants/icon_max_width = 16
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_66byi")
+text = "GEAR"
+icon = ExtResource("10_awtrr")
+alignment = 0
+expand_icon = true
+
+[node name="StatsTab" type="Button" parent="InventoryContent" unique_id=1559153324]
+layout_mode = 0
+offset_left = 292.0
+offset_top = 130.0
+offset_right = 414.0
+offset_bottom = 174.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 16
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_7pcna")
+text = "STATS"
+icon = ExtResource("11_xjst0")
+alignment = 0
+expand_icon = true
+
+[node name="TabTag" type="Panel" parent="InventoryContent" unique_id=1332630020]
+layout_mode = 0
+offset_left = 464.0
+offset_top = 140.0
+offset_right = 528.0
+offset_bottom = 165.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_i4lq1")
+
+[node name="Text" type="Label" parent="InventoryContent/TabTag" unique_id=812330273]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 59.0
+offset_bottom = 25.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "GEAR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CharacterColumn" parent="InventoryContent" instance=ExtResource("section_0")]
+
+[node name="HealthColumn" parent="InventoryContent" instance=ExtResource("section_1")]
+
+[node name="StatsColumn" parent="InventoryContent" instance=ExtResource("section_2")]
+
+[node name="LoadoutTitle" type="Label" parent="InventoryContent" unique_id=183276439]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 130.0
+offset_right = 808.0
+offset_bottom = 160.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_0r53h")
+theme_override_font_sizes/font_size = 13
+text = "LOADOUT"
+vertical_alignment = 1
+
+[node name="LoadoutWeight" type="Label" parent="InventoryContent" unique_id=830482701]
+layout_mode = 0
+offset_left = 928.0
+offset_top = 132.0
+offset_right = 1148.0
+offset_bottom = 155.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "WEIGHT 14.2 / 32 kg · VALUE "
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LoadoutValue" type="Label" parent="InventoryContent" unique_id=347985100]
+layout_mode = 0
+offset_left = 1108.0
+offset_top = 132.0
+offset_right = 1208.0
+offset_bottom = 155.0
+theme_override_colors/font_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "$ 9,860"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LoadoutBar" type="ProgressBar" parent="InventoryContent" unique_id=1948285923]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 161.0
+offset_right = 1208.0
+offset_bottom = 165.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_l16bj")
+theme_override_styles/fill = SubResource("StyleBoxFlat_isxlg")
+value = 44.0
+show_percentage = false
+
+[node name="PocketsTitle" type="Label" parent="InventoryContent" unique_id=1347759645]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 184.0
+offset_right = 868.0
+offset_bottom = 207.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 11
+text = "POCKETS · 4 · always on you"
+vertical_alignment = 1
+
+[node name="PocketsGrid" type="Control" parent="InventoryContent" unique_id=139010613]
+custom_minimum_size = Vector2(296, 74)
+anchors_preset = 0
+offset_left = 568.0
+offset_top = 209.0
+offset_right = 864.0
+offset_bottom = 283.0
+mouse_filter = 1
+script = ExtResource("17_awown")
+
+[node name="RigContainer" type="Button" parent="InventoryContent" unique_id=315508755]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 294.0
+offset_right = 640.0
+offset_bottom = 366.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_drcyh")
+theme_override_styles/hover = SubResource("StyleBoxFlat_4rnyg")
+
+[node name="RigIcon" type="TextureRect" parent="InventoryContent/RigContainer" unique_id=1105733371]
+texture_filter = 1
+layout_mode = 0
+offset_left = 5.0
+offset_top = 7.0
+offset_right = 67.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("18_kklg7")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RigTag" type="Label" parent="InventoryContent/RigContainer" unique_id=1175061221]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 63.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 8
+text = "RIG"
+vertical_alignment = 1
+
+[node name="RigTitle" type="Label" parent="InventoryContent" unique_id=1821263933]
+layout_mode = 0
+offset_left = 656.0
+offset_top = 292.0
+offset_right = 1076.0
+offset_bottom = 315.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 12
+text = "Scav vest   6×2 · 12 slots · 0.8 kg"
+vertical_alignment = 1
+
+[node name="RigSwap" type="Button" parent="InventoryContent" unique_id=336649301]
+layout_mode = 0
+offset_left = 986.0
+offset_top = 292.0
+offset_right = 1186.0
+offset_bottom = 323.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_73d5n")
+text = "⇄ SWAP · 3 in stash"
+
+[node name="RigGrid" type="Control" parent="InventoryContent" unique_id=1593257835]
+custom_minimum_size = Vector2(444, 148)
+anchors_preset = 0
+offset_left = 656.0
+offset_top = 321.0
+offset_right = 1100.0
+offset_bottom = 469.0
+mouse_filter = 1
+script = ExtResource("17_awown")
+
+[node name="PackContainer" type="Button" parent="InventoryContent" unique_id=323948424]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 482.0
+offset_right = 640.0
+offset_bottom = 554.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_xf3u1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_maaoh")
+
+[node name="PackIcon" type="TextureRect" parent="InventoryContent/PackContainer" unique_id=257278022]
+texture_filter = 1
+layout_mode = 0
+offset_left = 5.0
+offset_top = 7.0
+offset_right = 67.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("19_g6u1c")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PackTag" type="Label" parent="InventoryContent/PackContainer" unique_id=986684686]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 63.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 8
+text = "PACK"
+vertical_alignment = 1
+
+[node name="PackTitle" type="Label" parent="InventoryContent" unique_id=1495642481]
+layout_mode = 0
+offset_left = 656.0
+offset_top = 478.0
+offset_right = 1076.0
+offset_bottom = 501.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 12
+text = "Field pack   6×5 · 30 slots · 11 used · 1.2 kg"
+vertical_alignment = 1
+
+[node name="PackSwap" type="Button" parent="InventoryContent" unique_id=1414356078]
+layout_mode = 0
+offset_left = 986.0
+offset_top = 478.0
+offset_right = 1209.0
+offset_bottom = 509.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_colors/font_hover_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_40nc4")
+text = "⇄ SWAP · Hiker 7×6 in stash"
+
+[node name="PackGrid" type="Control" parent="InventoryContent" unique_id=1637998882]
+custom_minimum_size = Vector2(444, 370)
+anchors_preset = 0
+offset_left = 656.0
+offset_top = 507.0
+offset_right = 1100.0
+offset_bottom = 877.0
+mouse_filter = 1
+script = ExtResource("17_awown")
+
+[node name="QuickUseTitle" type="Label" parent="InventoryContent" unique_id=715065791]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 900.0
+offset_right = 748.0
+offset_bottom = 923.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_kqyny")
+theme_override_font_sizes/font_size = 11
+text = "QUICK USE"
+vertical_alignment = 1
+
+[node name="QuickSlot5" type="Button" parent="InventoryContent" unique_id=923937999]
+layout_mode = 0
+offset_left = 568.0
+offset_top = 923.0
+offset_right = 642.0
+offset_bottom = 995.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_etukc")
+theme_override_styles/hover = SubResource("StyleBoxFlat_6tkjo")
+
+[node name="Key" type="Label" parent="InventoryContent/QuickSlot5" unique_id=1152382312]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 25.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "5"
+vertical_alignment = 1
+
+[node name="Icon" type="TextureRect" parent="InventoryContent/QuickSlot5" unique_id=1178547040]
+texture_filter = 1
+layout_mode = 0
+offset_left = 14.0
+offset_top = 14.0
+offset_right = 60.0
+offset_bottom = 60.0
+mouse_filter = 2
+texture = ExtResource("20_xasag")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="InventoryContent/QuickSlot5" unique_id=1998291446]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 68.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+text = "2"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="QuickSlot6" type="Button" parent="InventoryContent" unique_id=1084322280]
+layout_mode = 0
+offset_left = 644.0
+offset_top = 923.0
+offset_right = 718.0
+offset_bottom = 995.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_dbwrx")
+theme_override_styles/hover = SubResource("StyleBoxFlat_q1sqo")
+
+[node name="Key" type="Label" parent="InventoryContent/QuickSlot6" unique_id=325240198]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 25.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "6"
+vertical_alignment = 1
+
+[node name="QuickSlot7" type="Button" parent="InventoryContent" unique_id=2057380176]
+layout_mode = 0
+offset_left = 720.0
+offset_top = 923.0
+offset_right = 794.0
+offset_bottom = 995.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_c2ugj")
+theme_override_styles/hover = SubResource("StyleBoxFlat_juxsc")
+
+[node name="Key" type="Label" parent="InventoryContent/QuickSlot7" unique_id=1131085494]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 25.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "7"
+vertical_alignment = 1
+
+[node name="QuickSlot8" type="Button" parent="InventoryContent" unique_id=1688133197]
+layout_mode = 0
+offset_left = 796.0
+offset_top = 923.0
+offset_right = 870.0
+offset_bottom = 995.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_mha8g")
+theme_override_styles/hover = SubResource("StyleBoxFlat_3j23a")
+
+[node name="Key" type="Label" parent="InventoryContent/QuickSlot8" unique_id=610355844]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 25.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 10
+text = "8"
+vertical_alignment = 1
+
+[node name="StashTitle" type="Label" parent="InventoryContent" unique_id=2062847783]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 130.0
+offset_right = 1318.0
+offset_bottom = 158.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = SubResource("FontVariation_0r53h")
+theme_override_font_sizes/font_size = 13
+text = "STASH"
+vertical_alignment = 1
+
+[node name="StashSummary" type="Label" parent="InventoryContent" unique_id=383471747]
+layout_mode = 0
+offset_left = 1322.0
+offset_top = 133.0
+offset_right = 1444.0
+offset_bottom = 156.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+text = "LV 2 · 61 / 70"
+vertical_alignment = 1
+
+[node name="StashCompatible" type="Label" parent="InventoryContent" unique_id=284470460]
+layout_mode = 0
+offset_left = 1628.0
+offset_top = 133.0
+offset_right = 1872.0
+offset_bottom = 156.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+text = "5 compatible with AKM"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="StashRule" type="ColorRect" parent="InventoryContent" unique_id=1600016047]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 161.0
+offset_right = 1872.0
+offset_bottom = 162.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="StashTab" type="Button" parent="InventoryContent" unique_id=293178906]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 174.0
+offset_right = 1324.0
+offset_bottom = 206.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_gsbs8")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_u12pw")
+theme_override_styles/hover = SubResource("StyleBoxFlat_w26bw")
+text = "STASH"
+
+[node name="LootTab" type="Button" parent="InventoryContent" unique_id=256537379]
+layout_mode = 0
+offset_left = 1328.0
+offset_top = 174.0
+offset_right = 1404.0
+offset_bottom = 206.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 10
+text = "LOOT"
+
+[node name="StashSearch" type="LineEdit" parent="InventoryContent" unique_id=1357535783]
+layout_mode = 0
+offset_left = 1412.0
+offset_top = 174.0
+offset_right = 1656.0
+offset_bottom = 206.0
+theme_override_fonts/font = ExtResource("6_b15tx")
+theme_override_font_sizes/font_size = 11
+placeholder_text = "Search stash…"
+
+[node name="SortStash" type="Button" parent="InventoryContent" unique_id=1664737271]
+layout_mode = 0
+offset_left = 1664.0
+offset_top = 174.0
+offset_right = 1790.0
+offset_bottom = 206.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 9
+text = "SORT · VALUE ↓"
+
+[node name="OrganizeStash" type="Button" parent="InventoryContent" unique_id=1209988048]
+layout_mode = 0
+offset_left = 1788.0
+offset_top = 174.0
+offset_right = 1877.0
+offset_bottom = 206.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 9
+text = "ORGANIZE"
+
+[node name="FilterAll" type="Button" parent="InventoryContent" unique_id=1301321739]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 225.0
+offset_right = 1288.0
+offset_bottom = 265.0
+tooltip_text = "Filter all"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_constants/icon_max_width = 18
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 8
+text = "ALL"
+icon = ExtResource("21_kb5nt")
+expand_icon = true
+
+[node name="FilterGuns" type="Button" parent="InventoryContent" unique_id=2121672955]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 273.0
+offset_right = 1301.0
+offset_bottom = 313.0
+tooltip_text = "Filter guns"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 18
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 8
+text = "GUNS"
+icon = ExtResource("22_6ku2c")
+expand_icon = true
+
+[node name="FilterAmmo" type="Button" parent="InventoryContent" unique_id=1681252683]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 321.0
+offset_right = 1309.0
+offset_bottom = 361.0
+tooltip_text = "Filter ammo"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 18
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 8
+text = "AMMO"
+icon = ExtResource("23_clc1d")
+expand_icon = true
+
+[node name="FilterArmor" type="Button" parent="InventoryContent" unique_id=113161948]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 369.0
+offset_right = 1315.0
+offset_bottom = 409.0
+tooltip_text = "Filter armor"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 18
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 8
+text = "ARMOR"
+icon = ExtResource("24_patk2")
+expand_icon = true
+
+[node name="FilterCloth" type="Button" parent="InventoryContent" unique_id=51120066]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 417.0
+offset_right = 1309.0
+offset_bottom = 457.0
+tooltip_text = "Filter cloth"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 18
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 8
+text = "CLOTH"
+icon = ExtResource("25_7clf6")
+expand_icon = true
+
+[node name="FilterFood" type="Button" parent="InventoryContent" unique_id=773026004]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 465.0
+offset_right = 1302.0
+offset_bottom = 505.0
+tooltip_text = "Filter food"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 18
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 8
+text = "FOOD"
+icon = ExtResource("26_usp24")
+expand_icon = true
+
+[node name="FilterUtil" type="Button" parent="InventoryContent" unique_id=1620751508]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 513.0
+offset_right = 1291.0
+offset_bottom = 553.0
+tooltip_text = "Filter util"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_constants/icon_max_width = 18
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 8
+text = "UTIL"
+icon = ExtResource("27_drowf")
+expand_icon = true
+
+[node name="StashGrid" type="Control" parent="InventoryContent" unique_id=704097884]
+custom_minimum_size = Vector2(518, 740)
+anchors_preset = 0
+offset_left = 1304.0
+offset_top = 225.0
+offset_right = 1822.0
+offset_bottom = 965.0
+mouse_filter = 1
+script = ExtResource("17_awown")
+[node name="CompactWorkspace" parent="InventoryContent" instance=ExtResource("compact_workspace")]

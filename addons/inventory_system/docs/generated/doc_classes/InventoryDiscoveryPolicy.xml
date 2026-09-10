@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryDiscoveryPolicy" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="container_search_duration_ms" type="int" setter="set_container_search_duration_ms" getter="get_container_search_duration_ms" default="1000">
+		</member>
+		<member name="container_search_instant" type="bool" setter="set_container_search_instant" getter="get_container_search_instant" default="false">
+		</member>
+		<member name="identifier" type="StringName" setter="set_identifier" getter="get_identifier" default="&amp;&quot;&quot;">
+		</member>
+		<member name="item_scan_duration_ms" type="int" setter="set_item_scan_duration_ms" getter="get_item_scan_duration_ms" default="500">
+		</member>
+		<member name="item_scan_instant" type="bool" setter="set_item_scan_instant" getter="get_item_scan_instant" default="false">
+		</member>
+		<member name="schema_version" type="int" setter="set_schema_version" getter="get_schema_version" default="1">
+		</member>
+		<member name="shell_label" type="String" setter="set_shell_label" getter="get_shell_label" default="&quot;&quot;">
+		</member>
+	</members>
+</class>

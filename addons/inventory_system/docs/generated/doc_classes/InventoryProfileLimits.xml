@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryProfileLimits" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="max_containers" type="int" setter="set_max_containers" getter="get_max_containers" default="512">
+		</member>
+		<member name="max_items" type="int" setter="set_max_items" getter="get_max_items" default="4096">
+		</member>
+		<member name="max_mutable_components_per_item" type="int" setter="set_max_mutable_components_per_item" getter="get_max_mutable_components_per_item" default="32">
+		</member>
+		<member name="max_nesting_depth" type="int" setter="set_max_nesting_depth" getter="get_max_nesting_depth" default="16">
+		</member>
+		<member name="max_references" type="int" setter="set_max_references" getter="get_max_references" default="256">
+		</member>
+	</members>
+</class>

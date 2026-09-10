@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryDiscoveryContainerViewResource" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_capacity" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_container_id" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_duration_ms" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_elapsed_ms" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_entries" qualifiers="const">
+			<return type="InventoryDiscoveryEntryResource[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_height" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_item_count" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_layout_kind" qualifiers="const">
+			<return type="int" enum="InventoryDiscoveryContainerViewResource.LayoutKind" />
+			<description>
+			</description>
+		</method>
+		<method name="get_provider_item_id" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_shell_label" qualifiers="const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="get_stage" qualifiers="const">
+			<return type="int" enum="InventoryDiscoveryContainerViewResource.Stage" />
+			<description>
+			</description>
+		</method>
+		<method name="get_token" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="get_width" qualifiers="const">
+			<return type="int" />
+			<description>
+			</description>
+		</method>
+		<method name="is_layout_revealed" qualifiers="const">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="STAGE_UNSEARCHED" value="1" enum="Stage">
+		</constant>
+		<constant name="STAGE_SEARCHING" value="2" enum="Stage">
+		</constant>
+		<constant name="STAGE_INDEXED" value="3" enum="Stage">
+		</constant>
+		<constant name="LAYOUT_SPATIAL_GRID" value="1" enum="LayoutKind">
+		</constant>
+		<constant name="LAYOUT_NAMED_SLOTS" value="2" enum="LayoutKind">
+		</constant>
+		<constant name="LAYOUT_ORDERED_LIST" value="3" enum="LayoutKind">
+		</constant>
+	</constants>
+</class>

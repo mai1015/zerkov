@@ -1,0 +1,562 @@
+{
+  "1920x1080/build_mode": {
+    "mean_pixel_difference": 0.011,
+    "percent_difference_over_16": 0.014
+  },
+  "1920x1080/bunker": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/controls": {
+    "mean_pixel_difference": 0.083,
+    "percent_difference_over_16": 0.284
+  },
+  "1920x1080/crafting": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/crosshairs": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/deploying": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/health": {
+    "mean_pixel_difference": 0.007,
+    "percent_difference_over_16": 0.009
+  },
+  "1920x1080/hud": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/hud_coop": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/hud_detail": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/inventory": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/join_friend": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/mag_empty": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/main_menu": {
+    "mean_pixel_difference": 0.024,
+    "percent_difference_over_16": 0.055
+  },
+  "1920x1080/maps": {
+    "mean_pixel_difference": 0.004,
+    "percent_difference_over_16": 0.014
+  },
+  "1920x1080/pause": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/reload": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/saves": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/session": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/settings": {
+    "mean_pixel_difference": 0.004,
+    "percent_difference_over_16": 0.014
+  },
+  "1920x1080/showcase": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/squad_list": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/stats": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/status_icons": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/summary_solo": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/summary_squad": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1920x1080/tasks": {
+    "mean_pixel_difference": 0.004,
+    "percent_difference_over_16": 0.014
+  },
+  "1920x1080/title": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/build_mode": {
+    "mean_pixel_difference": 0.014,
+    "percent_difference_over_16": 0.028
+  },
+  "1600x900/bunker": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/controls": {
+    "mean_pixel_difference": 0.1,
+    "percent_difference_over_16": 0.301
+  },
+  "1600x900/crafting": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/crosshairs": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/deploying": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/health": {
+    "mean_pixel_difference": 0.006,
+    "percent_difference_over_16": 0.012
+  },
+  "1600x900/hud": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/hud_coop": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/hud_detail": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/inventory": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/join_friend": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/mag_empty": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/main_menu": {
+    "mean_pixel_difference": 0.025,
+    "percent_difference_over_16": 0.061
+  },
+  "1600x900/maps": {
+    "mean_pixel_difference": 0.005,
+    "percent_difference_over_16": 0.016
+  },
+  "1600x900/pause": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/reload": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/saves": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/session": {
+    "mean_pixel_difference": 0.001,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/settings": {
+    "mean_pixel_difference": 0.005,
+    "percent_difference_over_16": 0.016
+  },
+  "1600x900/showcase": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/squad_list": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/stats": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/status_icons": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/summary_solo": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/summary_squad": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1600x900/tasks": {
+    "mean_pixel_difference": 0.005,
+    "percent_difference_over_16": 0.016
+  },
+  "1600x900/title": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/build_mode": {
+    "mean_pixel_difference": 0.011,
+    "percent_difference_over_16": 0.024
+  },
+  "1280x720/bunker": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/controls": {
+    "mean_pixel_difference": 0.08,
+    "percent_difference_over_16": 0.274
+  },
+  "1280x720/crafting": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/crosshairs": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/deploying": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/health": {
+    "mean_pixel_difference": 0.004,
+    "percent_difference_over_16": 0.01
+  },
+  "1280x720/hud": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/hud_coop": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/hud_detail": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/inventory": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/join_friend": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/mag_empty": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/main_menu": {
+    "mean_pixel_difference": 0.025,
+    "percent_difference_over_16": 0.065
+  },
+  "1280x720/maps": {
+    "mean_pixel_difference": 0.006,
+    "percent_difference_over_16": 0.02
+  },
+  "1280x720/pause": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/reload": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/saves": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/session": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/settings": {
+    "mean_pixel_difference": 0.006,
+    "percent_difference_over_16": 0.02
+  },
+  "1280x720/showcase": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/squad_list": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/stats": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/status_icons": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/summary_solo": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/summary_squad": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "1280x720/tasks": {
+    "mean_pixel_difference": 0.006,
+    "percent_difference_over_16": 0.02
+  },
+  "1280x720/title": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/build_mode": {
+    "mean_pixel_difference": 10.257,
+    "percent_difference_over_16": 12.71
+  },
+  "960x540/bunker": {
+    "mean_pixel_difference": 4.778,
+    "percent_difference_over_16": 4.587
+  },
+  "960x540/controls": {
+    "mean_pixel_difference": 1.779,
+    "percent_difference_over_16": 0.989
+  },
+  "960x540/crafting": {
+    "mean_pixel_difference": 9.754,
+    "percent_difference_over_16": 8.537
+  },
+  "960x540/crosshairs": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/deploying": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/health": {
+    "mean_pixel_difference": 3.606,
+    "percent_difference_over_16": 2.79
+  },
+  "960x540/hud": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/hud_coop": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/hud_detail": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/inventory": {
+    "mean_pixel_difference": 3.633,
+    "percent_difference_over_16": 2.816
+  },
+  "960x540/join_friend": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/mag_empty": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/main_menu": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/maps": {
+    "mean_pixel_difference": 1.637,
+    "percent_difference_over_16": 0.839
+  },
+  "960x540/pause": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/reload": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.001
+  },
+  "960x540/saves": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/session": {
+    "mean_pixel_difference": 3.587,
+    "percent_difference_over_16": 3.486
+  },
+  "960x540/settings": {
+    "mean_pixel_difference": 0.462,
+    "percent_difference_over_16": 0.371
+  },
+  "960x540/showcase": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/squad_list": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/stats": {
+    "mean_pixel_difference": 3.552,
+    "percent_difference_over_16": 2.79
+  },
+  "960x540/status_icons": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/summary_solo": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/summary_squad": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "960x540/tasks": {
+    "mean_pixel_difference": 0.686,
+    "percent_difference_over_16": 0.479
+  },
+  "960x540/title": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/build_mode": {
+    "mean_pixel_difference": 6.911,
+    "percent_difference_over_16": 11.073
+  },
+  "forced-1280x720/bunker": {
+    "mean_pixel_difference": 7.097,
+    "percent_difference_over_16": 5.529
+  },
+  "forced-1280x720/controls": {
+    "mean_pixel_difference": 1.222,
+    "percent_difference_over_16": 0.718
+  },
+  "forced-1280x720/crafting": {
+    "mean_pixel_difference": 7.406,
+    "percent_difference_over_16": 6.279
+  },
+  "forced-1280x720/crosshairs": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/deploying": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/health": {
+    "mean_pixel_difference": 3.015,
+    "percent_difference_over_16": 2.406
+  },
+  "forced-1280x720/hud": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/hud_coop": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/hud_detail": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/inventory": {
+    "mean_pixel_difference": 3.037,
+    "percent_difference_over_16": 2.438
+  },
+  "forced-1280x720/join_friend": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/mag_empty": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/main_menu": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/maps": {
+    "mean_pixel_difference": 1.108,
+    "percent_difference_over_16": 0.535
+  },
+  "forced-1280x720/pause": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/reload": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/saves": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/session": {
+    "mean_pixel_difference": 2.284,
+    "percent_difference_over_16": 1.955
+  },
+  "forced-1280x720/settings": {
+    "mean_pixel_difference": 0.328,
+    "percent_difference_over_16": 0.254
+  },
+  "forced-1280x720/showcase": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/squad_list": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/stats": {
+    "mean_pixel_difference": 2.892,
+    "percent_difference_over_16": 2.343
+  },
+  "forced-1280x720/status_icons": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/summary_solo": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/summary_squad": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  },
+  "forced-1280x720/tasks": {
+    "mean_pixel_difference": 0.452,
+    "percent_difference_over_16": 0.311
+  },
+  "forced-1280x720/title": {
+    "mean_pixel_difference": 0.0,
+    "percent_difference_over_16": 0.0
+  }
+}

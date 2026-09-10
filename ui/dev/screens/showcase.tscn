@@ -1,0 +1,913 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://ui/dev/screens/showcase.gd" id="1_showcase"]
+[ext_resource type="Shader" path="res://ui/shaders/backdrop.gdshader" id="2_backdrop_shader"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="3_raid_frame"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="4_chakra_regular"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="5_chakra_semibold"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="6_ibm_regular"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
+shader = ExtResource("2_backdrop_shader")
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_backdrop"]
+bg_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.054902, 0.0627451, 0.0588235, 1)
+border_color = Color(1, 1, 1, 0.12)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_primary_normal"]
+bg_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_primary_hover"]
+bg_color = Color(0.94902, 0.694118, 0.352941, 1)
+border_color = Color(0.94902, 0.694118, 0.352941, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_primary_pressed"]
+bg_color = Color(0.727843, 0.470588, 0.144314, 1)
+border_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_progress_track"]
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_progress_green"]
+bg_color = Color(0.372549, 0.827451, 0.419608, 1)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_progress_accent"]
+bg_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_progress_red"]
+bg_color = Color(0.85098, 0.282353, 0.231373, 1)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_scroll_track"]
+bg_color = Color(1, 1, 1, 0.04)
+border_color = Color(0, 0, 0, 0)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_scroll_grabber"]
+bg_color = Color(0.545098, 0.568627, 0.541176, 1)
+border_color = Color(0, 0, 0, 0)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_scroll_highlight"]
+bg_color = Color(0.909804, 0.588235, 0.180392, 1)
+border_color = Color(0, 0, 0, 0)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_scroll_pressed"]
+bg_color = Color(0.94902, 0.694118, 0.352941, 1)
+border_color = Color(0, 0, 0, 0)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+
+[node name="Showcase" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_showcase")
+
+[node name="BackdropBase" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_backdrop")
+metadata/z_backdrop = true
+
+[node name="BackdropImage" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("3_raid_frame")
+expand_mode = 1
+stretch_mode = 6
+material = SubResource("ShaderMaterial_backdrop")
+metadata/z_backdrop = true
+
+[node name="BackdropShade" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.88)
+metadata/z_backdrop = true
+
+[node name="Desktop" type="Control" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Heading" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 96.0
+offset_right = 1248.0
+offset_bottom = 144.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 32
+text = "ZERKOV / COMPONENT STATES"
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 152.0
+offset_right = 1448.0
+offset_bottom = 176.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 12
+text = "Shared native Controls · 1920 × 1080 design canvas"
+vertical_alignment = 1
+
+[node name="StateDefaultLabel" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 236.0
+offset_right = 448.0
+offset_bottom = 260.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "DEFAULT"
+vertical_alignment = 1
+
+[node name="StateDefaultButton" type="Button" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 276.0
+offset_right = 448.0
+offset_bottom = 328.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONTINUE TO BUNKER"
+
+[node name="StatePrimaryLabel" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 488.0
+offset_top = 236.0
+offset_right = 888.0
+offset_bottom = 260.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "PRIMARY"
+vertical_alignment = 1
+
+[node name="StatePrimaryButton" type="Button" parent="Desktop"]
+layout_mode = 0
+offset_left = 488.0
+offset_top = 276.0
+offset_right = 888.0
+offset_bottom = 328.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_hover_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_pressed_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBox_primary_normal")
+theme_override_styles/hover = SubResource("StyleBox_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBox_primary_pressed")
+text = "CONTINUE TO BUNKER"
+
+[node name="StateDisabledLabel" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 928.0
+offset_top = 236.0
+offset_right = 1328.0
+offset_bottom = 260.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "DISABLED"
+vertical_alignment = 1
+
+[node name="StateDisabledButton" type="Button" parent="Desktop"]
+layout_mode = 0
+offset_left = 928.0
+offset_top = 276.0
+offset_right = 1328.0
+offset_bottom = 328.0
+mouse_default_cursor_shape = 2
+disabled = true
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONTINUE TO BUNKER"
+
+[node name="StateFocusedLabel" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 1368.0
+offset_top = 236.0
+offset_right = 1768.0
+offset_bottom = 260.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "FOCUSED"
+vertical_alignment = 1
+
+[node name="StateFocusedButton" type="Button" parent="Desktop"]
+layout_mode = 0
+offset_left = 1368.0
+offset_top = 276.0
+offset_right = 1768.0
+offset_bottom = 328.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONTINUE TO BUNKER"
+
+[node name="ReadyCard" type="Panel" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 392.0
+offset_right = 616.0
+offset_bottom = 632.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Status" type="Label" parent="Desktop/ReadyCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 544.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.372549, 0.827451, 0.419608, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "READY"
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="Desktop/ReadyCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 76.0
+offset_right = 544.0
+offset_bottom = 104.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "All equipment checked."
+vertical_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="Desktop/ReadyCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 136.0
+offset_right = 544.0
+offset_bottom = 142.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBox_progress_track")
+theme_override_styles/fill = SubResource("StyleBox_progress_green")
+value = 100.0
+show_percentage = false
+
+[node name="Action" type="Button" parent="Desktop/ReadyCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 176.0
+offset_right = 264.0
+offset_bottom = 216.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_hover_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_pressed_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBox_primary_normal")
+theme_override_styles/hover = SubResource("StyleBox_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBox_primary_pressed")
+text = "DEPLOY"
+
+[node name="WaitingCard" type="Panel" parent="Desktop"]
+layout_mode = 0
+offset_left = 648.0
+offset_top = 392.0
+offset_right = 1216.0
+offset_bottom = 632.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Status" type="Label" parent="Desktop/WaitingCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 544.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.909804, 0.588235, 0.180392, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "WAITING FOR SQUAD"
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="Desktop/WaitingCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 76.0
+offset_right = 544.0
+offset_bottom = 104.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "2 / 3 players ready"
+vertical_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="Desktop/WaitingCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 136.0
+offset_right = 544.0
+offset_bottom = 142.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBox_progress_track")
+theme_override_styles/fill = SubResource("StyleBox_progress_accent")
+value = 66.0
+show_percentage = false
+
+[node name="Action" type="Button" parent="Desktop/WaitingCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 176.0
+offset_right = 264.0
+offset_bottom = 216.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "INVITE FRIEND"
+
+[node name="UnavailableCard" type="Panel" parent="Desktop"]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 392.0
+offset_right = 1816.0
+offset_bottom = 632.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Status" type="Label" parent="Desktop/UnavailableCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 544.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.85098, 0.282353, 0.231373, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "SESSION UNAVAILABLE"
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="Desktop/UnavailableCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 76.0
+offset_right = 544.0
+offset_bottom = 104.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "Enter a valid invitation code to continue."
+vertical_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="Desktop/UnavailableCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 136.0
+offset_right = 544.0
+offset_bottom = 142.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBox_progress_track")
+theme_override_styles/fill = SubResource("StyleBox_progress_red")
+value = 0.0
+show_percentage = false
+
+[node name="Action" type="Button" parent="Desktop/UnavailableCard"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 176.0
+offset_right = 264.0
+offset_bottom = 216.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "TRY AGAIN"
+
+[node name="EmptyStash" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 716.0
+offset_right = 548.0
+offset_bottom = 752.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "EMPTY STASH"
+vertical_alignment = 1
+
+[node name="EmptyDescription" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 760.0
+offset_right = 548.0
+offset_bottom = 788.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "Items you bring home appear here."
+vertical_alignment = 1
+
+[node name="InvitationField" type="LineEdit" parent="Desktop"]
+layout_mode = 0
+offset_left = 648.0
+offset_top = 732.0
+offset_right = 1148.0
+offset_bottom = 776.0
+placeholder_text = "Enter invitation code"
+
+[node name="Confirmation" type="Button" parent="Desktop"]
+layout_mode = 0
+offset_left = 1248.0
+offset_top = 732.0
+offset_right = 1648.0
+offset_bottom = 776.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONFIRMATION"
+
+[node name="Footer" type="Label" parent="Desktop"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 1024.0
+offset_right = 1488.0
+offset_bottom = 1048.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "F1  SCREEN PICKER     TAB  KEYBOARD FOCUS     ESC  BACK"
+vertical_alignment = 1
+
+[node name="CompactHeaderTitle" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 780.0
+offset_bottom = 60.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 28
+text = "ZERKOV / COMPONENT STATES"
+vertical_alignment = 1
+
+[node name="CompactBack" type="Button" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 828.0
+offset_top = 24.0
+offset_right = 936.0
+offset_bottom = 60.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "ESC · BACK"
+
+[node name="CompactSubtitle" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 64.0
+offset_right = 936.0
+offset_bottom = 88.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 12
+text = "Native controls · Scroll to review all states"
+vertical_alignment = 1
+
+[node name="ComponentStates" type="ScrollContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 104.0
+offset_right = 936.0
+offset_bottom = 492.0
+mouse_filter = 0
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 1
+follow_focus = true
+clip_contents = true
+metadata/adaptive_pane = true
+metadata/scroll_track = SubResource("StyleBox_scroll_track")
+metadata/scroll_grabber = SubResource("StyleBox_scroll_grabber")
+metadata/scroll_highlight = SubResource("StyleBox_scroll_highlight")
+metadata/scroll_pressed = SubResource("StyleBox_scroll_pressed")
+
+[node name="Content" type="Control" parent="ComponentStates"]
+layout_mode = 2
+custom_minimum_size = Vector2(896, 1352)
+offset_right = 896.0
+offset_bottom = 1352.0
+mouse_filter = 1
+
+[node name="StateDefaultLabel" type="Label" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_right = 896.0
+offset_bottom = 24.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "DEFAULT"
+vertical_alignment = 1
+
+[node name="StateDefaultButton" type="Button" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 32.0
+offset_right = 896.0
+offset_bottom = 80.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONTINUE TO BUNKER"
+
+[node name="StatePrimaryLabel" type="Label" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 108.0
+offset_right = 896.0
+offset_bottom = 132.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "PRIMARY"
+vertical_alignment = 1
+
+[node name="StatePrimaryButton" type="Button" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 140.0
+offset_right = 896.0
+offset_bottom = 188.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_hover_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_pressed_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBox_primary_normal")
+theme_override_styles/hover = SubResource("StyleBox_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBox_primary_pressed")
+text = "CONTINUE TO BUNKER"
+
+[node name="StateDisabledLabel" type="Label" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 216.0
+offset_right = 896.0
+offset_bottom = 240.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "DISABLED"
+vertical_alignment = 1
+
+[node name="StateDisabledButton" type="Button" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 248.0
+offset_right = 896.0
+offset_bottom = 296.0
+mouse_default_cursor_shape = 2
+disabled = true
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONTINUE TO BUNKER"
+
+[node name="StateFocusedLabel" type="Label" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 324.0
+offset_right = 896.0
+offset_bottom = 348.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "FOCUSED"
+vertical_alignment = 1
+
+[node name="StateFocusedButton" type="Button" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 356.0
+offset_right = 896.0
+offset_bottom = 404.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONTINUE TO BUNKER"
+
+[node name="ReadyCard" type="Panel" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 432.0
+offset_right = 896.0
+offset_bottom = 648.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Status" type="Label" parent="ComponentStates/Content/ReadyCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 876.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.372549, 0.827451, 0.419608, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "READY"
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="ComponentStates/Content/ReadyCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 68.0
+offset_right = 876.0
+offset_bottom = 96.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "All equipment checked."
+vertical_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="ComponentStates/Content/ReadyCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 116.0
+offset_right = 876.0
+offset_bottom = 122.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBox_progress_track")
+theme_override_styles/fill = SubResource("StyleBox_progress_green")
+value = 100.0
+show_percentage = false
+
+[node name="Action" type="Button" parent="ComponentStates/Content/ReadyCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 152.0
+offset_right = 260.0
+offset_bottom = 196.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_hover_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_colors/font_pressed_color = Color(0.0392157, 0.0431373, 0.0392157, 1)
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBox_primary_normal")
+theme_override_styles/hover = SubResource("StyleBox_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBox_primary_pressed")
+text = "DEPLOY"
+
+[node name="WaitingCard" type="Panel" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 664.0
+offset_right = 896.0
+offset_bottom = 880.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Status" type="Label" parent="ComponentStates/Content/WaitingCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 876.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.909804, 0.588235, 0.180392, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "WAITING FOR SQUAD"
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="ComponentStates/Content/WaitingCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 68.0
+offset_right = 876.0
+offset_bottom = 96.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "2 / 3 players ready"
+vertical_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="ComponentStates/Content/WaitingCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 116.0
+offset_right = 876.0
+offset_bottom = 122.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBox_progress_track")
+theme_override_styles/fill = SubResource("StyleBox_progress_accent")
+value = 66.0
+show_percentage = false
+
+[node name="Action" type="Button" parent="ComponentStates/Content/WaitingCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 152.0
+offset_right = 260.0
+offset_bottom = 196.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "INVITE FRIEND"
+
+[node name="UnavailableCard" type="Panel" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 896.0
+offset_right = 896.0
+offset_bottom = 1112.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Status" type="Label" parent="ComponentStates/Content/UnavailableCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 876.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.85098, 0.282353, 0.231373, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "SESSION UNAVAILABLE"
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="ComponentStates/Content/UnavailableCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 68.0
+offset_right = 876.0
+offset_bottom = 96.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "Enter a valid invitation code to continue."
+vertical_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="ComponentStates/Content/UnavailableCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 116.0
+offset_right = 876.0
+offset_bottom = 122.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBox_progress_track")
+theme_override_styles/fill = SubResource("StyleBox_progress_red")
+value = 0.0
+show_percentage = false
+
+[node name="Action" type="Button" parent="ComponentStates/Content/UnavailableCard"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 152.0
+offset_right = 260.0
+offset_bottom = 196.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "TRY AGAIN"
+
+[node name="EmptyStash" type="Label" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 1128.0
+offset_right = 896.0
+offset_bottom = 1160.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 22
+text = "EMPTY STASH"
+vertical_alignment = 1
+
+[node name="EmptyDescription" type="Label" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 1168.0
+offset_right = 896.0
+offset_bottom = 1196.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("4_chakra_regular")
+theme_override_font_sizes/font_size = 14
+text = "Items you bring home appear here."
+vertical_alignment = 1
+
+[node name="InvitationField" type="LineEdit" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 1216.0
+offset_right = 440.0
+offset_bottom = 1260.0
+placeholder_text = "Enter invitation code"
+
+[node name="Confirmation" type="Button" parent="ComponentStates/Content"]
+layout_mode = 0
+offset_top = 1264.0
+offset_right = 320.0
+offset_bottom = 1308.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("5_chakra_semibold")
+theme_override_font_sizes/font_size = 13
+text = "CONFIRMATION"
+
+[node name="CompactFooter" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 504.0
+offset_right = 936.0
+offset_bottom = 528.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_fonts/font = ExtResource("6_ibm_regular")
+theme_override_font_sizes/font_size = 11
+text = "WHEEL  SCROLL     F1  SCREEN PICKER     ESC  BACK"
+vertical_alignment = 1

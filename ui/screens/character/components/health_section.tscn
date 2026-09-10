@@ -1,0 +1,827 @@
+[gd_scene format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="5_28ib8"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="6_s8t5x"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-Regular.ttf" id="8_1a2ar"]
+[ext_resource type="Texture2D" path="res://assets/handoff/sil_health.png" id="12_vo7gi"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_health.png" id="13_l6xug"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_energy.png" id="14_c2wl8"]
+[ext_resource type="Texture2D" path="res://assets/handoff/ico_thirst.png" id="15_1lsck"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m703w"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ruamf"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nmu1r"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vu5rm"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ciqu3"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_60boe"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qu3cg"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xppvn"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xqvsi"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j6rh2"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eq4ym"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fp0c8"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hu5ri"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9137255, 0.827451, 0.3529412, 0.25)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oqakc"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.8509804, 0.28235295, 0.23137255, 0.25)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v08vl"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.37254903, 0.827451, 0.41960785, 0.25)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dxdmo"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9137255, 0.827451, 0.3529412, 0.25)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4c1oo"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.29803923, 0.5529412, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y5flw"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.60784316, 0.8901961, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s76uo"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yre2p"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.72784317, 0.47058827, 0.14431374, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp8kn"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wgy1j"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yapdv"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4hybx"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qcib3"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aifuy"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(1, 1, 1, 0.08)
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7olff"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.29803923, 0.5529412, 1, 1)
+border_color = Color(1, 1, 1, 0)
+
+[node name="HealthColumn" type="Control"]
+anchors_preset = 0
+offset_left = 48.0
+offset_top = 188.0
+offset_right = 528.0
+offset_bottom = 1024.0
+mouse_filter = 2
+
+[node name="BodySilhouette" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.28)
+texture_filter = 1
+layout_mode = 0
+offset_left = 142.0
+offset_right = 372.0
+offset_bottom = 560.0
+mouse_filter = 2
+texture = ExtResource("12_vo7gi")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeadCard" type="Panel" parent="."]
+layout_mode = 0
+offset_top = 30.0
+offset_right = 150.0
+offset_bottom = 108.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_m703w")
+
+[node name="Limb" type="Label" parent="HeadCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 100.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 11
+text = "HEAD"
+vertical_alignment = 1
+
+[node name="Percent" type="Label" parent="HeadCard"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 5.0
+offset_right = 140.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 13
+text = "55%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Meter" type="ProgressBar" parent="HeadCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 34.0
+offset_right = 140.0
+offset_bottom = 38.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_ruamf")
+theme_override_styles/fill = SubResource("StyleBoxFlat_nmu1r")
+value = 55.0
+show_percentage = false
+
+[node name="Detail" type="Label" parent="HeadCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 43.0
+offset_right = 142.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 10
+text = "Concussed · 0:42"
+vertical_alignment = 1
+
+[node name="TorsoCard" type="Panel" parent="."]
+layout_mode = 0
+offset_top = 190.0
+offset_right = 150.0
+offset_bottom = 268.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_vu5rm")
+
+[node name="Limb" type="Label" parent="TorsoCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 100.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 11
+text = "TORSO"
+vertical_alignment = 1
+
+[node name="Percent" type="Label" parent="TorsoCard"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 5.0
+offset_right = 140.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 13
+text = "20%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Meter" type="ProgressBar" parent="TorsoCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 34.0
+offset_right = 140.0
+offset_bottom = 38.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_ciqu3")
+theme_override_styles/fill = SubResource("StyleBoxFlat_60boe")
+value = 20.0
+show_percentage = false
+
+[node name="Detail" type="Label" parent="TorsoCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 43.0
+offset_right = 150.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 10
+text = "Heavy bleed · −3/s"
+vertical_alignment = 1
+
+[node name="ArmsCard" type="Panel" parent="."]
+layout_mode = 0
+offset_top = 345.0
+offset_right = 150.0
+offset_bottom = 423.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_qu3cg")
+
+[node name="Limb" type="Label" parent="ArmsCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 100.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 11
+text = "ARMS"
+vertical_alignment = 1
+
+[node name="Percent" type="Label" parent="ArmsCard"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 5.0
+offset_right = 140.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 13
+text = "92%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Meter" type="ProgressBar" parent="ArmsCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 34.0
+offset_right = 140.0
+offset_bottom = 38.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_xppvn")
+theme_override_styles/fill = SubResource("StyleBoxFlat_xqvsi")
+value = 92.0
+show_percentage = false
+
+[node name="Detail" type="Label" parent="ArmsCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 43.0
+offset_right = 142.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 10
+text = "No effects"
+vertical_alignment = 1
+
+[node name="LegsCard" type="Panel" parent="."]
+layout_mode = 0
+offset_top = 470.0
+offset_right = 150.0
+offset_bottom = 548.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_j6rh2")
+
+[node name="Limb" type="Label" parent="LegsCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 100.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 11
+text = "LEGS"
+vertical_alignment = 1
+
+[node name="Percent" type="Label" parent="LegsCard"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 5.0
+offset_right = 140.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.9137255, 0.827451, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 13
+text = "50%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Meter" type="ProgressBar" parent="LegsCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 34.0
+offset_right = 140.0
+offset_bottom = 38.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_eq4ym")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fp0c8")
+value = 50.0
+show_percentage = false
+
+[node name="Detail" type="Label" parent="LegsCard"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 43.0
+offset_right = 143.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.7176471, 0.7372549, 0.7058824, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 10
+text = "Fracture · slowed"
+vertical_alignment = 1
+
+[node name="HeadLeader" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 62.0
+offset_right = 270.0
+offset_bottom = 63.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.35)
+
+[node name="HeadLeaderDot" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 264.0
+offset_top = 30.0
+offset_right = 278.0
+offset_bottom = 44.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hu5ri")
+
+[node name="TorsoLeader" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 222.0
+offset_right = 300.0
+offset_bottom = 223.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.35)
+
+[node name="TorsoLeaderDot" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 294.0
+offset_top = 216.0
+offset_right = 308.0
+offset_bottom = 230.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_oqakc")
+
+[node name="ArmsLeader" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 377.0
+offset_right = 246.0
+offset_bottom = 378.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.35)
+
+[node name="ArmsLeaderDot" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 240.0
+offset_top = 371.0
+offset_right = 254.0
+offset_bottom = 385.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_v08vl")
+
+[node name="LegsLeader" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 502.0
+offset_right = 300.0
+offset_bottom = 503.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.35)
+
+[node name="LegsLeaderDot" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 294.0
+offset_top = 496.0
+offset_right = 308.0
+offset_bottom = 510.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dxdmo")
+
+[node name="BodyWide" type="Label" parent="."]
+layout_mode = 0
+offset_left = 330.0
+offset_right = 480.0
+offset_bottom = 23.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 10
+text = "BODY-WIDE"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="DehydratedBadge" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 326.0
+offset_top = 26.0
+offset_right = 480.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_4c1oo")
+
+[node name="Edge" type="ColorRect" parent="DehydratedBadge"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 30.0
+color = Color(0.29803923, 0.5529412, 1, 1)
+
+[node name="Text" type="Label" parent="DehydratedBadge"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 2.0
+offset_right = 150.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.29803923, 0.5529412, 1, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 10
+text = "■  DEHYDRATED"
+vertical_alignment = 1
+
+[node name="RadiationBadge" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 326.0
+offset_top = 62.0
+offset_right = 480.0
+offset_bottom = 92.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_y5flw")
+
+[node name="Edge" type="ColorRect" parent="RadiationBadge"]
+layout_mode = 0
+offset_right = 2.0
+offset_bottom = 30.0
+color = Color(0.60784316, 0.8901961, 0.3529412, 1)
+
+[node name="Text" type="Label" parent="RadiationBadge"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 2.0
+offset_right = 164.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.60784316, 0.8901961, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 10
+text = "■  RADIATION · LOW"
+vertical_alignment = 1
+
+[node name="QuickHeal" type="Button" parent="."]
+layout_mode = 0
+offset_left = 326.0
+offset_top = 112.0
+offset_right = 480.0
+offset_bottom = 148.0
+tooltip_text = "Use the best available med on the worst limb"
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_fonts/font = ExtResource("5_28ib8")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_s76uo")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_yre2p")
+theme_override_styles/hover = SubResource("StyleBoxFlat_xp8kn")
+text = "Y   QUICK HEAL"
+
+[node name="HealthIcon" type="TextureRect" parent="."]
+modulate = Color(0.8509804, 0.28235295, 0.23137255, 1)
+texture_filter = 1
+layout_mode = 0
+offset_top = 655.0
+offset_right = 14.0
+offset_bottom = 669.0
+mouse_filter = 2
+texture = ExtResource("13_l6xug")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 650.0
+offset_right = 110.0
+offset_bottom = 678.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 11
+text = "HEALTH"
+vertical_alignment = 1
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 118.0
+offset_top = 660.0
+offset_right = 404.0
+offset_bottom = 664.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_wgy1j")
+theme_override_styles/fill = SubResource("StyleBoxFlat_yapdv")
+value = 27.0
+show_percentage = false
+
+[node name="HealthValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 416.0
+offset_top = 650.0
+offset_right = 480.0
+offset_bottom = 678.0
+theme_override_colors/font_color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 12
+text = "190/700"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="EnergyIcon" type="TextureRect" parent="."]
+modulate = Color(0.9137255, 0.827451, 0.3529412, 1)
+texture_filter = 1
+layout_mode = 0
+offset_top = 691.0
+offset_right = 14.0
+offset_bottom = 705.0
+mouse_filter = 2
+texture = ExtResource("14_c2wl8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnergyTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 686.0
+offset_right = 110.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 11
+text = "ENERGY"
+vertical_alignment = 1
+
+[node name="EnergyBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 118.0
+offset_top = 696.0
+offset_right = 404.0
+offset_bottom = 700.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_4hybx")
+theme_override_styles/fill = SubResource("StyleBoxFlat_qcib3")
+value = 64.0
+show_percentage = false
+
+[node name="EnergyValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 416.0
+offset_top = 686.0
+offset_right = 480.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 12
+text = "64/100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HydrationIcon" type="TextureRect" parent="."]
+modulate = Color(0.29803923, 0.5529412, 1, 1)
+texture_filter = 1
+layout_mode = 0
+offset_top = 727.0
+offset_right = 14.0
+offset_bottom = 741.0
+mouse_filter = 2
+texture = ExtResource("15_1lsck")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HydrationTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 722.0
+offset_right = 118.0
+offset_bottom = 750.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("8_1a2ar")
+theme_override_font_sizes/font_size = 11
+text = "HYDRATION"
+vertical_alignment = 1
+
+[node name="HydrationBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 118.0
+offset_top = 732.0
+offset_right = 404.0
+offset_bottom = 736.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_aifuy")
+theme_override_styles/fill = SubResource("StyleBoxFlat_7olff")
+value = 22.0
+show_percentage = false
+
+[node name="HydrationValue" type="Label" parent="."]
+layout_mode = 0
+offset_left = 416.0
+offset_top = 722.0
+offset_right = 480.0
+offset_bottom = 750.0
+theme_override_colors/font_color = Color(0.29803923, 0.5529412, 1, 1)
+theme_override_fonts/font = ExtResource("6_s8t5x")
+theme_override_font_sizes/font_size = 12
+text = "22/100"
+horizontal_alignment = 2
+vertical_alignment = 1

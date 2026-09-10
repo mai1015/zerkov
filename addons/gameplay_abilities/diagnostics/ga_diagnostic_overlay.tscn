@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq8n1jd6vdiag01"]
+
+[ext_resource type="Script" path="res://addons/gameplay_abilities/diagnostics/ga_diagnostic_overlay.gd" id="1_ga_diag_overlay"]
+
+[node name="GADiagnosticOverlay" type="PanelContainer"]
+offset_right = 420.0
+mouse_filter = 2
+script = ExtResource("1_ga_diag_overlay")

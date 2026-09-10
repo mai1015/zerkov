@@ -1,0 +1,6 @@
+[gd_resource type="GameplayTagDefinition" format=3]
+
+[resource]
+identifier = &"state.control.stunned"
+description = "Prevents the owner from starting new abilities while owned."
+source_label = "addons/gameplay_abilities/resources/tag_state_control_stunned.tres"

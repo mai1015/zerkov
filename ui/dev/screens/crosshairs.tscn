@@ -1,0 +1,4519 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/dev/screens/crosshairs.gd" id="1_yl7nx"]
+[ext_resource type="Shader" path="res://ui/shaders/backdrop.gdshader" id="2_aaqc3"]
+[ext_resource type="Texture2D" path="res://assets/handoff/bg_raid_frame.png" id="3_f2ow0"]
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="4_q5c4p"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-SemiBold.ttf" id="5_imcha"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u0bwn"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1uvyy"]
+shader = ExtResource("2_aaqc3")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bn65l"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_min7t"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0be8u"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0g214"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.04, 0.05, 0.05, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l8qbc"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7usdx"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.05490196, 0.0627451, 0.05882353, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.16470589, 0.16470589, 0.16470589, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1ichl"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rv6r0"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qvvxf"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cc3r2"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dddnl"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sx4bm"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b7vkw"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.04, 0.05, 0.05, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2h0wb"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2n6cg"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ry106"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_htnef"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w5b8w"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bj2rp"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0j11"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vkic1"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.04, 0.05, 0.05, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1qxrg"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_an0xb"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2wx4h"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wr0wd"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vpqkq"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sk72o"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wettx"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nq4uh"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.04, 0.05, 0.05, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oyalj"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mcqu2"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ysi18"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 0.76)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xk5p8"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f23h5"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crqs3"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v1lat"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jfe0s"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.04, 0.05, 0.05, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6o3d4"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lv2fy"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0cpp1"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hijy0"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_md276"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h3c5q"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bod4t"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7av3w"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.04, 0.05, 0.05, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_awk2q"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x18tn"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nvmv4"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b27uj"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cwpyp"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x1cmo"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.75, 0.42, 0.12, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bfvic"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i2u8a"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.04, 0.05, 0.05, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vhnb7"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aak02"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ig78h"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tpac1"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ynsmj"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ft546"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y11b4"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m0af0"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i4lyx"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dbhvh"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6w87g"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8fnxq"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gdp5w"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_53edj"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6yutv"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eqrsg"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2lcsb"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_etdlm"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hjc5d"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.027, 0.035, 0.035, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.12)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tlae7"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.04)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x127l"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8xj0v"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9098039, 0.5882353, 0.18039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8gefb"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+
+[node name="Crosshairs" type="Control" unique_id=1112035324]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_yl7nx")
+metadata/utility_route = "crosshairs"
+
+[node name="BackdropBase" type="Panel" parent="." unique_id=931304756]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_u0bwn")
+metadata/z_backdrop = true
+
+[node name="BackdropImage" type="TextureRect" parent="." unique_id=1493940134]
+texture_filter = 2
+material = SubResource("ShaderMaterial_1uvyy")
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/z_backdrop = true
+
+[node name="BackdropShade" type="ColorRect" parent="." unique_id=837495741]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.72)
+metadata/z_backdrop = true
+
+[node name="BackButton" type="Button" parent="." unique_id=321043658]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 28.0
+offset_right = 178.0
+offset_bottom = 59.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_bn65l")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_min7t")
+theme_override_styles/hover = SubResource("StyleBoxFlat_0be8u")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_0g214")
+theme_override_styles/focus = SubResource("StyleBoxFlat_l8qbc")
+text = "ESC · BACK"
+
+[node name="CrosshairPanel" type="Panel" parent="." unique_id=1916567237]
+layout_mode = 0
+offset_left = 560.0
+offset_top = 244.0
+offset_right = 1360.0
+offset_bottom = 764.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_7usdx")
+metadata/compact_group = "CrosshairPane"
+
+[node name="CrosshairTitle" type="Label" parent="." unique_id=1162334878]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 268.0
+offset_right = 888.0
+offset_bottom = 291.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 13
+text = "CROSSHAIRS"
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="HeaderNote" type="Label" parent="." unique_id=1036237563]
+layout_mode = 0
+offset_left = 880.0
+offset_top = 268.0
+offset_right = 1332.0
+offset_bottom = 298.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "1:1 on game · 2px strokes with 1px dark outline · player-selectable"
+horizontal_alignment = 2
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="OptionsRule" type="ColorRect" parent="." unique_id=1012255170]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 302.0
+offset_right = 1332.0
+offset_bottom = 303.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0Panel" type="Panel" parent="." unique_id=848111704]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 698.0
+offset_bottom = 430.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1ichl")
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_shape = "DOT"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0Image" type="TextureRect" parent="." unique_id=1529478075]
+texture_filter = 1
+layout_mode = 0
+offset_left = 589.0
+offset_top = 321.0
+offset_right = 697.0
+offset_bottom = 429.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0Shade" type="ColorRect" parent="." unique_id=255963020]
+layout_mode = 0
+offset_left = 589.0
+offset_top = 321.0
+offset_right = 697.0
+offset_bottom = 429.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.32)
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_DarkDot" type="ColorRect" parent="." unique_id=1024146595]
+layout_mode = 0
+offset_left = 641.0
+offset_top = 373.0
+offset_right = 645.0
+offset_bottom = 377.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_ColorDot" type="ColorRect" parent="." unique_id=519303684]
+layout_mode = 0
+offset_left = 642.0
+offset_top = 374.0
+offset_right = 644.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_DarkTop" type="ColorRect" parent="." unique_id=1959189877]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_DarkBottom" type="ColorRect" parent="." unique_id=820289058]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_DarkLeft" type="ColorRect" parent="." unique_id=1739486093]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_DarkRight" type="ColorRect" parent="." unique_id=1914753559]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_ColorTop" type="ColorRect" parent="." unique_id=1604138332]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_ColorBottom" type="ColorRect" parent="." unique_id=1237945849]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_ColorLeft" type="ColorRect" parent="." unique_id=996083221]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_ColorRight" type="ColorRect" parent="." unique_id=1196866386]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_DarkPixel" type="ColorRect" parent="." unique_id=1325646656]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_ColorPixel" type="ColorRect" parent="." unique_id=1256597079]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_RingDark" type="Panel" parent="." unique_id=180992665]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rv6r0")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_RingColor" type="Panel" parent="." unique_id=532085821]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_qvvxf")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0_ColorCenter" type="ColorRect" parent="." unique_id=564265900]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "Option0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0Hit" type="Button" parent="." unique_id=853453114]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 698.0
+offset_bottom = 430.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_cc3r2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dddnl")
+theme_override_styles/hover = SubResource("StyleBoxFlat_sx4bm")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_b7vkw")
+theme_override_styles/focus = SubResource("StyleBoxFlat_2h0wb")
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0Label" type="Label" parent="." unique_id=1243198573]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 436.0
+offset_right = 698.0
+offset_bottom = 459.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 10
+text = "DOT"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option0Description" type="Label" parent="." unique_id=859022985]
+layout_mode = 0
+offset_left = 584.0
+offset_top = 456.0
+offset_right = 702.0
+offset_bottom = 488.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "pistols · SMGs"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1Panel" type="Panel" parent="." unique_id=1640207494]
+layout_mode = 0
+offset_left = 712.0
+offset_top = 320.0
+offset_right = 822.0
+offset_bottom = 430.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2n6cg")
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_shape = "CROSS"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1Image" type="TextureRect" parent="." unique_id=463525242]
+texture_filter = 1
+layout_mode = 0
+offset_left = 713.0
+offset_top = 321.0
+offset_right = 821.0
+offset_bottom = 429.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1Shade" type="ColorRect" parent="." unique_id=1382763585]
+layout_mode = 0
+offset_left = 713.0
+offset_top = 321.0
+offset_right = 821.0
+offset_bottom = 429.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.32)
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_DarkTop" type="ColorRect" parent="." unique_id=1928160941]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 360.0
+offset_right = 768.0
+offset_bottom = 370.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_DarkBottom" type="ColorRect" parent="." unique_id=1187131506]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 380.0
+offset_right = 768.0
+offset_bottom = 390.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_DarkLeft" type="ColorRect" parent="." unique_id=463338852]
+layout_mode = 0
+offset_left = 752.0
+offset_top = 374.0
+offset_right = 762.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_DarkRight" type="ColorRect" parent="." unique_id=1119488296]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 374.0
+offset_right = 782.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_ColorTop" type="ColorRect" parent="." unique_id=1226561670]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 361.0
+offset_right = 768.0
+offset_bottom = 369.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_ColorBottom" type="ColorRect" parent="." unique_id=632537975]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 381.0
+offset_right = 768.0
+offset_bottom = 389.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_ColorLeft" type="ColorRect" parent="." unique_id=1663451088]
+layout_mode = 0
+offset_left = 753.0
+offset_top = 374.0
+offset_right = 761.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_ColorRight" type="ColorRect" parent="." unique_id=1984995377]
+layout_mode = 0
+offset_left = 773.0
+offset_top = 374.0
+offset_right = 781.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_ColorCenter" type="ColorRect" parent="." unique_id=579684677]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 374.0
+offset_right = 768.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_DarkDot" type="ColorRect" parent="." unique_id=1839274924]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_ColorDot" type="ColorRect" parent="." unique_id=1335669085]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_DarkPixel" type="ColorRect" parent="." unique_id=2003800257]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_ColorPixel" type="ColorRect" parent="." unique_id=108767488]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_RingDark" type="Panel" parent="." unique_id=1935745703]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ry106")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1_RingColor" type="Panel" parent="." unique_id=1627586848]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_htnef")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "Option1"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1Hit" type="Button" parent="." unique_id=1019523157]
+layout_mode = 0
+offset_left = 712.0
+offset_top = 320.0
+offset_right = 822.0
+offset_bottom = 430.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_w5b8w")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bj2rp")
+theme_override_styles/hover = SubResource("StyleBoxFlat_e0j11")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_vkic1")
+theme_override_styles/focus = SubResource("StyleBoxFlat_1qxrg")
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1Label" type="Label" parent="." unique_id=1296807643]
+layout_mode = 0
+offset_left = 712.0
+offset_top = 436.0
+offset_right = 822.0
+offset_bottom = 459.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 10
+text = "CROSS"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option1Description" type="Label" parent="." unique_id=1411469023]
+layout_mode = 0
+offset_left = 708.0
+offset_top = 456.0
+offset_right = 826.0
+offset_bottom = 488.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "default · gap widens with spread"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2Panel" type="Panel" parent="." unique_id=1560076172]
+layout_mode = 0
+offset_left = 836.0
+offset_top = 320.0
+offset_right = 946.0
+offset_bottom = 430.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_an0xb")
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_shape = "OPEN"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2Image" type="TextureRect" parent="." unique_id=1140300171]
+texture_filter = 1
+layout_mode = 0
+offset_left = 837.0
+offset_top = 321.0
+offset_right = 945.0
+offset_bottom = 429.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2Shade" type="ColorRect" parent="." unique_id=2139917552]
+layout_mode = 0
+offset_left = 837.0
+offset_top = 321.0
+offset_right = 945.0
+offset_bottom = 429.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.32)
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_DarkTop" type="ColorRect" parent="." unique_id=2063126045]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 345.0
+offset_right = 892.0
+offset_bottom = 355.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_DarkBottom" type="ColorRect" parent="." unique_id=1283629473]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 380.0
+offset_right = 892.0
+offset_bottom = 390.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_DarkLeft" type="ColorRect" parent="." unique_id=2127188881]
+layout_mode = 0
+offset_left = 861.0
+offset_top = 374.0
+offset_right = 871.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_DarkRight" type="ColorRect" parent="." unique_id=111463225]
+layout_mode = 0
+offset_left = 896.0
+offset_top = 374.0
+offset_right = 906.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_ColorTop" type="ColorRect" parent="." unique_id=808046913]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 347.0
+offset_right = 892.0
+offset_bottom = 355.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_ColorBottom" type="ColorRect" parent="." unique_id=1565291454]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 380.0
+offset_right = 892.0
+offset_bottom = 388.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_ColorLeft" type="ColorRect" parent="." unique_id=255946229]
+layout_mode = 0
+offset_left = 863.0
+offset_top = 374.0
+offset_right = 871.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_ColorRight" type="ColorRect" parent="." unique_id=1092321783]
+layout_mode = 0
+offset_left = 896.0
+offset_top = 374.0
+offset_right = 904.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_DarkDot" type="ColorRect" parent="." unique_id=708999277]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_ColorDot" type="ColorRect" parent="." unique_id=511421587]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_DarkPixel" type="ColorRect" parent="." unique_id=2000538967]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_ColorPixel" type="ColorRect" parent="." unique_id=294902958]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_RingDark" type="Panel" parent="." unique_id=873713694]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2wx4h")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_RingColor" type="Panel" parent="." unique_id=1259722161]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_wr0wd")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2_ColorCenter" type="ColorRect" parent="." unique_id=1700121037]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "Option2"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2Hit" type="Button" parent="." unique_id=674599126]
+layout_mode = 0
+offset_left = 836.0
+offset_top = 320.0
+offset_right = 946.0
+offset_bottom = 430.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_vpqkq")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_sk72o")
+theme_override_styles/hover = SubResource("StyleBoxFlat_wettx")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_nq4uh")
+theme_override_styles/focus = SubResource("StyleBoxFlat_oyalj")
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2Label" type="Label" parent="." unique_id=1971945785]
+layout_mode = 0
+offset_left = 836.0
+offset_top = 436.0
+offset_right = 946.0
+offset_bottom = 459.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 10
+text = "OPEN"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option2Description" type="Label" parent="." unique_id=786749913]
+layout_mode = 0
+offset_left = 832.0
+offset_top = 456.0
+offset_right = 950.0
+offset_bottom = 488.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "center pip + 4 ticks · rifles"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3Panel" type="Panel" parent="." unique_id=1162390442]
+layout_mode = 0
+offset_left = 960.0
+offset_top = 320.0
+offset_right = 1070.0
+offset_bottom = 430.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mcqu2")
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_shape = "RING"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3Image" type="TextureRect" parent="." unique_id=1432931748]
+texture_filter = 1
+layout_mode = 0
+offset_left = 961.0
+offset_top = 321.0
+offset_right = 1069.0
+offset_bottom = 429.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3Shade" type="ColorRect" parent="." unique_id=1349538002]
+layout_mode = 0
+offset_left = 961.0
+offset_top = 321.0
+offset_right = 1069.0
+offset_bottom = 429.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.32)
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_RingDark" type="Panel" parent="." unique_id=959135802]
+layout_mode = 0
+offset_left = 1000.0
+offset_top = 360.0
+offset_right = 1030.0
+offset_bottom = 390.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ysi18")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_RingColor" type="Panel" parent="." unique_id=2145895007]
+layout_mode = 0
+offset_left = 1003.0
+offset_top = 363.0
+offset_right = 1027.0
+offset_bottom = 387.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_xk5p8")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_DarkTop" type="ColorRect" parent="." unique_id=107205256]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_DarkBottom" type="ColorRect" parent="." unique_id=332829325]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_DarkLeft" type="ColorRect" parent="." unique_id=264338702]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_DarkRight" type="ColorRect" parent="." unique_id=1972826505]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_ColorTop" type="ColorRect" parent="." unique_id=1849161869]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_ColorBottom" type="ColorRect" parent="." unique_id=660461952]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_ColorLeft" type="ColorRect" parent="." unique_id=1052909868]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_ColorRight" type="ColorRect" parent="." unique_id=972060157]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_DarkDot" type="ColorRect" parent="." unique_id=1316813412]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_ColorDot" type="ColorRect" parent="." unique_id=1869780939]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_DarkPixel" type="ColorRect" parent="." unique_id=191223569]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_ColorPixel" type="ColorRect" parent="." unique_id=1869328500]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3_ColorCenter" type="ColorRect" parent="." unique_id=302285854]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "Option3"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3Hit" type="Button" parent="." unique_id=2077955433]
+layout_mode = 0
+offset_left = 960.0
+offset_top = 320.0
+offset_right = 1070.0
+offset_bottom = 430.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_f23h5")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_crqs3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_v1lat")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_jfe0s")
+theme_override_styles/focus = SubResource("StyleBoxFlat_6o3d4")
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3Label" type="Label" parent="." unique_id=425501899]
+layout_mode = 0
+offset_left = 960.0
+offset_top = 436.0
+offset_right = 1070.0
+offset_bottom = 459.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 10
+text = "RING"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option3Description" type="Label" parent="." unique_id=1641403199]
+layout_mode = 0
+offset_left = 956.0
+offset_top = 456.0
+offset_right = 1074.0
+offset_bottom = 488.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "shotguns · pellet spread = ring"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4Panel" type="Panel" parent="." unique_id=733013773]
+layout_mode = 0
+offset_left = 1084.0
+offset_top = 320.0
+offset_right = 1194.0
+offset_bottom = 430.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lv2fy")
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_shape = "RETICLE"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4Image" type="TextureRect" parent="." unique_id=1025805252]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1085.0
+offset_top = 321.0
+offset_right = 1193.0
+offset_bottom = 429.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4Shade" type="ColorRect" parent="." unique_id=173221846]
+layout_mode = 0
+offset_left = 1085.0
+offset_top = 321.0
+offset_right = 1193.0
+offset_bottom = 429.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.32)
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_DarkTop" type="ColorRect" parent="." unique_id=449770146]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 358.0
+offset_right = 1140.0
+offset_bottom = 368.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_DarkBottom" type="ColorRect" parent="." unique_id=160367429]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 382.0
+offset_right = 1140.0
+offset_bottom = 392.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_DarkLeft" type="ColorRect" parent="." unique_id=233718901]
+layout_mode = 0
+offset_left = 1122.0
+offset_top = 374.0
+offset_right = 1132.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_DarkRight" type="ColorRect" parent="." unique_id=84494155]
+layout_mode = 0
+offset_left = 1146.0
+offset_top = 374.0
+offset_right = 1156.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_ColorTop" type="ColorRect" parent="." unique_id=1083852096]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 359.0
+offset_right = 1140.0
+offset_bottom = 367.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_ColorBottom" type="ColorRect" parent="." unique_id=685968838]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 383.0
+offset_right = 1140.0
+offset_bottom = 391.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_ColorLeft" type="ColorRect" parent="." unique_id=1890725194]
+layout_mode = 0
+offset_left = 1123.0
+offset_top = 374.0
+offset_right = 1131.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_ColorRight" type="ColorRect" parent="." unique_id=1952253461]
+layout_mode = 0
+offset_left = 1147.0
+offset_top = 374.0
+offset_right = 1155.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_ColorCenter" type="ColorRect" parent="." unique_id=1192781790]
+layout_mode = 0
+offset_left = 1137.0
+offset_top = 373.0
+offset_right = 1141.0
+offset_bottom = 377.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_DarkDot" type="ColorRect" parent="." unique_id=1721324120]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_ColorDot" type="ColorRect" parent="." unique_id=9132868]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_DarkPixel" type="ColorRect" parent="." unique_id=1764351705]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_ColorPixel" type="ColorRect" parent="." unique_id=526168401]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_RingDark" type="Panel" parent="." unique_id=454808771]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_0cpp1")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4_RingColor" type="Panel" parent="." unique_id=712010032]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hijy0")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "Option4"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4Hit" type="Button" parent="." unique_id=2007007501]
+layout_mode = 0
+offset_left = 1084.0
+offset_top = 320.0
+offset_right = 1194.0
+offset_bottom = 430.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_md276")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_h3c5q")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bod4t")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_7av3w")
+theme_override_styles/focus = SubResource("StyleBoxFlat_awk2q")
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4Label" type="Label" parent="." unique_id=1391692417]
+layout_mode = 0
+offset_left = 1084.0
+offset_top = 436.0
+offset_right = 1194.0
+offset_bottom = 459.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 10
+text = "RETICLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option4Description" type="Label" parent="." unique_id=1304541430]
+layout_mode = 0
+offset_left = 1080.0
+offset_top = 456.0
+offset_right = 1198.0
+offset_bottom = 488.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "marksman · hipfire"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5Panel" type="Panel" parent="." unique_id=252503996]
+layout_mode = 0
+offset_left = 1208.0
+offset_top = 320.0
+offset_right = 1318.0
+offset_bottom = 430.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_x18tn")
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_shape = "PIXEL"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5Image" type="TextureRect" parent="." unique_id=797962410]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1209.0
+offset_top = 321.0
+offset_right = 1317.0
+offset_bottom = 429.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5Shade" type="ColorRect" parent="." unique_id=1134769607]
+layout_mode = 0
+offset_left = 1209.0
+offset_top = 321.0
+offset_right = 1317.0
+offset_bottom = 429.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.32)
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_DarkPixel" type="ColorRect" parent="." unique_id=1470131303]
+layout_mode = 0
+offset_left = 1258.0
+offset_top = 370.0
+offset_right = 1268.0
+offset_bottom = 380.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_ColorPixel" type="ColorRect" parent="." unique_id=1633570892]
+layout_mode = 0
+offset_left = 1260.0
+offset_top = 372.0
+offset_right = 1266.0
+offset_bottom = 378.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_DarkTop" type="ColorRect" parent="." unique_id=1645182089]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_DarkBottom" type="ColorRect" parent="." unique_id=726820804]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_DarkLeft" type="ColorRect" parent="." unique_id=422935277]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_DarkRight" type="ColorRect" parent="." unique_id=876985624]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_ColorTop" type="ColorRect" parent="." unique_id=1221354633]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_ColorBottom" type="ColorRect" parent="." unique_id=1678379451]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_ColorLeft" type="ColorRect" parent="." unique_id=2010714399]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_ColorRight" type="ColorRect" parent="." unique_id=19655419]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_DarkDot" type="ColorRect" parent="." unique_id=1591690566]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_ColorDot" type="ColorRect" parent="." unique_id=967788807]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_RingDark" type="Panel" parent="." unique_id=448419010]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nvmv4")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_RingColor" type="Panel" parent="." unique_id=986120817]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_b27uj")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5_ColorCenter" type="ColorRect" parent="." unique_id=1285039276]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "Option5"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 1.0
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5Hit" type="Button" parent="." unique_id=381425521]
+layout_mode = 0
+offset_left = 1208.0
+offset_top = 320.0
+offset_right = 1318.0
+offset_bottom = 430.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_pressed_color = Color(0.039215688, 0.043137256, 0.039215688, 1)
+theme_override_colors/font_hover_color = Color(0.9490196, 0.69411767, 0.3529412, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_cwpyp")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_x1cmo")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bfvic")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_i2u8a")
+theme_override_styles/focus = SubResource("StyleBoxFlat_vhnb7")
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5Label" type="Label" parent="." unique_id=1414145240]
+layout_mode = 0
+offset_left = 1208.0
+offset_top = 436.0
+offset_right = 1318.0
+offset_bottom = 459.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 10
+text = "PIXEL"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="Option5Description" type="Label" parent="." unique_id=156259269]
+layout_mode = 0
+offset_left = 1204.0
+offset_top = 456.0
+offset_right = 1322.0
+offset_bottom = 488.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "your current asset, kept as an option"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="StatesTitle" type="Label" parent="." unique_id=2017041681]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 486.0
+offset_right = 888.0
+offset_bottom = 509.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 10
+text = "STATES · CROSS"
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="StatesNote" type="Label" parent="." unique_id=1273721724]
+layout_mode = 0
+offset_left = 980.0
+offset_top = 486.0
+offset_right = 1332.0
+offset_bottom = 509.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 10
+text = "same rules apply to every shape"
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="StatesRule" type="ColorRect" parent="." unique_id=2054339781]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 514.0
+offset_right = 1332.0
+offset_bottom = 515.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0Panel" type="Panel" parent="." unique_id=896857558]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 532.0
+offset_right = 698.0
+offset_bottom = 642.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_aak02")
+metadata/crosshair_tile = "State0"
+metadata/crosshair_shape = "CROSS"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0Image" type="TextureRect" parent="." unique_id=1471230014]
+texture_filter = 1
+layout_mode = 0
+offset_left = 589.0
+offset_top = 533.0
+offset_right = 697.0
+offset_bottom = 641.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0Shade" type="ColorRect" parent="." unique_id=453570769]
+layout_mode = 0
+offset_left = 589.0
+offset_top = 533.0
+offset_right = 697.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.34)
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_DarkTop" type="ColorRect" parent="." unique_id=206597776]
+layout_mode = 0
+offset_left = 642.0
+offset_top = 570.2
+offset_right = 644.0
+offset_bottom = 579.4
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_DarkBottom" type="ColorRect" parent="." unique_id=1559925397]
+layout_mode = 0
+offset_left = 642.0
+offset_top = 588.6
+offset_right = 644.0
+offset_bottom = 597.8
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_DarkLeft" type="ColorRect" parent="." unique_id=913022167]
+layout_mode = 0
+offset_left = 629.2
+offset_top = 583.0
+offset_right = 638.4
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_DarkRight" type="ColorRect" parent="." unique_id=1176072665]
+layout_mode = 0
+offset_left = 647.6
+offset_top = 583.0
+offset_right = 656.8
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_ColorTop" type="ColorRect" parent="." unique_id=2134008938]
+layout_mode = 0
+offset_left = 642.0
+offset_top = 571.2
+offset_right = 644.0
+offset_bottom = 578.4
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_ColorBottom" type="ColorRect" parent="." unique_id=703958813]
+layout_mode = 0
+offset_left = 642.0
+offset_top = 589.6
+offset_right = 644.0
+offset_bottom = 596.8
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_ColorLeft" type="ColorRect" parent="." unique_id=76882619]
+layout_mode = 0
+offset_left = 630.2
+offset_top = 583.0
+offset_right = 637.4
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_ColorRight" type="ColorRect" parent="." unique_id=1321927593]
+layout_mode = 0
+offset_left = 648.6
+offset_top = 583.0
+offset_right = 655.8
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_ColorCenter" type="ColorRect" parent="." unique_id=1055583891]
+layout_mode = 0
+offset_left = 642.0
+offset_top = 583.0
+offset_right = 644.0
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_DarkDot" type="ColorRect" parent="." unique_id=2022542529]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_ColorDot" type="ColorRect" parent="." unique_id=2082609823]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_DarkPixel" type="ColorRect" parent="." unique_id=1008506820]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_ColorPixel" type="ColorRect" parent="." unique_id=1508280712]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_RingDark" type="Panel" parent="." unique_id=1384904457]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ig78h")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0_RingColor" type="Panel" parent="." unique_id=964168973]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tpac1")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "State0"
+metadata/crosshair_state = "IDLE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0Hit" type="Label" parent="." unique_id=1278983162]
+layout_mode = 0
+offset_left = 584.0
+offset_top = 648.0
+offset_right = 702.0
+offset_bottom = 671.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 9
+text = "IDLE"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="State0Label" type="Label" parent="." unique_id=1833217653]
+layout_mode = 0
+offset_left = 584.0
+offset_top = 670.0
+offset_right = 702.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1Panel" type="Panel" parent="." unique_id=2047107517]
+layout_mode = 0
+offset_left = 712.0
+offset_top = 532.0
+offset_right = 822.0
+offset_bottom = 642.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ynsmj")
+metadata/crosshair_tile = "State1"
+metadata/crosshair_shape = "CROSS"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1Image" type="TextureRect" parent="." unique_id=1295901105]
+texture_filter = 1
+layout_mode = 0
+offset_left = 713.0
+offset_top = 533.0
+offset_right = 821.0
+offset_bottom = 641.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1Shade" type="ColorRect" parent="." unique_id=121053059]
+layout_mode = 0
+offset_left = 713.0
+offset_top = 533.0
+offset_right = 821.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.34)
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_DarkTop" type="ColorRect" parent="." unique_id=448363979]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 564.68
+offset_right = 768.0
+offset_bottom = 573.88
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_DarkBottom" type="ColorRect" parent="." unique_id=892333345]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 594.12
+offset_right = 768.0
+offset_bottom = 603.32
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_DarkLeft" type="ColorRect" parent="." unique_id=1454417622]
+layout_mode = 0
+offset_left = 747.68
+offset_top = 583.0
+offset_right = 756.88
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_DarkRight" type="ColorRect" parent="." unique_id=1948111926]
+layout_mode = 0
+offset_left = 777.12
+offset_top = 583.0
+offset_right = 786.32
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_ColorTop" type="ColorRect" parent="." unique_id=1845209038]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 565.68
+offset_right = 768.0
+offset_bottom = 572.88
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_ColorBottom" type="ColorRect" parent="." unique_id=1380652796]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 595.12
+offset_right = 768.0
+offset_bottom = 602.32
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_ColorLeft" type="ColorRect" parent="." unique_id=1140081231]
+layout_mode = 0
+offset_left = 748.68
+offset_top = 583.0
+offset_right = 755.88
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_ColorRight" type="ColorRect" parent="." unique_id=1382472934]
+layout_mode = 0
+offset_left = 778.12
+offset_top = 583.0
+offset_right = 785.32
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_ColorCenter" type="ColorRect" parent="." unique_id=1682208947]
+layout_mode = 0
+offset_left = 766.0
+offset_top = 583.0
+offset_right = 768.0
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_DarkDot" type="ColorRect" parent="." unique_id=2014877491]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_ColorDot" type="ColorRect" parent="." unique_id=623225311]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_DarkPixel" type="ColorRect" parent="." unique_id=693810442]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_ColorPixel" type="ColorRect" parent="." unique_id=1739795123]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_RingDark" type="Panel" parent="." unique_id=1563838689]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ft546")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1_RingColor" type="Panel" parent="." unique_id=1865949165]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_y11b4")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "State1"
+metadata/crosshair_state = "MOVING / FIRING"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1Hit" type="Label" parent="." unique_id=1449620341]
+layout_mode = 0
+offset_left = 708.0
+offset_top = 648.0
+offset_right = 842.0
+offset_bottom = 671.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 9
+text = "MOVING / FIRING"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="State1Label" type="Label" parent="." unique_id=1879820030]
+layout_mode = 0
+offset_left = 708.0
+offset_top = 670.0
+offset_right = 826.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "gap opens to
+match spread"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2Panel" type="Panel" parent="." unique_id=908773151]
+layout_mode = 0
+offset_left = 836.0
+offset_top = 532.0
+offset_right = 946.0
+offset_bottom = 642.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_m0af0")
+metadata/crosshair_tile = "State2"
+metadata/crosshair_shape = "CROSS"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2Image" type="TextureRect" parent="." unique_id=81679355]
+texture_filter = 1
+layout_mode = 0
+offset_left = 837.0
+offset_top = 533.0
+offset_right = 945.0
+offset_bottom = 641.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2Shade" type="ColorRect" parent="." unique_id=1838344820]
+layout_mode = 0
+offset_left = 837.0
+offset_top = 533.0
+offset_right = 945.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.34)
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_DarkTop" type="ColorRect" parent="." unique_id=866742064]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 570.2
+offset_right = 892.0
+offset_bottom = 579.4
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_DarkBottom" type="ColorRect" parent="." unique_id=1944866986]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 588.6
+offset_right = 892.0
+offset_bottom = 597.8
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_DarkLeft" type="ColorRect" parent="." unique_id=1605389869]
+layout_mode = 0
+offset_left = 877.2
+offset_top = 583.0
+offset_right = 886.4
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_DarkRight" type="ColorRect" parent="." unique_id=323510275]
+layout_mode = 0
+offset_left = 895.6
+offset_top = 583.0
+offset_right = 904.8
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_ColorTop" type="ColorRect" parent="." unique_id=1622339405]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 571.2
+offset_right = 892.0
+offset_bottom = 578.4
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_ColorBottom" type="ColorRect" parent="." unique_id=580448532]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 589.6
+offset_right = 892.0
+offset_bottom = 596.8
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_ColorLeft" type="ColorRect" parent="." unique_id=303108978]
+layout_mode = 0
+offset_left = 878.2
+offset_top = 583.0
+offset_right = 885.4
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_ColorRight" type="ColorRect" parent="." unique_id=1526851333]
+layout_mode = 0
+offset_left = 896.6
+offset_top = 583.0
+offset_right = 903.8
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_ColorCenter" type="ColorRect" parent="." unique_id=614337375]
+layout_mode = 0
+offset_left = 890.0
+offset_top = 583.0
+offset_right = 892.0
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.8509804, 0.28235295, 0.23137255, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_DarkDot" type="ColorRect" parent="." unique_id=1844958656]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_ColorDot" type="ColorRect" parent="." unique_id=1330835050]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_DarkPixel" type="ColorRect" parent="." unique_id=174590221]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_ColorPixel" type="ColorRect" parent="." unique_id=1964144329]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_RingDark" type="Panel" parent="." unique_id=1814409947]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_i4lyx")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2_RingColor" type="Panel" parent="." unique_id=479808490]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dbhvh")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "State2"
+metadata/crosshair_state = "ON ENEMY"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2Hit" type="Label" parent="." unique_id=410502795]
+layout_mode = 0
+offset_left = 832.0
+offset_top = 648.0
+offset_right = 950.0
+offset_bottom = 671.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 9
+text = "ON ENEMY"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="State2Label" type="Label" parent="." unique_id=1154344483]
+layout_mode = 0
+offset_left = 832.0
+offset_top = 670.0
+offset_right = 950.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "tint only,
+no name"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3Panel" type="Panel" parent="." unique_id=308695034]
+layout_mode = 0
+offset_left = 960.0
+offset_top = 532.0
+offset_right = 1070.0
+offset_bottom = 642.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_6w87g")
+metadata/crosshair_tile = "State3"
+metadata/crosshair_shape = "CROSS"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3Image" type="TextureRect" parent="." unique_id=502466813]
+texture_filter = 1
+layout_mode = 0
+offset_left = 961.0
+offset_top = 533.0
+offset_right = 1069.0
+offset_bottom = 641.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3Shade" type="ColorRect" parent="." unique_id=1166684716]
+layout_mode = 0
+offset_left = 961.0
+offset_top = 533.0
+offset_right = 1069.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.34)
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_DarkTop" type="ColorRect" parent="." unique_id=1584758274]
+layout_mode = 0
+offset_left = 1014.0
+offset_top = 570.2
+offset_right = 1016.0
+offset_bottom = 579.4
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_DarkBottom" type="ColorRect" parent="." unique_id=1435585449]
+layout_mode = 0
+offset_left = 1014.0
+offset_top = 588.6
+offset_right = 1016.0
+offset_bottom = 597.8
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_DarkLeft" type="ColorRect" parent="." unique_id=1663164091]
+layout_mode = 0
+offset_left = 1001.2
+offset_top = 583.0
+offset_right = 1010.4
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_DarkRight" type="ColorRect" parent="." unique_id=1186814876]
+layout_mode = 0
+offset_left = 1019.6
+offset_top = 583.0
+offset_right = 1028.7999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_ColorTop" type="ColorRect" parent="." unique_id=1905668320]
+layout_mode = 0
+offset_left = 1014.0
+offset_top = 571.2
+offset_right = 1016.0
+offset_bottom = 578.4
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_ColorBottom" type="ColorRect" parent="." unique_id=1733172406]
+layout_mode = 0
+offset_left = 1014.0
+offset_top = 589.6
+offset_right = 1016.0
+offset_bottom = 596.8
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_ColorLeft" type="ColorRect" parent="." unique_id=881388404]
+layout_mode = 0
+offset_left = 1002.2
+offset_top = 583.0
+offset_right = 1009.4
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_ColorRight" type="ColorRect" parent="." unique_id=1836448404]
+layout_mode = 0
+offset_left = 1020.6
+offset_top = 583.0
+offset_right = 1027.7999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_ColorCenter" type="ColorRect" parent="." unique_id=288238630]
+layout_mode = 0
+offset_left = 1014.0
+offset_top = 583.0
+offset_right = 1016.0
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_DarkDot" type="ColorRect" parent="." unique_id=309696603]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_ColorDot" type="ColorRect" parent="." unique_id=205601793]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_DarkPixel" type="ColorRect" parent="." unique_id=186952074]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_ColorPixel" type="ColorRect" parent="." unique_id=1488577744]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_RingDark" type="Panel" parent="." unique_id=561931609]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8fnxq")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3_RingColor" type="Panel" parent="." unique_id=1908540078]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_gdp5w")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "State3"
+metadata/crosshair_state = "HIT"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3Hit" type="Label" parent="." unique_id=628247814]
+layout_mode = 0
+offset_left = 956.0
+offset_top = 648.0
+offset_right = 1074.0
+offset_bottom = 671.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 9
+text = "HIT"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="State3Label" type="Label" parent="." unique_id=483383965]
+layout_mode = 0
+offset_left = 956.0
+offset_top = 670.0
+offset_right = 1074.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "× marker 120 ms,
+red on kill"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4Panel" type="Panel" parent="." unique_id=389602850]
+layout_mode = 0
+offset_left = 1084.0
+offset_top = 532.0
+offset_right = 1194.0
+offset_bottom = 642.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_53edj")
+metadata/crosshair_tile = "State4"
+metadata/crosshair_shape = "CROSS"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4Image" type="TextureRect" parent="." unique_id=895875738]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1085.0
+offset_top = 533.0
+offset_right = 1193.0
+offset_bottom = 641.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4Shade" type="ColorRect" parent="." unique_id=1954152164]
+layout_mode = 0
+offset_left = 1085.0
+offset_top = 533.0
+offset_right = 1193.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.34)
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_DarkTop" type="ColorRect" parent="." unique_id=1489648352]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 570.2
+offset_right = 1140.0
+offset_bottom = 579.4
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_DarkBottom" type="ColorRect" parent="." unique_id=419868766]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 588.6
+offset_right = 1140.0
+offset_bottom = 597.8
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_DarkLeft" type="ColorRect" parent="." unique_id=481043320]
+layout_mode = 0
+offset_left = 1125.2
+offset_top = 583.0
+offset_right = 1134.3999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_DarkRight" type="ColorRect" parent="." unique_id=1100962383]
+layout_mode = 0
+offset_left = 1143.6
+offset_top = 583.0
+offset_right = 1152.7999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_ColorTop" type="ColorRect" parent="." unique_id=1534027597]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 571.2
+offset_right = 1140.0
+offset_bottom = 578.4
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_ColorBottom" type="ColorRect" parent="." unique_id=1666574691]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 589.6
+offset_right = 1140.0
+offset_bottom = 596.8
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_ColorLeft" type="ColorRect" parent="." unique_id=1160779819]
+layout_mode = 0
+offset_left = 1126.2
+offset_top = 583.0
+offset_right = 1133.3999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_ColorRight" type="ColorRect" parent="." unique_id=411770577]
+layout_mode = 0
+offset_left = 1144.6
+offset_top = 583.0
+offset_right = 1151.7999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_ColorCenter" type="ColorRect" parent="." unique_id=1607212046]
+layout_mode = 0
+offset_left = 1138.0
+offset_top = 583.0
+offset_right = 1140.0
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.37254903, 0.827451, 0.41960785, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_DarkDot" type="ColorRect" parent="." unique_id=1082615750]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_ColorDot" type="ColorRect" parent="." unique_id=2020269232]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_DarkPixel" type="ColorRect" parent="." unique_id=1331012771]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_ColorPixel" type="ColorRect" parent="." unique_id=1583735498]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_RingDark" type="Panel" parent="." unique_id=224255713]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_6yutv")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4_RingColor" type="Panel" parent="." unique_id=360043759]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_eqrsg")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "State4"
+metadata/crosshair_state = "ON SQUADMATE"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4Hit" type="Label" parent="." unique_id=1946671253]
+layout_mode = 0
+offset_left = 1080.0
+offset_top = 648.0
+offset_right = 1209.0
+offset_bottom = 671.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 9
+text = "ON SQUADMATE"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="State4Label" type="Label" parent="." unique_id=971052919]
+layout_mode = 0
+offset_left = 1080.0
+offset_top = 670.0
+offset_right = 1198.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "green + name,
+trigger locks"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5Panel" type="Panel" parent="." unique_id=299142220]
+layout_mode = 0
+offset_left = 1208.0
+offset_top = 532.0
+offset_right = 1318.0
+offset_bottom = 642.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2lcsb")
+metadata/crosshair_tile = "State5"
+metadata/crosshair_shape = "CROSS"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5Image" type="TextureRect" parent="." unique_id=1461154180]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1209.0
+offset_top = 533.0
+offset_right = 1317.0
+offset_bottom = 641.0
+mouse_filter = 2
+texture = ExtResource("3_f2ow0")
+expand_mode = 1
+stretch_mode = 6
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5Shade" type="ColorRect" parent="." unique_id=1931017861]
+layout_mode = 0
+offset_left = 1209.0
+offset_top = 533.0
+offset_right = 1317.0
+offset_bottom = 641.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.34)
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_DarkTop" type="ColorRect" parent="." unique_id=509571593]
+layout_mode = 0
+offset_left = 1262.0
+offset_top = 570.2
+offset_right = 1264.0
+offset_bottom = 579.4
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkTop"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_DarkBottom" type="ColorRect" parent="." unique_id=139878515]
+layout_mode = 0
+offset_left = 1262.0
+offset_top = 588.6
+offset_right = 1264.0
+offset_bottom = 597.8
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkBottom"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_DarkLeft" type="ColorRect" parent="." unique_id=1388693078]
+layout_mode = 0
+offset_left = 1249.2
+offset_top = 583.0
+offset_right = 1258.3999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkLeft"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_DarkRight" type="ColorRect" parent="." unique_id=1020022711]
+layout_mode = 0
+offset_left = 1267.6
+offset_top = 583.0
+offset_right = 1276.7999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.76)
+metadata/crosshair_role = "DarkRight"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_ColorTop" type="ColorRect" parent="." unique_id=830992272]
+layout_mode = 0
+offset_left = 1262.0
+offset_top = 571.2
+offset_right = 1264.0
+offset_bottom = 578.4
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+metadata/crosshair_role = "ColorTop"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_ColorBottom" type="ColorRect" parent="." unique_id=1794933826]
+layout_mode = 0
+offset_left = 1262.0
+offset_top = 589.6
+offset_right = 1264.0
+offset_bottom = 596.8
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+metadata/crosshair_role = "ColorBottom"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_ColorLeft" type="ColorRect" parent="." unique_id=672931941]
+layout_mode = 0
+offset_left = 1250.2
+offset_top = 583.0
+offset_right = 1257.3999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+metadata/crosshair_role = "ColorLeft"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_ColorRight" type="ColorRect" parent="." unique_id=1080845174]
+layout_mode = 0
+offset_left = 1268.6
+offset_top = 583.0
+offset_right = 1275.7999
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+metadata/crosshair_role = "ColorRight"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_ColorCenter" type="ColorRect" parent="." unique_id=836286114]
+layout_mode = 0
+offset_left = 1262.0
+offset_top = 583.0
+offset_right = 1264.0
+offset_bottom = 585.0
+mouse_filter = 2
+color = Color(0.9137255, 0.827451, 0.3529412, 1)
+metadata/crosshair_role = "ColorCenter"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_DarkDot" type="ColorRect" parent="." unique_id=28149887]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkDot"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_ColorDot" type="ColorRect" parent="." unique_id=18144902]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorDot"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_DarkPixel" type="ColorRect" parent="." unique_id=332221049]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "DarkPixel"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_ColorPixel" type="ColorRect" parent="." unique_id=1753216139]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+metadata/crosshair_role = "ColorPixel"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_RingDark" type="Panel" parent="." unique_id=2136058401]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_etdlm")
+metadata/crosshair_role = "RingDark"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5_RingColor" type="Panel" parent="." unique_id=1624276455]
+visible = false
+layout_mode = 0
+offset_left = 588.0
+offset_top = 320.0
+offset_right = 589.0
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hjc5d")
+metadata/crosshair_role = "RingColor"
+metadata/crosshair_tile = "State5"
+metadata/crosshair_state = "ON CONTAINER"
+metadata/crosshair_scale = 0.92
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5Hit" type="Label" parent="." unique_id=1382754353]
+layout_mode = 0
+offset_left = 1204.0
+offset_top = 648.0
+offset_right = 1325.0
+offset_bottom = 671.0
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_fonts/font = ExtResource("4_q5c4p")
+theme_override_font_sizes/font_size = 9
+text = "ON CONTAINER"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="State5Label" type="Label" parent="." unique_id=1704061181]
+layout_mode = 0
+offset_left = 1204.0
+offset_top = 670.0
+offset_right = 1322.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 9
+text = "crosshair becomes
+a frame + prompt"
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_text = true
+metadata/compact_group = "CrosshairPane"
+
+[node name="Footer" type="Label" parent="." unique_id=2023627617]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 730.0
+offset_right = 1332.0
+offset_bottom = 753.0
+theme_override_colors/font_color = Color(0.54509807, 0.5686275, 0.5411765, 1)
+theme_override_fonts/font = ExtResource("5_imcha")
+theme_override_font_sizes/font_size = 10
+text = "Selected shape applies to HUD immediately · choose a color and behavior in Settings → HUD"
+vertical_alignment = 1
+metadata/compact_group = "CrosshairPane"
+
+[node name="CrosshairPane" type="ScrollContainer" parent="." unique_id=1435267117]
+visible = false
+layout_mode = 0
+offset_left = 552.0
+offset_top = 80.0
+offset_right = 1368.0
+offset_bottom = 1020.0
+mouse_filter = 0
+follow_focus = true
+metadata/adaptive_pane = true
+metadata/scroll_track = SubResource("StyleBoxFlat_tlae7")
+metadata/scroll_grabber = SubResource("StyleBoxFlat_x127l")
+metadata/scroll_highlight = SubResource("StyleBoxFlat_8xj0v")
+metadata/scroll_pressed = SubResource("StyleBoxFlat_8gefb")
+
+[node name="Content" type="Control" parent="CrosshairPane" unique_id=17808236]
+custom_minimum_size = Vector2(800, 520)
+layout_mode = 2
+mouse_filter = 1

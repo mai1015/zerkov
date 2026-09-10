@@ -1,0 +1,14 @@
+<!-- rotate: item rotate context action (DESIGN.md §7.2 "circular arrow",
+     §7.1 metaphor policy "rotate = circular arrow", §12.8 action bar entry).
+     A ~270-degree circular arc with a chevron arrowhead continuing its
+     direction of travel, read as a literal rotate-clockwise motion. Kept
+     visually distinct from `resync` (dashed double-arc + clock hands): this
+     is a single solid arc, no clock reference. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M12 4 A8 8 0 1 1 4 12"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square"/>
+  <path d="M0.8 14.8 L4 12 L7.2 14.8"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

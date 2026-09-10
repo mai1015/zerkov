@@ -1,0 +1,144 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://ui/components/controls/zerkov_button.tscn" id="button"]
+
+[sub_resource type="StyleBoxFlat" id="map_frame"]
+bg_color = Color(0.0784314, 0.0784314, 0.0784314, 1)
+border_color = Color(1, 1, 1, 0.12)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[node name="CompactWorkspace" type="Control"]
+visible = false
+mouse_filter = 2
+
+[node name="MapFrame" type="Panel" parent="."]
+mouse_filter = 2
+theme_override_styles/panel = SubResource("map_frame")
+
+[node name="Rule" type="ColorRect" parent="."]
+mouse_filter = 2
+color = Color(1, 1, 1, 0.12)
+
+[node name="Route0" parent="." instance=ExtResource("button")]
+offset_left = 16.0
+offset_top = 68.0
+offset_right = 128.0
+offset_bottom = 100.0
+text = "BUNKER"
+metadata/route = "bunker"
+
+[node name="Route1" parent="." instance=ExtResource("button")]
+offset_left = 136.0
+offset_top = 68.0
+offset_right = 248.0
+offset_bottom = 100.0
+text = "BUILD"
+metadata/route = "build_mode"
+
+[node name="Route2" parent="." instance=ExtResource("button")]
+offset_left = 256.0
+offset_top = 68.0
+offset_right = 368.0
+offset_bottom = 100.0
+text = "CRAFTING"
+metadata/route = "crafting"
+
+[node name="Route3" parent="." instance=ExtResource("button")]
+offset_left = 376.0
+offset_top = 68.0
+offset_right = 488.0
+offset_bottom = 100.0
+text = "SESSION"
+metadata/route = "session"
+
+[node name="Route4" parent="." instance=ExtResource("button")]
+offset_left = 496.0
+offset_top = 68.0
+offset_right = 608.0
+offset_bottom = 100.0
+text = "STASH"
+metadata/route = "inventory"
+
+[node name="RecipeTab" parent="." instance=ExtResource("button")]
+text = "RECIPE"
+
+[node name="QueueTab" parent="." instance=ExtResource("button")]
+text = "QUEUE / STASH"
+
+[node name="Collect" parent="." instance=ExtResource("button")]
+text = "F COLLECT ALL"
+
+[node name="Leave" parent="." instance=ExtResource("button")]
+text = "LEAVE STATION"
+
+[node name="Deploy" parent="." instance=ExtResource("button")]
+text = "M DEPLOY TABLE"
+
+[node name="ExitBuild" parent="." instance=ExtResource("button")]
+text = "EXIT BUILD"
+
+[node name="CompactStations" type="ScrollContainer" parent="."]
+clip_contents = true
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Content" type="Control" parent="CompactStations"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CompactStationDetails" type="ScrollContainer" parent="."]
+clip_contents = true
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Content" type="Control" parent="CompactStationDetails"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CompactSession" type="ScrollContainer" parent="."]
+clip_contents = true
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Content" type="Control" parent="CompactSession"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CompactBuildCatalog" type="ScrollContainer" parent="."]
+clip_contents = true
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Content" type="Control" parent="CompactBuildCatalog"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CompactRecipes" type="ScrollContainer" parent="."]
+clip_contents = true
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Content" type="Control" parent="CompactRecipes"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CompactCraftDetail" type="ScrollContainer" parent="."]
+clip_contents = true
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Content" type="Control" parent="CompactCraftDetail"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="CompactCraftQueue" type="ScrollContainer" parent="."]
+clip_contents = true
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Content" type="Control" parent="CompactCraftQueue"]
+layout_mode = 2
+mouse_filter = 1

@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "addon": "weapon_system",
+  "version": "0.1.0",
+  "api_version": "0.1.0",
+  "protocol_version": 2,
+  "resource_schema_version": 1,
+  "manifest_algorithm": "fnv1a64-canonical-v1",
+  "canonical_units": {
+    "distance": "milliworld-unit",
+    "direction": "micro-unit",
+    "angle": "microradian",
+    "damage": "milli-damage",
+    "time": "authority-tick"
+  },
+  "engine": {
+    "compatibility_minimum": "4.7",
+    "compatibility_maximum": null
+  },
+  "support_policy": "A target is planned until its artifact builds, loads, exports, and passes role-applicable conformance. Planned targets must not be advertised as supported.",
+  "provenance": {
+    "source_revision": "9f2398239233457ba4f648a68c766b927d3f7460",
+    "built_at": "2026-07-29T21:15:04Z",
+    "godot_cpp_commit": "5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731"
+  },
+  "targets": [
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "debug",
+      "roles": [
+        "client",
+        "offline_authority"
+      ],
+      "artifact": "bin/libweapon_system.macos.template_debug.universal.dylib",
+      "status": "built",
+      "sha256": "013b453cddee5b7de7af95217e259f4c86d521f5a369108fc22ee8cfbc8995b9",
+      "support_state": "experimental",
+      "verified_by": [
+        "scons weapon_tests run_weapon_tests=yes (207/207, plain and sanitize=address,undefined)",
+        "WPN_FUZZ_ITERATIONS=20000 ./weapon_system_tests --filter=fuzz_ under sanitize=address,undefined",
+        "tests/weapon_system/integration/weapon_inventory_main.tscn (76/76)",
+        "tests/weapon_system/server/wpn_server_main.tscn -- dedicated-server headless-purity suite (21/21)",
+        "tests/weapon_system/run_dependency_removal.sh -- weapon_system/inventory_system/gameplay_abilities independence (3/3 scenarios)",
+        "Editor import: Godot --editor --quit-after 200 --display-driver headless --audio-driver Dummy (clean, exit 0)"
+      ],
+      "notes": "examples/weapon_system/extraction_combat_demo.tscn -- --demo-smoke (recorded verified in a prior wave) was NOT re-run this pass: it did not complete within 120s headless in this environment (frame-signal-driven smoke logic awaiting RenderingServer.frame_post_draw) and was not this task's scope to debug; treat it as unverified until re-confirmed."
+    },
+    {
+      "platform": "macos",
+      "arch": "universal",
+      "build": "release",
+      "roles": [
+        "client",
+        "offline_authority"
+      ],
+      "artifact": "bin/libweapon_system.macos.template_release.universal.dylib",
+      "status": "built",
+      "sha256": "b8003ea6cdc1dc375e684c092070faa18cf93c1d607d3d3faf145807a5dfdbfb",
+      "support_state": "experimental",
+      "verified_by": [],
+      "notes": "Built successfully; a non-exported editor run selects the debug artifact, so release loading remains unverified until export smoke."
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "debug",
+      "roles": [
+        "client",
+        "offline_authority"
+      ],
+      "artifact": "bin/libweapon_system.windows.template_debug.x86_64.dll",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "windows",
+      "arch": "x86_64",
+      "build": "release",
+      "roles": [
+        "client",
+        "offline_authority"
+      ],
+      "artifact": "bin/libweapon_system.windows.template_release.x86_64.dll",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "debug",
+      "roles": [
+        "client",
+        "offline_authority",
+        "server_authority"
+      ],
+      "artifact": "bin/libweapon_system.linux.template_debug.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "arch": "x86_64",
+      "build": "release",
+      "roles": [
+        "client",
+        "offline_authority",
+        "server_authority"
+      ],
+      "artifact": "bin/libweapon_system.linux.template_release.x86_64.so",
+      "status": "planned",
+      "sha256": null
+    }
+  ]
+}

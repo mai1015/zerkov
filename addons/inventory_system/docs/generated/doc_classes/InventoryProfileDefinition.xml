@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InventoryProfileDefinition" inherits="Resource" api_type="extension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="enabled_features" type="PackedStringArray" setter="set_enabled_features" getter="get_enabled_features" default="PackedStringArray()">
+		</member>
+		<member name="identifier" type="StringName" setter="set_identifier" getter="get_identifier" default="&amp;&quot;&quot;">
+		</member>
+		<member name="limits" type="InventoryProfileLimits" setter="set_limits" getter="get_limits">
+		</member>
+		<member name="root_containers" type="PackedStringArray" setter="set_root_containers" getter="get_root_containers" default="PackedStringArray()">
+		</member>
+		<member name="schema_version" type="int" setter="set_schema_version" getter="get_schema_version" default="1">
+		</member>
+	</members>
+</class>

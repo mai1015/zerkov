@@ -1,0 +1,12 @@
+<!-- split: item split context action / split modal (DESIGN.md §7.2 "divider /
+     scissors-adjacent glyph", §12.8). A stack outline crossed by a zigzag
+     cut line that runs past both of its edges, reading as a literal
+     "cut this stack in two" metaphor without drawing an actual pair of
+     scissors (avoids any resemblance to another product's glyph). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M5 4 H19 V20 H5 Z"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="miter"/>
+  <path d="M3 12 L7 12 L9 9 L11 15 L13 9 L15 15 L17 12 L21 12"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>
