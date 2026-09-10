@@ -1,0 +1,1618 @@
+{
+	"assertions": [
+		{
+			"check": 1,
+			"label": "native Weapon facade has due commit",
+			"passed": true
+		},
+		{
+			"check": 2,
+			"label": "native facade exposes no symmetric reload rollback",
+			"passed": true
+		},
+		{
+			"check": 3,
+			"label": "continuous trusted session admission is usable",
+			"passed": true
+		},
+		{
+			"check": 4,
+			"label": "continuous real inventory owner seals canonical catalog and starts",
+			"passed": true
+		},
+		{
+			"check": 5,
+			"label": "continuous canonical AKM is equipped",
+			"passed": true
+		},
+		{
+			"check": 6,
+			"label": "continuous real magazine provider materializes its canonical child list",
+			"passed": true
+		},
+		{
+			"check": 7,
+			"label": "continuous real magazine, rig and pocket stacks insert",
+			"passed": true
+		},
+		{
+			"check": 8,
+			"label": "continuous real WeaponAuthority configures sealed content",
+			"passed": true
+		},
+		{
+			"check": 9,
+			"label": "continuous real AKM starts with three loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 10,
+			"label": "continuous actual WeaponAuthorityReloadPort configures",
+			"passed": true
+		},
+		{
+			"check": 11,
+			"label": "continuous actual port reports its limited single-writer capability",
+			"passed": true
+		},
+		{
+			"check": 12,
+			"label": "continuous actual adapter binds exact equipped identity",
+			"passed": true
+		},
+		{
+			"check": 13,
+			"label": "continuous initial exact quantities conserve forty-one rounds",
+			"passed": true
+		},
+		{
+			"check": 14,
+			"label": "Initial equipped AKM exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 15,
+			"label": "Initial equipped AKM exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 16,
+			"label": "Initial equipped AKM exact hold count",
+			"passed": true
+		},
+		{
+			"check": 17,
+			"label": "Initial equipped AKM exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 18,
+			"label": "Initial equipped AKM ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 19,
+			"label": "continuous first reserve succeeds",
+			"passed": true
+		},
+		{
+			"check": 20,
+			"label": "first deadline is exact authored seventy-two tick interval",
+			"passed": true
+		},
+		{
+			"check": 21,
+			"label": "continuous pending reservation identity and total are exact",
+			"passed": true
+		},
+		{
+			"check": 22,
+			"label": "continuous magazine then rig then pockets exact native item IDs, quantities and hold generations",
+			"passed": true
+		},
+		{
+			"check": 23,
+			"label": "continuous exact native reservation is HELD in the bound inventory",
+			"passed": true
+		},
+		{
+			"check": 24,
+			"label": "continuous every reservation preserves physical ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 25,
+			"label": "Reserve / begin exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 26,
+			"label": "Reserve / begin exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 27,
+			"label": "Reserve / begin exact hold count",
+			"passed": true
+		},
+		{
+			"check": 28,
+			"label": "Reserve / begin exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 29,
+			"label": "Reserve / begin ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 30,
+			"label": "native removal of magazine-contained held stack rejects",
+			"passed": true
+		},
+		{
+			"check": 31,
+			"label": "held-stack rejection preserves exact source state and both revisions",
+			"passed": true
+		},
+		{
+			"check": 32,
+			"label": "pre-due sweep cannot complete",
+			"passed": true
+		},
+		{
+			"check": 33,
+			"label": "Before due exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 34,
+			"label": "Before due exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 35,
+			"label": "Before due exact hold count",
+			"passed": true
+		},
+		{
+			"check": 36,
+			"label": "Before due exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 37,
+			"label": "Before due ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 38,
+			"label": "cancellation ordered before commit at exact due tick succeeds",
+			"passed": true
+		},
+		{
+			"check": 39,
+			"label": "same tick sweep after cancellation cannot resurrect reload",
+			"passed": true
+		},
+		{
+			"check": 40,
+			"label": "due-tick cancellation preserves exact inventory persistence bytes",
+			"passed": true
+		},
+		{
+			"check": 41,
+			"label": "first reservation is native RELEASED",
+			"passed": true
+		},
+		{
+			"check": 42,
+			"label": "cancel notification runs before inventory releases the hold",
+			"passed": true
+		},
+		{
+			"check": 43,
+			"label": "cancel produces no completion publication",
+			"passed": true
+		},
+		{
+			"check": 44,
+			"label": "Cancel ordered at due exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 45,
+			"label": "Cancel ordered at due exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 46,
+			"label": "Cancel ordered at due exact hold count",
+			"passed": true
+		},
+		{
+			"check": 47,
+			"label": "Cancel ordered at due exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 48,
+			"label": "Cancel ordered at due ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 49,
+			"label": "cancel request replays terminal receipt",
+			"passed": true
+		},
+		{
+			"check": 50,
+			"label": "second reservation starts after cancellation",
+			"passed": true
+		},
+		{
+			"check": 51,
+			"label": "fresh request has a distinct exact reservation identity",
+			"passed": true
+		},
+		{
+			"check": 52,
+			"label": "continuous pending reservation identity and total are exact",
+			"passed": true
+		},
+		{
+			"check": 53,
+			"label": "continuous magazine then rig then pockets exact native item IDs, quantities and hold generations",
+			"passed": true
+		},
+		{
+			"check": 54,
+			"label": "continuous exact native reservation is HELD in the bound inventory",
+			"passed": true
+		},
+		{
+			"check": 55,
+			"label": "continuous every reservation preserves physical ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 56,
+			"label": "Reserve again exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 57,
+			"label": "Reserve again exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 58,
+			"label": "Reserve again exact hold count",
+			"passed": true
+		},
+		{
+			"check": 59,
+			"label": "Reserve again exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 60,
+			"label": "Reserve again ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 61,
+			"label": "unrelated bandage insert accepted while all ammo holds remain",
+			"passed": true
+		},
+		{
+			"check": 62,
+			"label": "continuous pending reservation identity and total are exact",
+			"passed": true
+		},
+		{
+			"check": 63,
+			"label": "continuous magazine then rig then pockets exact native item IDs, quantities and hold generations",
+			"passed": true
+		},
+		{
+			"check": 64,
+			"label": "continuous exact native reservation is HELD in the bound inventory",
+			"passed": true
+		},
+		{
+			"check": 65,
+			"label": "continuous every reservation preserves physical ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 66,
+			"label": "Unrelated accepted revision exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 67,
+			"label": "Unrelated accepted revision exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 68,
+			"label": "Unrelated accepted revision exact hold count",
+			"passed": true
+		},
+		{
+			"check": 69,
+			"label": "Unrelated accepted revision exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 70,
+			"label": "Unrelated accepted revision ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 71,
+			"label": "second exact native deadline follows continuous clock",
+			"passed": true
+		},
+		{
+			"check": 72,
+			"label": "inventory callback sees exact committed source quantities and thirty loaded coherently",
+			"passed": true
+		},
+		{
+			"check": 73,
+			"label": "inventory publication carries immediate predecessor revision after unrelated mutation",
+			"passed": true
+		},
+		{
+			"check": 74,
+			"label": "publication callback cannot reenter the transaction",
+			"passed": true
+		},
+		{
+			"check": 75,
+			"label": "weapon callback sees coherent inventory and loaded state",
+			"passed": true
+		},
+		{
+			"check": 76,
+			"label": "due sweep commits exactly one coherent transaction",
+			"passed": true
+		},
+		{
+			"check": 77,
+			"label": "inventory notification precedes weapon completion notification",
+			"passed": true
+		},
+		{
+			"check": 78,
+			"label": "recursive publication produces one completion signal",
+			"passed": true
+		},
+		{
+			"check": 79,
+			"label": "recursive port publication only replays terminal state",
+			"passed": true
+		},
+		{
+			"check": 80,
+			"label": "committed reservation is native PUBLISHED",
+			"passed": true
+		},
+		{
+			"check": 81,
+			"label": "commit leaves no pending reload or native hold",
+			"passed": true
+		},
+		{
+			"check": 82,
+			"label": "drained magazine shell and exact child identity remain",
+			"passed": true
+		},
+		{
+			"check": 83,
+			"label": "drained magazine child is an empty canonical list",
+			"passed": true
+		},
+		{
+			"check": 84,
+			"label": "Due commit exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 85,
+			"label": "Due commit exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 86,
+			"label": "Due commit exact hold count",
+			"passed": true
+		},
+		{
+			"check": 87,
+			"label": "Due commit exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 88,
+			"label": "Due commit ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 89,
+			"label": "completed original begin request replays",
+			"passed": true
+		},
+		{
+			"check": 90,
+			"label": "late sweeps including reservation TTL horizon do nothing",
+			"passed": true
+		},
+		{
+			"check": 91,
+			"label": "replay and late sweeps preserve both canonical states byte for byte",
+			"passed": true
+		},
+		{
+			"check": 92,
+			"label": "late sweeps and request replay never publish another completion",
+			"passed": true
+		},
+		{
+			"check": 93,
+			"label": "Replay / late sweep exact magazine/rig/pocket quantities",
+			"passed": true
+		},
+		{
+			"check": 94,
+			"label": "Replay / late sweep exact loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 95,
+			"label": "Replay / late sweep exact hold count",
+			"passed": true
+		},
+		{
+			"check": 96,
+			"label": "Replay / late sweep exact inventory and weapon revisions",
+			"passed": true
+		},
+		{
+			"check": 97,
+			"label": "Replay / late sweep ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 98,
+			"label": "continuous adapter releases before owner teardown",
+			"passed": true
+		},
+		{
+			"check": 99,
+			"label": "continuous explicit owner teardown succeeds",
+			"passed": true
+		},
+		{
+			"check": 100,
+			"label": "continuous owner teardown leaves zero native holds",
+			"passed": true
+		},
+		{
+			"check": 101,
+			"label": "death trusted session admission is usable",
+			"passed": true
+		},
+		{
+			"check": 102,
+			"label": "death real inventory owner seals canonical catalog and starts",
+			"passed": true
+		},
+		{
+			"check": 103,
+			"label": "death canonical AKM is equipped",
+			"passed": true
+		},
+		{
+			"check": 104,
+			"label": "death real magazine provider materializes its canonical child list",
+			"passed": true
+		},
+		{
+			"check": 105,
+			"label": "death real magazine, rig and pocket stacks insert",
+			"passed": true
+		},
+		{
+			"check": 106,
+			"label": "death real WeaponAuthority configures sealed content",
+			"passed": true
+		},
+		{
+			"check": 107,
+			"label": "death real AKM starts with three loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 108,
+			"label": "death actual WeaponAuthorityReloadPort configures",
+			"passed": true
+		},
+		{
+			"check": 109,
+			"label": "death actual port reports its limited single-writer capability",
+			"passed": true
+		},
+		{
+			"check": 110,
+			"label": "death actual adapter binds exact equipped identity",
+			"passed": true
+		},
+		{
+			"check": 111,
+			"label": "death initial exact quantities conserve forty-one rounds",
+			"passed": true
+		},
+		{
+			"check": 112,
+			"label": "death fixture reserves real magazine ammunition",
+			"passed": true
+		},
+		{
+			"check": 113,
+			"label": "death fixture uses exact due tick",
+			"passed": true
+		},
+		{
+			"check": 114,
+			"label": "death pending reservation identity and total are exact",
+			"passed": true
+		},
+		{
+			"check": 115,
+			"label": "death magazine then rig then pockets exact native item IDs, quantities and hold generations",
+			"passed": true
+		},
+		{
+			"check": 116,
+			"label": "death exact native reservation is HELD in the bound inventory",
+			"passed": true
+		},
+		{
+			"check": 117,
+			"label": "death every reservation preserves physical ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 118,
+			"label": "same-due-tick death interruption cancels",
+			"passed": true
+		},
+		{
+			"check": 119,
+			"label": "same-due-tick death leaves no due completion",
+			"passed": true
+		},
+		{
+			"check": 120,
+			"label": "death preserves every source quantity and ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 121,
+			"label": "death leaves no hold or pending transaction",
+			"passed": true
+		},
+		{
+			"check": 122,
+			"label": "death leaves native weapon ready",
+			"passed": true
+		},
+		{
+			"check": 123,
+			"label": "death releases native reservation",
+			"passed": true
+		},
+		{
+			"check": 124,
+			"label": "death retains exact inventory persistence bytes",
+			"passed": true
+		},
+		{
+			"check": 125,
+			"label": "death cannot mechanically complete later",
+			"passed": true
+		},
+		{
+			"check": 126,
+			"label": "death adapter releases before owner teardown",
+			"passed": true
+		},
+		{
+			"check": 127,
+			"label": "death explicit owner teardown succeeds",
+			"passed": true
+		},
+		{
+			"check": 128,
+			"label": "death owner teardown leaves zero native holds",
+			"passed": true
+		},
+		{
+			"check": 129,
+			"label": "weapon_swap trusted session admission is usable",
+			"passed": true
+		},
+		{
+			"check": 130,
+			"label": "weapon_swap real inventory owner seals canonical catalog and starts",
+			"passed": true
+		},
+		{
+			"check": 131,
+			"label": "weapon_swap canonical AKM is equipped",
+			"passed": true
+		},
+		{
+			"check": 132,
+			"label": "weapon_swap real magazine provider materializes its canonical child list",
+			"passed": true
+		},
+		{
+			"check": 133,
+			"label": "weapon_swap real magazine, rig and pocket stacks insert",
+			"passed": true
+		},
+		{
+			"check": 134,
+			"label": "weapon_swap real WeaponAuthority configures sealed content",
+			"passed": true
+		},
+		{
+			"check": 135,
+			"label": "weapon_swap real AKM starts with three loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 136,
+			"label": "weapon_swap actual WeaponAuthorityReloadPort configures",
+			"passed": true
+		},
+		{
+			"check": 137,
+			"label": "weapon_swap actual port reports its limited single-writer capability",
+			"passed": true
+		},
+		{
+			"check": 138,
+			"label": "weapon_swap actual adapter binds exact equipped identity",
+			"passed": true
+		},
+		{
+			"check": 139,
+			"label": "weapon_swap initial exact quantities conserve forty-one rounds",
+			"passed": true
+		},
+		{
+			"check": 140,
+			"label": "weapon_swap fixture reserves real magazine ammunition",
+			"passed": true
+		},
+		{
+			"check": 141,
+			"label": "weapon_swap fixture uses exact due tick",
+			"passed": true
+		},
+		{
+			"check": 142,
+			"label": "weapon_swap pending reservation identity and total are exact",
+			"passed": true
+		},
+		{
+			"check": 143,
+			"label": "weapon_swap magazine then rig then pockets exact native item IDs, quantities and hold generations",
+			"passed": true
+		},
+		{
+			"check": 144,
+			"label": "weapon_swap exact native reservation is HELD in the bound inventory",
+			"passed": true
+		},
+		{
+			"check": 145,
+			"label": "weapon_swap every reservation preserves physical ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 146,
+			"label": "same-due-tick swap actually moves equipped native AKM",
+			"passed": true
+		},
+		{
+			"check": 147,
+			"label": "same-due-tick equipment validation cancels before due work",
+			"passed": true
+		},
+		{
+			"check": 148,
+			"label": "weapon_swap preserves every source quantity and ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 149,
+			"label": "weapon_swap leaves no hold or pending transaction",
+			"passed": true
+		},
+		{
+			"check": 150,
+			"label": "weapon_swap leaves native weapon ready",
+			"passed": true
+		},
+		{
+			"check": 151,
+			"label": "weapon_swap releases native reservation",
+			"passed": true
+		},
+		{
+			"check": 152,
+			"label": "weapon_swap cannot mechanically complete later",
+			"passed": true
+		},
+		{
+			"check": 153,
+			"label": "weapon_swap adapter releases before owner teardown",
+			"passed": true
+		},
+		{
+			"check": 154,
+			"label": "weapon_swap explicit owner teardown succeeds",
+			"passed": true
+		},
+		{
+			"check": 155,
+			"label": "weapon_swap owner teardown leaves zero native holds",
+			"passed": true
+		},
+		{
+			"check": 156,
+			"label": "teardown trusted session admission is usable",
+			"passed": true
+		},
+		{
+			"check": 157,
+			"label": "teardown real inventory owner seals canonical catalog and starts",
+			"passed": true
+		},
+		{
+			"check": 158,
+			"label": "teardown canonical AKM is equipped",
+			"passed": true
+		},
+		{
+			"check": 159,
+			"label": "teardown real magazine provider materializes its canonical child list",
+			"passed": true
+		},
+		{
+			"check": 160,
+			"label": "teardown real magazine, rig and pocket stacks insert",
+			"passed": true
+		},
+		{
+			"check": 161,
+			"label": "teardown real WeaponAuthority configures sealed content",
+			"passed": true
+		},
+		{
+			"check": 162,
+			"label": "teardown real AKM starts with three loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 163,
+			"label": "teardown actual WeaponAuthorityReloadPort configures",
+			"passed": true
+		},
+		{
+			"check": 164,
+			"label": "teardown actual port reports its limited single-writer capability",
+			"passed": true
+		},
+		{
+			"check": 165,
+			"label": "teardown actual adapter binds exact equipped identity",
+			"passed": true
+		},
+		{
+			"check": 166,
+			"label": "teardown initial exact quantities conserve forty-one rounds",
+			"passed": true
+		},
+		{
+			"check": 167,
+			"label": "teardown fixture reserves real magazine ammunition",
+			"passed": true
+		},
+		{
+			"check": 168,
+			"label": "teardown fixture uses exact due tick",
+			"passed": true
+		},
+		{
+			"check": 169,
+			"label": "teardown pending reservation identity and total are exact",
+			"passed": true
+		},
+		{
+			"check": 170,
+			"label": "teardown magazine then rig then pockets exact native item IDs, quantities and hold generations",
+			"passed": true
+		},
+		{
+			"check": 171,
+			"label": "teardown exact native reservation is HELD in the bound inventory",
+			"passed": true
+		},
+		{
+			"check": 172,
+			"label": "teardown every reservation preserves physical ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 173,
+			"label": "same-due-tick explicit adapter teardown cancels",
+			"passed": true
+		},
+		{
+			"check": 174,
+			"label": "teardown preserves every source quantity and ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 175,
+			"label": "teardown leaves no hold or pending transaction",
+			"passed": true
+		},
+		{
+			"check": 176,
+			"label": "teardown leaves native weapon ready",
+			"passed": true
+		},
+		{
+			"check": 177,
+			"label": "teardown releases native reservation",
+			"passed": true
+		},
+		{
+			"check": 178,
+			"label": "teardown retains exact inventory persistence bytes",
+			"passed": true
+		},
+		{
+			"check": 179,
+			"label": "teardown cannot mechanically complete later",
+			"passed": true
+		},
+		{
+			"check": 180,
+			"label": "teardown explicit owner teardown succeeds",
+			"passed": true
+		},
+		{
+			"check": 181,
+			"label": "teardown owner teardown leaves zero native holds",
+			"passed": true
+		},
+		{
+			"check": 182,
+			"label": "quarantine trusted session admission is usable",
+			"passed": true
+		},
+		{
+			"check": 183,
+			"label": "quarantine real inventory owner seals canonical catalog and starts",
+			"passed": true
+		},
+		{
+			"check": 184,
+			"label": "quarantine canonical AKM is equipped",
+			"passed": true
+		},
+		{
+			"check": 185,
+			"label": "quarantine real magazine provider materializes its canonical child list",
+			"passed": true
+		},
+		{
+			"check": 186,
+			"label": "quarantine real magazine, rig and pocket stacks insert",
+			"passed": true
+		},
+		{
+			"check": 187,
+			"label": "quarantine real WeaponAuthority configures sealed content",
+			"passed": true
+		},
+		{
+			"check": 188,
+			"label": "quarantine real AKM starts with three loaded rounds",
+			"passed": true
+		},
+		{
+			"check": 189,
+			"label": "quarantine actual WeaponAuthorityReloadPort configures",
+			"passed": true
+		},
+		{
+			"check": 190,
+			"label": "quarantine actual port reports its limited single-writer capability",
+			"passed": true
+		},
+		{
+			"check": 191,
+			"label": "quarantine actual adapter binds exact equipped identity",
+			"passed": true
+		},
+		{
+			"check": 192,
+			"label": "quarantine initial exact quantities conserve forty-one rounds",
+			"passed": true
+		},
+		{
+			"check": 193,
+			"label": "quarantine fixture starts one real exact reservation",
+			"passed": true
+		},
+		{
+			"check": 194,
+			"label": "quarantine pending reservation identity and total are exact",
+			"passed": true
+		},
+		{
+			"check": 195,
+			"label": "quarantine magazine then rig then pockets exact native item IDs, quantities and hold generations",
+			"passed": true
+		},
+		{
+			"check": 196,
+			"label": "quarantine exact native reservation is HELD in the bound inventory",
+			"passed": true
+		},
+		{
+			"check": 197,
+			"label": "quarantine every reservation preserves physical ammunition conservation",
+			"passed": true
+		},
+		{
+			"check": 198,
+			"label": "external native completion deliberately violates the single-writer contract",
+			"passed": true
+		},
+		{
+			"check": 199,
+			"label": "out-of-band completion latches explicit fail-stop quarantine",
+			"passed": true
+		},
+		{
+			"check": 200,
+			"label": "quarantine retains exact source quantities and twenty-seven held rounds",
+			"passed": true
+		},
+		{
+			"check": 201,
+			"label": "quarantine spendable ammunition conserves 38 minus 27 held plus 30 loaded equals 41",
+			"passed": true
+		},
+		{
+			"check": 202,
+			"label": "quarantine retains exact transaction identity and recovery record",
+			"passed": true
+		},
+		{
+			"check": 203,
+			"label": "death cannot refund quarantined ammo",
+			"passed": true
+		},
+		{
+			"check": 204,
+			"label": "new reload cannot bypass quarantine",
+			"passed": true
+		},
+		{
+			"check": 205,
+			"label": "ordinary release cannot clear quarantine hold",
+			"passed": true
+		},
+		{
+			"check": 206,
+			"label": "failed recovery operations preserve the quarantined hold and sources",
+			"passed": true
+		},
+		{
+			"check": 207,
+			"label": "quarantine explicit owner teardown succeeds",
+			"passed": true
+		},
+		{
+			"check": 208,
+			"label": "quarantine owner teardown leaves zero native holds",
+			"passed": true
+		}
+	],
+	"canonical_catalog": true,
+	"checks": 208,
+	"crash_restart_atomic": false,
+	"details": {
+		"continuous": {
+			"child_container": 8,
+			"completion_count": 1,
+			"final_commit": [
+				{
+					"accepted": true,
+					"actor_id": "zerkov.entity.offline.validation_profile.player.00000001",
+					"adapter_generation": 1,
+					"admission_generation": 1,
+					"ammo_profile": {
+						"id": "zerkov.item.ammo.762x39.standard",
+						"version": 1
+					},
+					"ammo_trait": "zerkov.trait.ammo.caliber_762x39",
+					"authority_epoch": 1,
+					"commit_capability": 1,
+					"container_priority": [
+						"zerkov.container.magazine.akm_30",
+						"zerkov.container.player.rig",
+						"zerkov.container.player.pockets",
+						"zerkov.container.player.backpack",
+						"zerkov.container.player.secure"
+					],
+					"crash_restart_atomic": false,
+					"due_tick": 162,
+					"inventory_id": 1,
+					"inventory_publication": {
+						"accepted": true,
+						"inventory_id": 1,
+						"lines": [
+							{
+								"generation": 2,
+								"item": 3,
+								"quantity": 11
+							},
+							{
+								"generation": 2,
+								"item": 4,
+								"quantity": 8
+							},
+							{
+								"generation": 2,
+								"item": 5,
+								"quantity": 8
+							}
+						],
+						"quantity": 27,
+						"replayed": false,
+						"reservation_id": "zerkov.reload.ad60185288c7c3c1abeb701150ec5bf336bc3f7344372c5a",
+						"revision": 7,
+						"stage": 4,
+						"status": {
+							"code": 0,
+							"detail": 0,
+							"diagnostic": 0,
+							"ok": true
+						}
+					},
+					"kind": "reload_committed",
+					"native_item_id": 1,
+					"owner_generation": 1,
+					"quantity": 27,
+					"raid_id": "zerkov.raid.astrafinal.continuous",
+					"reason": "",
+					"replayed": false,
+					"reservation_id": "zerkov.reload.ad60185288c7c3c1abeb701150ec5bf336bc3f7344372c5a",
+					"session_id": "zerkov.session.offline.validation_profile.00000001",
+					"single_writer_required": true,
+					"stage": "committed",
+					"start_tick": 90,
+					"weapon_binding_generation": 7,
+					"weapon_completion": {
+						"added_rounds": 27,
+						"instance_id": "zerkov.weapon.equipment.5a3ecdf97f27138164afb3b41ca6066afe1d3b5f9883485b",
+						"loaded_rounds": 30,
+						"ok": true,
+						"profile": {
+							"has_profile": true,
+							"id": "zerkov.item.ammo.762x39.standard",
+							"version": 1
+						},
+						"reservation_id": "zerkov.reload.ad60185288c7c3c1abeb701150ec5bf336bc3f7344372c5a",
+						"revision": 4,
+						"status": {
+							"code": 0,
+							"detail": 0,
+							"diagnostic": 0,
+							"ok": true
+						}
+					},
+					"weapon_id": "zerkov.weapon.equipment.5a3ecdf97f27138164afb3b41ca6066afe1d3b5f9883485b"
+				}
+			],
+			"first_reservation": "zerkov.reload.fcda3e9f58704863e9a4915180394fc3552687809843cbfb",
+			"notification_order": [
+				"inventory",
+				"weapon"
+			],
+			"publication_observations": [
+				{
+					"domain": "inventory",
+					"state": {
+						"holds": 0,
+						"inventory_revision": 7,
+						"inventory_rounds": 11,
+						"loaded": 30,
+						"sources": [
+							0,
+							0,
+							11
+						],
+						"total": 41,
+						"weapon_revision": 4
+					}
+				},
+				{
+					"domain": "weapon",
+					"state": {
+						"holds": 0,
+						"inventory_revision": 7,
+						"inventory_rounds": 11,
+						"loaded": 30,
+						"sources": [
+							0,
+							0,
+							11
+						],
+						"total": 41,
+						"weapon_revision": 4
+					}
+				}
+			],
+			"recursive_publication": {
+				"accepted": true,
+				"after": {
+					"admitted_sequence_high_watermark": 3,
+					"attachment_loadout": [],
+					"authority_epoch": 1,
+					"authority_scope": "zerkov.raid.astrafinal.continuous",
+					"authority_tick_floor": 90,
+					"definition_id": "zerkov.weapon.akm",
+					"definition_version": 1,
+					"has_last_command_sequence": true,
+					"has_last_fire_tick": false,
+					"instance_id": "zerkov.weapon.equipment.5a3ecdf97f27138164afb3b41ca6066afe1d3b5f9883485b",
+					"last_command_sequence": 3,
+					"last_fire_tick": 0,
+					"loaded_profile": {
+						"has_profile": true,
+						"id": "zerkov.item.ammo.762x39.standard",
+						"version": 1
+					},
+					"loaded_rounds": 30,
+					"phase": "ready",
+					"recoil_anchor_tick": 0,
+					"recoil_horizontal_offset_nrad": 0,
+					"recoil_vertical_offset_nrad": 0,
+					"reload": {},
+					"revision": 4,
+					"tick_unhealthy": false
+				},
+				"before": {
+					"admitted_sequence_high_watermark": 3,
+					"attachment_loadout": [],
+					"authority_epoch": 1,
+					"authority_scope": "zerkov.raid.astrafinal.continuous",
+					"authority_tick_floor": 90,
+					"definition_id": "zerkov.weapon.akm",
+					"definition_version": 1,
+					"has_last_command_sequence": true,
+					"has_last_fire_tick": false,
+					"instance_id": "zerkov.weapon.equipment.5a3ecdf97f27138164afb3b41ca6066afe1d3b5f9883485b",
+					"last_command_sequence": 3,
+					"last_fire_tick": 0,
+					"loaded_profile": {
+						"has_profile": true,
+						"id": "zerkov.item.ammo.762x39.standard",
+						"version": 1
+					},
+					"loaded_rounds": 3,
+					"phase": "reloading",
+					"recoil_anchor_tick": 0,
+					"recoil_horizontal_offset_nrad": 0,
+					"recoil_vertical_offset_nrad": 0,
+					"reload": {
+						"due_tick": 162,
+						"reservation_id": "zerkov.reload.ad60185288c7c3c1abeb701150ec5bf336bc3f7344372c5a",
+						"reserved_profile": {
+							"has_profile": true,
+							"id": "zerkov.item.ammo.762x39.standard",
+							"version": 1
+						},
+						"reserved_rounds": 27,
+						"start_tick": 90
+					},
+					"revision": 3,
+					"tick_unhealthy": false
+				},
+				"capability": 1,
+				"completion": {
+					"added_rounds": 27,
+					"instance_id": "zerkov.weapon.equipment.5a3ecdf97f27138164afb3b41ca6066afe1d3b5f9883485b",
+					"loaded_rounds": 30,
+					"ok": true,
+					"profile": {
+						"has_profile": true,
+						"id": "zerkov.item.ammo.762x39.standard",
+						"version": 1
+					},
+					"reservation_id": "zerkov.reload.ad60185288c7c3c1abeb701150ec5bf336bc3f7344372c5a",
+					"revision": 4,
+					"status": {
+						"code": 0,
+						"detail": 0,
+						"diagnostic": 0,
+						"ok": true
+					}
+				},
+				"instance_id": "zerkov.weapon.equipment.5a3ecdf97f27138164afb3b41ca6066afe1d3b5f9883485b",
+				"irreversible_after_commit": true,
+				"mutation_state": "committed",
+				"replayed": true,
+				"reservation_id": "zerkov.reload.ad60185288c7c3c1abeb701150ec5bf336bc3f7344372c5a",
+				"stage": "published",
+				"tick": 162
+			},
+			"second_reservation": "zerkov.reload.ad60185288c7c3c1abeb701150ec5bf336bc3f7344372c5a",
+			"shell": 2,
+			"source_ids": [
+				3,
+				4,
+				5
+			]
+		},
+		"death": {
+			"due_tick": 95,
+			"reservation_id": "zerkov.reload.de240386bfdf9b50cd0bbcc444f6ff92635490e45f36da09",
+			"state": {
+				"holds": 0,
+				"inventory_revision": 5,
+				"inventory_rounds": 38,
+				"loaded": 3,
+				"sources": [
+					11,
+					8,
+					19
+				],
+				"total": 41,
+				"weapon_revision": 2
+			}
+		},
+		"quarantine": {
+			"health": {
+				"accepted": true,
+				"inventory_id": 1,
+				"lines": [
+					{
+						"generation": 1,
+						"item": 3,
+						"quantity": 11
+					},
+					{
+						"generation": 1,
+						"item": 4,
+						"quantity": 8
+					},
+					{
+						"generation": 1,
+						"item": 5,
+						"quantity": 8
+					}
+				],
+				"quantity": 27,
+				"replayed": true,
+				"reservation_id": "zerkov.reload.a9bdbd6900a72da051e7ed3579d3578c93d76cbc25253f9b",
+				"revision": 5,
+				"stage": 1,
+				"status": {
+					"code": 0,
+					"detail": 0,
+					"diagnostic": 0,
+					"ok": true
+				}
+			},
+			"limitation": "fail-stop accounting, not production recovery or restart",
+			"recovery": {
+				"details": {
+					"admitted_sequence_high_watermark": 1,
+					"attachment_loadout": [],
+					"authority_epoch": 1,
+					"authority_scope": "zerkov.raid.astrafinal.quarantine",
+					"authority_tick_floor": 31,
+					"definition_id": "zerkov.weapon.akm",
+					"definition_version": 1,
+					"has_last_command_sequence": true,
+					"has_last_fire_tick": false,
+					"instance_id": "zerkov.weapon.equipment.9a3d49444a8fe8da8a7f560fbb313afd771da380c1172521",
+					"last_command_sequence": 1,
+					"last_fire_tick": 0,
+					"loaded_profile": {
+						"has_profile": true,
+						"id": "zerkov.item.ammo.762x39.standard",
+						"version": 1
+					},
+					"loaded_rounds": 30,
+					"phase": "ready",
+					"recoil_anchor_tick": 0,
+					"recoil_horizontal_offset_nrad": 0,
+					"recoil_vertical_offset_nrad": 0,
+					"reload": {},
+					"revision": 2,
+					"tick_unhealthy": false
+				},
+				"new_reload_forbidden": true,
+				"reason": "weapon_completed_outside_reload_transaction",
+				"record": {
+					"actor_id": "zerkov.entity.offline.validation_profile.player.00000001",
+					"adapter_generation": 1,
+					"admission_generation": 1,
+					"ammo_profile": {
+						"id": "zerkov.item.ammo.762x39.standard",
+						"version": 1
+					},
+					"ammo_trait": "zerkov.trait.ammo.caliber_762x39",
+					"authority_epoch": 1,
+					"begin_command_id": "zerkov.reload_begin.8c0553752ebc336617aaa0eaf8ba94ab",
+					"begin_request_id": "zerkov.request.astrafinal.quarantine",
+					"begin_sequence": 1,
+					"commit_capability": 1,
+					"container_priority": [
+						"zerkov.container.magazine.akm_30",
+						"zerkov.container.player.rig",
+						"zerkov.container.player.pockets",
+						"zerkov.container.player.backpack",
+						"zerkov.container.player.secure"
+					],
+					"crash_restart_atomic": false,
+					"deadline_tick": 3631,
+					"due_tick": 103,
+					"inventory_authority_instance_id": 48687482507,
+					"inventory_id": 1,
+					"inventory_prepare_revision": 5,
+					"native_item_id": 1,
+					"owner_generation": 1,
+					"quantity": 27,
+					"raid_id": "zerkov.raid.astrafinal.quarantine",
+					"reservation_id": "zerkov.reload.a9bdbd6900a72da051e7ed3579d3578c93d76cbc25253f9b",
+					"reservation_lines": [
+						{
+							"generation": 1,
+							"item": 3,
+							"quantity": 11
+						},
+						{
+							"generation": 1,
+							"item": 4,
+							"quantity": 8
+						},
+						{
+							"generation": 1,
+							"item": 5,
+							"quantity": 8
+						}
+					],
+					"session_id": "zerkov.session.offline.validation_profile.00000001",
+					"single_writer_required": true,
+					"stage": "recovery_required",
+					"start_tick": 31,
+					"weapon_binding_generation": 7,
+					"weapon_definition": "zerkov.weapon.akm",
+					"weapon_definition_version": 1,
+					"weapon_id": "zerkov.weapon.equipment.9a3d49444a8fe8da8a7f560fbb313afd771da380c1172521",
+					"weapon_port_token": "weapon_authority:48939140702",
+					"weapon_pre_reload_last_command_sequence": 0,
+					"weapon_pre_reload_loaded_profile": {
+						"has_profile": true,
+						"id": "zerkov.item.ammo.762x39.standard",
+						"version": 1
+					},
+					"weapon_pre_reload_loaded_rounds": 3,
+					"weapon_pre_reload_sequence_high_watermark": 0,
+					"weapon_ready_revision": 0,
+					"weapon_reload_revision": 1
+				},
+				"requires_authoritative_recovery": true
+			},
+			"spendable_total": 41,
+			"state": {
+				"holds": 1,
+				"inventory_revision": 5,
+				"inventory_rounds": 38,
+				"loaded": 30,
+				"sources": [
+					11,
+					8,
+					19
+				],
+				"total": 68,
+				"weapon_revision": 2
+			},
+			"tick": 103
+		},
+		"teardown": {
+			"due_tick": 95,
+			"reservation_id": "zerkov.reload.7cfa12cc29e19e4d793110a8ec71c5560d765d5e2dbd9613",
+			"state": {
+				"holds": 0,
+				"inventory_revision": 5,
+				"inventory_rounds": 38,
+				"loaded": 3,
+				"sources": [
+					11,
+					8,
+					19
+				],
+				"total": 41,
+				"weapon_revision": 2
+			}
+		},
+		"weapon_swap": {
+			"due_tick": 95,
+			"reservation_id": "zerkov.reload.63580b1cb30c53a4702d0d4c6d185e442b18b9f874e12363",
+			"state": {
+				"holds": 0,
+				"inventory_revision": 6,
+				"inventory_rounds": 38,
+				"loaded": 3,
+				"sources": [
+					11,
+					8,
+					19
+				],
+				"total": 41,
+				"weapon_revision": 2
+			}
+		}
+	},
+	"failures": 0,
+	"human_approval": false,
+	"main_timeline_states": 8,
+	"native_metadata": {
+		"display_server": "headless",
+		"engine": {
+			"build": "official",
+			"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+			"hex": 263938,
+			"major": 4,
+			"minor": 7,
+			"patch": 2,
+			"status": "stable",
+			"string": "4.7.2-stable (official)",
+			"timestamp": 0
+		},
+		"native": false,
+		"renderer": "gl_compatibility",
+		"window_size": {
+			"x": 64,
+			"y": 64
+		}
+	},
+	"physical_detachable_magazine_identity": false,
+	"real_addons": true,
+	"same_flow_repeated_in_native": false,
+	"timeline": [
+		{
+			"held_quantity": 0,
+			"holds": 0,
+			"inventory_revision": 5,
+			"label": "Initial equipped AKM",
+			"loaded": 3,
+			"magazine": 11,
+			"pockets": 19,
+			"rig": 8,
+			"tick": 0,
+			"total": 41,
+			"weapon_revision": 0
+		},
+		{
+			"held_quantity": 27,
+			"holds": 1,
+			"inventory_revision": 5,
+			"label": "Reserve / begin",
+			"loaded": 3,
+			"magazine": 11,
+			"pockets": 19,
+			"rig": 8,
+			"tick": 17,
+			"total": 41,
+			"weapon_revision": 1
+		},
+		{
+			"held_quantity": 27,
+			"holds": 1,
+			"inventory_revision": 5,
+			"label": "Before due",
+			"loaded": 3,
+			"magazine": 11,
+			"pockets": 19,
+			"rig": 8,
+			"tick": 88,
+			"total": 41,
+			"weapon_revision": 1
+		},
+		{
+			"held_quantity": 0,
+			"holds": 0,
+			"inventory_revision": 5,
+			"label": "Cancel ordered at due",
+			"loaded": 3,
+			"magazine": 11,
+			"pockets": 19,
+			"rig": 8,
+			"tick": 89,
+			"total": 41,
+			"weapon_revision": 2
+		},
+		{
+			"held_quantity": 27,
+			"holds": 1,
+			"inventory_revision": 5,
+			"label": "Reserve again",
+			"loaded": 3,
+			"magazine": 11,
+			"pockets": 19,
+			"rig": 8,
+			"tick": 90,
+			"total": 41,
+			"weapon_revision": 3
+		},
+		{
+			"held_quantity": 27,
+			"holds": 1,
+			"inventory_revision": 6,
+			"label": "Unrelated accepted revision",
+			"loaded": 3,
+			"magazine": 11,
+			"pockets": 19,
+			"rig": 8,
+			"tick": 91,
+			"total": 41,
+			"weapon_revision": 3
+		},
+		{
+			"held_quantity": 0,
+			"holds": 0,
+			"inventory_revision": 7,
+			"label": "Due commit",
+			"loaded": 30,
+			"magazine": 0,
+			"pockets": 11,
+			"rig": 0,
+			"tick": 162,
+			"total": 41,
+			"weapon_revision": 4
+		},
+		{
+			"held_quantity": 0,
+			"holds": 0,
+			"inventory_revision": 7,
+			"label": "Replay / late sweep",
+			"loaded": 30,
+			"magazine": 0,
+			"pockets": 11,
+			"rig": 0,
+			"tick": 4162,
+			"total": 41,
+			"weapon_revision": 4
+		}
+	],
+	"unique_flow_cases": 5
+}

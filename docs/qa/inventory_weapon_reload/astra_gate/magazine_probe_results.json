@@ -1,0 +1,40 @@
+{
+	"catalog_source": "game/content/zerkov_inventory_catalog.gd::_magazine_container",
+	"checks": 5,
+	"diagnostic_115": "NESTING_DEPTH_EXCEEDED",
+	"expected_nested_depth": 1,
+	"failures": 2,
+	"human_approval": false,
+	"inventory_revision_after": 0,
+	"inventory_revision_before": 0,
+	"magazine_child_containers": 0,
+	"magazine_insertion": {
+		"accepted": false,
+		"authoritative_revision": 0,
+		"command_id": 1,
+		"conflicting_inventory": 0,
+		"dropped_external_owner": 0,
+		"dropped_items": [],
+		"events": [],
+		"new_item_id": 0,
+		"new_reference_id": 0,
+		"queued": false,
+		"remaining_quantity": 0,
+		"replayed": false,
+		"revisions": [
+			{
+				"inventory": 1,
+				"predecessor": 0,
+				"successor": 0
+			}
+		],
+		"status": {
+			"code": 6,
+			"detail": 1,
+			"diagnostic": 115,
+			"ok": false
+		},
+		"transferred_quantity": 0
+	},
+	"native_source": "addons/inventory_system/native/core/inv_runtime_state.cpp:681"
+}

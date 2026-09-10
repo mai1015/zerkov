@@ -135,6 +135,23 @@ never used as a transaction boundary.
 Adapters live under the product's `game/` namespace, never inside sibling
 add-on packages.
 
+The reload adapter (task 4.9, accepted 2026-09-10) binds an equipped weapon
+through stable weapon/equipment identity and coordinates the native inventory
+quantity participant with the WeaponAuthority reload port. Its first-playable
+source policy is magazine-contained ammunition, then rig, then pockets. A
+reload reserves exact native item identities and quantities, commits inventory
+silently before the weapon's due commit, and publishes inventory followed by
+the weapon completion only after both canonical states agree. Cancellation,
+death, equipment invalidation and owner teardown release an uncommitted hold;
+replayed requests return the terminal receipt, and an out-of-band weapon
+completion enters fail-stop quarantine instead of refunding held ammunition.
+The accepted real-add-on flow proves this at 3 -> 30 loaded rounds with
+11/8/19 source rounds and a conserved total of 41. This is deliberately an
+offline, synchronous, in-memory, single-writer/no-yield boundary: the installed
+WeaponAuthority facade has no public symmetric rollback, so crash-safe 2PC and
+physical detachable-magazine identity/swapping are not claimed. Production
+weapon-instance lifecycle and input routing remain tasks 5.2 and 5.7.
+
 The reviewed inventory mutation seam (task 4.7a) routes placement-aware world
 loot and same-inventory move, rotate, split, merge and complete-only quick
 transfer operations through strict payload schemas and typed receipts. Quick

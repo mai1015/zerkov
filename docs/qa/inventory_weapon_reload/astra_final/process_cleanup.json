@@ -1,0 +1,55 @@
+{
+  "runner_owned_pids": [
+    38203,
+    51215,
+    51884,
+    52202,
+    52239,
+    52240,
+    52241,
+    52242,
+    52290,
+    52292,
+    52293,
+    52295,
+    52296,
+    52333,
+    52334,
+    52335,
+    52372,
+    52420,
+    52424,
+    52499,
+    52515
+  ],
+  "all_recorded_processes_reaped": true,
+  "owned_processes_still_alive": [],
+  "other_godot_processes_left_untouched": [
+    {
+      "pid": 22941,
+      "ppid": 22939,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 49133,
+      "ppid": 49117,
+      "executable": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot"
+    },
+    {
+      "pid": 50284,
+      "ppid": 16055,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 52576,
+      "ppid": 16055,
+      "executable": "godot"
+    },
+    {
+      "pid": 55470,
+      "ppid": 16055,
+      "executable": "godot"
+    }
+  ],
+  "passed": true
+}

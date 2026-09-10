@@ -1,0 +1,28 @@
+{
+  "human_approval": false,
+  "results": [
+    {
+      "name": "magazine_probe",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://docs/qa/inventory_weapon_reload/astra_gate/magazine_probe.gd"
+      ],
+      "exit_code": 1,
+      "elapsed_seconds": 0.254,
+      "checks": 5,
+      "failures": 2,
+      "diagnostics": [
+        "ERROR:",
+        "ERROR:"
+      ],
+      "passed": false
+    }
+  ],
+  "checks": 5,
+  "failures": 2,
+  "passed": false
+}

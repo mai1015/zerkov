@@ -1,0 +1,1949 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: ASTRA_RELOAD_FLOW: continuous real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:114)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: continuous exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:114)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Initial / equipped AKM exact cross-domain state {"holds":0,"inventory_ammo":33,"inventory_revision":3,"loaded":6,"phase":"ready","weapon_revision":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:132)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Initial / equipped AKM total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:132)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: magazine-contained rounds precede loose rig rounds
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:141)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Reserve + begin exact cross-domain state {"holds":1,"inventory_ammo":33,"inventory_revision":3,"loaded":6,"phase":"reloading","weapon_revision":1}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:144)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Reserve + begin total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:144)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: One tick before due exact cross-domain state {"holds":1,"inventory_ammo":33,"inventory_revision":3,"loaded":6,"phase":"reloading","weapon_revision":1}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:146)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: One tick before due total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:146)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Cancel at due tick exact cross-domain state {"holds":0,"inventory_ammo":33,"inventory_revision":3,"loaded":6,"phase":"ready","weapon_revision":2}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:152)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Cancel at due tick total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:152)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Reserve again exact cross-domain state {"holds":1,"inventory_ammo":33,"inventory_revision":3,"loaded":6,"phase":"reloading","weapon_revision":3}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:157)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Reserve again total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:157)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Unrelated inventory change exact cross-domain state {"holds":1,"inventory_ammo":33,"inventory_revision":4,"loaded":6,"phase":"reloading","weapon_revision":3}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:163)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Unrelated inventory change total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:163)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Due commit exact cross-domain state {"holds":0,"inventory_ammo":9,"inventory_revision":5,"loaded":30,"phase":"ready","weapon_revision":4}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:170)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Due commit total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:170)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: inventory observer sees both committed domains
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:172)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Replay + late due sweep exact cross-domain state {"holds":0,"inventory_ammo":9,"inventory_revision":5,"loaded":30,"phase":"ready","weapon_revision":4}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:388)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:184)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: Replay + late due sweep total conservation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] record_step (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:389)
+       [2] continuous_flow (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:184)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:34)
+ERROR: ASTRA_RELOAD_FLOW: same_tick_death real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:191)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: same_tick_death exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:191)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: death all ammunition conserved and hold released
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:207)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: same_tick_swap real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:191)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: same_tick_swap exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:191)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: swap all ammunition conserved and hold released
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:207)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: same_tick_teardown real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:191)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: same_tick_teardown exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:191)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: teardown all ammunition conserved and hold released
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] same_tick_interrupt (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:207)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:36)
+ERROR: ASTRA_RELOAD_FLOW: external_cancel real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] external_cancel (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:216)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:37)
+ERROR: ASTRA_RELOAD_FLOW: external_cancel exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] external_cancel (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:216)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:37)
+ERROR: ASTRA_RELOAD_FLOW: external cancellation conserves ammo and releases hold
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] external_cancel (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:226)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:37)
+ERROR: ASTRA_RELOAD_FLOW: external_completion real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] external_completion (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:235)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:38)
+ERROR: ASTRA_RELOAD_FLOW: external_completion exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] external_completion (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:235)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:38)
+ERROR: ASTRA_RELOAD_FLOW: quarantine spendable inventory plus loaded rounds conserves initial total
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] external_completion (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:251)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:38)
+ERROR: ASTRA_RELOAD_FLOW: port_cleared real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] port_replacement (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:266)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:39)
+ERROR: ASTRA_RELOAD_FLOW: port_cleared exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] port_replacement (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:266)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:39)
+ERROR: ASTRA_RELOAD_FLOW: cleared retains evidence and ammunition
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] port_replacement (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:279)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:39)
+ERROR: ASTRA_RELOAD_FLOW: port_replaced real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] port_replacement (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:266)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:39)
+ERROR: ASTRA_RELOAD_FLOW: port_replaced exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] port_replacement (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:266)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:39)
+ERROR: ASTRA_RELOAD_FLOW: replaced retains evidence and ammunition
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] port_replacement (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:279)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:39)
+ERROR: ASTRA_RELOAD_FLOW: forged real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] forged_identity (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:288)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:40)
+ERROR: ASTRA_RELOAD_FLOW: forged exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] forged_identity (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:288)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:40)
+ERROR: ASTRA_RELOAD_FLOW: forged identity mutates neither domain
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] forged_identity (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:296)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:40)
+ERROR: ASTRA_RELOAD_FLOW: rejected_begin real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] rejected_begin_teardown (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:302)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:41)
+ERROR: ASTRA_RELOAD_FLOW: rejected_begin exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] rejected_begin_teardown (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:302)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:41)
+ERROR: ASTRA_RELOAD_FLOW: ledger real magazine provider {"accepted":false,"authoritative_revision":0,"command_id":2,"conflicting_inventory":0,"dropped_external_owner":0,"dropped_items":[],"events":[],"new_item_id":0,"new_reference_id":0,"queued":false,"remaining_quantity":0,"replayed":false,"revisions":[{"inventory":1,"predecessor":1,"successor":1}],"status":{"code":6,"detail":1,"diagnostic":115,"ok":false},"transferred_quantity":0}
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:76)
+       [2] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:331)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger exact 45-round three-source ammo fixture
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] fixture (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:85)
+       [2] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:331)
+       [3] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 0
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 1
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 2
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 3
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 4
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 5
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 6
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 7
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 8
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 9
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 10
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 11
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 12
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 13
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 14
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 15
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 16
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 17
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 18
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 19
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 20
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 21
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 22
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 23
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 24
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 25
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 26
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 27
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 28
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 29
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 30
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 31
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 32
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 33
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 34
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 35
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 36
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 37
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 38
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 39
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 40
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 41
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 42
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 43
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 44
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 45
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 46
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 47
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 48
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 49
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 50
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 51
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 52
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 53
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 54
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 55
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 56
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 57
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 58
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 59
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 60
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 61
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 62
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 63
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 64
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 65
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 66
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 67
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 68
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 69
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 70
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 71
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 72
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 73
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 74
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 75
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 76
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 77
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 78
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 79
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 80
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 81
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 82
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 83
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 84
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 85
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 86
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 87
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 88
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 89
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 90
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 91
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 92
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 93
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 94
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 95
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 96
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 97
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 98
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 99
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 100
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 101
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 102
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 103
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 104
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 105
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 106
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 107
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 108
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 109
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 110
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 111
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 112
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 113
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 114
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 115
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 116
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 117
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 118
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 119
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 120
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 121
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 122
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 123
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 124
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 125
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 126
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 127
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 128
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 129
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 130
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 131
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 132
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 133
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 134
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 135
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 136
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 137
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 138
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 139
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 140
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 141
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 142
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 143
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 144
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 145
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 146
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 147
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 148
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 149
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 150
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 151
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 152
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 153
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 154
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 155
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 156
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 157
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 158
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 159
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 160
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 161
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 162
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 163
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 164
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 165
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 166
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 167
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 168
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 169
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 170
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 171
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 172
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 173
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 174
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 175
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 176
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 177
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 178
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 179
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 180
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 181
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 182
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 183
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 184
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 185
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 186
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 187
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 188
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 189
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 190
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 191
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 192
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 193
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 194
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 195
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 196
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 197
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 198
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 199
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 200
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 201
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 202
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 203
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 204
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 205
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 206
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 207
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 208
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 209
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 210
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 211
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 212
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 213
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 214
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 215
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 216
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 217
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 218
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 219
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 220
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 221
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 222
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 223
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 224
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 225
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 226
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 227
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 228
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 229
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 230
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 231
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 232
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 233
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 234
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 235
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 236
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 237
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 238
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 239
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 240
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 241
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 242
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 243
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 244
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 245
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 246
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 247
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 248
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 249
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 250
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 251
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 252
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 253
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 254
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 255
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 256
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 257
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 258
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 259
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 260
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 261
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 262
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 263
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 264
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 265
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 266
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 267
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 268
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ERROR: ASTRA_RELOAD_FLOW: ledger cycle conserves quantity and clears holds 269
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] verify (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:19)
+       [1] ledger_pressure (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:347)
+       [2] run (res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd:42)
+ASTRA_RELOAD_FLOW_RESULT checks=1321 failures=318 real_addons=true

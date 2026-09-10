@@ -1,0 +1,27 @@
+{
+  "name": "capacity",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--rendering-method",
+    "gl_compatibility",
+    "--headless",
+    "--script",
+    "res://docs/qa/inventory_weapon_reload/astra_final/independent_capacity.gd"
+  ],
+  "pid": 38203,
+  "exit_code": 0,
+  "elapsed_seconds": 0.152,
+  "timed_out": false,
+  "expected_checks": null,
+  "checks": 33,
+  "failures": 0,
+  "result_lines": [
+    "ASTRA_CAPACITY_RESULT checks=33 failures=0"
+  ],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

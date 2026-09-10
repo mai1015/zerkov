@@ -1,0 +1,92 @@
+{
+  "decision": "ACCEPT",
+  "authorization": "ACCEPT FOR DOCS/STAGING",
+  "human_approval": false,
+  "utc": "2026-09-10T16:47:36.916491+00:00",
+  "parent_commit": "0f102f75d9c53ab54f04314f75d2cfc5d2a76e1b",
+  "checks": {
+    "all_runners_pass": true,
+    "no_runtime_diagnostics": true,
+    "no_timeouts": true,
+    "all_source_dependency_addon_spec_hashes_unchanged": true,
+    "sealed_reject_packet_intact": true,
+    "no_addon_modifications": true,
+    "no_staging": true,
+    "no_commit": true,
+    "no_production_direct_weapon_advance_tick": true,
+    "diff_check_pass": true,
+    "native_core_identical_to_headless": true,
+    "native_timeline_identical_to_headless": true,
+    "native_visually_reviewed": true,
+    "all_validator_processes_clean": true,
+    "machine_assertions_pass": true
+  },
+  "counts": {
+    "baseline_suites": 15,
+    "baseline_assertions": 20296,
+    "capacity_assertions": 33,
+    "headless_flow_assertions": 208,
+    "native_flow_assertions": 213,
+    "native_additional_checks": 5,
+    "raw_assertions": 20750,
+    "raw_failures": 0,
+    "core_flow_assertions_repeated_in_native": 208,
+    "assertion_executions_after_removing_native_core_repeat": 20542,
+    "distinct_test_programs": 17,
+    "test_execution_variants": 18,
+    "non_counted_required_command_gates": 3,
+    "unique_independent_real_addon_flow_cases": 5,
+    "independent_flow_case_executions": 10,
+    "native_repeats_headless_cases": true,
+    "unique_main_timeline_states": 8,
+    "main_timeline_state_executions": 16,
+    "history_included_in_accepted_totals": false,
+    "note": "Counts are assertion executions, not deduplicated logical invariants. Native repeats the same five cases."
+  },
+  "integrity": {
+    "reviewed": {
+      "file_count": 10,
+      "changed": [],
+      "passed": true
+    },
+    "dependency": {
+      "file_count": 19,
+      "changed": [],
+      "passed": true
+    },
+    "addon": {
+      "file_count": 849,
+      "changed": [],
+      "passed": true
+    },
+    "spec": {
+      "file_count": 22,
+      "changed": [],
+      "passed": true
+    }
+  },
+  "prior_packet": {
+    "command": [
+      "shasum",
+      "-a",
+      "256",
+      "-c",
+      "docs/qa/inventory_weapon_reload/astra_gate/packet_hashes.sha256"
+    ],
+    "exit_code": 0,
+    "output": "docs/qa/inventory_weapon_reload/astra_gate/REPORT.md: OK\ndocs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054793562765000.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054813905415000.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054892481096000.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/authoring_history/magazine_probe_1789054988237998000.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/authoring_history/native_flow_1789054988944371000.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/authority_replay_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/combined_addons_smoke.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/content_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/dependency_hashes.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/diff_check.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/editor_import.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/equipped_item_reconciliation_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/finalize_packet.py: OK\ndocs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd: OK\ndocs/qa/inventory_weapon_reload/astra_gate/flow_results.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/gate_result.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/identity_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/independent_flow.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/independent_run.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/inventory_authority_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/inventory_catalog_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/inventory_intent_adapter_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/inventory_mutation_routing_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/inventory_projection_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/inventory_weapon_reload_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/magazine_probe.gd: OK\ndocs/qa/inventory_weapon_reload/astra_gate/magazine_probe.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/magazine_probe_results.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/magazine_run.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/native_api.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/native_flow.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/native_flow_1280x720.png: OK\ndocs/qa/inventory_weapon_reload/astra_gate/native_flow_results.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/native_run.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/reviewed_hashes.json: OK\ndocs/qa/inventory_weapon_reload/astra_gate/run_gate.py: OK\ndocs/qa/inventory_weapon_reload/astra_gate/session_lifecycle_contract.log: OK\ndocs/qa/inventory_weapon_reload/astra_gate/suite_results.json: OK\n",
+    "passed": true,
+    "manifest_entries": 39,
+    "packet_files_including_manifest": 40
+  },
+  "diagnostics": {},
+  "process_cleanup": "process_cleanup.json",
+  "visual_review": "visual_review.json",
+  "limitations": [
+    "Offline in-memory single-writer/no-yield facade coordination only.",
+    "No public Weapon rollback; no crash/restart atomicity or recovery completion claim.",
+    "No physical detachable-magazine weapon identity or swapping claim.",
+    "Native automated validation harness, not production UI/input or human playtest.",
+    "No task checkbox, spec ledger, staging, or commit was changed by validator."
+  ]
+}

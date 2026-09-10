@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T14:02:26Z
+updated_at: 2026-09-10T16:49:50Z
 completed_at:
 ---
 
@@ -173,7 +173,7 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   mappings after accepted inventory revisions. The reconciler uses stable
   weapon/equipment IDs, exact native Resource provenance, fail-atomic rebinding,
   recursively read-only publications and reentrant release ordering.
-- [ ] 4.9 `[SOL]` Implement ammunition/magazine reserve, reload commit,
+- [x] 4.9 `[SOL]` Implement ammunition/magazine reserve, reload commit,
   cancellation and rollback without duplication or loss.
 - [ ] 4.10 `[SOL]` Implement inventory-to-ability equipment grants and revoke
   them idempotently from full snapshots and accepted deltas.
@@ -181,6 +181,11 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   inaccessible, stale, overweight, disconnected and resynchronizing states.
 - [ ] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
   authority replacement invalidate stale UI/adapters safely.
+- [ ] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
+  stash, world-crate and corpse profiles that can carry item-provided
+  ordered-list magazine children, and prove nested magazine contents through
+  transfer, persistence and query contracts before exposing those contents
+  there.
 
 Evidence: inventory catalog validator; inventory intent-adapter and
 presentation-projection contracts; transaction-routing tests; existing
@@ -230,6 +235,46 @@ and 12.5, whole-game completion, multiplayer, and other-platform release
 acceptance remain open. See
 `docs/qa/inventory_ui_binding/astra_final_accept/REPORT.md` for the full
 acceptance packet and rejection history.
+
+Completed task evidence (4.9, 2026-09-10): the fresh independent Astra
+checkpoint accepted the final packet at
+`docs/qa/inventory_weapon_reload/astra_final/REPORT.md` with human approval
+false. All current runs used the pinned Godot 4.7.2 Compatibility executable,
+passed diagnostics and exited cleanly. The raw accepted total is `20750`
+assertions with `0` failures. The promoted catalog contract passed
+`INVENTORY_CATALOG_RESULT checks=537 failures=0`; the promoted reload contract
+passed `INVENTORY_WEAPON_RELOAD_RESULT checks=159 failures=0`; the independent
+capacity challenge passed `33/0`; the independent real-add-on flow passed
+`208/0` headless and `213/0` native. Native repeats the same 208 core flow
+assertions and adds five window/renderer/capture checks. The packet contains
+17 distinct test programs and 18 execution variants.
+
+The real canonical fixture starts with an equipped AKM at 3 loaded rounds and
+source quantities of 11 magazine-contained, 8 rig and 19 pocket rounds. A
+reservation records exactly 27 rounds in magazine -> rig -> pockets order;
+canonical physical quantities remain unchanged while those 27 held rounds are
+unavailable and excluded from spendable-quantity accounting. Cancel-at-due
+releases the native hold and replays its terminal receipt. A second reservation
+survives an unrelated accepted inventory revision and commits exactly once,
+leaving magazine/rig/pockets at 0/0/11, the weapon at 30 loaded rounds, and
+the conserved total at 41. Replay and late sweeps do not emit another
+completion. Same-due-tick death and native equipped-item movement/swap
+release the uncommitted hold without
+loss or duplication. Explicit adapter teardown is a separate independent-flow
+case and releases the uncommitted hold. Promoted owner-lifecycle
+teardown/invalidation is separate coverage. Out-of-band weapon completion
+enters explicit fail-stop quarantine rather than refunding held ammunition.
+
+The accepted scope is offline, synchronous, in-memory, single-writer/no-yield
+coordination. Inventory rollback is proven for the unpublished immediate
+successor and the game-owned fake rollback seam; the installed WeaponAuthority
+facade exposes no public symmetric rollback, so crash/restart atomicity and a
+completed recovery workflow are not claimed. Physical detachable-magazine
+identity/swapping, production weapon instances/input (5.2 and 5.7), human
+playtest, the complete raid loop, multiplayer and release gates remain open.
+The future `4.12a` metadata task above is nonblocking for 4.9 and covers
+FEATURE_LIST capability-query/transfer/persistence proof for stash, crate and
+corpse profiles.
 
 ## 5. Weapons, health and combat mechanics
 

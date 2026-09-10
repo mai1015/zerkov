@@ -1,0 +1,25 @@
+{
+  "name": "inventory_catalog_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/inventory_catalog_contract.gd"
+  ],
+  "pid": 52202,
+  "exit_code": 0,
+  "elapsed_seconds": 0.25,
+  "timed_out": false,
+  "expected_checks": 537,
+  "checks": 537,
+  "failures": 0,
+  "result_lines": [
+    "INVENTORY_CATALOG_RESULT checks=537 failures=0 findings=37"
+  ],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

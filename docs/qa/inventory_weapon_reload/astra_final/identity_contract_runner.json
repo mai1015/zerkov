@@ -1,0 +1,25 @@
+{
+  "name": "identity_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/identity_contract.gd"
+  ],
+  "pid": 52241,
+  "exit_code": 0,
+  "elapsed_seconds": 0.246,
+  "timed_out": false,
+  "expected_checks": 18442,
+  "checks": 18442,
+  "failures": 0,
+  "result_lines": [
+    "IDENTITY_CONTRACT_RESULT checks=18442 failures=0 unique=9216"
+  ],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

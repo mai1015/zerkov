@@ -1,0 +1,21 @@
+{
+  "reviewer": "fresh GPT-6 Astra checkpoint validator",
+  "capture": "native_timeline_1280x720.png",
+  "sha256": "38203f8b6639c42cf86c368aa8de075b9d94ca3f60bb8a11c30f413d1f56a2a3",
+  "visually_inspected": true,
+  "window_size": [
+    1280,
+    720
+  ],
+  "display_server": "macOS",
+  "rendering_method": "gl_compatibility",
+  "human_approval": false,
+  "findings": [
+    "All eight ordered states are readable with no clipped rows or columns.",
+    "Tick, magazine, rig, pocket, loaded, hold count/quantity, revisions and conserved totals are aligned.",
+    "VALIDATION HARNESS / NOT PRODUCTION UI and automated-flow disclosure are prominent.",
+    "Cancellation, commit, replay, publication ordering and quarantine accounting are labeled.",
+    "This proves native automated flow presentation only, not human playtest or production input."
+  ],
+  "passed": true
+}

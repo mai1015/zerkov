@@ -119,6 +119,36 @@ macOS Compatibility evidence, not a human playtest or a complete raid loop.
 Human gates 5.13, 8.13 and 12.5, whole-game completion, multiplayer and
 Windows/Linux release acceptance remain open.
 
+## Ammunition/magazine reload checkpoint (task 4.9)
+
+Task 4.9 is accepted at the implementation/evidence level by the fresh Astra
+packet in [`docs/qa/inventory_weapon_reload/astra_final/REPORT.md`](qa/inventory_weapon_reload/astra_final/REPORT.md).
+The pinned reload contract can be run directly:
+
+```sh
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_weapon_reload_contract.gd
+```
+
+The packet's independent canonical capacity, headless flow, native Compatibility
+window flow and full-suite reproductions are:
+
+```sh
+python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py capacity
+python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py flow
+python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py native
+python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py suites
+```
+
+The accepted totals are catalog `537/0`, reload `159/0`, capacity `33/0`,
+headless flow `208/0`, native flow `213/0` (the same 208 core assertions plus
+five capture checks), and `20750/0` raw assertions across 17 distinct programs
+and 18 execution variants. The flow reserves held rounds in
+magazine -> rig -> pockets order and commits inventory and weapon state as one
+coherent in-memory single-writer/no-yield sequence. This is not crash-safe
+symmetric 2PC, physical detachable-magazine swapping, production weapon
+instance/input integration, or human playtest evidence.
+
 ## Render-scale verification
 
 The isolated native render-scale spike compares the fixed 640x360 world surface

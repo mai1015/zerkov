@@ -1,0 +1,243 @@
+{
+  "human_approval": false,
+  "results": [
+    {
+      "name": "inventory_weapon_reload_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_weapon_reload_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.247,
+      "checks": 148,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "inventory_authority_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_authority_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.149,
+      "checks": 79,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "inventory_catalog_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_catalog_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.147,
+      "checks": 504,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "equipped_item_reconciliation_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/equipped_item_reconciliation_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.24,
+      "checks": 123,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "content_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/combat/content_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.243,
+      "checks": 79,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "session_lifecycle_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/session_lifecycle_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.246,
+      "checks": 44,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "authority_replay_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/authority_replay_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.251,
+      "checks": 81,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "identity_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/identity_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.25,
+      "checks": 18442,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "inventory_intent_adapter_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_intent_adapter_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.349,
+      "checks": 162,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "inventory_mutation_routing_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_mutation_routing_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.243,
+      "checks": 146,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "inventory_projection_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_projection_contract.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.251,
+      "checks": 99,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "combined_addons_smoke",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/addons/combined_addons_smoke.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.25,
+      "checks": 155,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "editor_import",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--editor",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.369,
+      "checks": null,
+      "failures": null,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "name": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.017,
+      "checks": null,
+      "failures": null,
+      "diagnostics": [],
+      "passed": true
+    }
+  ],
+  "checks": 20062,
+  "failures": 0,
+  "passed": true
+}

@@ -1,0 +1,25 @@
+{
+  "name": "inventory_projection_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/inventory_projection_contract.gd"
+  ],
+  "pid": 52296,
+  "exit_code": 0,
+  "elapsed_seconds": 0.25,
+  "timed_out": false,
+  "expected_checks": 99,
+  "checks": 99,
+  "failures": 0,
+  "result_lines": [
+    "INVENTORY_PROJECTION_RESULT checks=99 failures=0 latest_revision=7"
+  ],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

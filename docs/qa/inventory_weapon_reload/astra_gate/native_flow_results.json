@@ -1,0 +1,180 @@
+{
+	"cases": [
+		{
+			"checks": 49,
+			"name": "continuous_real_addon_flow",
+			"notification_order": [
+				"inventory",
+				"weapon"
+			]
+		},
+		{
+			"after": {
+				"holds": 0,
+				"inventory_ammo": 45,
+				"inventory_revision": 4,
+				"loaded": 6,
+				"phase": "ready",
+				"weapon_revision": 2
+			},
+			"checks": 15,
+			"name": "same_tick_death"
+		},
+		{
+			"after": {
+				"holds": 0,
+				"inventory_ammo": 45,
+				"inventory_revision": 5,
+				"loaded": 6,
+				"phase": "ready",
+				"weapon_revision": 2
+			},
+			"checks": 16,
+			"name": "same_tick_swap"
+		},
+		{
+			"after": {
+				"holds": 0,
+				"inventory_ammo": 45,
+				"inventory_revision": 4,
+				"loaded": 6,
+				"phase": "ready",
+				"weapon_revision": 2
+			},
+			"checks": 14,
+			"name": "same_tick_teardown"
+		},
+		{
+			"checks": 16,
+			"name": "external_cancel_proof"
+		},
+		{
+			"accounting": "45 inventory - 24 quarantined + 30 loaded = 51 initial",
+			"checks": 18,
+			"name": "out_of_band_completion_quarantine",
+			"recovery_is_disposal_only": true,
+			"state": {
+				"holds": 1,
+				"inventory_ammo": 45,
+				"inventory_revision": 4,
+				"loaded": 30,
+				"phase": "ready",
+				"weapon_revision": 2
+			}
+		},
+		{
+			"checks": 25,
+			"name": "cleared_and_replaced_port"
+		},
+		{
+			"checks": 14,
+			"name": "forged_valid_identity"
+		},
+		{
+			"checks": 13,
+			"name": "rejected_begin_sync_teardown"
+		},
+		{
+			"cancelled_reload_cycles": 270,
+			"checks": 1127,
+			"malformed_commands": 300,
+			"name": "ledger_pressure_replay"
+		}
+	],
+	"checks": 1312,
+	"excluded": [
+		"crash/restart recovery",
+		"physical magazine-object swapping",
+		"production weapon lifecycle",
+		"input gameplay",
+		"human playtest"
+	],
+	"failed_checks": [],
+	"failures": 0,
+	"human_approval": false,
+	"mode": "native_validation_harness",
+	"real_addons": true,
+	"scope": "Serialized in-memory offline single-writer/no-yield reload coordination",
+	"timeline": [
+		{
+			"holds": 0,
+			"inventory_ammo": 45,
+			"inventory_revision": 4,
+			"label": "Initial / equipped AKM",
+			"loaded": 6,
+			"phase": "ready",
+			"tick": 0,
+			"weapon_revision": 0
+		},
+		{
+			"holds": 1,
+			"inventory_ammo": 45,
+			"inventory_revision": 4,
+			"label": "Reserve + begin",
+			"loaded": 6,
+			"phase": "reloading",
+			"tick": 10,
+			"weapon_revision": 1
+		},
+		{
+			"holds": 1,
+			"inventory_ammo": 45,
+			"inventory_revision": 4,
+			"label": "One tick before due",
+			"loaded": 6,
+			"phase": "reloading",
+			"tick": 81,
+			"weapon_revision": 1
+		},
+		{
+			"holds": 0,
+			"inventory_ammo": 45,
+			"inventory_revision": 4,
+			"label": "Cancel at due tick",
+			"loaded": 6,
+			"phase": "ready",
+			"tick": 82,
+			"weapon_revision": 2
+		},
+		{
+			"holds": 1,
+			"inventory_ammo": 45,
+			"inventory_revision": 4,
+			"label": "Reserve again",
+			"loaded": 6,
+			"phase": "reloading",
+			"tick": 83,
+			"weapon_revision": 3
+		},
+		{
+			"holds": 1,
+			"inventory_ammo": 45,
+			"inventory_revision": 5,
+			"label": "Unrelated inventory change",
+			"loaded": 6,
+			"phase": "reloading",
+			"tick": 84,
+			"weapon_revision": 3
+		},
+		{
+			"holds": 0,
+			"inventory_ammo": 21,
+			"inventory_revision": 6,
+			"label": "Due commit",
+			"loaded": 30,
+			"phase": "ready",
+			"tick": 155,
+			"weapon_revision": 4
+		},
+		{
+			"holds": 0,
+			"inventory_ammo": 21,
+			"inventory_revision": 6,
+			"label": "Replay + late due sweep",
+			"loaded": 30,
+			"phase": "ready",
+			"tick": 156,
+			"weapon_revision": 4
+		}
+	]
+}

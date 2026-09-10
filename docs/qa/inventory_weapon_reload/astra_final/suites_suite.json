@@ -1,0 +1,451 @@
+{
+  "human_approval": false,
+  "results": [
+    {
+      "name": "inventory_catalog_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_catalog_contract.gd"
+      ],
+      "pid": 52202,
+      "exit_code": 0,
+      "elapsed_seconds": 0.25,
+      "timed_out": false,
+      "expected_checks": 537,
+      "checks": 537,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_CATALOG_RESULT checks=537 failures=0 findings=37"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "inventory_weapon_reload_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_weapon_reload_contract.gd"
+      ],
+      "pid": 52239,
+      "exit_code": 0,
+      "elapsed_seconds": 0.254,
+      "timed_out": false,
+      "expected_checks": 159,
+      "checks": 159,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_WEAPON_RELOAD_RESULT checks=159 failures=0 real_addons=true facade_rollback=false"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "inventory_authority_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_authority_contract.gd"
+      ],
+      "pid": 52240,
+      "exit_code": 0,
+      "elapsed_seconds": 0.244,
+      "timed_out": false,
+      "expected_checks": 79,
+      "checks": 79,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_AUTHORITY_RESULT checks=79 failures=0 crate_items=4 corpse_items=4"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "identity_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/identity_contract.gd"
+      ],
+      "pid": 52241,
+      "exit_code": 0,
+      "elapsed_seconds": 0.246,
+      "timed_out": false,
+      "expected_checks": 18442,
+      "checks": 18442,
+      "failures": 0,
+      "result_lines": [
+        "IDENTITY_CONTRACT_RESULT checks=18442 failures=0 unique=9216"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "equipped_item_reconciliation_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/equipped_item_reconciliation_contract.gd"
+      ],
+      "pid": 52242,
+      "exit_code": 0,
+      "elapsed_seconds": 0.254,
+      "timed_out": false,
+      "expected_checks": 123,
+      "checks": 123,
+      "failures": 0,
+      "result_lines": [
+        "EQUIPPED_ITEM_RECONCILIATION_RESULT checks=123 failures=0 publications=14"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "content_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/combat/content_contract.gd"
+      ],
+      "pid": 52290,
+      "exit_code": 0,
+      "elapsed_seconds": 0.147,
+      "timed_out": false,
+      "expected_checks": 79,
+      "checks": 79,
+      "failures": 0,
+      "result_lines": [
+        "COMBAT_CONTENT_RESULT checks=79 failures=0 weapon_count=1"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "session_lifecycle_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/session_lifecycle_contract.gd"
+      ],
+      "pid": 52292,
+      "exit_code": 0,
+      "elapsed_seconds": 0.246,
+      "timed_out": false,
+      "expected_checks": 44,
+      "checks": 44,
+      "failures": 0,
+      "result_lines": [
+        "SESSION_LIFECYCLE_RESULT checks=44 failures=0"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "authority_replay_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/authority_replay_contract.gd"
+      ],
+      "pid": 52293,
+      "exit_code": 0,
+      "elapsed_seconds": 0.258,
+      "timed_out": false,
+      "expected_checks": 81,
+      "checks": 81,
+      "failures": 0,
+      "result_lines": [
+        "AUTHORITY_REPLAY_RESULT checks=81 failures=0 reentrant_rejections=4"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "units_clock_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/units_clock_contract.gd"
+      ],
+      "pid": 52295,
+      "exit_code": 0,
+      "elapsed_seconds": 0.153,
+      "timed_out": false,
+      "expected_checks": null,
+      "checks": 29,
+      "failures": 0,
+      "result_lines": [
+        "UNITS_CLOCK_CONTRACT_RESULT checks=29 failures=0"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "inventory_projection_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_projection_contract.gd"
+      ],
+      "pid": 52296,
+      "exit_code": 0,
+      "elapsed_seconds": 0.25,
+      "timed_out": false,
+      "expected_checks": 99,
+      "checks": 99,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_PROJECTION_RESULT checks=99 failures=0 latest_revision=7"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "inventory_intent_adapter_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_intent_adapter_contract.gd"
+      ],
+      "pid": 52333,
+      "exit_code": 0,
+      "elapsed_seconds": 0.351,
+      "timed_out": false,
+      "expected_checks": 162,
+      "checks": 162,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_INTENT_ADAPTER_RESULT checks=162 failures=0 native_transactions=3"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "inventory_mutation_routing_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_mutation_routing_contract.gd"
+      ],
+      "pid": 52334,
+      "exit_code": 0,
+      "elapsed_seconds": 0.247,
+      "timed_out": false,
+      "expected_checks": 146,
+      "checks": 146,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_MUTATION_ROUTING_RESULT checks=146 failures=0"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "inventory_ui_binding_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_ui_binding_contract.gd"
+      ],
+      "pid": 52335,
+      "exit_code": 0,
+      "elapsed_seconds": 0.842,
+      "timed_out": false,
+      "expected_checks": null,
+      "checks": 138,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_UI_BINDING_COMPLETE checks=138 failures=0"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "inventory_multi_controller_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/raid/inventory_multi_controller_contract.gd"
+      ],
+      "pid": 52372,
+      "exit_code": 0,
+      "elapsed_seconds": 0.364,
+      "timed_out": false,
+      "expected_checks": null,
+      "checks": 23,
+      "failures": 0,
+      "result_lines": [
+        "INVENTORY_MULTI_CONTROLLER_COMPLETE checks=23 failures=0"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "combined_addons_smoke",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://tests/addons/combined_addons_smoke.gd"
+      ],
+      "pid": 52420,
+      "exit_code": 0,
+      "elapsed_seconds": 0.244,
+      "timed_out": false,
+      "expected_checks": 155,
+      "checks": 155,
+      "failures": 0,
+      "result_lines": [
+        "ADDON_SMOKE_RESULT checks=155 failures=0"
+      ],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "editor_import",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--editor",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--quit"
+      ],
+      "pid": 52424,
+      "exit_code": 0,
+      "elapsed_seconds": 2.348,
+      "timed_out": false,
+      "expected_checks": null,
+      "checks": null,
+      "failures": null,
+      "result_lines": [],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "spec_strict",
+      "command": [
+        "python3",
+        "/Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "validate",
+        "add-zerkov-playable-raid-2026-09-09",
+        "--strict",
+        "--json"
+      ],
+      "pid": 52499,
+      "exit_code": 0,
+      "elapsed_seconds": 0.091,
+      "timed_out": false,
+      "expected_checks": null,
+      "checks": null,
+      "failures": null,
+      "result_lines": [],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    },
+    {
+      "name": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "pid": 52515,
+      "exit_code": 0,
+      "elapsed_seconds": 0.016,
+      "timed_out": false,
+      "expected_checks": null,
+      "checks": null,
+      "failures": null,
+      "result_lines": [],
+      "diagnostics": [],
+      "cleanup_actions": [],
+      "reaped": true,
+      "passed": true
+    }
+  ],
+  "raw_checks": 20296,
+  "failures": 0,
+  "passed": true
+}

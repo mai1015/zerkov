@@ -76,6 +76,15 @@ const FEATURE_QUICK: String = "inventory.feature.quick_transfer"
 const FEATURE_ROTATION: String = "inventory.feature.rotation"
 const FEATURE_DISCOVERY: String = "inventory.feature.discovery"
 
+# The first-playable magazine accepts only TRAIT_AMMO_762, and the sealed
+# catalog has one ammunition definition carrying that trait.  Its fixed unit
+# mass therefore gives the native inventory runtime an exact, transactionally
+# enforced round bound without adding detachable-magazine weapon identity.
+const AMMO_762_UNIT_MASS_MG: int = 16_300
+const MAGAZINE_AKM_CAPACITY_ROUNDS: int = 30
+const MAGAZINE_AKM_AMMO_CAPACITY_MG: int = \
+	MAGAZINE_AKM_CAPACITY_ROUNDS * AMMO_762_UNIT_MASS_MG
+
 
 ## The fixture rows are authored as data rather than generated from a random
 ## stream.  This keeps the first-playable loot contract stable across runs,
@@ -185,7 +194,8 @@ static func _items() -> Array[InventoryItemDefinition]:
 	return [
 		_item(ITEM_AKM, 1, 3_400_000, Vector2i(5, 2), true, [TRAIT_PRIMARY_WEAPON]),
 		_item(ITEM_MACHETE, 1, 650_000, Vector2i(3, 1), true, [TRAIT_MELEE_WEAPON]),
-		_item(ITEM_AMMO_762, 60, 16_300, Vector2i(1, 1), false, [TRAIT_AMMO_762]),
+		_item(ITEM_AMMO_762, 60, AMMO_762_UNIT_MASS_MG, Vector2i(1, 1), false,
+			[TRAIT_AMMO_762]),
 		_item(ITEM_MAGAZINE_AKM, 1, 350_000, Vector2i(1, 2), true,
 			[TRAIT_MAGAZINE_AKM], [CONTAINER_MAGAZINE_AKM]),
 		_item(ITEM_BANDAGE, 4, 70_000, Vector2i(1, 1)),
@@ -338,7 +348,16 @@ static func _slot(identifier: StringName, required_trait: StringName) -> Invento
 static func _magazine_container() -> InventoryContainerDefinition:
 	var constraints := InventoryContainerConstraints.new()
 	constraints.max_items = 1
+	constraints.has_mass_capacity = true
+	constraints.mass_capacity_mg = MAGAZINE_AKM_AMMO_CAPACITY_MG
 	constraints.required_traits = PackedStringArray([TRAIT_AMMO_762])
+	# Item-provided containers are materialized one level below the root that
+	# owns their provider item.  The native runtime therefore requires the
+	# magazine's ammunition container to admit exactly that depth.  This makes
+	# contained ammunition reachable; it does not model detachable-magazine
+	# weapon identity or swapping.
+	constraints.allow_nesting = true
+	constraints.max_nesting_depth = 1
 	constraints.allow_stack_split = true
 	var container := InventoryContainerDefinition.new()
 	container.identifier = CONTAINER_MAGAZINE_AKM
@@ -349,7 +368,9 @@ static func _magazine_container() -> InventoryContainerDefinition:
 	container.enabled_features = PackedStringArray([
 		FEATURE_LIST,
 		FEATURE_COUNT,
+		FEATURE_MASS,
 		FEATURE_FILTER,
+		FEATURE_NESTING,
 		FEATURE_STACKING,
 	])
 	return container
@@ -398,6 +419,7 @@ static func _profile(
 static func _player_features() -> PackedStringArray:
 	var features := _grid_features(true, false)
 	features.append(FEATURE_SLOTS)
+	features.append(FEATURE_LIST)
 	features.append(FEATURE_FILTER)
 	features.append(FEATURE_RETENTION)
 	return features

@@ -1,0 +1,25 @@
+{
+  "human_approval": false,
+  "results": [
+    {
+      "name": "independent_flow",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--headless",
+        "--path",
+        "/Volumes/Data/codes/games/zerkov",
+        "--script",
+        "res://docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.443,
+      "checks": 1310,
+      "failures": 0,
+      "diagnostics": [],
+      "passed": true
+    }
+  ],
+  "checks": 1310,
+  "failures": 0,
+  "passed": true
+}

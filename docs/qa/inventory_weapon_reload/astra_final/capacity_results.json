@@ -1,0 +1,495 @@
+{
+	"assertions": [
+		{
+			"check": 1,
+			"label": "sealed catalog has exactly one compatible ammunition mass definition",
+			"passed": true
+		},
+		{
+			"check": 2,
+			"label": "inventory and Weapon AKM both declare thirty rounds",
+			"passed": true
+		},
+		{
+			"check": 3,
+			"label": "magazine declares exact child depth one",
+			"passed": true
+		},
+		{
+			"check": 4,
+			"label": "native magazine constraint declares 489000 mg",
+			"passed": true
+		},
+		{
+			"check": 5,
+			"label": "unmodified canonical catalog seals",
+			"passed": true
+		},
+		{
+			"check": 6,
+			"label": "real canonical player raid inventory created",
+			"passed": true
+		},
+		{
+			"check": 7,
+			"label": "root container identities resolve",
+			"passed": true
+		},
+		{
+			"check": 8,
+			"label": "canonical magazine materializes without diagnostic 115 at x=0",
+			"passed": true
+		},
+		{
+			"check": 9,
+			"label": "provider in root owns empty child: actual ancestry establishes depth one at x=0",
+			"passed": true
+		},
+		{
+			"check": 10,
+			"label": "fresh thirty-round arrival succeeds",
+			"passed": true
+		},
+		{
+			"check": 11,
+			"label": "fresh thirty-round stack has exactly thirty",
+			"passed": true
+		},
+		{
+			"check": 12,
+			"label": "native live child reports declared mass capacity",
+			"passed": true
+		},
+		{
+			"check": 13,
+			"label": "loose round exists for cross-container merge",
+			"passed": true
+		},
+		{
+			"check": 14,
+			"label": "merge beyond thirty rejects",
+			"passed": true
+		},
+		{
+			"check": 15,
+			"label": "merge beyond thirty has exact native 6/123/505300 diagnostic",
+			"passed": true
+		},
+		{
+			"check": 16,
+			"label": "over-capacity merge preserves bytes, revision and exact topology",
+			"passed": true
+		},
+		{
+			"check": 17,
+			"label": "over-capacity merge preserves both source and target quantities",
+			"passed": true
+		},
+		{
+			"check": 18,
+			"label": "canonical magazine materializes without diagnostic 115 at x=2",
+			"passed": true
+		},
+		{
+			"check": 19,
+			"label": "provider in root owns empty child: actual ancestry establishes depth one at x=2",
+			"passed": true
+		},
+		{
+			"check": 20,
+			"label": "fresh thirty-one arrival rejects",
+			"passed": true
+		},
+		{
+			"check": 21,
+			"label": "fresh thirty-one arrival has exact native 6/123/505300 diagnostic",
+			"passed": true
+		},
+		{
+			"check": 22,
+			"label": "fresh thirty-one rejection preserves bytes, revision and complete topology",
+			"passed": true
+		},
+		{
+			"check": 23,
+			"label": "rejected thirty-one arrival retains shell and its empty child list",
+			"passed": true
+		},
+		{
+			"check": 24,
+			"label": "canonical magazine materializes without diagnostic 115 at x=4",
+			"passed": true
+		},
+		{
+			"check": 25,
+			"label": "provider in root owns empty child: actual ancestry establishes depth one at x=4",
+			"passed": true
+		},
+		{
+			"check": 26,
+			"label": "non-ammunition is rejected by native trait filter",
+			"passed": true
+		},
+		{
+			"check": 27,
+			"label": "trait-filter rejection is completely atomic",
+			"passed": true
+		},
+		{
+			"check": 28,
+			"label": "one compatible round enters empty filtered list",
+			"passed": true
+		},
+		{
+			"check": 29,
+			"label": "second stack rejects by list count even while mass is below capacity",
+			"passed": true
+		},
+		{
+			"check": 30,
+			"label": "second-stack rejection preserves complete canonical state",
+			"passed": true
+		},
+		{
+			"check": 31,
+			"label": "cross-container merge works below capacity, proving overflow rejection is specific",
+			"passed": true
+		},
+		{
+			"check": 32,
+			"label": "capacity mutations create no reservation",
+			"passed": true
+		},
+		{
+			"check": 33,
+			"label": "capacity fixture unload succeeds",
+			"passed": true
+		}
+	],
+	"canonical_catalog": true,
+	"checks": 33,
+	"diagnostic_115_blocker_absent": true,
+	"evidence": {
+		"cross_container_merge": {
+			"accepted": false,
+			"authoritative_revision": 0,
+			"command_id": 84004,
+			"conflicting_inventory": 0,
+			"dropped_external_owner": 0,
+			"dropped_items": [],
+			"events": [],
+			"new_item_id": 0,
+			"new_reference_id": 0,
+			"queued": false,
+			"remaining_quantity": 0,
+			"replayed": false,
+			"revisions": [
+				{
+					"inventory": 1,
+					"predecessor": 3,
+					"successor": 3
+				}
+			],
+			"status": {
+				"code": 6,
+				"detail": 505300,
+				"diagnostic": 123,
+				"ok": false
+			},
+			"transferred_quantity": 0
+		},
+		"filter": {
+			"accepted": false,
+			"authoritative_revision": 0,
+			"command_id": 84008,
+			"conflicting_inventory": 0,
+			"dropped_external_owner": 0,
+			"dropped_items": [],
+			"events": [],
+			"new_item_id": 0,
+			"new_reference_id": 0,
+			"queued": false,
+			"remaining_quantity": 0,
+			"replayed": false,
+			"revisions": [
+				{
+					"inventory": 1,
+					"predecessor": 5,
+					"successor": 5
+				}
+			],
+			"status": {
+				"code": 64,
+				"detail": 2854329386357913816,
+				"diagnostic": 118,
+				"ok": false
+			},
+			"transferred_quantity": 0
+		},
+		"final_topology": {
+			"containers": [
+				{
+					"container_definition_identifier": "zerkov.container.player.backpack",
+					"id": 1,
+					"provider_item": 0
+				},
+				{
+					"container_definition_identifier": "zerkov.container.player.equipment",
+					"id": 2,
+					"provider_item": 0
+				},
+				{
+					"container_definition_identifier": "zerkov.container.player.pockets",
+					"id": 3,
+					"provider_item": 0
+				},
+				{
+					"container_definition_identifier": "zerkov.container.player.rig",
+					"id": 4,
+					"provider_item": 0
+				},
+				{
+					"container_definition_identifier": "zerkov.container.player.secure",
+					"id": 5,
+					"provider_item": 0
+				},
+				{
+					"container_definition_identifier": "zerkov.container.magazine.akm_30",
+					"id": 6,
+					"provider_item": 1
+				},
+				{
+					"container_definition_identifier": "zerkov.container.magazine.akm_30",
+					"id": 7,
+					"provider_item": 4
+				},
+				{
+					"container_definition_identifier": "zerkov.container.magazine.akm_30",
+					"id": 8,
+					"provider_item": 5
+				}
+			],
+			"items": [
+				{
+					"id": 1,
+					"item_definition_identifier": "zerkov.item.magazine.akm_30",
+					"location": {
+						"container": 1,
+						"kind": "spatial",
+						"ordinal": 0,
+						"rotated": false,
+						"slot_identifier": "",
+						"x": 0,
+						"y": 0
+					},
+					"mutable_components": [],
+					"provided_containers": [
+						6
+					],
+					"quantity": 1
+				},
+				{
+					"id": 2,
+					"item_definition_identifier": "zerkov.item.ammo.caliber_762x39_standard",
+					"location": {
+						"container": 6,
+						"kind": "list",
+						"ordinal": 0,
+						"rotated": false,
+						"slot_identifier": "",
+						"x": 0,
+						"y": 0
+					},
+					"mutable_components": [],
+					"provided_containers": [],
+					"quantity": 30
+				},
+				{
+					"id": 4,
+					"item_definition_identifier": "zerkov.item.magazine.akm_30",
+					"location": {
+						"container": 1,
+						"kind": "spatial",
+						"ordinal": 0,
+						"rotated": false,
+						"slot_identifier": "",
+						"x": 2,
+						"y": 0
+					},
+					"mutable_components": [],
+					"provided_containers": [
+						7
+					],
+					"quantity": 1
+				},
+				{
+					"id": 5,
+					"item_definition_identifier": "zerkov.item.magazine.akm_30",
+					"location": {
+						"container": 1,
+						"kind": "spatial",
+						"ordinal": 0,
+						"rotated": false,
+						"slot_identifier": "",
+						"x": 4,
+						"y": 0
+					},
+					"mutable_components": [],
+					"provided_containers": [
+						8
+					],
+					"quantity": 1
+				},
+				{
+					"id": 6,
+					"item_definition_identifier": "zerkov.item.ammo.caliber_762x39_standard",
+					"location": {
+						"container": 8,
+						"kind": "list",
+						"ordinal": 0,
+						"rotated": false,
+						"slot_identifier": "",
+						"x": 0,
+						"y": 0
+					},
+					"mutable_components": [],
+					"provided_containers": [],
+					"quantity": 2
+				}
+			],
+			"revision": 7
+		},
+		"fresh_30": {
+			"accepted": true,
+			"authoritative_revision": 0,
+			"command_id": 84002,
+			"conflicting_inventory": 0,
+			"dropped_external_owner": 0,
+			"dropped_items": [],
+			"events": [
+				{
+					"destination_container": 6,
+					"item": 2,
+					"kind": 5,
+					"reference": 0,
+					"secondary_item": 0,
+					"source_container": 0
+				}
+			],
+			"new_item_id": 2,
+			"new_reference_id": 0,
+			"queued": false,
+			"remaining_quantity": 0,
+			"replayed": false,
+			"revisions": [
+				{
+					"inventory": 1,
+					"predecessor": 1,
+					"successor": 2
+				}
+			],
+			"status": {
+				"code": 0,
+				"detail": 0,
+				"diagnostic": 0,
+				"ok": true
+			},
+			"transferred_quantity": 0
+		},
+		"fresh_31": {
+			"accepted": false,
+			"authoritative_revision": 0,
+			"command_id": 84006,
+			"conflicting_inventory": 0,
+			"dropped_external_owner": 0,
+			"dropped_items": [],
+			"events": [],
+			"new_item_id": 0,
+			"new_reference_id": 0,
+			"queued": false,
+			"remaining_quantity": 0,
+			"replayed": false,
+			"revisions": [
+				{
+					"inventory": 1,
+					"predecessor": 4,
+					"successor": 4
+				}
+			],
+			"status": {
+				"code": 6,
+				"detail": 505300,
+				"diagnostic": 123,
+				"ok": false
+			},
+			"transferred_quantity": 0
+		},
+		"legal_merge_control": {
+			"accepted": true,
+			"authoritative_revision": 0,
+			"command_id": 84011,
+			"conflicting_inventory": 0,
+			"dropped_external_owner": 0,
+			"dropped_items": [],
+			"events": [
+				{
+					"destination_container": 8,
+					"item": 6,
+					"kind": 4,
+					"reference": 0,
+					"secondary_item": 3,
+					"source_container": 4
+				}
+			],
+			"new_item_id": 0,
+			"new_reference_id": 0,
+			"queued": false,
+			"remaining_quantity": 0,
+			"replayed": false,
+			"revisions": [
+				{
+					"inventory": 1,
+					"predecessor": 6,
+					"successor": 7
+				}
+			],
+			"status": {
+				"code": 0,
+				"detail": 0,
+				"diagnostic": 0,
+				"ok": true
+			},
+			"transferred_quantity": 0
+		},
+		"second_stack": {
+			"accepted": false,
+			"authoritative_revision": 0,
+			"command_id": 84010,
+			"conflicting_inventory": 0,
+			"dropped_external_owner": 0,
+			"dropped_items": [],
+			"events": [],
+			"new_item_id": 0,
+			"new_reference_id": 0,
+			"queued": false,
+			"remaining_quantity": 0,
+			"replayed": false,
+			"revisions": [
+				{
+					"inventory": 1,
+					"predecessor": 6,
+					"successor": 6
+				}
+			],
+			"status": {
+				"code": 6,
+				"detail": 2,
+				"diagnostic": 26,
+				"ok": false
+			},
+			"transferred_quantity": 0
+		}
+	},
+	"failures": 0,
+	"human_approval": false
+}

@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T14:02:26Z
+updated_at: 2026-09-10T16:49:50Z
 ---
 
 ## Why
@@ -51,14 +51,28 @@ variants.
 
 Current implementation boundary: the reviewed inventory authority,
 snapshot-projection seam, authority-side mutation routing (4.7a), equipped-item
-reconciliation (4.8), and inventory UI binding (4.7b) are complete. The fresh
-independent Astra checkpoint accepted 31 final suite/probe variants with
-`4228/0` checks/failures across 1920x1080, 1600x900, 1280x720 and 960x540;
-continuous native flow passed `88/0`, compact continuity `34/0` plus promoted
-selection `37/0`, sealed regressions `18/0` and `17/0`, and the independent
-challenge `112/0`. Task 4.9 is the next unblocked inventory task. Human approval
-remains false, and later animation, combat/readability, cursor-mapping,
-human-playtest, whole-game and release gates remain open.
+reconciliation (4.8), inventory UI binding (4.7b), and ammunition/magazine
+reload coordination (4.9) are complete at the implementation/evidence level.
+The fresh independent Astra checkpoint accepted task 4.9 with `20750/0` raw
+assertion executions. Its promoted catalog and reload contracts passed
+`537/0` and `159/0`; the independent canonical capacity challenge passed
+`33/0`; the real-add-on flow passed `208/0` headless and `213/0` in the native
+Compatibility window, where the native run repeats the 208 core assertions and
+adds five capture checks. The packet contains 17 distinct test programs and 18
+execution variants. The canonical flow reserves 27 rounds in exact
+magazine-to-rig-to-pockets order, cancels and replays without changing
+quantities, then commits to 30 loaded rounds with a conserved total of 41.
+Task 4.10 is the next implementation task. Human approval remains false, and
+the production weapon-instance/input work (5.2 and 5.7), later combat,
+playtest, whole-game and release gates remain open.
+
+The 4.9 boundary is offline, synchronous, in-memory, single-writer/no-yield
+coordination. It does not claim crash-safe symmetric two-phase commit because
+the installed WeaponAuthority facade exposes no public rollback participant; it
+also does not claim physical detachable-magazine identity or swapping. Those
+limits, plus the native validation harness being distinct from production UI
+and human playtest, are recorded in the final Astra packet at
+`docs/qa/inventory_weapon_reload/astra_final/REPORT.md`.
 
 ## Approval gate
 

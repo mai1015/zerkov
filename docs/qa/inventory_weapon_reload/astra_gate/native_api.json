@@ -1,0 +1,10 @@
+{
+	"reload_methods": [
+		"begin_reload",
+		"cancel_reload",
+		"due_reloads",
+		"commit_due_reload",
+		"publish_reload_completion"
+	],
+	"rollback_methods": []
+}

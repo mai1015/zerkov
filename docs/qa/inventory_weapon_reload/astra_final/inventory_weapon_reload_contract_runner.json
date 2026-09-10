@@ -1,0 +1,25 @@
+{
+  "name": "inventory_weapon_reload_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/inventory_weapon_reload_contract.gd"
+  ],
+  "pid": 52239,
+  "exit_code": 0,
+  "elapsed_seconds": 0.254,
+  "timed_out": false,
+  "expected_checks": 159,
+  "checks": 159,
+  "failures": 0,
+  "result_lines": [
+    "INVENTORY_WEAPON_RELOAD_RESULT checks=159 failures=0 real_addons=true facade_rollback=false"
+  ],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

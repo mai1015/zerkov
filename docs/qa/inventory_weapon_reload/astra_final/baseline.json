@@ -1,0 +1,37 @@
+{
+  "utc": "2026-09-10T16:33:49.992720+00:00",
+  "parent_commit": "0f102f75d9c53ab54f04314f75d2cfc5d2a76e1b",
+  "status": " M game/content/zerkov_inventory_catalog.gd\n M tests/raid/inventory_catalog_contract.gd\n?? docs/qa/inventory_weapon_reload/\n?? game/domain/ports/weapon_reload_participant_port.gd\n?? game/domain/ports/weapon_reload_participant_port.gd.uid\n?? game/inventory/equipment/inventory_weapon_adapter.gd\n?? game/inventory/equipment/inventory_weapon_adapter.gd.uid\n?? game/inventory/equipment/weapon_authority_reload_port.gd\n?? game/inventory/equipment/weapon_authority_reload_port.gd.uid\n?? tests/raid/inventory_weapon_reload_contract.gd\n?? tests/raid/inventory_weapon_reload_contract.gd.uid\n",
+  "engine": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+  "engine_version": "4.7.2.stable.official.ed1daf0bf",
+  "human_approval": false,
+  "prior_packet_entries": 39,
+  "addon_files_hashed": 849,
+  "godot_processes_before": [
+    {
+      "pid": 22941,
+      "ppid": 22939,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 49133,
+      "ppid": 49117,
+      "executable": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot"
+    },
+    {
+      "pid": 50284,
+      "ppid": 16055,
+      "executable": "/opt/homebrew/bin/godot"
+    },
+    {
+      "pid": 52576,
+      "ppid": 16055,
+      "executable": "godot"
+    },
+    {
+      "pid": 55470,
+      "ppid": 16055,
+      "executable": "godot"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "editor_import",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--editor",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--quit"
+  ],
+  "pid": 52424,
+  "exit_code": 0,
+  "elapsed_seconds": 2.348,
+  "timed_out": false,
+  "expected_checks": null,
+  "checks": null,
+  "failures": null,
+  "result_lines": [],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

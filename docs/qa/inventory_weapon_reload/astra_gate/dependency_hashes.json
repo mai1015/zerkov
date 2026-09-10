@@ -1,0 +1,11 @@
+{
+  "game/content/zerkov_inventory_catalog.gd": "3d2abe46e1fd9035c404dbfa6fe83fb0de5e358a9fad42fd3e150b2febe57756",
+  "addons/inventory_system/native/core/inv_runtime_state.cpp": "f2dac34508d2e2925e291f7b3b53c92c27b03529ca1b1e1cbb012c95bae4fb4c",
+  "addons/inventory_system/native/core/inv_quantity_reservations.cpp": "0d72296e65cbd233c9ce4daa3b8517b1d06d8bb1c407d7892de745bd617b3e2c",
+  "addons/inventory_system/native/godot/inventory_authority.cpp": "97b8c4a8c70c38e55e4472532ed6ef7c839bddcaf0e9e873d14716ec4a5049b1",
+  "addons/weapon_system/native/core/wpn_runtime.cpp": "509c9e04d450d7818ca9801880507fce1ce34a54bf6938d62d264abab1f4666a",
+  "addons/weapon_system/native/godot/weapon_authority.cpp": "d2d12600518b10e78ee4028ec20c0a76bd8cdb6daa95512b2342c41a45fe52a1",
+  "addons/inventory_system/bin/libinventory_system.macos.template_debug.universal.dylib": "964b1824415758b4f7098137af13089810cdda2bbe0d16743378e0d0c28193f1",
+  "addons/weapon_system/bin/libweapon_system.macos.template_debug.universal.dylib": "013b453cddee5b7de7af95217e259f4c86d521f5a369108fc22ee8cfbc8995b9",
+  "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot": "c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf"
+}

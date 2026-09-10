@@ -1,0 +1,25 @@
+{
+  "name": "combined_addons_smoke",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/addons/combined_addons_smoke.gd"
+  ],
+  "pid": 52420,
+  "exit_code": 0,
+  "elapsed_seconds": 0.244,
+  "timed_out": false,
+  "expected_checks": 155,
+  "checks": 155,
+  "failures": 0,
+  "result_lines": [
+    "ADDON_SMOKE_RESULT checks=155 failures=0"
+  ],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

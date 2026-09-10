@@ -1,0 +1,47 @@
+{
+  "verdict": "REJECT",
+  "task": "4.9",
+  "human_approval": false,
+  "production_hashes_unchanged": {
+    "game/domain/ports/weapon_reload_participant_port.gd": true,
+    "game/domain/ports/weapon_reload_participant_port.gd.uid": true,
+    "game/inventory/equipment/inventory_weapon_adapter.gd": true,
+    "game/inventory/equipment/inventory_weapon_adapter.gd.uid": true,
+    "game/inventory/equipment/weapon_authority_reload_port.gd": true,
+    "game/inventory/equipment/weapon_authority_reload_port.gd.uid": true,
+    "tests/raid/inventory_weapon_reload_contract.gd": true
+  },
+  "validator_owned_processes_remaining": [],
+  "unrelated_godot_processes_untouched": [
+    "49133 49117 /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot"
+  ],
+  "diff_check_exit_code": 0,
+  "current_log_diagnostics": {
+    "authority_replay_contract.log": [],
+    "combined_addons_smoke.log": [],
+    "content_contract.log": [],
+    "diff_check.log": [],
+    "editor_import.log": [],
+    "equipped_item_reconciliation_contract.log": [],
+    "identity_contract.log": [],
+    "independent_flow.log": [],
+    "inventory_authority_contract.log": [],
+    "inventory_catalog_contract.log": [],
+    "inventory_intent_adapter_contract.log": [],
+    "inventory_mutation_routing_contract.log": [],
+    "inventory_projection_contract.log": [],
+    "inventory_weapon_reload_contract.log": [],
+    "magazine_probe.log": [
+      "ERROR: ASTRA_MAGAZINE_PROBE: AKM magazine must materialize its ammo container for the adapter's magazine-first source policy",
+      "ERROR: ASTRA_MAGAZINE_PROBE: canonical magazine ammo container must exist"
+    ],
+    "native_flow.log": [],
+    "session_lifecycle_contract.log": []
+  },
+  "diagnostic_interpretation": "Two intentional assertion failures reproduce the magazine catalog blocker. Passing suites and continuous flows contain no runtime diagnostics. Earlier broad magazine-fixture failures and harness parse attempt are retained under authoring_history and excluded from current totals.",
+  "automatically_generated_outside_packet": [
+    "tests/raid/inventory_weapon_reload_contract.gd.uid"
+  ],
+  "production_or_promoted_test_code_edits": false,
+  "remaining_required_work": "Make the canonical magazine item materialize its provided ammunition container; then prove source selection, held quantities, commit, cancellation and conservation through that real container and launch a fresh checkpoint gate."
+}

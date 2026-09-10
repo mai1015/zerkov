@@ -1,0 +1,20 @@
+{
+  "name": "diff_check",
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "pid": 52515,
+  "exit_code": 0,
+  "elapsed_seconds": 0.016,
+  "timed_out": false,
+  "expected_checks": null,
+  "checks": null,
+  "failures": null,
+  "result_lines": [],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}

@@ -1,0 +1,79 @@
+docs/qa/inventory_weapon_reload/astra_gate/REPORT.md: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054793562765000.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054813905415000.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054892481096000.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/authoring_history/magazine_probe_1789054988237998000.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/authoring_history/native_flow_1789054988944371000.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/authority_replay_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/combined_addons_smoke.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/content_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/dependency_hashes.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/diff_check.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/editor_import.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/equipped_item_reconciliation_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/finalize_packet.py: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/flow_results.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/gate_result.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/identity_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/independent_flow.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/independent_run.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/inventory_authority_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/inventory_catalog_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/inventory_intent_adapter_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/inventory_mutation_routing_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/inventory_projection_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/inventory_weapon_reload_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/magazine_probe.gd: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/magazine_probe.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/magazine_probe_results.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/magazine_run.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/native_api.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/native_flow.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/native_flow_1280x720.png: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/native_flow_results.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/native_run.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/reviewed_hashes.json: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/run_gate.py: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/session_lifecycle_contract.log: FAILED open or read
+docs/qa/inventory_weapon_reload/astra_gate/suite_results.json: FAILED open or read
+shasum: docs/qa/inventory_weapon_reload/astra_gate/REPORT.md: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054793562765000.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054813905415000.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/authoring_history/independent_flow_1789054892481096000.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/authoring_history/magazine_probe_1789054988237998000.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/authoring_history/native_flow_1789054988944371000.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/authority_replay_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/combined_addons_smoke.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/content_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/dependency_hashes.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/diff_check.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/editor_import.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/equipped_item_reconciliation_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/finalize_packet.py: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/flow_playthrough.gd: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/flow_results.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/gate_result.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/identity_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/independent_flow.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/independent_run.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/inventory_authority_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/inventory_catalog_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/inventory_intent_adapter_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/inventory_mutation_routing_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/inventory_projection_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/inventory_weapon_reload_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/magazine_probe.gd: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/magazine_probe.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/magazine_probe_results.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/magazine_run.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/native_api.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/native_flow.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/native_flow_1280x720.png: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/native_flow_results.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/native_run.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/reviewed_hashes.json: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/run_gate.py: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/session_lifecycle_contract.log: No such file or directory
+shasum: docs/qa/inventory_weapon_reload/astra_gate/suite_results.json: No such file or directory
+shasum: WARNING: 39 listed files could not be read

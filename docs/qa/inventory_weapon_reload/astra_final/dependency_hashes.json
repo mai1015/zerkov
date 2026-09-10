@@ -1,0 +1,21 @@
+{
+  "project.godot": "4f77866436cde2de39996206e35ce4925fe3781ef6c9ee433e3f75a6d2c61abc",
+  "config/addons.lock.json": "72670db97fc107173e6c52caa67a14287abccf781d04a70c6127609fbad8e85d",
+  "config/toolchain.lock.json": "6d6b6b1396c8811d900261d379ae2817797f37ff6417dd407144203f73847b2b",
+  "game/raid/raid_inventory_owner.gd": "fe3a4079fe2ab304197d455b6c77fc6552c92c24023be0d3ccf730931cf49b43",
+  "game/inventory/equipment/equipped_item_reconciler.gd": "a493188da3cb9194a9346e36477788a8c79e1a31d74ed2e5b2ac849b32f0665a",
+  "game/combat/content/zerkov_combat_content.gd": "4e358f270cee46d2a798875d3f682b46156940c8e04cdb12ddef0dd125887ae0",
+  "addons/inventory_system/native/godot/inventory_authority.h": "8d56f6c6e33a2acec3f92fe6eefec9dd11a51f9c55182e7c6c9d6608206a1f1c",
+  "addons/inventory_system/native/godot/inventory_authority.cpp": "97b8c4a8c70c38e55e4472532ed6ef7c839bddcaf0e9e873d14716ec4a5049b1",
+  "addons/inventory_system/native/core/inv_runtime_state.cpp": "f2dac34508d2e2925e291f7b3b53c92c27b03529ca1b1e1cbb012c95bae4fb4c",
+  "addons/inventory_system/native/core/inv_quantity_reservations.h": "5281f3c28c36a0aafb9334ebd1f599bdb2fa4856da6319ce12cec928b8715b02",
+  "addons/inventory_system/native/core/inv_quantity_reservations.cpp": "0d72296e65cbd233c9ce4daa3b8517b1d06d8bb1c407d7892de745bd617b3e2c",
+  "addons/inventory_system/native/core/inv_transaction.cpp": "4b689532e39a14616053a310f1631f30da483288ed149d588e7517fb3e531d6e",
+  "addons/weapon_system/native/godot/weapon_authority.h": "c685da003ae60b6c64b1c6c717c2ab6e92e94cd0509112f2404669f5c56c8b13",
+  "addons/weapon_system/native/godot/weapon_authority.cpp": "d2d12600518b10e78ee4028ec20c0a76bd8cdb6daa95512b2342c41a45fe52a1",
+  "addons/weapon_system/native/core/wpn_runtime.h": "8b0f731e5c23956664887e03aad23cc3679b0678a81063d4820b91b38494c4a7",
+  "addons/weapon_system/native/core/wpn_runtime.cpp": "509c9e04d450d7818ca9801880507fce1ce34a54bf6938d62d264abab1f4666a",
+  "addons/inventory_system/bin/libinventory_system.macos.template_debug.universal.dylib": "964b1824415758b4f7098137af13089810cdda2bbe0d16743378e0d0c28193f1",
+  "addons/weapon_system/bin/libweapon_system.macos.template_debug.universal.dylib": "013b453cddee5b7de7af95217e259f4c86d521f5a369108fc22ee8cfbc8995b9",
+  "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot": "c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf"
+}

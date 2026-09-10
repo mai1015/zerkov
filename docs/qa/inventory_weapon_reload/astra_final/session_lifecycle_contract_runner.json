@@ -1,0 +1,25 @@
+{
+  "name": "session_lifecycle_contract",
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    "/Volumes/Data/codes/games/zerkov",
+    "--script",
+    "res://tests/raid/session_lifecycle_contract.gd"
+  ],
+  "pid": 52292,
+  "exit_code": 0,
+  "elapsed_seconds": 0.246,
+  "timed_out": false,
+  "expected_checks": 44,
+  "checks": 44,
+  "failures": 0,
+  "result_lines": [
+    "SESSION_LIFECYCLE_RESULT checks=44 failures=0"
+  ],
+  "diagnostics": [],
+  "cleanup_actions": [],
+  "reaped": true,
+  "passed": true
+}
