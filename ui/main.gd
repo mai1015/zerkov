@@ -13,7 +13,6 @@ var state: Dictionary:
 	get: return fixtures.state
 	set(value): fixtures.state = value
 var current_route: String = ""
-var previous_route: String = "main_menu"
 var navigator: ZUINavigator
 var history: Array[String]:
 	get: return navigator.history() if navigator != null else []
@@ -33,18 +32,17 @@ var qa_mode: bool = false
 var resize_timer: Timer
 var _last_window_size: Vector2i
 var _resize_pending: bool = false
+var _review_navigation_enabled: bool = false
 var ui_layout_mode: String = "auto"
 var common_ui_root: CommonUIScreenRoot
-var screen_layer: CommonUILayer
 
 func _ready() -> void:
 	common_ui_root = get_node("CommonUIScreenRoot") as CommonUIScreenRoot
-	screen_layer = common_ui_root.menu_layer()
 	navigator = ZUINavigator.new()
 	navigator.configure(self, common_ui_root)
 	add_child(navigator)
 	navigator.committed.connect(_on_route_committed)
-	navigator.rejected.connect(func(_route: String, reason: String) -> void: toast(reason))
+	navigator.rejected.connect(_on_route_rejected)
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--layout="):
 			var requested = arg.trim_prefix("--layout=")
@@ -63,13 +61,23 @@ func _ready() -> void:
 	feedback = preload("res://ui/core/feedback.tscn").instantiate()
 	feedback.configure(self, common_ui_root)
 	add_child(feedback)
-	var start = initial_route
+	var start := initial_route
+	var review_start := initial_route != "title"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screen="):
 			start = arg.trim_prefix("--screen=")
+			review_start = true
 		if arg == "--qa" or arg == "--smoke":
 			qa_mode = true
-	navigate(start, false)
+	_review_navigation_enabled = review_start or qa_mode
+	var start_origin := ZUIRouteIntent.Origin.REVIEW \
+			if review_start or qa_mode else ZUIRouteIntent.Origin.PRODUCTION
+	submit_navigation(ZUIRouteIntent.open_route(
+		StringName(start),
+		&"",
+		start_origin,
+		ZUIRouteIntent.StackMode.RESET
+	))
 	if qa_mode:
 		call_deferred("_run_qa")
 
@@ -113,30 +121,67 @@ func _finish_window_resize() -> void:
 	feedback.resize_to_view(view)
 
 func _on_route_committed(route: String, view: Control) -> void:
-	previous_route = current_route if not current_route.is_empty() else "main_menu"
 	current_route = route
 	screen = view
 
-func navigate(route: String, record: bool = true) -> void:
-	feedback.dismiss_all()
-	navigator.navigate(route, record)
 
-func back() -> void:
-	navigator.back()
+func _on_route_rejected(_route: String, reason: String) -> void:
+	toast(reason)
 
-func handle_back_action() -> void:
-	if is_instance_valid(modal):
-		_close_overlay(modal)
-	elif is_instance_valid(picker):
-		_close_overlay(picker)
-	elif current_route == "pause":
-		back()
-	elif current_route in ["build_mode", "crafting", "summary_solo", "summary_squad"]:
-		navigate("bunker")
-	elif current_route in ["hud", "hud_coop", "bunker", "session", "main_menu"]:
-		navigate("pause")
-	else:
-		back()
+
+func submit_navigation(intent: Variant) -> bool:
+	return navigator.submit(intent)
+
+
+## Review-harness facade. In a normal product session it still becomes a typed
+## production intent; production screens receive only the narrower ZUIContext.
+func navigate(route: String, record: bool = true) -> bool:
+	if qa_mode:
+		return navigate_for_review(route, record)
+	return request_route(route, record)
+
+
+func request_route(
+	route: String,
+	record: bool = true,
+	payload: ZUIRoutePayload = null
+) -> bool:
+	return submit_navigation(ZUIRouteIntent.open_route(
+		StringName(route),
+		StringName(current_route),
+		ZUIRouteIntent.Origin.PRODUCTION,
+		ZUIRouteIntent.StackMode.AUTO if record else ZUIRouteIntent.StackMode.RESET,
+		payload
+	))
+
+
+func navigate_for_review(route: String, record: bool = true) -> bool:
+	return submit_navigation(ZUIRouteIntent.open_route(
+		StringName(route),
+		StringName(current_route),
+		ZUIRouteIntent.Origin.REVIEW,
+		ZUIRouteIntent.StackMode.AUTO if record else ZUIRouteIntent.StackMode.RESET
+	))
+
+
+func allows_review_navigation() -> bool:
+	return qa_mode or _review_navigation_enabled
+
+
+func open_developer_route(route: String, authorization: RefCounted = null) -> bool:
+	return submit_navigation(ZUIRouteIntent.open_route(
+		StringName(route),
+		StringName(current_route),
+		ZUIRouteIntent.Origin.DEVELOPER_CATALOG,
+		ZUIRouteIntent.StackMode.AUTO,
+		null,
+		authorization
+	))
+
+
+func back() -> bool:
+	var origin := ZUIRouteIntent.Origin.REVIEW if qa_mode else ZUIRouteIntent.Origin.PRODUCTION
+	return submit_navigation(ZUIRouteIntent.back(StringName(current_route), origin))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_pressed() or event.is_echo():
@@ -146,19 +191,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if is_instance_valid(modal) or is_instance_valid(picker):
-		if event is InputEventKey and event.keycode == KEY_ESCAPE:
-			_close_overlay(modal if is_instance_valid(modal) else picker)
-		get_viewport().set_input_as_handled()
 		return
-	if current_route == "title" and (event is InputEventKey or event is InputEventMouseButton):
-		navigate("main_menu")
+	# Pointer activation remains a direct pointer intent until task 8.3 defines
+	# project actions. Keyboard/controller confirmation is screen-scoped through
+	# CommonUI in title.gd, so it cannot bypass an in-flight layer transition.
+	if current_route == "title" and event is InputEventMouseButton:
+		request_route("main_menu")
 		get_viewport().set_input_as_handled()
 		return
 	if not event is InputEventKey:
-		return
-	if event.keycode == KEY_ESCAPE:
-		handle_back_action()
-		get_viewport().set_input_as_handled()
 		return
 	var focused = get_viewport().gui_get_focus_owner()
 	if focused is LineEdit or focused is TextEdit:
@@ -166,10 +207,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if current_route in ["hud", "hud_coop", "inventory", "health", "stats", "maps", "tasks", "bunker", "session"]:
 		match event.keycode:
 			KEY_TAB:
-				if current_route in ["inventory", "health", "stats"]: back()
-				else: navigate("inventory")
-			KEY_M: navigate("maps")
-			KEY_J: navigate("tasks")
+				if current_route in ["inventory", "health", "stats"]:
+					back()
+				else:
+					request_route("inventory")
+			KEY_M:
+				request_route("maps")
+			KEY_J:
+				request_route("tasks")
 
 func _run_qa() -> void:
 	var capture_dir = ""
@@ -186,7 +231,7 @@ func _run_qa() -> void:
 			push_error("QA missing scene: " + route)
 			failures += 1
 			continue
-		navigate(route, false)
+		navigate_for_review(route, false)
 		for frame in range(6):
 			await get_tree().process_frame
 		if screen.get_script() == null or screen.get_child_count() == 0:
@@ -205,14 +250,29 @@ func _run_qa() -> void:
 func toast(message: String) -> void:
 	feedback.toast(message)
 
-func confirm(title_text: String, message: String, callback: Callable) -> void:
-	feedback.confirm(title_text, message, callback)
+func request_confirm(
+	requester: ZUIContext,
+	capability: RefCounted,
+	title_text: String,
+	message: String,
+	callback: Callable
+) -> bool:
+	return feedback.confirm(requester, capability, title_text, message, callback)
 
-func prompt(title_text: String, initial_value: String, callback: Callable, max_length: int = 24) -> void:
-	feedback.prompt(title_text, initial_value, callback, max_length)
+func request_prompt(
+	requester: ZUIContext,
+	capability: RefCounted,
+	title_text: String,
+	initial_value: String,
+	callback: Callable,
+	max_length: int = 24
+) -> bool:
+	return feedback.prompt(
+		requester, capability, title_text, initial_value, callback, max_length
+	)
 
-func toggle_picker() -> void:
-	feedback.toggle_picker()
+func toggle_picker() -> bool:
+	return feedback.toggle_picker()
 
 func _close_overlay(control: Control) -> void:
 	feedback._close_overlay(control)

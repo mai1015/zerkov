@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "status": "superseded",
+  "acceptance_evidence": false,
+  "historical_checkpoint": "ab036d2a6c102b6692a9d36e7db6a1b8821f0402",
+  "historical_assertion_total": 1031,
+  "reason": "Replacement task 5.5 sources invalidate the former acceptance decision and hashes.",
+  "current_evidence": "docs/qa/health_ability_content/implementation/results.json",
+  "independent_review_required": true
+}

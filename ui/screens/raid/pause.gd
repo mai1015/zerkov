@@ -93,7 +93,7 @@ func _build_focus_graph() -> void:
 	for index in range(entries.size()):
 		entries[index].focus_neighbor_top = entries[index].get_path_to(entries[posmod(index - 1, entries.size())])
 		entries[index].focus_neighbor_bottom = entries[index].get_path_to(entries[(index + 1) % entries.size()])
-	entries[0].grab_focus()
+	default_focus = get_path_to(entries[0])
 
 func _button_style(button: Button, primary: bool = false) -> void:
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND

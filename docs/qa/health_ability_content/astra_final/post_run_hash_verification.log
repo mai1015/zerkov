@@ -1,0 +1,13 @@
+COMMAND: jq -r '.files | to_entries[] | "\(.value)  \(.key)"' docs/qa/health_ability_content/implementation/implementation_hashes.json | shasum -a 256 -c -
+EXIT_CODE: 0
+OUTPUT:
+docs/qa/health_ability_content/README.md: OK
+docs/qa/health_ability_content/implementation/run_validation.py: OK
+game/combat/content/README.md: OK
+game/combat/content/zerkov_health_ability_content.gd: OK
+game/combat/content/zerkov_health_ability_content.gd.uid: OK
+game/content/README.md: OK
+game/content/zerkov_gameplay_ability_content.gd: OK
+game/content/zerkov_gameplay_ability_content.gd.uid: OK
+tests/combat/health_ability_content_contract.gd: OK
+tests/combat/health_ability_content_contract.gd.uid: OK

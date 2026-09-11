@@ -62,7 +62,9 @@ func run() -> void:
 	await resize_to(Vector2i(1280, 720))
 	var callback_screen: Control = app.screen
 	var result = {"value": ""}
-	app.prompt("Resize-safe input", "Initial", func(value): result.value = value)
+	callback_screen.app.prompt(
+		"Resize-safe input", "Initial", func(value): result.value = value
+	)
 	await settle()
 	var field: LineEdit = app.modal.find_children("*", "LineEdit", true, false)[0]
 	field.text = "Kept while resizing"
@@ -95,15 +97,14 @@ func run() -> void:
 	root.push_input(wheel)
 	await settle()
 	check(list.scroll_vertical > 0, "Mouse wheel scrolls screen catalog")
-	app.toggle_picker()
+	app.picker.selected.emit("showcase")
 	await settle()
+	check(app.picker == null and app.current_route == "showcase", "F1 catalog opens the responsive component study")
 	app.toast("Resize-safe notification")
 	await settle()
 	check(root.get_visible_rect().encloses(app.toast_label.get_global_rect()), "Toast fits viewport")
 	check(app.toast_label.position.y + app.toast_label.size.y <= root.size.y - 80, "Toast stays above pinned actions")
 	check(app.toast_label.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Toast never blocks input")
-	app.navigate("showcase", false)
-	await settle()
 	var showcase: ScrollContainer = app.screen.find_child("ComponentStates", true, false)
 	check(showcase != null and showcase.get_v_scroll_bar().max_value > showcase.get_v_scroll_bar().page, "Component showcase scrolls on small screen")
 	print("RESPONSIVE_TEST_COMPLETE checks=", checks, " failures=", failures)

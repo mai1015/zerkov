@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-11T01:55:53Z
+updated_at: 2026-09-11T02:14:29Z
 completed_at:
 ---
 
@@ -353,7 +353,7 @@ failure after mutation. No UI layout was changed. See
   deterministic overlap/tie-break policy.
 - [ ] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
   committed shot once and emit one stable hit/miss consequence.
-- [ ] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
+- [x] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
   health, overall life state, stamina, hydration, heavy bleed, fracture,
   bandage and splint.
 - [ ] 5.6 `[SOL]` Implement damage, injury, healing and death consequences with
@@ -376,6 +376,18 @@ failure after mutation. No UI layout was changed. See
 
 Evidence: combat authority suite; captured shot/reload/injury sequences; no
 duplicate consequences; documented tuning values; playtest notes.
+
+Completed task evidence (5.5, 2026-09-10): the accepted content declares seven
+body zones, 12 attributes, 34 tags, 41 effects and 41 abilities. The final
+health contract passed `392/0`; combat content `79/0`, equipment reconciliation
+`546/0` and combined add-ons `155/0` produced a sealed `1172/0` packet. An
+independent `86/86` adversarial pass covered stale future ticks, reentrancy,
+bounded concurrent reservations and a saturated 64-request native queue. A
+rejected request cannot mutate later, advance admission watermarks or strand a
+reservation; capacity can be reused. Strict spec/import/diagnostics and ten
+source hashes passed. Cross-entity consequences, bleed scheduling, death order
+and medical inventory transactions remain task 5.6. See
+`docs/qa/health_ability_content/README.md`.
 
 ## 6. AI, perception and encounter behavior
 
@@ -440,7 +452,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
 
 - [x] 8.1 `[SOL]` Make the shared Zerkov screen base participate in
   `CommonActivatableScreen` lifecycle without changing layout geometry.
-- [ ] 8.2 `[SOL]` Replace manual production navigation with CommonUI menu, HUD,
+- [x] 8.2 `[SOL]` Replace manual production navigation with CommonUI menu, HUD,
   modal and popup layers while retaining the F1 developer catalog.
 - [ ] 8.3 `[LUNA]` Author logical action definitions, default bindings, glyph
   metadata and rebinding persistence for gameplay and UI contexts.
@@ -470,6 +482,20 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
 
 Evidence: existing 28-route smoke remains green; CommonUI lifecycle/input
 tests; real-data screenshot matrix; zero production mock-state references.
+
+Completed task evidence (8.2, 2026-09-10): independent re-review accepted the
+final active-context repair at `e48f18baeede8687a96babc64fc9069016836a3d`.
+The exact retained Saves-under-Session deletion/rename reproduction, forged,
+replayed, replaced and torn-down context capabilities, and current-owner
+single-commit path passed `31/0`. The exact 1920x1080 navigation contract passed
+`94/0` headless and native; navigation, CommonUI, lifecycle, UI, component,
+composition, crawler, add-on and native-border suites remained green. The
+screen geometry digest stayed `550b91a79fa9c5ae30bc3f736629e78429c25f56e0fc4c52bbecf38e60fa1e03`
+and the 1920x1080 capture remained byte-identical. Strict validation, editor
+import, diagnostics, frozen hashes and diff checks passed. Tasks 8.3 and 8.10
+retain binding/glyph/device and exhaustive adaptive coverage respectively; the
+smaller-layout runs are historical information, not first-playable gates. See
+`docs/qa/common_ui_navigation/implementation/REPORT.md`.
 
 ## 9. Art, animation, VFX and audio
 

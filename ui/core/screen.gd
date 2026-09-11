@@ -14,7 +14,7 @@ func _ready() -> void:
 		_open_preview_host.call_deferred()
 		return
 	screen_context = StringName("screen/" + app.current_route)
-	context_priority = CommonUIDefaults.PRIORITY_HUD if ZRouteCatalog.role_for(app.current_route) == "hud" else CommonUIDefaults.PRIORITY_MENU
+	context_priority = ZRouteCatalog.priority_for(app.current_route)
 	theme = U.make_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -64,8 +64,8 @@ func reflow(view: Vector2) -> void:
 func _on_common_ui_back(event: Dictionary) -> int:
 	if event.get("phase") != CommonUIRuntime.PHASE_PRESSED:
 		return CommonUIRuntime.ROUTE_UNHANDLED
-	if app != null and app.has_method("handle_back_action"):
-		app.handle_back_action()
+	if app != null:
+		app.back()
 	return CommonUIRuntime.ROUTE_HANDLED
 
 func reset_adaptive_layout() -> void:

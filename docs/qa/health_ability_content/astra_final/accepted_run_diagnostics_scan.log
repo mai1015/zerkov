@@ -1,0 +1,5 @@
+COMMAND: rg -n 'ERROR:|SCRIPT ERROR:|WARNING:' docs/qa/health_ability_content/astra_final/health_ability_content_contract.log docs/qa/health_ability_content/astra_final/combat_content_contract.log docs/qa/health_ability_content/astra_final/inventory_ability_reconciliation_contract.log docs/qa/health_ability_content/astra_final/combined_addons_smoke.log docs/qa/health_ability_content/astra_final/editor_import.log docs/qa/health_ability_content/astra_final/spec_strict.log docs/qa/health_ability_content/astra_final/diff_check.log
+EXIT_CODE: 1
+INTERPRETATION: no diagnostics matched; rg exit 1 is expected for zero matches
+OUTPUT:
+(no output)

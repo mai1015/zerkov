@@ -3,7 +3,7 @@
 Native Godot 4 project combining the approved Zerkov UI with the Stage 2
 playable-raid implementation. Open `project.godot` and press **F6** on
 `ui/main.tscn`, or **F5** to run the current product shell. Start at the title
-screen and press any key.
+screen and press **Enter**, controller **A**, or click.
 
 The checked-in screens are still driven primarily by prototype data while the
 approved offline Sawmill gameplay slice is integrated. Multiplayer, economy
@@ -59,6 +59,8 @@ Replace `godot` below with your Godot executable. The local editor used for this
 godot --headless --path . --editor --import --quit
 godot --headless --path . -- --smoke
 godot --headless --path . --script res://tests/common_ui_integration_smoke.gd
+godot --headless --path . --script res://tests/common_ui_navigation_contract.gd
+godot --headless --path . --script res://tests/common_ui_navigation_1080_regression.gd
 godot --headless --path . --script res://tests/zerkov_screen_lifecycle_contract.gd
 godot --headless --path . --script res://tests/addons/combined_addons_smoke.gd
 godot --headless --path . --script res://tests/ui_smoke.gd

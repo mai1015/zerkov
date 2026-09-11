@@ -134,7 +134,7 @@ func run() -> void:
 	check(app.screen.get_node_or_null("TopChrome/WorldBadge/WorldBack") is CommonButton,
 		"top chrome world-back action uses CommonButton")
 
-	app.confirm("Component check", "CommonUI modal layer", func() -> void: pass)
+	app.screen.app.confirm("Component check", "CommonUI modal layer", func() -> void: pass)
 	await settle()
 	check(app.modal is ZerkovDialog, "confirm flow uses ZerkovDialog")
 	check(screen_root.modal_layer().get_top_screen() == app.modal,
