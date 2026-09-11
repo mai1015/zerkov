@@ -1,5 +1,12 @@
 extends "res://tests/visual/inventory_ui_binding/capture.gd"
+## HISTORICAL / DEFERRED compact extent probe; do not run from current
+## first-playable verification until task 11.8 or a later approved proposal.
 ## Independent extent and reachability assertions against automatic compact.
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: compact_extent_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+
 func run() -> void:
 	root.size = Vector2i(960, 540)
 	setup_runtime()

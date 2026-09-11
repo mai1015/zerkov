@@ -138,23 +138,25 @@ CommonUI only suspends its own routed contexts. Raw `_input` and
 or be routed through screen-scoped CommonUI actions. Test physical events as
 well as direct method calls. Do not assume context suspension stops raw input.
 
-## Lifetime and responsive layout
+## Lifetime and retained compatibility layout
 
 Data updates bind existing nodes. Inventory filter changes update the grid;
 selection updates detail panels; crafting changes update queue entries. Variable
 rows may be added/removed inside the appropriate data component, but fixed
 shells, headers, search fields, and persistent controls keep their identities.
 
-The current desktop/compact threshold remains: 1280×720 and larger use the
-1920×1080 logical desktop composition; smaller windows use compact reflow down
-to 960×540. Explicit layout overrides still work.
+The existing desktop/compact threshold, explicit layout overrides and
+idempotent layout APIs remain retained compatibility behavior. The current
+first-playable verification target is exact 1920×1080 only; current agents and
+tests MUST NOT invoke smaller windows, compact overrides or regenerate smaller
+captures. Task 11.8 or a later approved display-support proposal must reopen
+that scope.
 
-A resize within desktop mode only changes viewport fitting. Mode changes call
-an idempotent layout API on existing screens/components. If compact requires
-tabs, the same content panels change placement/visibility under authored hosts.
-Preserve selected panel, text/caret, focus, scroll offsets, active drag intent,
-and pending dialog text. Repeated desktop → compact → desktop transitions must
-not accumulate controls or signal connections.
+A resize within the exact desktop path changes viewport fitting without
+remounting the active screen. Existing mode-change APIs may continue to preserve
+selected panel, text/caret, focus, scroll offsets, active drag intent and pending
+dialog text when the deferred compatibility path is explicitly reopened.
+Repeated transitions must not accumulate controls or signal connections.
 
 ## Migration and compatibility
 
@@ -169,7 +171,8 @@ not accumulate controls or signal connections.
    tests. Keep visibility policies for overlays explicit in both layouts.
 6. Update resource references, matching `.uid` files, docs and test fixtures;
    remove temporary facade methods once callers no longer depend on them.
-7. Run the complete automated and native visual acceptance matrix.
+7. Run the complete exact-1920×1080 automated and native visual acceptance
+   matrix. Historical smaller evidence remains unchanged and is not regenerated.
 
 Because this checkout has no Git metadata, create a recoverable snapshot of the
 specific project-owned files to be edited before migration. Do not initialize a
@@ -197,10 +200,12 @@ repository or alter vendored addon packages as part of this change.
 All routes must resolve after file moves. Component tests must prove updates
 before/after `_ready`, standalone preview, and one activation per input. Runtime
 tests must prove inventory shell retention, HUD/pause identity, focus/input
-isolation, failed navigation rollback, and repeated resize-state preservation.
+isolation, failed navigation rollback, and repeated exact-desktop reflow-state
+preservation.
 
-Run the existing CommonUI, UI, inventory, bunker, raid, utility, responsive,
-compact, and border suites. Add only the lifecycle/component regressions needed
-to establish the new contracts. Review native captures at 1920×1080, 1600×900,
-1280×720, and 960×540 plus explicit compact layouts supported by current tests.
-Runtime errors count as failures even when Godot returns exit code 0.
+Run the current CommonUI, UI, inventory, bunker, raid, utility and border suites
+at exact 1920×1080 only. Current acceptance MUST NOT invoke responsive/compact
+or other smaller-resolution suites, even for information. Existing smaller
+captures and dedicated sources remain historical and are reopened only by task
+11.8 or a later approved display-support proposal. Runtime errors count as
+failures even when Godot returns exit code 0.

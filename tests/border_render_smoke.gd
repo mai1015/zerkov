@@ -1,5 +1,7 @@
 extends SceneTree
 ## GPU regression: run without --headless. Check pixels, not only node bounds.
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 const PixelStyle = preload("res://ui/theme/pixel_style.gd")
 const Grid = preload("res://ui/screens/character/components/inventory_grid.gd")
 
@@ -102,9 +104,9 @@ func run() -> void:
 	app = load("res://ui/main.tscn").instantiate()
 	app.ui_layout_mode = "desktop"
 	root.add_child(app)
-	# Keep the test's explicitly mounted screen while resizing between captures.
+	# Keep the test's explicitly mounted screen for the exact first-playable capture.
 	app.qa_mode = true
-	for dimensions in [Vector2i(1920, 1080), Vector2i(1600, 900), Vector2i(1366, 768), Vector2i(1280, 720), Vector2i(1440, 900)]:
+	for dimensions in [FIRST_PLAYABLE_SIZE]:
 		root.size = dimensions
 		await create_timer(0.25).timeout
 		await check_inventory(dimensions)

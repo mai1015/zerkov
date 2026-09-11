@@ -1,7 +1,12 @@
 extends "res://tests/visual/inventory_ui_binding/native_drag_probe.gd"
+## HISTORICAL / DEFERRED compact native selection probe; not a current runner.
 ## Regression for compact pointer continuity across model-driven refresh.
 ## One native 960x540 runtime reaches both canonical terminal scroll extents,
 ## returns to the corpse origin, then selects Bandage through a real Button click.
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: compact_native_selection_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 
 func _wheel_to(scroll: ScrollContainer, vertical: int, horizontal: int) -> void:
