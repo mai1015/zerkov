@@ -3,6 +3,7 @@
 Date: 2026-09-10
 Branch: `codex/inventory-loot-ui-4-11`
 Baseline: `eb6bc08`
+Post-implementation merge: `bb0d281` (accepted CommonUI navigation)
 
 ## Scope and extension points
 
@@ -52,10 +53,16 @@ The contract uses a temporary deterministic authority fixture only for test setu
 
 ## Regression results
 
-All commands below exited zero:
+The final UI/visual matrix was kept at the required native 1920×1080 canvas;
+the remaining checks are resolution-independent domain contracts. All commands
+below exited zero:
 
 ```text
-inventory_ui_binding_contract             checks=138 failures=0
+common_ui_navigation_1080_regression       checks=94 failures=0 maximum_menu_depth=2
+inventory_smoke                            checks=21 failures=0 (1920x1080)
+ui_smoke                                   checks=948 failures=0 (1920x1080)
+raid_smoke                                 checks=29 failures=0 (1920x1080)
+inventory_intent_adapter_contract          checks=162 failures=0 native_transactions=3
 inventory_catalog_contract                checks=543 failures=0 findings=37
 inventory_projection_contract             checks=99 failures=0 latest_revision=7
 inventory_persistence_replacement_contract checks=97 failures=0 exact_round_trips=4
@@ -63,15 +70,8 @@ inventory_weapon_reload_contract          checks=176 failures=0 real_addons=true
 inventory_mutation_routing_contract       checks=146 failures=0
 inventory_multi_controller_contract       checks=23 failures=0
 session_lifecycle_contract                checks=44 failures=0
-common_ui_integration_smoke               checks=76 failures=0
-inventory_smoke                            checks=21 failures=0
-ui_smoke                                   checks=947 failures=0
-ui_composition_smoke                       checks=109 failures=0
-raid_smoke                                 checks=29 failures=0
-zerkov_screen_lifecycle_contract           checks=209 failures=0
-ui_component_states                        checks=15 failures=0
-reentrant_probe                             checks=28 failures=0
-presentation_honesty_probe (graphical)     checks=540 failures=0
 ```
 
-Import/check gate also passed with Godot 4.7.2 and no diagnostics. The focused capture/contract scripts are 1920×1080-only; compact layouts remain deferred and were not used as an acceptance gate.
+Import/check gate also passed with Godot 4.7.2 and no diagnostics. The focused
+capture/contract scripts are 1920×1080-only; compact layouts remain deferred
+and were not used as an acceptance gate.

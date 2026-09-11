@@ -240,7 +240,7 @@
 				1080
 			],
 			"extra": {
-				"focus": "StashSearch:<LineEdit#86570437340>",
+				"focus": "InventoryContent/StashSearch",
 				"selection_preserved": 1
 			},
 			"geometry": {

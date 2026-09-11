@@ -131,7 +131,9 @@ func run() -> void:
     var slot: Control = _slot_for_item(loot_grid, int(item.get("item_id", 0))) if loot_grid != null else null
     if slot != null:
         slot._on_pressed()
-    await _capture_411("selection_scroll", {"focus": str(screen.get_viewport().gui_get_focus_owner()), "selection_preserved": screen._selected_live_item.get("item_id", 0)})
+    var focus_owner := screen.get_viewport().gui_get_focus_owner()
+    var focus_path := str(screen.get_path_to(focus_owner)) if focus_owner != null and screen.is_ancestor_of(focus_owner) else ""
+    await _capture_411("selection_scroll", {"focus": focus_path, "selection_preserved": screen._selected_live_item.get("item_id", 0)})
 
     screen._set_loot_mode(false)
     await _capture_411("close")
