@@ -1,0 +1,27 @@
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/combat/content_contract.gd
+EXIT_CODE: 0
+COMBAT_CONTENT_RESULT checks=79 failures=0 weapon_count=1
+
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/combat/health_ability_content_contract.gd
+EXIT_CODE: 0
+HEALTH_ABILITY_CONTENT_RESULT checks=392 failures=0 zones=7 attributes=12 tags=34 effects=41 abilities=41 real_gameplay_abilities=true
+
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/raid/authority_replay_contract.gd
+EXIT_CODE: 0
+AUTHORITY_REPLAY_RESULT checks=81 failures=0 reentrant_rejections=4
+
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/raid/identity_contract.gd
+EXIT_CODE: 0
+IDENTITY_CONTRACT_RESULT checks=18442 failures=0 unique=9216
+
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/raid/session_lifecycle_contract.gd
+EXIT_CODE: 0
+SESSION_LIFECYCLE_RESULT checks=44 failures=0
+SCOPE: domain-only; no viewport, UI, composition, inventory, or screen-size code
+
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/raid/units_clock_contract.gd
+EXIT_CODE: 0
+UNITS_CLOCK_CONTRACT_RESULT checks=29 failures=0
+
+EXCLUDED: combined add-ons, UI, composition, inventory, visual, runtime capture,
+and all screen-size suites. No sub-1920x1080 output was generated.
