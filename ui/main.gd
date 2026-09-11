@@ -35,9 +35,11 @@ var _resize_pending: bool = false
 var _review_navigation_enabled: bool = false
 var ui_layout_mode: String = "auto"
 var common_ui_root: CommonUIScreenRoot
+var input_service: ZerkovInputService
 
 func _ready() -> void:
 	common_ui_root = get_node("CommonUIScreenRoot") as CommonUIScreenRoot
+	input_service = get_node_or_null("ZerkovInputService") as ZerkovInputService
 	navigator = ZUINavigator.new()
 	navigator.configure(self, common_ui_root)
 	add_child(navigator)
@@ -123,6 +125,8 @@ func _finish_window_resize() -> void:
 func _on_route_committed(route: String, view: Control) -> void:
 	current_route = route
 	screen = view
+	if input_service != null:
+		input_service.transition_for_route(route, ZRouteCatalog.role_for(route))
 
 
 func _on_route_rejected(_route: String, reason: String) -> void:
@@ -192,29 +196,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(modal) or is_instance_valid(picker):
 		return
-	# Pointer activation remains a direct pointer intent until task 8.3 defines
-	# project actions. Keyboard/controller confirmation is screen-scoped through
-	# CommonUI in title.gd, so it cannot bypass an in-flight layer transition.
+	# Pointer activation remains a direct pointer intent because it is a pointer
+	# affordance on the title surface. Keyboard/controller actions are owned by
+	# CommonUI screen registrations and cannot bypass an in-flight transition.
 	if current_route == "title" and event is InputEventMouseButton:
 		request_route("main_menu")
 		get_viewport().set_input_as_handled()
 		return
-	if not event is InputEventKey:
-		return
-	var focused = get_viewport().gui_get_focus_owner()
-	if focused is LineEdit or focused is TextEdit:
-		return
-	if current_route in ["hud", "hud_coop", "inventory", "health", "stats", "maps", "tasks", "bunker", "session"]:
-		match event.keycode:
-			KEY_TAB:
-				if current_route in ["inventory", "health", "stats"]:
-					back()
-				else:
-					request_route("inventory")
-			KEY_M:
-				request_route("maps")
-			KEY_J:
-				request_route("tasks")
 
 func _run_qa() -> void:
 	var capture_dir = ""

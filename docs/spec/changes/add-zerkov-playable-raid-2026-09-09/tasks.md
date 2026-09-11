@@ -471,7 +471,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   `CommonActivatableScreen` lifecycle without changing layout geometry.
 - [x] 8.2 `[SOL]` Replace manual production navigation with CommonUI menu, HUD,
   modal and popup layers while retaining the F1 developer catalog.
-- [ ] 8.3 `[LUNA]` Author logical action definitions, default bindings, glyph
+- [x] 8.3 `[LUNA]` Author logical action definitions, default bindings, glyph
   metadata and rebinding persistence for gameplay and UI contexts.
 - [x] 8.4 `[SOL]` Define typed/read-only `RaidView`, `InventoryView`,
   `HealthView`, `TaskView`, `MapView`, `BunkerView` and `SummaryView` contracts.
