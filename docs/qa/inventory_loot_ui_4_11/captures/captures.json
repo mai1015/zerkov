@@ -1,0 +1,345 @@
+{
+	"checks": 26,
+	"dimensions": [
+		1920,
+		1080
+	],
+	"display": "macOS",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": 0,
+	"records": [
+		{
+			"caret": 0,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {
+				"source": "crate"
+			},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_ready.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "normal",
+			"loot_status": "READY · CRATE OPEN",
+			"mutation": true,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "",
+			"selected_item": 0,
+			"state": "ready"
+		},
+		{
+			"caret": 3,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {
+				"search_presentation_only": true
+			},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_searching.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "normal",
+			"loot_status": "READY · CRATE OPEN",
+			"mutation": true,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "battery",
+			"selected_item": 0,
+			"state": "searching"
+		},
+		{
+			"caret": 3,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_inaccessible.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "inaccessible",
+			"loot_status": "INACCESSIBLE · ACCESS NOT CONFIRMED",
+			"mutation": false,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "battery",
+			"selected_item": 0,
+			"state": "inaccessible"
+		},
+		{
+			"caret": 3,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_stale.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "stale-corrected",
+			"loot_status": "STALE · REFRESH REQUIRED",
+			"mutation": false,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "battery",
+			"selected_item": 0,
+			"state": "stale"
+		},
+		{
+			"caret": 3,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_overweight.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "overweight",
+			"loot_status": "OVERWEIGHT · CARRY CAPACITY EXCEEDED",
+			"mutation": false,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "battery",
+			"selected_item": 0,
+			"state": "overweight"
+		},
+		{
+			"caret": 3,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_resynchronizing.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "resynchronizing",
+			"loot_status": "RESYNC · WAITING FOR CONFIRMED SNAPSHOT",
+			"mutation": false,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "battery",
+			"selected_item": 0,
+			"state": "resynchronizing"
+		},
+		{
+			"caret": 0,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {
+				"focus": "StashSearch:<LineEdit#86570437340>",
+				"selection_preserved": 1
+			},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_selection_scroll.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "normal",
+			"loot_status": "READY · CRATE OPEN",
+			"mutation": true,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "",
+			"selected_item": 1,
+			"state": "selection_scroll"
+		},
+		{
+			"caret": 0,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 0,
+			"grid_columns": 0,
+			"grid_parent": "",
+			"grid_rect": "",
+			"grid_rows": 0,
+			"image": "1920x1080_close.png",
+			"layout": "auto",
+			"loot_open": false,
+			"loot_state": "closed",
+			"loot_status": "STASH",
+			"mutation": false,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "",
+			"selected_item": 1,
+			"state": "close"
+		},
+		{
+			"caret": 0,
+			"compact": false,
+			"dimensions": [
+				1920,
+				1080
+			],
+			"extra": {},
+			"geometry": {
+				"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+				"loot_close": "[P: (1780.0, 130.0), S: (92.0, 28.0)]",
+				"loot_tab": "[P: (1328.0, 174.0), S: (76.0, 32.0)]",
+				"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]"
+			},
+			"grid_cell": 74,
+			"grid_columns": 8,
+			"grid_parent": "DesktopStashScroll",
+			"grid_rect": "[P: (1304.0, 225.0), S: (592.0, 444.0)]",
+			"grid_rows": 6,
+			"image": "1920x1080_disconnected.png",
+			"layout": "auto",
+			"loot_open": true,
+			"loot_state": "disconnected",
+			"loot_status": "DISCONNECTED · AUTHORITY UNAVAILABLE",
+			"mutation": false,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"scroll": [
+				0,
+				0
+			],
+			"search": "",
+			"selected_item": 0,
+			"state": "disconnected"
+		}
+	],
+	"replacement_route": false
+}

@@ -190,6 +190,47 @@ func owner_generation() -> int:
 	return _owner_generation
 
 
+## Read-only world-container facts for presentation consumers.  This mirrors
+## the same trusted policy port used by mutation admission, but deliberately
+## does not inspect an item, create a request, or advance any authority state.
+func world_policy_state(inventory_id: int) -> Dictionary:
+	var result := {
+		"available": false,
+		"reason": &"inventory_runtime_unbound",
+		"inventory_id": inventory_id,
+		"distance_raw": -1,
+		"access": ZInventoryWorldPolicyPort.ACCESS_UNAVAILABLE,
+	}
+	if not is_bound() or inventory_id <= 0:
+		return result
+	if not _world_policy_port.is_world_inventory(
+		_admission.actor_id, inventory_id, _admission.generation):
+		result.reason = &"world_target_invalid"
+		return result
+	var distance_raw := _world_policy_port.authoritative_distance_raw(
+		_admission.actor_id, inventory_id, _admission.generation)
+	result.distance_raw = distance_raw
+	if distance_raw < 0:
+		result.reason = &"distance_unavailable"
+		return result
+	if distance_raw > _max_transfer_distance_raw:
+		result.reason = &"out_of_range"
+		return result
+	if not _world_policy_port.is_currently_visible(
+		_admission.actor_id, inventory_id, _admission.generation):
+		result.reason = &"not_visible"
+		return result
+	var access := _world_policy_port.access_state(
+		_admission.actor_id, inventory_id, _admission.generation)
+	result.access = access
+	if access != ZInventoryWorldPolicyPort.ACCESS_OPEN:
+		result.reason = &"access_closed"
+		return result
+	result.available = true
+	result.reason = &""
+	return result
+
+
 func matches_binding(
 	owner: RaidInventoryOwner,
 	admission: ZSessionAdmission
