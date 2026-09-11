@@ -3,24 +3,35 @@
   "recorded_date": "2026-09-11",
   "branch": "codex/damage-injury-healing-death-5-6",
   "original_base": "b0ead7da37dcf239c40dd3c706d94b0e457ca310",
-  "integrated_main": "1b201cb031ec174dad616334b302e22cc7a744c5",
-  "intrinsic_checkpoint": "8a40030",
-  "post_merge_pre_evidence_checkpoint": "fbee0bf",
+  "integrated_main": "7acc971b7622f1a6580e51bcca27793f32e50d56",
+  "intrinsic_checkpoint": "8a400304f724763aef5e0382caae9a19c80b9b77",
+  "canonical_outcome_checkpoint": "7ea569556b12079683a561886a4a048f6bb3ebd4",
+  "repair_checkpoint": "21a515049d25343b8cc6da9af70aa2bbda80be94",
+  "post_merge_pre_evidence_checkpoint": "3e829d55fe5b40ccea1b3fbc9e354aca376a8bd3",
   "engine": "4.7.2.stable.official.ed1daf0bf",
   "headless_only": true,
   "focused": {
     "contract": "tests/combat/health_consequence_adapter_contract.gd",
     "runs": [
-      {"checks": 204, "failures": 0, "exit_code": 0},
-      {"checks": 204, "failures": 0, "exit_code": 0}
+      {"checks": 409, "failures": 0, "exit_code": 0, "diagnostics": 0},
+      {"checks": 409, "failures": 0, "exit_code": 0, "diagnostics": 0}
+    ]
+  },
+  "independent_adversarial": {
+    "contract": "/tmp/zerkov-5-6-review-evidence.COkob3/adversarial.gd",
+    "sha256": "5aae00d91b64c431388a95018a281aa6135dbd2026dd30b48341b9046062035d",
+    "runs": [
+      {"checks": 197, "failures": 0, "exit_code": 0, "diagnostics": 0},
+      {"checks": 197, "failures": 0, "exit_code": 0, "diagnostics": 0}
     ]
   },
   "adjacent": {
-    "checks": 22046,
+    "checks": 22700,
     "failures": 0,
-    "contracts": 20
+    "contracts": 25,
+    "diagnostics": 0
   },
-  "total_assertions": 22454,
+  "total_assertions": 23912,
   "total_failures": 0,
   "editor_import": {"exit_code": 0, "diagnostics": 0},
   "strict_spec": {"exit_code": 0, "result": "Valid"},

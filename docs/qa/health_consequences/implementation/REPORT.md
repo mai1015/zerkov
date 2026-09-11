@@ -6,9 +6,11 @@ remains unchecked by design.
 - Recorded: 2026-09-11
 - Branch: `codex/damage-injury-healing-death-5-6`
 - Original base: `b0ead7da37dcf239c40dd3c706d94b0e457ca310`
-- Integrated main: `1b201cb031ec174dad616334b302e22cc7a744c5`
+- Integrated main: `7acc971b7622f1a6580e51bcca27793f32e50d56`
 - Intrinsic implementation checkpoint: `8a40030`
-- Post-merge pre-evidence checkpoint: `fbee0bf`
+- Canonical-outcome checkpoint: `7ea5695`
+- Reentrancy/recovery repair checkpoint: `21a5150`
+- Post-merge pre-evidence checkpoint: `3e829d5`
 - Engine: Godot `4.7.2.stable.official.ed1daf0bf`, headless only
 
 ## Implemented authority boundary
@@ -32,7 +34,9 @@ remains unchecked by design.
 - Heavy bleed has one actor/zone schedule, fixed one-unit damage every 60
   authority ticks, stable per-occurrence IDs and deterministic due ordering.
   Bandaging erases the exact schedule only after both health and inventory
-  successors publish. Death erases every actor schedule.
+  successors publish. Death erases every actor schedule and records a bounded,
+  same-phase cancellation proof so due work snapshotted before a lethal hit or
+  lethal bleed is retired without disguising any other missing schedule.
 - Lethal head or thorax damage activates the native dead transition, publishes
   dead/unusable weapon status and interrupts actor reloads during the damage
   operation. `DEATH` precedes `KILL`; same-tick treatments execute later and
@@ -49,7 +53,16 @@ remains unchecked by design.
   rollbackable inventory rejection restores both domains; an ambiguous result
   fails the raid and preserves a bounded recovery record instead of retrying
   under a new identity. Exact owner-generation unload proves unfinished native
-  holds can no longer commit and permits terminal recovery teardown.
+  holds can no longer commit and permits terminal recovery teardown. Dequeued
+  in-flight requests retain reservation and mutation state and become terminal
+  only after teardown is proven; an invalidated authority cannot admit a new
+  queue slot.
+- Every synchronous callback-producing registration boundary is fenced before
+  native initialization, revalidated after initialization and each grant, and
+  restored byte-for-byte or quarantined on context loss. Production medical
+  publication likewise revalidates its exact owner, authority, inventory,
+  generation and identity after the native callback, reports a proven native
+  publication as `committed`, and fail-stops instead of continuing stale work.
 - Damage, treatment and event ledgers never evict replay history. Journal space,
   event identities, damage capacity, treatment queue capacity, bleed schedule
   capacity and native grants are preflighted before the applicable cross-domain
@@ -77,11 +90,32 @@ Gameplay Abilities component and real Inventory System authority. It covers:
 - 64-entry pending capacity, 65th rejection and queued replay;
 - release terminalization and late-command rejection;
 - malformed source digest and one-slot journal preflight before health mutation;
+- lethal hit with a due bleed and lethal bleed with another due bleed;
+- terminal recovery of dequeued ambiguous and committed-publication receipts;
+- post-authority-teardown queue rejection without consuming capacity;
+- production publication callback teardown, exact reservation recovery, and
+  honest committed mutation reporting;
+- public signal reentry rejection plus bootstrap-grant release fencing;
+- callback-driven registration context change with exact snapshot cleanup;
+- refusal to treat owner lifecycle alone as proof of native inventory unload;
 - repeated ordered inputs producing equal normalized native state/event traces.
 
-Focused run 1: `204/0`.
+Focused run 1: `409/0`.
 
-Focused run 2: `204/0`.
+Focused run 2: `409/0`.
+
+## Independent adversarial probe
+
+The review probe at
+`/tmp/zerkov-5-6-review-evidence.COkob3/adversarial.gd` was run unchanged.
+Its SHA-256 was
+`5aae00d91b64c431388a95018a281aa6135dbd2026dd30b48341b9046062035d`.
+It covers the eight independently reported lethal-work, queue, receipt,
+publication, registration and unload-proof regressions.
+
+Independent run 1: `197/0`.
+
+Independent run 2: `197/0`.
 
 ## Adjacent headless contracts
 
@@ -106,19 +140,27 @@ Focused run 2: `204/0`.
 | Units/clock | 41/0 |
 | Identity collision | 18,442/0 |
 | Vision world | 305/0 |
-| Combined add-ons smoke | 155/0 |
+| Inventory intent adapter | 162/0 |
+| Inventory multi-controller | 23/0 |
+| Inventory persistence replacement | 97/0 |
+| Inventory nested magazine | 258/0 |
+| Inventory mutation routing | 146/0 |
+| Equipped-item reconciliation | 123/0 |
 
-Adjacent result: `22,046/0`.
+Adjacent result: `22,700/0` across 25 contracts.
 
-Focused plus adjacent: `22,454/0`.
+Focused plus adjacent: `23,518/0`.
+
+Focused, adjacent and independent adversarial: `23,912/0`.
 
 ## Import, validation, hashes and diff
 
 - Fresh post-merge pinned headless editor import exited 0 with no diagnostic.
 - Strict validation of `add-zerkov-playable-raid-2026-09-09` returned `Valid`.
 - Vendored-add-on integrity tests passed `4/4`; no add-on source changed.
-- `git diff --check` passed. The task diff contains no `RaidAuthority`, UI,
-  viewport, visual or capture file.
+- `git diff --check` passed. The task diff against integrated main contains no
+  `RaidAuthority`, UI, viewport, visual or capture file. No UI, visual,
+  viewport or renderer-backed test was run.
 - `frozen_sources.sha256` seals the implementation, focused contracts,
   governing instructions, approved inputs and accepted Task 5.4/5.5 evidence.
   `packet.sha256` seals this report, the structured results and source manifest.
