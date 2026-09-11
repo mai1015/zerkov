@@ -57,9 +57,10 @@ provider.
   `DEFERRED_DISPLAY_SUITE` before retained runner logic; the historical contact
   sheet generator must terminate before imports or writes.
 - Built-in smoke/review command-line entry points reject explicit non-1920
-  resolution and compact/unknown layout arguments, then set and verify the
-  window at `Vector2i(1920, 1080)` before constructing any route. Native
-  capture runners fail closed before writing if their exact-size check fails.
+  resolution and compact/unknown layout arguments from both Godot argument
+  sources, then verify the actual root at `Vector2i(1920, 1080)` and the native
+  window before constructing any route. Native capture runners fail closed
+  before path creation or writing if their exact-size check fails.
 
 ## Exact executed checks
 
@@ -68,8 +69,8 @@ provider.
 | Editor import/class registration | exit `0`; no parser or runtime diagnostic |
 | Strict spec validation | `Valid` |
 | Static first-playable scope contract | `2` tests, `0` failures; 24 active / 13 deferred runners |
-| Task 8.11 source/provider contract | `55` checks, `0` failures |
-| Task 8.11 native production/unavailable contract | `104` checks, `0` failures; exact `1920x1080` |
+| Task 8.11 source/provider contract | `57` checks, `0` failures |
+| Task 8.11 native production/unavailable contract | `109` checks, `0` failures; exact `1920x1080` |
 | Read-only view contracts | `115` checks, `0` failures |
 | Character presentation composition | `22` checks, `0` failures |
 | Task 8.6 Character UI | `65` checks, `0` failures; exact `1920x1080` |
@@ -84,6 +85,7 @@ provider.
 | Screen lifecycle | `116` checks, `0` failures; exact `1920x1080` |
 | UI reflow | `308` checks, `0` failures; exact `1920x1080` only |
 | Built-in route smoke | 28 screens, `0` missing/capture errors; exact `1920x1080` |
+| Exact CLI guard probes | headless and native `--layout=desktop`; 28 screens, `0` errors each |
 | `git diff --check` | exit `0` |
 
 Every UI/visual invocation used the single approved viewport explicitly:
@@ -105,6 +107,8 @@ Every UI/visual invocation used the single approved viewport explicitly:
 /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/zerkov_screen_lifecycle_contract.gd
 /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/ui_reflow_smoke.gd
 /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 -- --smoke
+/opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 -- --smoke --layout=desktop
+/opt/homebrew/bin/godot --path . --resolution 1920x1080 -- --smoke --layout=desktop
 ```
 
 The editor import, strict spec validation, source/provider and read-only domain
@@ -127,9 +131,10 @@ its exact-1920 source geometry digest stayed
 [`production_unavailable_1920x1080.png`](production_unavailable_1920x1080.png)
 is a native Compatibility-renderer frame of the production Main Menu missing-
 service truth. It is exactly 1920x1080 and has SHA-256
-`7ee34a9ee298a6d39f862653f489b377102c382c36e31674841a17e5437159ee`.
-It was visually inspected for opaque coverage, readable hierarchy, explicit
-unavailable status and absence of sample profile/raid content.
+`946d010d541ac202f6dd840925a3f90fd4d25af3c6b9d8800cfb905077e0a6b7`.
+It was visually inspected for opaque coverage, readable hierarchy, body copy
+wrapped wholly inside the existing centered panel, explicit unavailable status
+and absence of sample profile/raid content.
 
 No compact, responsive, old `tests/visual/inventory_ui_binding`, 1600x900,
 1280x720, 960x540, or other smaller-output runner or capture was executed or

@@ -277,8 +277,13 @@ func _test_production_source_surface() -> void:
 	check(main_source.contains("if qa_mode or review_start:")
 			and main_source.contains(
 				"review_cli_uses_exact_canvas(OS.get_cmdline_args())")
-			and main_source.contains("get_window().size = DESKTOP_CANVAS"),
-		"built-in smoke/review runners validate arguments and pin exact 1920x1080")
+			and main_source.contains(
+				"review_cli_uses_exact_canvas(user_arguments)")
+			and main_source.contains(
+				"get_tree().root.get_visible_rect().size")
+			and main_source.contains("window.size != DESKTOP_CANVAS")
+			and main_source.contains("window.size = DESKTOP_CANVAS"),
+		"built-in review runners validate both argument sources and exact root size")
 	var capture_source := FileAccess.get_file_as_string(
 		"res://tests/visual/zerkov_screen_lifecycle/capture.gd")
 	check(capture_source.contains("root.size = FIRST_PLAYABLE_SIZE")
@@ -292,6 +297,31 @@ func _test_production_source_surface() -> void:
 			and screen_source.contains("_should_render_locked_state")
 			and screen_source.contains("PRODUCTION DATA UNAVAILABLE"),
 		"shared screen permanently gates unbound production builders")
+	var empty_detail_position := screen_source.find(
+		'var detail := U.label(card, "", Rect2(48, 144, 784, 92)')
+	var wrap_position := screen_source.find(
+		"detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART")
+	var detail_text_position := screen_source.find("detail.text =")
+	check(empty_detail_position >= 0 and wrap_position > empty_detail_position
+			and detail_text_position > wrap_position,
+		"locked-state body enables wrapping before assigning long text")
+	var native_contract_source := FileAccess.get_file_as_string(
+		"res://tests/presentation/ui_production_unavailable_8_11_contract.gd")
+	var capture_guard_position := native_contract_source.find("if not exact_size:")
+	var capture_path_position := native_contract_source.find(
+		"ProjectSettings.globalize_path(capture_path)")
+	var capture_write_position := native_contract_source.find("image.save_png")
+	var capture_quit_position := native_contract_source.find(
+		"quit(2)", capture_guard_position)
+	var capture_return_position := native_contract_source.find(
+		"return", capture_guard_position)
+	check(capture_guard_position >= 0
+			and capture_quit_position >= 0 and capture_return_position >= 0
+			and capture_guard_position < capture_path_position
+			and capture_path_position < capture_write_position
+			and capture_quit_position < capture_path_position
+			and capture_return_position < capture_path_position,
+		"native evidence capture exits before any path creation or write on mismatch")
 	check(screen_source.contains('"controls"')
 			and screen_source.contains("app.input_service()"),
 		"accepted Task 8.10 Controls route stays on its typed input facade")

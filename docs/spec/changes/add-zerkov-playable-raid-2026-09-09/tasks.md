@@ -508,7 +508,7 @@ Implementation candidate evidence (8.11, 2026-09-11): production `Main` and
 explicit `ui/dev` fixture-import owner and no fixture-store escape. Generation-
 scoped fixture and typed presentation providers, stale/released truth, the
 locked missing-service surface, retained Task 8.6 Character composition and
-retained Task 8.10 input facade passed `55/0` domain/static and `104/0` native
+retained Task 8.10 input facade passed `57/0` domain/static and `109/0` native
 exact-1920 checks. The 28-route smoke passed `948/0`; Character UI,
 inventory-binding, CommonUI input/navigation/integration, composition,
 lifecycle, reflow and family suites remained green at exact 1920x1080. Strict

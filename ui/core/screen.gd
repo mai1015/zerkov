@@ -192,6 +192,7 @@ func _build_locked_state(reason_override: StringName = &"") -> void:
 	add_child(overlay)
 
 	var card := Panel.new()
+	card.name = "UnavailableCard"
 	card.position = Vector2(520, 326)
 	card.size = Vector2(880, 428)
 	card.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -205,13 +206,17 @@ func _build_locked_state(reason_override: StringName = &"") -> void:
 	title.add_theme_font_override("font", U.tracked_font(false, true, 2))
 	U.label(card, "PRODUCTION DATA UNAVAILABLE",
 		Rect2(48, 96, 784, 28), 13, U.RED, true)
-	var detail := U.label(card,
-		"No authoritative presentation service is connected for this route. " \
-		+ "The screen is locked and no fixture profile, inventory, raid, task, " \
-		+ "map, or settlement state has been created.",
-		Rect2(48, 144, 784, 92), 14, U.SOFT)
+	# Configure wrapping before assigning the copy. U.label adds the node to the
+	# card immediately; giving an unwrapped label the long text first lets its
+	# content minimum expand past the authored 784 px body column.
+	var detail := U.label(card, "", Rect2(48, 144, 784, 92), 14, U.SOFT)
+	detail.name = "LockedStateDetail"
 	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	detail.clip_text = true
+	detail.text = "No authoritative presentation service is connected for this route. " \
+		+ "The screen is locked and no fixture profile, inventory, raid, task, " \
+		+ "map, or settlement state has been created."
 
 	var view := app.presentation_view()
 	var sync_name := String(view.sync_state_name()).to_upper() \

@@ -77,8 +77,13 @@ func _test_production_routes() -> void:
 func _capture_exact_frame() -> void:
 	await RenderingServer.frame_post_draw
 	var image := root.get_texture().get_image()
-	check(image.get_size() == FIRST_PLAYABLE_SIZE,
+	var exact_size := image.get_size() == FIRST_PLAYABLE_SIZE
+	check(exact_size,
 		"native evidence image is exact 1920x1080")
+	if not exact_size:
+		capture_path = ""
+		quit(2)
+		return
 	var absolute := ProjectSettings.globalize_path(capture_path)
 	var directory_error := DirAccess.make_dir_recursive_absolute(
 		absolute.get_base_dir())
@@ -91,6 +96,10 @@ func _capture_exact_frame() -> void:
 func _assert_locked_route(app: Control, route: String) -> void:
 	var screen := app.screen as ZScreen
 	var overlay := screen.get_node_or_null("ProductionUnavailableState") as Control
+	var card := overlay.get_node_or_null("UnavailableCard") as Control \
+			if overlay != null else null
+	var detail := card.get_node_or_null("LockedStateDetail") as Label \
+			if card != null else null
 	check(app.current_route == route and screen != null,
 		"production route commits through CommonUI: " + route)
 	check(screen != null and not screen.accepts_input()
@@ -99,6 +108,13 @@ func _assert_locked_route(app: Control, route: String) -> void:
 	check(overlay != null and overlay.is_visible_in_tree()
 			and overlay.size.is_equal_approx(Vector2(FIRST_PLAYABLE_SIZE)),
 		"unavailable truth fully covers exact canvas: " + route)
+	check(card != null and detail != null
+			and detail.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART
+			and detail.get_line_count() >= 2
+			and detail.position.x >= 0.0 and detail.position.y >= 0.0
+			and detail.position.x + detail.size.x <= card.size.x
+			and detail.position.y + detail.size.y <= card.size.y,
+		"unavailable explanation wraps inside its authored panel: " + route)
 	check(screen.app.fixture_generation() == 0
 			and not screen.app.has_fixture_provider()
 			and screen.app.fixture_get("forged", "FORGED") == null

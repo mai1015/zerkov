@@ -101,15 +101,21 @@ func _ready() -> void:
 	# before any route is constructed so they can never exercise a retained
 	# smaller-output path accidentally.
 	if qa_mode or review_start:
-		if not review_cli_uses_exact_canvas(OS.get_cmdline_args()):
+		if not review_cli_uses_exact_canvas(OS.get_cmdline_args()) \
+				or not review_cli_uses_exact_canvas(user_arguments):
 			push_error("QA/review UI accepts only exact 1920x1080 desktop output")
 			get_tree().quit(2)
 			return
-		get_window().size = DESKTOP_CANVAS
-		if get_window().size != DESKTOP_CANVAS:
-			push_error("QA/review UI could not establish exact 1920x1080 output")
+		var window := get_window()
+		var root_size := get_tree().root.get_visible_rect().size
+		var headless_display := DisplayServer.get_name() == "headless"
+		if root_size != Vector2(DESKTOP_CANVAS) \
+				or (not headless_display and window.size != DESKTOP_CANVAS):
+			push_error("QA/review UI could not establish exact 1920x1080 output " \
+					+ "(window=%s root=%s)" % [window.size, root_size])
 			get_tree().quit(2)
 			return
+		window.size = DESKTOP_CANVAS
 		ui_layout_mode = "desktop"
 	else:
 		ui_layout_mode = requested_layout
