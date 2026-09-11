@@ -416,7 +416,27 @@ func _capture_exact_frame() -> void:
 		"native capture Image is raw exact 1920x1080")
 	if image == null or image.get_size() != FIRST_PLAYABLE_SIZE:
 		return
-	if not _assert_capture_geometry("raw Image captured", image):
+	if not _assert_capture_geometry("raw Image captured"):
+		return
+	check(image.get_size() == FIRST_PLAYABLE_SIZE,
+		"raw Image remains exact 1920x1080 before path creation")
+	if image.get_size() != FIRST_PLAYABLE_SIZE:
+		return
+	var absolute := ProjectSettings.globalize_path(capture_path)
+	var directory_error := DirAccess.make_dir_recursive_absolute(absolute.get_base_dir())
+	var directory_ok := directory_error == OK or directory_error == ERR_ALREADY_EXISTS
+	check(directory_ok,
+		"native feature-gate evidence directory is available")
+	if not directory_ok or not _assert_capture_geometry("immediately before file write"):
+		return
+	check(image.get_size() == FIRST_PLAYABLE_SIZE,
+		"raw Image remains exact 1920x1080 immediately before file write")
+	if image.get_size() != FIRST_PLAYABLE_SIZE:
+		return
+	var save_error := image.save_png(absolute)
+	check(save_error == OK,
+		"native exact-1920 feature-gate evidence saves")
+	if save_error != OK or not _assert_capture_geometry("immediately after file write", image):
 		return
 	var encoded := image.save_png_to_buffer()
 	check(not encoded.is_empty(), "native exact-1920 PNG encoding buffer is non-empty")
@@ -425,22 +445,8 @@ func _capture_exact_frame() -> void:
 	var decoded_buffer := Image.new()
 	var decode_buffer_error := decoded_buffer.load_png_from_buffer(encoded)
 	check(decode_buffer_error == OK and decoded_buffer.get_size() == FIRST_PLAYABLE_SIZE,
-		"native decoded PNG buffer is exact 1920x1080 before write")
+		"native decoded PNG buffer is exact 1920x1080 after write")
 	if decode_buffer_error != OK or decoded_buffer.get_size() != FIRST_PLAYABLE_SIZE:
-		return
-	if not _assert_capture_geometry("PNG verified before path creation", image):
-		return
-	var absolute := ProjectSettings.globalize_path(capture_path)
-	var directory_error := DirAccess.make_dir_recursive_absolute(absolute.get_base_dir())
-	var directory_ok := directory_error == OK or directory_error == ERR_ALREADY_EXISTS
-	check(directory_ok,
-		"native feature-gate evidence directory is available")
-	if not directory_ok or not _assert_capture_geometry("immediately before file write", image):
-		return
-	var save_error := image.save_png(absolute)
-	check(save_error == OK,
-		"native exact-1920 feature-gate evidence saves")
-	if save_error != OK or not _assert_capture_geometry("immediately after file write", image):
 		return
 	var decoded_file := Image.new()
 	var decode_file_error := decoded_file.load(absolute)

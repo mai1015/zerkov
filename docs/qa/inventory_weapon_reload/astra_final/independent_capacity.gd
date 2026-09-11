@@ -12,7 +12,9 @@ var command: int = 84000
 
 
 func _initialize() -> void:
-	call_deferred("run")
+	push_error("DEFERRED_DISPLAY_SUITE: historical weapon/reload packet generator is retired; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+	return
 
 
 func verify(condition: bool, label: String) -> void:

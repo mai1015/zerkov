@@ -1,5 +1,11 @@
 # Task 4.9 fresh independent Astra checkpoint — ACCEPT
 
+Historical evidence notice: every runner, generator, independent probe, and
+command named in this retained packet is disabled for current use. The entry
+points fail closed before setup or writes. Use the current promoted contract
+documented in the parent README; do not rerun or regenerate this packet before
+task 11.8 or a later approved display-support proposal.
+
 **ACCEPT FOR DOCS/STAGING. Human approval: false.**
 
 Reviewed 2026-09-10 against parent commit
@@ -82,8 +88,9 @@ Exact argument arrays, named result lines, exits, elapsed times, PIDs, timeout
 status and diagnostics are recorded in [suites_suite.json](suites_suite.json),
 [capacity_runner.json](capacity_runner.json), [flow_runner.json](flow_runner.json),
 and [native_runner.json](native_runner.json). Each gate has its own raw log.
-[run_validation.py](run_validation.py) reproduces the exact commands with
-`capacity`, `flow`, `native`, and `suites` modes.
+[run_validation.py](run_validation.py) records the former `capacity`, `flow`,
+`native`, and `suites` command modes for historical provenance only. Those
+modes are disabled, and the wrapper now terminates before imports or work.
 
 ## Continuous real-addon playthrough
 

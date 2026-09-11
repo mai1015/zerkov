@@ -5,8 +5,8 @@ extends SceneTree
 ## runs in its registered INTERACTIONS_AND_WEAPONS handler (phase 5).
 
 const OUT := "res://docs/qa/inventory_ability_equipment/astra_final/"
-const C = preload("res://game/content/zerkov_equipment_ability_content.gd")
-const I = preload("res://game/content/zerkov_inventory_catalog.gd")
+var C: Script
+var I: Script
 
 
 class Identity extends ZInventoryIdentityPort:
@@ -104,6 +104,9 @@ func verify(ok: bool, label: String) -> void:
 
 
 func run() -> void:
+	# Historical-only lazy imports remain unreachable behind `_initialize()`.
+	C = load("res://game/content/zerkov_equipment_ability_content.gd")
+	I = load("res://game/content/zerkov_inventory_catalog.gd")
 	native = DisplayServer.get_name() != "headless"
 	if native:
 		root.title = "Astra 4.10 — AUTOMATED VALIDATION HARNESS / NOT PRODUCTION UI"

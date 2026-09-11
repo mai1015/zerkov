@@ -425,24 +425,12 @@ func _write_exact_png(image: Image, relative_path: String, label: String) -> boo
 	if not exact_frame:
 		_capture_abort("missing or nonexact Image before write: " + label)
 		return false
-	if capture_aborted or not _assert_render_contract(label + " immediately before write", image):
+	if capture_aborted or not _assert_render_contract(label + " before path creation"):
 		return false
-	var encoded := image.save_png_to_buffer()
-	var encoded_ok := not encoded.is_empty()
-	check(encoded_ok, label + " PNG encoding buffer is non-empty")
-	if not encoded_ok:
-		_capture_abort("PNG encoding failed before write: " + label)
-		return false
-	var decoded_buffer := Image.new()
-	var decode_buffer_error := decoded_buffer.load_png_from_buffer(encoded)
-	var decoded_buffer_ok := decode_buffer_error == OK \
-			and decoded_buffer.get_size() == FIRST_PLAYABLE_SIZE
-	check(decoded_buffer_ok,
-		label + " decoded PNG buffer is exact 1920x1080 before write")
-	if not decoded_buffer_ok:
-		_capture_abort("decoded PNG buffer was not exact before write: " + label)
-		return false
-	if not _assert_render_contract(label + " PNG verified before path creation", image):
+	check(image.get_size() == FIRST_PLAYABLE_SIZE,
+		label + " raw Image remains exact 1920x1080 before path creation")
+	if image.get_size() != FIRST_PLAYABLE_SIZE:
+		_capture_abort("nonexact Image before path creation: " + label)
 		return false
 	var absolute := ProjectSettings.globalize_path(relative_path)
 	var directory_error := DirAccess.make_dir_recursive_absolute(absolute.get_base_dir())
@@ -451,7 +439,12 @@ func _write_exact_png(image: Image, relative_path: String, label: String) -> boo
 	if not directory_ok:
 		_capture_abort("evidence directory creation failed: " + label)
 		return false
-	if not _assert_render_contract(label + " immediately before file write", image):
+	if not _assert_render_contract(label + " immediately before file write"):
+		return false
+	check(image.get_size() == FIRST_PLAYABLE_SIZE,
+		label + " raw Image remains exact 1920x1080 immediately before file write")
+	if image.get_size() != FIRST_PLAYABLE_SIZE:
+		_capture_abort("nonexact Image immediately before file write: " + label)
 		return false
 	var save_error := image.save_png(absolute)
 	check(save_error == OK, label + " exact PNG write succeeds")
@@ -459,6 +452,21 @@ func _write_exact_png(image: Image, relative_path: String, label: String) -> boo
 		_capture_abort("exact PNG write failed: " + label)
 		return false
 	if not _assert_render_contract(label + " immediately after file write", image):
+		return false
+	var encoded := image.save_png_to_buffer()
+	var encoded_ok := not encoded.is_empty()
+	check(encoded_ok, label + " PNG encoding buffer is non-empty")
+	if not encoded_ok:
+		_capture_abort("PNG encoding failed after write: " + label)
+		return false
+	var decoded_buffer := Image.new()
+	var decode_buffer_error := decoded_buffer.load_png_from_buffer(encoded)
+	var decoded_buffer_ok := decode_buffer_error == OK \
+			and decoded_buffer.get_size() == FIRST_PLAYABLE_SIZE
+	check(decoded_buffer_ok,
+		label + " decoded PNG buffer is exact 1920x1080 after write")
+	if not decoded_buffer_ok:
+		_capture_abort("decoded PNG buffer was not exact after write: " + label)
 		return false
 	var decoded_file := Image.new()
 	var decode_file_error := decoded_file.load(absolute)

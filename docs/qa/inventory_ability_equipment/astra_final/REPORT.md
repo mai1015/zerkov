@@ -1,5 +1,12 @@
 # Fresh Astra checkpoint: task 4.10
 
+Historical evidence notice: every runner, generator, probe, and command named
+in this retained packet is disabled for current use. The corresponding entry
+points fail closed before imports, setup, subprocesses, paths, or writes. Use
+the current promoted contract documented in the parent README; do not rerun or
+regenerate this packet before task 11.8 or a later approved display-support
+proposal.
+
 Decision: **ACCEPT** for the exact frozen inventory-to-ability equipment
 implementation reviewed on 2026-09-10. Human playtest approval remains **false**.
 This packet authorizes the task checkpoint evidence; it does not claim production
@@ -81,14 +88,10 @@ observes clean native effects/tags/modifiers before destruction. Both leave an
 inert successful phase handler while the raid remains active. Explicit release
 is independently proven before raid terminalization.
 
-The native command used the required executable and flags:
-
-```text
-/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot
-  --path /Volumes/Data/codes/games/zerkov
-  --rendering-method gl_compatibility --resolution 1280x720 --position 40,40
-  --script res://docs/qa/inventory_ability_equipment/astra_final/independent_flow.gd
-```
+The accepted run historically used the pinned Godot 4.7.2 executable with the
+recorded project path, Compatibility renderer, 1280x720 resolution, 40,40
+position, and this packet's `independent_flow.gd`. This is provenance only, not
+a runnable current command; the runner is now unconditionally retired.
 
 The process reported the actual macOS display server, visible 1280×720 window,
 Compatibility renderer and exact executable. CUA accessibility independently
@@ -197,7 +200,8 @@ contains **80 entries**, with **82 total packet files** including the manifest
 and its verification log. Exact staged-index acceptance remains a separate gate
 after root restaging; the frozen-runtime ACCEPT above does not replace it.
 
-Reproduce with `python3 -B run_validation.py suites`, `flow` and `native` from
-this packet's directory, then `python3 -B finalize_packet.py`.
-`packet_hashes.sha256` seals the final evidence; `manifest_verification.log`
-records the successful seal check.
+The former `run_validation.py` suite/flow/native invocations and
+`finalize_packet.py` invocation are historical records only and are disabled.
+They now terminate before imports or work. `packet_hashes.sha256` inventories
+the retained evidence; `manifest_verification.log` records the original
+accepted seal check and is not a claim that the retired commands were rerun.

@@ -35,15 +35,15 @@ The component suite was also run headless at exact 1920×1080 (`5/0`) as a
 supplemental parse/state check; counting both execution variants gives `2154`
 raw assertions with zero failures. Editor import completed cleanly, and strict
 validation of both approved changes returned valid with zero errors/warnings.
-The current static audit finds 23 active first-playable GDScript runners with
-zero forbidden smaller-size/compact-path hits. Thirty-three retained GDScript
+The current static audit finds 25 active first-playable GDScript runners with
+zero forbidden smaller-size/compact-path hits. Thirty-five retained GDScript
 runners fail closed during initialization before setup or capture. This now
 includes the responsive/compact family, inherited visual-inventory probes, the
 old render-scale comparison runner, and every tracked multi-resolution display
 launcher under the historical inventory, ability/equipment, and weapon/reload
-QA packets.
-Eleven historical Python generators/runners exit as their first executable AST
-statement, before imports, directories, subprocesses, or writes. That is 44
+QA packets, including the independent capacity and magazine packet writers.
+Twelve historical Python generators/runners exit as their first executable AST
+statement, before imports, directories, subprocesses, or writes. That is 47
 deferred GDScript/Python entry points in total; tracked `docs/qa/**` launchers are no
 longer excluded from current enforcement.
 
@@ -79,8 +79,46 @@ Python retirement is AST-checked, so conditional/commented guards or work before
 the guard fail. Production-data capture hosts opt into the exact-canvas resize
 guard without enabling fixtures or changing production navigation/data.
 
-The gate passes seven tests. Exact-argument headless checks pass for the Task 8.11
+The preceding enforcement pass ran seven static tests. Exact-argument headless
+checks passed for the Task 8.11
 state contract (`57/0`), unavailable composition (`111/0`), Character binding
 (`65/0`), and component state (`5/0`). All eleven retired Python entry points
 exit with `DEFERRED_DISPLAY_SUITE`. No smaller renderer, responsive layout, or
 upscaled framebuffer was executed while enforcing this scope.
+
+## Final enforcement repair — 2026-09-11
+
+The gate now stops guard discovery at the enclosing block boundary and parses
+boolean expressions to prove exactness on every path reaching a write. A
+same-indented guard in a sibling branch, an optional rejecting condition, or an
+`or allow_any` acceptance clause cannot establish that proof. String literals
+and comments are excluded from code discovery. Source-only fixtures also cover
+conditional proof overwrites, image replacement, aliasing after the proof,
+unproven image operations such as `clear()`, and asynchronous gaps. These
+fixtures are inert text: they do not launch a renderer, create paths, or write
+artifacts.
+
+Every GDScript and Python entry point under the retained `docs/qa/` packets is
+discovered. Retired GDScript is also rejected if a top-level `load()` or
+`preload()` would execute before its `_initialize()` guard. The two retained
+ability/equipment independent-flow copies now keep their historical imports
+lazy and unreachable. The independent weapon/reload capacity and magazine
+writers terminate in `_initialize()`. The health-content implementation packet
+wrapper is explicitly classified as historical and exits before imports.
+Current development and packet READMEs advertise direct promoted contracts;
+historical wrapper modes and render-scale contact-sheet generation remain
+retired.
+
+Validation: all twelve exact-output static tests pass, and the complete tooling
+discovery passes all fifteen tests. All twelve retired Python entry points exit
+with `DEFERRED_DISPLAY_SUITE`; exact-argument headless import and check-only
+parsing of changed GDScript entry points and the accepted Sawmill capture script
+pass without diagnostics. Both approved specs validate strictly. The accepted
+Sawmill source and packet are unchanged, and no shared input-binding test or
+native capture runs as part of this repair.
+
+The requirement remains a genuine exact 1920×1080 renderer output. A
+`--resolution 1920x1080` argument alone does not establish it: native harnesses
+must avoid decorated-window clamping and reject a nonexact actual root/output
+or renderer readback before mounting UI, creating paths, or saving. Headless
+checks are source/state evidence only and cannot establish visual acceptance.
