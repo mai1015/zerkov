@@ -22,6 +22,8 @@ FORBIDDEN_OUTPUTS = (
 )
 DEFERRED_MARKER = "DEFERRED_DISPLAY_SUITE"
 ACTIVE_CAPTURE_SOURCES = (
+    "tests/presentation/feature_gates_8_9_contract.gd",
+    "tests/presentation/feature_gates_8_9_visual_evidence.gd",
     "tests/presentation/ui_production_unavailable_8_11_contract.gd",
     "tests/ui_component_states.gd",
     "tests/visual/inventory_loot_ui_4_11/capture.gd",

@@ -1,186 +1,154 @@
-# Task 8.9 — feature-gated meta-action evidence
+# Task 8.9 — feature-gated meta-action repair
 
-Status: implementation candidate only. Task 8.9 remains unchecked pending
-independent review. human_approval: false.
+Status: implementation candidate for independent review. Task 8.9 remains
+unchecked. human_approval: false.
 
-Implementation base: ebb003ce068d4621a49af9614be136a149580dd8.
-Accepted current main merged before final sealing:
-1b201cb031ec174dad616334b302e22cc7a744c5.
-Engine: Godot 4.7.2.stable.official.ed1daf0bf; native Compatibility renderer
-for the evidence frame and headless Compatibility for source/provider/UI
-regressions.
+Reviewed predecessor: b53ece2ef7402c3ec51ec22b2672546eafa37586.
+Current main merged before the final run:
+7acc971b7622f1a6580e51bcca27793f32e50d56.
 
-## Outcome
+All final Godot runs and regenerated captures use the prescribed executable:
+/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot.
+Engine version: 4.7.2.stable.official.ed1daf0bf.
+Executable SHA-256:
+c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf.
 
-ZUIFeatureGateView is the immutable, typed capability metadata contract for
-the five approved action ids: bunker, crafting, friends, insurance, and
-marketplace. It exposes LOCKED, PROTOTYPE, and AVAILABLE states with a stable
-display label, diagnostic reason, generation metadata, and detached snapshot.
-The provider publishes generation-scoped locked values using the accepted Task
-8.11 unavailable pattern; stale, replaced, and released leases cannot expose
-retired capability truth.
+## Repaired behavior
 
-ZUIContext.feature_gate() returns PROTOTYPE only for an explicit fixture
-provider and returns typed LOCKED truth for production composition. No
-production app.state access, fake production data, or new service was added.
-The existing authored screens and CommonUI navigation/focus graph remain in
-place.
+ZScreen permits a guarded callback only when its typed gate is AVAILABLE.
+LOCKED and PROTOTYPE actions use the existing authored toast, visibly identify
+the action and status, preserve focus and route, and return before the old
+mock callback, modal, or service action. The same behavior applies to normal
+keyboard and pointer activation.
 
-ZScreen now annotates retained controls with typed status metadata and
-truthful PROTOTYPE ONLY/LOCKED tooltips, and guards callbacks again at
-execution time. Bunker stations/build/session/privacy/deploy, crafting
-filters/recipes/queue, friend joins/codes/invites/messages/privacy, insurance
-confirmation, marketplace sell/market affordances, and world/save setup
-actions are covered. The shared NavigationChrome Insurance affordance also
-starts with truthful locked metadata before its owning screen binds.
+The immutable five-action gate contract, unavailable production provider,
+generation/stale-lease behavior, and explicit QA fixture provider remain in
+place. Production remains fixture-free. The existing Character inventory,
+other authored scenes, theme, assets, and 28-route catalog are retained.
+The frontend skill's existing-design branch informed the repair; DESIGN.md
+now records the shared gate interaction. No new visual primitive or token
+was introduced.
 
-## Focused regression contract
+The visual runner mounts the authored routes through CommonUI and uses the
+existing enabled buttons below. It clears prior toast text, records the exact
+focus owner and fixture snapshot, pushes real viewport input, and requires
+exactly one pressed signal from the authored control. It never calls
+notify_feature_action or emits pressed to construct its evidence.
 
-tests/presentation/feature_gates_8_9_contract.gd is pinned to
-Vector2i(1920, 1080) and covers:
+| Feature | Authored route and control | Captured input |
+| --- | --- | --- |
+| Bunker | bunker: Stations/Row1/Hit | Enter |
+| Crafting | crafting: DetailPanel/CraftNow | Primary pointer click |
+| Friends | join_friend: FilterAll | Enter |
+| Insurance | summary_solo: Reinsure | Enter |
+| Marketplace | inventory: InventoryContent/PostRaidBar/SellJunk | Primary pointer click |
 
-- typed provider publication for all five ids, unknown-id rejection,
-  generation replacement, stale leases, teardown and explicit diagnostics;
-- unchanged 28-route CommonUI catalog with no replacement marketplace route;
-- fixture-only prototype annotations/tooltips for bunker, crafting, friends,
-  insurance and marketplace controls;
-- callback guards that retain CommonUI focus inside the active authored screen;
-- production route unavailable state and locked bunker/friend/insurance/
-  marketplace behavior;
-- exact logical root sizing and optional native evidence capture.
+All five actual activations show PROTOTYPE ONLY and the feature name. Each
+preserves fixture state, route, modal ownership, and focus. The provider/action
+contract additionally exercises Enter on all five buttons.
 
-## Visible gate evidence contract
+Existing navigation, UI, bunker, and raid regressions previously expected
+mock Continue/world/crafting/invite/readiness/insurance effects. Their relevant
+assertions now require visible gate feedback and unchanged state. Independent
+route, Back, focus, and modal-ownership coverage is retained through explicit
+QA setup. Modal ownership is tested with a dedicated QA confirmation callback,
+rather than requiring unavailable insurance to open a mock modal.
 
-tests/presentation/feature_gates_8_9_visual_evidence.gd is an explicit QA
-runner, not a production fallback. It enables the existing app's fixture
-provider, mounts the authored `bunker`, `crafting`, `join_friend`,
-`summary_solo`, and `inventory` routes through CommonUI, focuses one real
-control on each route, and triggers the screen's real toast path. For every
-one of the five typed action ids it asserts the visible control's
-`z_feature_action`, `z_feature_status`, `z_feature_status_label`, and tooltip,
-then asserts that the visible toast names the action and says `PROTOTYPE ONLY`.
-Native runs save the five full-size source frames and a contact sheet derived
-only from those frames; the runner does not create a replacement screen,
-populate production state, or bypass the existing focus graph.
+## Genuine 1920×1080 evidence
 
-## Executed checks
+Both native runners render the existing UI directly into a dedicated
+renderer-backed SubViewport of exactly 1920×1080. They read that target's raw
+Image after RenderingServer.frame_post_draw. They never read the physical
+desktop framebuffer and contain no resize or resampling fallback.
 
-| Evidence | Result |
+Before and after every write, assertions verify the actual engine CLI flag,
+the orchestration root visible rect, target size/visible rect/texture, UI root
+and screen geometry, viewport ownership, and Image size. PNG bytes are decoded
+in memory before any directory is created; the written PNG is decoded again
+immediately after the write and must preserve the raw Image pixel bytes.
+Every geometry or action failure stops evidence generation.
+
+The CLI check reads this process's command through read-only /bin/ps and
+requires exactly one engine --resolution 1920x1080 argument before any user
+argument separator. This is necessary because Godot removes processed engine
+flags from its script argument API. See the
+[official OS argument documentation](https://docs.godotengine.org/en/stable/classes/class_os.html#class-os-method-get-cmdline-args).
+The current evidence runners fail before mounting on hosts without this
+supported Unix CLI inspection path.
+
+The strict first-playable source gate now includes both Task 8.9 PNG writers.
+Headless runs verify actions, focus, providers, and logical geometry but skip
+all image output.
+
+All seven final PNGs were decoded as exactly 1920×1080 and inspected at
+original size. The five action notices are readable within the existing
+military/pixel-art composition. This is gate evidence, not acceptance of
+the broader real-data screen review or a human navigation pass.
+
+- [Bunker raw frame](feature_gate_bunker_1920x1080.png)
+- [Crafting raw frame](feature_gate_crafting_1920x1080.png)
+- [Friends raw frame](feature_gate_friends_1920x1080.png)
+- [Insurance raw frame](feature_gate_insurance_1920x1080.png)
+- [Marketplace on the existing Character inventory](feature_gate_marketplace_1920x1080.png)
+- [Production unavailable state](feature_gates_1920x1080.png)
+- [Contact sheet](feature_gates_contact_sheet_1920x1080.png)
+
+The contact sheet is itself 1920×1080. It copies source pixels at 1:1 scale:
+five rows pair authored-control/detail crops with each complete status notice.
+Rows are bunker, crafting, friends, insurance, then marketplace. It performs
+no scaling. Full frames remain the primary composition evidence.
+
+The production frame retains the existing unavailable card with UNBOUND
+state and UI_SERVICES_NOT_INJECTED_BUNKER diagnostic; it contains no fixture
+profile, inventory, settlement, or service data.
+
+## Final verification after merging current main
+
+All screen-producing commands use --resolution 1920x1080. No alternate
+screen, compact/reflow path, or framebuffer upscale was executed or reviewed.
+The final run has no runtime errors or warnings.
+Exact commands and outputs are preserved in [verification.log](verification.log).
+
+| Check | Result |
 | --- | --- |
-| strict approved-change validation | Valid |
-| editor import/class registration | exit 0 |
-| static first-playable scope contract | 2 tests, 0 failures |
-| Task 8.9 provider/action/route/focus contract | 54/0 headless; 57/0 native capture |
-| Task 8.9 visible gate evidence contract | 37/0 headless assertions; 55/0 native assertions, 5 frames |
-| Task 8.11 provider/source contract | 57/0 |
-| read-only view contracts | 115/0 |
-| CommonUI navigation | 79/0 |
-| CommonUI navigation 1080 regression | 94/0 |
+| Prescribed Godot editor import | Exit 0 |
+| Strict approved-change validation | Valid |
+| Static first-playable scope and writer guards | 4 tests, 0 failures |
+| Task 8.9 provider/action/route/focus contract | 74/0 headless; 156/0 native |
+| Task 8.9 real-input visual evidence | 124/0 headless; 663/0 native, five raw frames |
+| CommonUI input regression | 51/0 |
+| CommonUI navigation contract | 80/0, 28 routes |
+| CommonUI navigation 1080 regression | 99/0 |
 | CommonUI integration | 76/0 |
 | UI route smoke | 948/0 |
 | UI composition | 103/0 |
-| bunker / raid smoke | 21/0 and 29/0 |
+| Task 8.11 production-state contract | 57/0 |
+| Read-only view contracts | 115/0 |
+| Screen lifecycle | 116/0 |
+| Bunker / raid smoke | 21/0 and 29/0 |
 | Character composition / UI binding | 22/0 and 65/0 |
-| inventory loot UI / inventory smoke | 88/0 and 21/0 |
-| utility smoke | 24/0 |
-| screen lifecycle | 116/0; geometry hash unchanged |
-| source/evidence hashes | shasum -a 256 -c sources.sha256: all OK |
-| git diff --check | exit 0 |
+| Inventory loot UI / inventory smoke | 88/0 and 21/0 |
+| Utility smoke | 24/0 |
+| PNG dimensions and raw/decoded pixel equality | All exact 1920×1080 |
+| Source/evidence manifest | All entries verify |
+| git diff --check | Pass |
 
-Every Godot invocation used the exact approved viewport argument:
+The exact-1920 lifecycle geometry hash is unchanged:
+794e84f101b28dea717a58416b4593af290b79a8cafccf414a8fc93f8b9ddccb.
+The combined lifecycle geometry hash is:
+4eb724f07fb51fdfccaa5b0659bd07fe33dcb8ba23afea03bb8f1666582c8a4a.
 
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --editor --quit
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://ui/screens/utilities/settings.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://ui/screens/utilities/controls.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://ui/screens/raid/pause.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://ui/screens/raid/summary_squad.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://ui/screens/frontflow/frontflow_actions.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://ui/screens/frontflow/saves.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://ui/screens/frontflow/main_menu.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd -- --capture-path=res://docs/qa/feature_gates_8_9/feature_gates_headless_1920x1080.png
-    /opt/homebrew/bin/godot --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd -- --capture-path=res://docs/qa/feature_gates_8_9/feature_gates_1920x1080.png
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd
-    /opt/homebrew/bin/godot --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd -- --capture-dir=res://docs/qa/feature_gates_8_9
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/ui_state_8_11_contract.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/view_contracts_contract.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/common_ui_navigation_contract.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/common_ui_navigation_1080_regression.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/common_ui_integration_smoke.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/ui_smoke.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/ui_composition_smoke.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/bunker_smoke.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/raid_smoke.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/character_presentation_composition_contract.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/character_ui_binding_8_6_contract.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/raid/inventory_loot_ui_4_11_contract.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/inventory_smoke.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/utility_smoke.gd
-    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/zerkov_screen_lifecycle_contract.gd
+Shared input-binding tests ran under the parent-granted exclusive lease.
+An EXIT trap restored the exact baseline file on every completion or failure
+path. The final post-run check verified SHA-256
+ff6f972f99cc7e9a66db4852735ead27d344b3d090d246a420aa0136aff6bde5
+with .tmp and .bak absent, then the lease was explicitly released. No user
+data was removed.
 
-The headless capture command reports
-HEADLESS_CAPTURE_SKIPPED dummy renderer has no native framebuffer; it does
-not create an artifact. The native command prints
-NATIVE_FRAMEBUFFER_SIZE=(1809, 1018) logical=1920x1080 on this macOS host.
-The runner asserts the logical root is exactly 1920×1080 and uses nearest-
-neighbor sampling only to write the logical evidence image at the required
-1920×1080 dimensions; it renders no alternate layout or viewport.
+The prior independent review found that synthetic controller A did not
+activate these controls in either the predecessor or its exact baseline.
+This repair makes no controller-success claim. Physical controller and full
+human navigation acceptance remain Task 8.13.
 
-## Native evidence
-
-[feature_gates_contact_sheet_1920x1080.png](feature_gates_contact_sheet_1920x1080.png)
-is the exact-1920 QA overview made from the five native source frames. Its
-top row is the authored Bunker, Crafting, and Join Friend UI; its bottom row is
-the authored Summary Solo and Character Inventory UI. Each tile retains the
-real focused control and the real `PROTOTYPE ONLY` toast. The five full-size
-source frames are the primary evidence when reading control metadata and
-toast text: [bunker](feature_gate_bunker_1920x1080.png),
-[crafting](feature_gate_crafting_1920x1080.png),
-[friends](feature_gate_friends_1920x1080.png),
-[insurance](feature_gate_insurance_1920x1080.png), and
-[marketplace](feature_gate_marketplace_1920x1080.png).
-
-[feature_gates_1920x1080.png](feature_gates_1920x1080.png) remains the native
-Compatibility-renderer production missing-service reference. It shows the
-existing centered unavailable card, explicit diagnostic truth, and no sample
-profile or fake production data; it is intentionally separate from the
-fixture-provider gate sheet above. That PNG is exactly 1920x1080 and has
-SHA-256 56c177ede335d4f66a9d295d65a44df92e6d4bc86c7d0b8daec784765c63f4f8.
-The six new visual artifacts and all source hashes are recorded in
-[sources.sha256](sources.sha256).
-
-The native runner logged the actual macOS Compatibility framebuffer as
-`(1809, 1018)` while the logical Godot root remained exactly `1920x1080`.
-It nearest-neighbor resampled only the captured image to the required
-1920x1080 artifact dimensions; no alternate layout or viewport was rendered.
-
-## Diff and route audit
-
-The implementation commit touched 30 paths because the same typed guard must
-be attached at every existing owner of the five approved actions: the provider
-and context contract, shared CommonUI Insurance chrome, the five-file Bunker
-family, four front-flow friend/world setup files, six raid/character callback
-owners, and four utility Insurance owners, plus the typed view, focused
-contract, and QA artifacts. The visual-evidence follow-up adds one test script
-and six derived PNG artifacts only.
-
-The source diff contains no `.tscn` geometry or layout changes, no route catalog
-change, no marketplace route, no inventory hierarchy replacement, no service,
-and no production fixture data. Every changed callback is either a gate
-annotation/tooltip or an execution-time guard for bunker, crafting, friends,
-insurance, or marketplace; unrelated callbacks retain their existing route,
-state, and focus behavior. The unchanged 28-route catalog, no-marketplace
-assertion, CommonUI navigation, composition, smoke, and lifecycle regressions
-provide the non-gated route and focus audit.
-
-No compact, responsive, 1600, 1280, 960, or other alternate-size command or
-capture was run or regenerated.
-
-## Scope held
-
-This candidate adds no bunker, crafting, friends, insurance, marketplace,
-inventory, persistence, or replacement UI service. It keeps all feature
-actions fixture-only or locked until an owning service publishes approved
-authoritative capability truth. It does not edit the task ledger checkbox or
-claim Task 8.9 acceptance.
+All repaired source and evidence hashes are in [sources.sha256](sources.sha256).
+The Task 8.9 checkbox is unchanged and human_approval remains false.

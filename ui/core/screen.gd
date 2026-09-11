@@ -298,12 +298,13 @@ func feature_gate(action_id: StringName) -> ZUIFeatureGateView:
 
 func feature_action_allowed(action_id: StringName) -> bool:
 	var gate := feature_gate(action_id)
-	return gate != null and (gate.is_prototype() or gate.is_available())
+	return gate != null and gate.is_available()
 
 
 ## Annotate a retained authored control with the typed gate state. The control
-## remains in the CommonUI focus graph so keyboard/controller users receive the
-## same explicit status through its tooltip and metadata as pointer users.
+## remains in the CommonUI focus graph. Pointer hover exposes the tooltip;
+## ordinary activation uses require_feature_action() for visible gate feedback
+## without running unavailable service or fixture callbacks.
 func mark_feature_action(control: Control, action_id: StringName) -> bool:
 	if control == null:
 		return false
@@ -329,10 +330,10 @@ func mark_feature_label(control: Control, action_id: StringName) -> bool:
 
 func require_feature_action(action_id: StringName) -> bool:
 	var gate := feature_gate(action_id)
-	if gate != null and (gate.is_prototype() or gate.is_available()):
+	if gate != null and gate.is_available():
 		return true
 	if gate != null:
-		toast("%s · %s" % [gate.status_label(), gate.display_name()])
+		notify_feature_action(action_id)
 	else:
 		toast("LOCKED · Feature status is unavailable")
 	return false

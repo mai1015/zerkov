@@ -14,9 +14,12 @@ var checks: int = 0
 var failures: int = 0
 var capture_path: String = ""
 var production_app_for_capture: Control
+var production_render_target: SubViewport
+var exact_cli_resolution: bool = false
 
 
 func _initialize() -> void:
+	exact_cli_resolution = _has_exact_cli_resolution()
 	run.call_deferred()
 
 
@@ -32,10 +35,35 @@ func settle(frames: int = 6) -> void:
 		await process_frame
 
 
+func _has_exact_cli_resolution() -> bool:
+	# Godot consumes --resolution before OS.get_cmdline_args(). Inspect only this
+	# process's real argv through ps; never accept a forwarded user-argument
+	# claim as proof of the engine flag. Unsupported hosts fail before mounting.
+	# https://docs.godotengine.org/en/stable/classes/class_os.html#class-os-method-get-cmdline-args
+	if OS.get_name() not in ["macOS", "Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD"]:
+		return false
+	var output: Array = []
+	var status := OS.execute("/bin/ps",
+		PackedStringArray(["-ww", "-p", str(OS.get_process_id()), "-o", "command="]), output)
+	if status != 0 or output.size() != 1:
+		return false
+	var engine_command := str(output[0]).strip_edges().split(" -- ", true, 1)[0]
+	var expression := RegEx.new()
+	if expression.compile("(?:^|[[:space:]])--resolution(?:[[:space:]]+|=)([^[:space:]]+)") != OK:
+		return false
+	var matches := expression.search_all(engine_command)
+	return matches.size() == 1 and matches[0].get_string(1) == "1920x1080"
+
+
 func run() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture-path="):
 			capture_path = argument.trim_prefix("--capture-path=")
+	check(exact_cli_resolution,
+		"screen-producing CLI explicitly requests --resolution 1920x1080")
+	if not exact_cli_resolution:
+		quit(2)
+		return
 
 	root.size = FIRST_PLAYABLE_SIZE
 	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
@@ -51,6 +79,9 @@ func run() -> void:
 	await _capture_exact_frame()
 	if is_instance_valid(production_app_for_capture):
 		production_app_for_capture.queue_free()
+		await settle(3)
+	if is_instance_valid(production_render_target):
+		production_render_target.queue_free()
 		await settle(3)
 	print("FEATURE_GATES_8_9_RESULT checks=", checks,
 		" failures=", failures, " size=1920x1080")
@@ -117,23 +148,44 @@ func _test_route_catalog_and_source_guards() -> void:
 			"feature action source guard is present: " + path)
 
 
-func _new_app(prototype: bool) -> Control:
+func _new_render_target() -> SubViewport:
+	var result := SubViewport.new()
+	result.name = "Task89ContractExact1920RenderTarget"
+	result.disable_3d = true
+	result.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	result.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+	result.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	result.snap_2d_transforms_to_pixel = true
+	result.size = FIRST_PLAYABLE_SIZE
+	root.add_child(result)
+	var input_router := CommonUIViewportRouter.new()
+	input_router.name = "Task89ContractExact1920InputRouter"
+	result.add_child(input_router)
+	return result
+
+
+func _new_app(prototype: bool, host: Node = null) -> Control:
 	var app := load("res://ui/main.tscn").instantiate() as Control
 	app.prototype_fixture_mode = prototype
-	root.add_child(app)
+	var parent: Node = root if host == null else host
+	parent.add_child(app)
+	app.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	app.position = Vector2.ZERO
+	app.size = Vector2(FIRST_PLAYABLE_SIZE)
 	await settle()
 	return app
 
 
 func _focus_stays_on_screen(app: Control, screen: ZScreen, label: String) -> void:
-	var focus: Control = root.get_viewport().gui_get_focus_owner() as Control
+	var focus: Control = app.get_viewport().gui_get_focus_owner() as Control
 	check(is_instance_valid(focus) and screen.is_ancestor_of(focus)
 			and focus.focus_mode != Control.FOCUS_NONE,
 		"CommonUI focus remains inside route after feature action: " + label)
 
 
 func _test_explicit_fixture_actions_and_focus() -> void:
-	var app := await _new_app(true)
+	var fixture_target := _new_render_target()
+	var app := await _new_app(true, fixture_target)
 	app.qa_mode = true
 
 	app.navigate("bunker", false)
@@ -148,9 +200,15 @@ func _test_explicit_fixture_actions_and_focus() -> void:
 			and station_hit.tooltip_text.contains("PROTOTYPE ONLY"),
 		"bunker action exposes prototype metadata and tooltip")
 	station_hit.grab_focus()
-	station_hit.pressed.emit()
+	var bunker_state_before := JSON.stringify(app.fixture_state_for_test())
+	await _activate_with_enter(app, station_hit)
 	await settle()
 	_focus_stays_on_screen(app, app.screen as ZScreen, "bunker station")
+	check(JSON.stringify(app.fixture_state_for_test()) == bunker_state_before
+			and app.current_route == "bunker" and app.modal == null
+			and app.toast_label.visible and app.toast_label.text.contains("PROTOTYPE ONLY")
+			and app.toast_label.text.contains("Bunker"),
+		"bunker prototype callback reports the gate without fixture side effects")
 	var market := bunker.get_node("StationDetails/Missing/Market") as Label
 	check(market.get_meta("z_feature_action", &"") == &"marketplace"
 			and market.tooltip_text.contains("PROTOTYPE ONLY"),
@@ -165,9 +223,15 @@ func _test_explicit_fixture_actions_and_focus() -> void:
 			and craft_action.tooltip_text.contains("PROTOTYPE ONLY"),
 		"craft action exposes prototype metadata and tooltip")
 	craft_action.grab_focus()
-	craft_action.pressed.emit()
+	var crafting_state_before := JSON.stringify(app.fixture_state_for_test())
+	await _activate_with_enter(app, craft_action)
 	await settle()
 	_focus_stays_on_screen(app, app.screen as ZScreen, "crafting action")
+	check(JSON.stringify(app.fixture_state_for_test()) == crafting_state_before
+			and app.current_route == "crafting" and app.modal == null
+			and app.toast_label.visible and app.toast_label.text.contains("PROTOTYPE ONLY")
+			and app.toast_label.text.contains("Crafting"),
+		"crafting prototype callback reports the gate without fixture side effects")
 
 	app.navigate("join_friend", false)
 	await settle()
@@ -177,10 +241,16 @@ func _test_explicit_fixture_actions_and_focus() -> void:
 			and friend_filter.tooltip_text.contains("PROTOTYPE ONLY"),
 		"friend action exposes prototype metadata and tooltip")
 	friend_filter.grab_focus()
-	friend_filter.pressed.emit()
+	var friends_state_before := JSON.stringify(app.fixture_state_for_test())
+	await _activate_with_enter(app, friend_filter)
 	await settle()
 	check(app.current_route == "join_friend", "friend filter does not bypass route authority")
 	_focus_stays_on_screen(app, app.screen as ZScreen, "friend filter")
+	check(JSON.stringify(app.fixture_state_for_test()) == friends_state_before
+			and app.modal == null and app.toast_label.visible
+			and app.toast_label.text.contains("PROTOTYPE ONLY")
+			and app.toast_label.text.contains("Friends"),
+		"friend prototype callback reports the gate without fixture side effects")
 
 	app.navigate("summary_solo", false)
 	await settle()
@@ -190,15 +260,13 @@ func _test_explicit_fixture_actions_and_focus() -> void:
 			and reinsure.tooltip_text.contains("PROTOTYPE ONLY"),
 		"insurance action exposes prototype metadata and tooltip")
 	reinsure.grab_focus()
-	reinsure.pressed.emit()
+	await _activate_with_enter(app, reinsure)
 	await settle()
-	check(is_instance_valid(app.modal), "prototype insurance action uses CommonUI confirmation")
-	if is_instance_valid(app.modal):
-		for button in app.modal.find_children("*", "Button", true, false):
-			if button.text == "CANCEL":
-				button.pressed.emit()
-		await settle()
-	check(app.current_route == "summary_solo", "insurance confirmation does not leave summary route")
+	check(not is_instance_valid(app.modal)
+			and app.current_route == "summary_solo"
+			and app.toast_label.visible and app.toast_label.text.contains("PROTOTYPE ONLY")
+			and app.toast_label.text.contains("Insurance"),
+		"insurance prototype callback reports the gate without opening a modal")
 
 	app.navigate("inventory", false)
 	await settle()
@@ -209,16 +277,48 @@ func _test_explicit_fixture_actions_and_focus() -> void:
 		"marketplace sell action is explicitly prototype-only")
 	if sell != null:
 		sell.grab_focus()
-		sell.pressed.emit()
+		await _activate_with_enter(app, sell)
 		await settle()
 		_focus_stays_on_screen(app, app.screen as ZScreen, "marketplace sell action")
+		check(app.current_route == "inventory" and app.modal == null
+				and app.toast_label.visible and app.toast_label.text.contains("PROTOTYPE ONLY")
+				and app.toast_label.text.contains("Marketplace"),
+			"marketplace prototype callback reports the gate without fixture side effects")
 
-	app.queue_free()
+	fixture_target.queue_free()
 	await settle(3)
 
 
+func _activate_with_enter(app: Control, control: BaseButton) -> void:
+	check(control.is_visible_in_tree() and not control.disabled,
+		"authored gated button is visible and enabled for Enter")
+	app.toast_timer.stop()
+	app.toast_label.hide()
+	app.toast_label.text = ""
+	var pressed_count := {"value": 0}
+	var observer := func() -> void: pressed_count["value"] += 1
+	control.pressed.connect(observer)
+	var event := InputEventKey.new()
+	event.keycode = KEY_ENTER
+	event.physical_keycode = KEY_ENTER
+	event.pressed = true
+	control.get_viewport().push_input(event)
+	event = event.duplicate()
+	event.pressed = false
+	control.get_viewport().push_input(event)
+	await settle()
+	control.pressed.disconnect(observer)
+	check(pressed_count["value"] == 1, "Enter activates the real authored button exactly once")
+	check(control.get_viewport().gui_get_focus_owner() == control,
+		"Enter preserves the authored focus owner")
+
+
 func _test_production_locks() -> void:
-	var app := await _new_app(false)
+	production_render_target = _new_render_target()
+	check(production_render_target.size == FIRST_PLAYABLE_SIZE
+			and production_render_target.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		"production capture target is an exact renderer-backed 1920x1080 SubViewport")
+	var app := await _new_app(false, production_render_target)
 	app.request_route("bunker", false)
 	await settle()
 	var bunker := app.screen as ZScreen
@@ -271,29 +371,90 @@ func _capture_exact_frame() -> void:
 	if capture_path.is_empty():
 		return
 	if DisplayServer.get_name() == "headless":
-		print("HEADLESS_CAPTURE_SKIPPED dummy renderer has no native framebuffer")
+		print("HEADLESS_CAPTURE_SKIPPED exact SubViewport is not written by a dummy renderer")
+		return
+	# Failed action or geometry checks must never create paths or replace files.
+	if failures > 0 or not _assert_capture_geometry("before draw"):
 		return
 	await RenderingServer.frame_post_draw
-	var framebuffer := root.get_texture().get_image()
-	if framebuffer == null:
-		check(false, "native feature-gate framebuffer is available")
+	if not _assert_capture_geometry("after draw"):
 		return
-	var image: Image = framebuffer.duplicate()
-	if image.get_size() != FIRST_PLAYABLE_SIZE:
-		# macOS may expose a smaller physical drawable while the logical Godot
-		# canvas remains exact. Preserve the 1920x1080 logical evidence contract
-		# with nearest-neighbor sampling; no alternate layout is rendered.
-		print("NATIVE_FRAMEBUFFER_SIZE=", image.get_size(),
-			" logical=1920x1080")
-		image.resize(FIRST_PLAYABLE_SIZE.x, FIRST_PLAYABLE_SIZE.y,
-			Image.INTERPOLATE_NEAREST)
-	check(image.get_size() == FIRST_PLAYABLE_SIZE,
-		"native feature-gate evidence image is exact 1920x1080")
-	if image.get_size() != FIRST_PLAYABLE_SIZE:
+	var texture := production_render_target.get_texture()
+	var image: Image = texture.get_image()
+	check(image != null and image.get_size() == FIRST_PLAYABLE_SIZE,
+		"native capture Image is raw exact 1920x1080")
+	if image == null or image.get_size() != FIRST_PLAYABLE_SIZE:
+		return
+	if not _assert_capture_geometry("raw Image captured", image):
+		return
+	var encoded := image.save_png_to_buffer()
+	check(not encoded.is_empty(), "native exact-1920 PNG encoding buffer is non-empty")
+	if encoded.is_empty():
+		return
+	var decoded_buffer := Image.new()
+	var decode_buffer_error := decoded_buffer.load_png_from_buffer(encoded)
+	check(decode_buffer_error == OK and decoded_buffer.get_size() == FIRST_PLAYABLE_SIZE,
+		"native decoded PNG buffer is exact 1920x1080 before write")
+	if decode_buffer_error != OK or decoded_buffer.get_size() != FIRST_PLAYABLE_SIZE:
+		return
+	if not _assert_capture_geometry("PNG verified before path creation", image):
 		return
 	var absolute := ProjectSettings.globalize_path(capture_path)
 	var directory_error := DirAccess.make_dir_recursive_absolute(absolute.get_base_dir())
-	check(directory_error == OK or directory_error == ERR_ALREADY_EXISTS,
+	var directory_ok := directory_error == OK or directory_error == ERR_ALREADY_EXISTS
+	check(directory_ok,
 		"native feature-gate evidence directory is available")
-	check(image.save_png(absolute) == OK,
+	if not directory_ok or not _assert_capture_geometry("immediately before file write", image):
+		return
+	var save_error := image.save_png(absolute)
+	check(save_error == OK,
 		"native exact-1920 feature-gate evidence saves")
+	if save_error != OK or not _assert_capture_geometry("immediately after file write", image):
+		return
+	var decoded_file := Image.new()
+	var decode_file_error := decoded_file.load(absolute)
+	check(decode_file_error == OK and decoded_file.get_size() == FIRST_PLAYABLE_SIZE,
+		"native decoded PNG file is exact 1920x1080 immediately after write")
+	if decode_file_error != OK or decoded_file.get_size() != FIRST_PLAYABLE_SIZE:
+		return
+	if not _assert_capture_geometry("decoded file verified", decoded_file):
+		return
+	check(decoded_file.get_data() == image.get_data(),
+		"native PNG preserves the raw Image pixels without resampling")
+	if failures == 0:
+		print("EXACT_1920_PNG_VERIFIED action=production_unavailable",
+			" cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080",
+			" image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true")
+
+
+func _assert_capture_geometry(stage: String, image: Image = null) -> bool:
+	var baseline_failures := failures
+	check(_has_exact_cli_resolution(),
+		stage + " CLI remains explicitly --resolution 1920x1080")
+	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		stage + " orchestration root visible rect is exact 1920x1080")
+	var target := production_render_target
+	check(target != null and target.size == FIRST_PLAYABLE_SIZE,
+		stage + " renderer target size is exact 1920x1080")
+	check(target != null and target.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		stage + " renderer target visible rect is exact 1920x1080")
+	check(target != null and target.get_texture() != null
+			and target.get_texture().get_size() == Vector2(FIRST_PLAYABLE_SIZE),
+		stage + " renderer target texture is exact 1920x1080")
+	var app := production_app_for_capture
+	check(app != null and app.get_viewport() == target,
+		stage + " authored UI belongs to the dedicated renderer target")
+	check(app != null and app.size == Vector2(FIRST_PLAYABLE_SIZE),
+		stage + " UI logical root is exact 1920x1080")
+	check(app != null and app.get_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		stage + " UI visible rect is exact 1920x1080")
+	check(app != null and app.get_viewport_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		stage + " UI viewport is exact 1920x1080")
+	var screen := app.screen as Control if app != null else null
+	check(screen != null and screen.get_rect().size == Vector2(FIRST_PLAYABLE_SIZE)
+			and screen.get_viewport_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		stage + " authored screen and visible rect are exact 1920x1080")
+	if image != null:
+		check(image.get_size() == FIRST_PLAYABLE_SIZE,
+			stage + " Image is exact 1920x1080")
+	return failures == baseline_failures

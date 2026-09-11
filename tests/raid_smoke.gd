@@ -97,9 +97,11 @@ func run() -> void:
     check(app.current_route == "summary_squad", "X extracts co-op to squad summary")
     check(app.screen._squad_countdown.text.contains("2 / 3"), "Squad summary shows current readiness")
     await press_key(KEY_ENTER)
-    check(app.screen._squad_countdown.text.contains("3 / 3"), "Enter visibly marks everyone ready")
+    check(app.screen._squad_countdown.text.contains("2 / 3")
+        and app.toast_label.text.contains("PROTOTYPE ONLY"),
+        "Enter discloses the friends gate without marking a mock squad ready")
     await create_timer(1.4).timeout
-    check(app.current_route == "bunker", "All ready returns squad to bunker")
+    check(app.current_route == "summary_squad", "Gated readiness leaves the summary route intact")
     app.navigate("summary_squad", false)
     await settle()
     app.screen._squad_started -= 43.0
@@ -111,12 +113,10 @@ func run() -> void:
     check(app.current_route == "summary_solo", "X extracts solo to solo summary")
     app.screen._on_reinsure()
     await settle()
-    check(is_instance_valid(app.modal), "Re-insure opens reviewable confirmation")
-    for button in app.modal.find_children("*", "Button", true, false):
-        if button.text == "CONFIRM": button.pressed.emit()
-    await settle()
-    check(app.fixture_state_for_test().get("raid_loadout_insured", false),
-        "Confirm records insurance sample state")
+    check(app.modal == null and app.toast_label.text.contains("PROTOTYPE ONLY"),
+        "Re-insure discloses its prototype gate without opening a modal")
+    check(not app.fixture_state_for_test().get("raid_loadout_insured", false),
+        "Prototype insurance preserves the fixture loadout state")
     await press_key(KEY_ENTER)
     check(app.current_route == "bunker", "Enter returns solo summary to bunker")
     print("RAID_TEST_COMPLETE checks=", checks, " failures=", failures)

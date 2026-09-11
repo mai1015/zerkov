@@ -130,6 +130,10 @@ func run() -> void:
 			and int(app.fixture_state_for_test().get(
 				"frontflow_worlds", []).size()) == world_count_before,
 		"inactive Saves cannot commit its hidden delete callback")
+	# Feature gates reject mock delete/rename before requesting a modal. Probe
+	# the independent stale-owner guard directly so that coverage stays intact.
+	check(not retained_saves_context.confirm("Inactive owner", "Must not open.", func() -> void: pass),
+		"inactive retained context still cannot acquire a QA confirmation")
 	check("does not own" in app.toast_label.text.to_lower(),
 		"inactive request fails with an ownership diagnostic")
 
@@ -215,8 +219,13 @@ func run() -> void:
 		"Pause retains one HUD beneath one menu")
 	app.screen.call("_open_session")
 	await settle()
+	check(app.screen == pause and app.toast_label.visible
+			and app.toast_label.text.contains("PROTOTYPE ONLY"),
+		"Pause Session action discloses the bunker gate without entering a mock session")
+	check(app.request_route("session"), "explicit QA route sets up the retained Pause/Session Back chain")
+	await settle()
 	var session := app.screen as CommonActivatableScreen
-	check(app.current_route == "session", "Pause Session action opens bunker session")
+	check(app.current_route == "session", "QA session route opens the authored bunker screen")
 	check(screen_root.menu_layer().get_depth() == 2,
 		"Session is pushed once over retained Pause")
 	check(session.app.return_route == "pause", "Session records Pause as its CommonUI return target")
@@ -243,9 +252,18 @@ func run() -> void:
 	var summary_focus := summary.get_node_or_null("BackBunker") as Control
 	summary_focus.grab_focus()
 	summary.call("_on_reinsure")
+	check(app.modal == null and app.toast_label.visible
+			and app.toast_label.text.contains("PROTOTYPE ONLY")
+			and not bool(app.fixture_state_for_test().get("raid_loadout_insured", false)),
+		"prototype insurance discloses its gate without claiming a modal or mutation")
+	# Exercise CommonUI modal ownership directly as a QA capability. Insurance
+	# no longer supplies a mock confirmation now that its service is gated.
+	var confirmed := {"count": 0}
+	check(summary.app.confirm("Navigation contract", "Verify one callback owner.", func() -> void:
+		confirmed.count += 1), "explicit QA confirmation is admitted")
 	var first_modal := app.modal as CommonActivatableScreen
 	var duplicate_callback_count := 0
-	check(first_modal != null, "summary action claims one modal synchronously")
+	check(first_modal != null, "QA confirmation claims one modal synchronously")
 	check(not summary.app.confirm("Duplicate", "Must be idempotent.", func() -> void:
 		duplicate_callback_count += 1), "same-frame duplicate modal is rejected")
 	check(not app.toggle_picker(), "F1 popup cannot open over a claimed modal")
@@ -272,8 +290,8 @@ func run() -> void:
 		"confirm completion clears modal reference and layer together")
 	check(app.screen == summary and app.current_route == "summary_solo",
 		"summary callback owner remains current until callback completion")
-	check(bool(app.fixture_state_for_test().get("raid_loadout_insured", false)),
-		"summary callback executes after the modal pop")
+	check(confirmed.count == 1,
+		"QA callback executes once after the modal pop")
 	check(duplicate_callback_count == 0, "rejected duplicate callback never executes")
 	check(root.gui_get_focus_owner() == summary_focus,
 		"modal callback completion restores the prior summary focus")
