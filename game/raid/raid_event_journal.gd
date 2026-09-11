@@ -148,6 +148,12 @@ func size() -> int:
 	return _events.size()
 
 
+## Read-only capacity evidence for adapters that must preflight a multi-event
+## consequence before mutating another authoritative domain.
+func remaining_capacity() -> int:
+	return maxi(0, _max_events - _events.size()) if not _sealed else 0
+
+
 func seal() -> void:
 	_sealed = true
 
