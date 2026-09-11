@@ -144,3 +144,28 @@ repair findings covered above. Independent domain and Astra re-acceptance of
 this repair commit remain pending. Task 8.6 remains unchecked; the primary
 implementer will mark it only after those reviews pass. Human approval is not
 recorded.
+
+## Final independent acceptance
+
+Accepted on 2026-09-11 at immutable commit
+`cabe4384f668d2c4a01946e31cba507b984a3f58` after separate domain and Astra
+reviews found no P0-P2 findings.
+
+The domain review passed `521/0` across view, composition, inventory projection,
+intent, session-lifecycle, and inventory-authority contracts. It independently
+reproduced the repaired lineage sequence: ready revision 5 at tick 500,
+unavailable during failed rebind, and ready revision 6 at tick 499 is rejected;
+monotonic recovery and honest authority replacement remain accepted. It also
+confirmed injection-only composition, coherent unavailable views, stale-intent
+rejection, external dependency ownership, detached/read-only views, and no raw
+owner/bridge/adapter/admission getters. No UI or viewport suite ran in that
+review.
+
+The Astra review then ran only the statically gated dedicated exact-1920 native
+capture and passed `12/0`. All four PNGs and every manifest record are exactly
+1920x1080, all five hashes above match, the inventory image remains
+byte-identical to accepted 4.11, and the 74px cells plus `(1304,225) 518x740`
+right pane are unchanged. Critical effect priority, aggregate hover truth,
+semantic colors, and bounded ellipsis were reconfirmed. No compact, responsive,
+historical inventory-binding, or alternate-size path ran. Human approval remains
+false. Task 8.6 is accepted and its ledger checkbox is now closed.

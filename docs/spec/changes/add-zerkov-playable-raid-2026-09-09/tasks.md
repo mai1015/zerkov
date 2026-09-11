@@ -477,7 +477,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   `HealthView`, `TaskView`, `MapView`, `BunkerView` and `SummaryView` contracts.
 - [ ] 8.5 `[LUNA]` Bind the HUD to real raid, weapon, health, task and extraction
   projections with reversible prediction/correction states.
-- [ ] 8.6 `[SOL]` After inventory tasks 4.11, 4.12 and 4.12a are accepted, bind
+- [x] 8.6 `[SOL]` After inventory tasks 4.11, 4.12 and 4.12a are accepted, bind
   the existing designed inventory and health screens to real snapshots while
   preserving drag state, selection, focus and scroll positions at 1920x1080.
   Do not create a replacement inventory interface; smaller layouts are deferred.
