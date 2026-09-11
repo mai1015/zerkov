@@ -1,4 +1,7 @@
-PASS: no matches in final accepted editor, Godot contract, concurrency-repeat, toolchain, vendor, or strict-spec logs.
+PASS: no matches in the clean post-merge editor import, five rerun headless domain contracts, retained Godot contract logs, concurrency-repeat, toolchain, vendor, or strict-spec logs.
+
+Post-merge base: c08a39b9026c9f45fd666d61a5c5d96b211e178b (merged as 19af13a)
+Excluded by instruction: 4.11 UI/viewport contract and visual capture scripts
 
 Scanned patterns:
 SCRIPT ERROR

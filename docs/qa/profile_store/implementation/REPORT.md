@@ -1,11 +1,17 @@
 # Task 7.9 — ProfileStore implementation evidence
 
-Status: **P1 concurrency repair complete; integration re-review pending**
+Status: **P1 concurrency repair complete; post-merge verification passed**
 
 Task: `7.9` from `add-zerkov-playable-raid-2026-09-09`
 
 Repair base: current `main` `f94222068ec398e4480e049563c496cedb13ff41`
 merged as `2f5c9a3`
+
+Repair commit: `78ce8ecd3a8479fffc8daef2c3e441b457d2abee`
+
+Post-repair integration base: accepted `main`
+`c08a39b9026c9f45fd666d61a5c5d96b211e178b`, merged as
+`19af13a9b1ad10862d9ac5b21f732396d766972d`
 
 Engine: Godot `4.7.2.stable.official.ed1daf0bf`
 
@@ -135,8 +141,8 @@ Godot API references used for the guarantee boundary:
 
 ## Automated results
 
-The final ten-program Godot matrix executed **20,056 checks with zero
-failures**:
+The repair-validation ten-program Godot matrix on the `f942220` base executed
+**20,056 checks with zero failures**:
 
 | Contract | Checks | Failures |
 | --- | ---: | ---: |
@@ -166,12 +172,29 @@ synchronized lease acquisition; synchronized same-store save admission; bounded
 thread joins; close during blocked storage I/O; validation-error admission
 cleanup; and lease reacquisition after both ordinary and raced teardown.
 
-The final concurrency contract was also repeated 25 times in one bounded
+After the repair was preserved and accepted `main` `c08a39b` was merged, the
+focused post-merge headless domain matrix executed **660 checks with zero
+failures**:
+
+| Post-merge contract | Checks | Failures |
+| --- | ---: | ---: |
+| ProfileStore promoted contract and concurrency probes | 258 | 0 |
+| 4.11 inventory intent/lifecycle compatibility | 162 | 0 |
+| Inventory projection lifecycle compatibility | 99 | 0 |
+| Offline session lifecycle compatibility | 44 | 0 |
+| Inventory persistence/replacement compatibility | 97 | 0 |
+
+The 4.11 compatibility rerun deliberately targets the headless adapter,
+projection, session, and persistence boundaries. It does not run
+`inventory_loot_ui_4_11_contract.gd`, instantiate its UI scene, exercise a
+viewport, or regenerate visual captures.
+
+The post-merge concurrency contract was also repeated 25 times in one bounded
 headless run (`6,450` assertions, zero failures and zero join timeouts) to check
 for scheduling flakiness. These repetitions are supplementary and are not
-double-counted in the ten-program matrix.
+double-counted in either matrix.
 
-The clean final editor import exited `0`. Every accepted log was scanned for
+The clean post-merge editor import exited `0`. Every accepted log was scanned for
 `SCRIPT ERROR`, `ERROR:`, warnings, extension-load failures, assertion failure
 markers, ObjectDB/RID/resource leaks, and nonzero exits; there were no matches.
 Strict change validation returned `Valid`. Toolchain and vendored-destination

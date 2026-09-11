@@ -1,5 +1,9 @@
 # Task 7.9 integration review request
 
+Review repair commit `78ce8ecd3a8479fffc8daef2c3e441b457d2abee`
+after accepted `main` `c08a39b9026c9f45fd666d61a5c5d96b211e178b`
+was integrated by merge `19af13a9b1ad10862d9ac5b21f732396d766972d`.
+
 Review the exact files sealed by `frozen_sources.sha256` against task 7.9 and
 the raid-progression/runtime-foundation deltas. Confirm that:
 

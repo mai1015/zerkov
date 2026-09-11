@@ -9,7 +9,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  83% ] first_scan_filesystem | Starting file scan...
 [ DONE ] first_scan_filesystem
 
-[   0% ] update_scripts_classes | Started Registering global classes... (300 steps)
+[   0% ] update_scripts_classes | Started Registering global classes... (302 steps)
 [   0% ] update_scripts_classes | ActionBar
 [   0% ] update_scripts_classes | BindingEntry
 [   0% ] update_scripts_classes | CommonBindingText
@@ -113,84 +113,85 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  33% ] update_scripts_classes | LtsGraphDebugModel
 [  33% ] update_scripts_classes | LtsTaskRuntimeBridge
 [  33% ] update_scripts_classes | LtsTaskSimulator
-[  34% ] update_scripts_classes | LtsTaskSimulatorPanel
+[  33% ] update_scripts_classes | LtsTaskSimulatorPanel
 [  34% ] update_scripts_classes | LtsDocumentValidator
 [  34% ] update_scripts_classes | LtsFindingsPanel
-[  35% ] update_scripts_classes | LtsFindingsStore
+[  34% ] update_scripts_classes | LtsFindingsStore
 [  35% ] update_scripts_classes | LtsWorkspace
 [  35% ] update_scripts_classes |
-[  36% ] update_scripts_classes |
+[  35% ] update_scripts_classes |
 [  36% ] update_scripts_classes | LtsComponentShowcase
 [  36% ] update_scripts_classes |
-[  37% ] update_scripts_classes | WeaponAmmoHudPresenter
+[  36% ] update_scripts_classes | WeaponAmmoHudPresenter
 [  37% ] update_scripts_classes | WeaponCorrectionFlashPresenter
 [  37% ] update_scripts_classes | WeaponDiagnosticsPanel
-[  38% ] update_scripts_classes | WeaponInspectorPanel
+[  37% ] update_scripts_classes | WeaponInspectorPanel
 [  38% ] update_scripts_classes | WeaponMuzzleFlashPresenter
 [  38% ] update_scripts_classes | WeaponReloadProgressPresenter
-[  39% ] update_scripts_classes | WeaponTracerImpactPresenter
+[  38% ] update_scripts_classes | WeaponTracerImpactPresenter
 [  39% ] update_scripts_classes |
 [  39% ] update_scripts_classes | OfflineSessionIngress
-[  40% ] update_scripts_classes | SessionCoordinator
+[  39% ] update_scripts_classes | SessionCoordinator
 [  40% ] update_scripts_classes | ZerkovCombatContent
 [  40% ] update_scripts_classes | ZerkovHealthAbilityContent
-[  41% ] update_scripts_classes | WeaponInstanceContextAdapter
+[  40% ] update_scripts_classes | WeaponInstanceContextAdapter
 [  41% ] update_scripts_classes | ZerkovAssetRegistry
 [  41% ] update_scripts_classes | ZerkovEquipmentAbilityContent
-[  42% ] update_scripts_classes | ZerkovGameplayAbilityContent
+[  41% ] update_scripts_classes | ZerkovGameplayAbilityContent
 [  42% ] update_scripts_classes | ZerkovInventoryCatalog
 [  42% ] update_scripts_classes | EquipmentAbilityParticipantPort
-[  43% ] update_scripts_classes | ZInventoryIdentityPort
+[  42% ] update_scripts_classes | ZInventoryIdentityPort
 [  43% ] update_scripts_classes | ZInventoryWorldPolicyPort
 [  43% ] update_scripts_classes | ZSessionIngressPort
-[  44% ] update_scripts_classes | WeaponReloadParticipantPort
+[  43% ] update_scripts_classes | WeaponReloadParticipantPort
 [  44% ] update_scripts_classes | ZCanonicalValue
 [  44% ] update_scripts_classes | ZConsequenceId
-[  45% ] update_scripts_classes | ZEntityId
+[  44% ] update_scripts_classes | ZEntityId
 [  45% ] update_scripts_classes | ZIdentityRules
 [  45% ] update_scripts_classes | ZInventoryId
-[  46% ] update_scripts_classes | ZRaidEvent
+[  45% ] update_scripts_classes | ZRaidEvent
 [  46% ] update_scripts_classes | ZRaidId
 [  46% ] update_scripts_classes | ZRaidIntent
-[  47% ] update_scripts_classes | ZRequestId
+[  46% ] update_scripts_classes | ZRequestId
 [  47% ] update_scripts_classes | ZSessionAdmission
 [  47% ] update_scripts_classes | ZSessionId
-[  48% ] update_scripts_classes | ZSessionRequest
+[  47% ] update_scripts_classes | ZSessionRequest
 [  48% ] update_scripts_classes | ZSettlementId
 [  48% ] update_scripts_classes | ZStableId
-[  49% ] update_scripts_classes | ZTaskId
+[  48% ] update_scripts_classes | ZTaskId
 [  49% ] update_scripts_classes | ZUnitConversion
 [  49% ] update_scripts_classes | ZWeaponId
-[  50% ] update_scripts_classes | ZWorldUnits
+[  49% ] update_scripts_classes | ZWorldUnits
 [  50% ] update_scripts_classes | EquippedItemReconciler
 [  50% ] update_scripts_classes | GameplayAbilityEquipmentPort
-[  51% ] update_scripts_classes | InventoryAbilityAdapter
+[  50% ] update_scripts_classes | InventoryAbilityAdapter
 [  51% ] update_scripts_classes | InventoryWeaponAdapter
 [  51% ] update_scripts_classes | WeaponAuthorityReloadPort
-[  52% ] update_scripts_classes | InventoryPresentationController
+[  51% ] update_scripts_classes | InventoryPresentationController
 [  52% ] update_scripts_classes | InventoryProjectionBridge
 [  52% ] update_scripts_classes | InventoryIntentAdapter
-[  53% ] update_scripts_classes | InventoryPersistenceBoundary
+[  52% ] update_scripts_classes | InventoryPersistenceBoundary
 [  53% ] update_scripts_classes |
 [  53% ] update_scripts_classes |
-[  54% ] update_scripts_classes | BunkerView
+[  53% ] update_scripts_classes | BunkerView
 [  54% ] update_scripts_classes | HealthView
 [  54% ] update_scripts_classes | InventoryView
-[  55% ] update_scripts_classes | MapView
+[  54% ] update_scripts_classes | MapView
 [  55% ] update_scripts_classes | RaidView
 [  55% ] update_scripts_classes | SummaryView
-[  56% ] update_scripts_classes | TaskView
+[  55% ] update_scripts_classes | TaskView
 [  56% ] update_scripts_classes | ZReadOnlyView
 [  56% ] update_scripts_classes | GodotProfileFileOperations
-[  57% ] update_scripts_classes | ProfileCanonicalCodec
+[  56% ] update_scripts_classes | ProfileCanonicalCodec
 [  57% ] update_scripts_classes | ProfileFileOperations
 [  57% ] update_scripts_classes | ProfileStore
-[  58% ] update_scripts_classes | RaidAuthority
+[  57% ] update_scripts_classes | RaidAuthority
 [  58% ] update_scripts_classes | RaidClock
 [  58% ] update_scripts_classes | RaidEventJournal
-[  59% ] update_scripts_classes | ZRaidIntentQueue
+[  58% ] update_scripts_classes | ZRaidIntentQueue
 [  59% ] update_scripts_classes | RaidInventoryOwner
 [  59% ] update_scripts_classes | ZRaidRng
+[  59% ] update_scripts_classes |
 [  60% ] update_scripts_classes |
 [  60% ] update_scripts_classes |
 [  60% ] update_scripts_classes |
@@ -209,6 +210,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  65% ] update_scripts_classes |
 [  65% ] update_scripts_classes |
 [  65% ] update_scripts_classes |
+[  66% ] update_scripts_classes |
 [  66% ] update_scripts_classes |
 [  66% ] update_scripts_classes |
 [  66% ] update_scripts_classes |
