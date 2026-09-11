@@ -13,7 +13,8 @@ overkill/overspend/overrestore bounds, pain and movement modifiers, healing
 eligibility policy, post-gameplay initialization replay, catalog provenance,
 60 Hz rejection, stale/future command fail-atomicity across both canonical
 bytes and the wrapper tick watermark, reentrant-notification rejection before
-native queue admission, deterministic snapshots, adjacent equipment/combat
+native queue admission, bounded reservations and terminal receipts for foreign
+native notification queues, deterministic snapshots, adjacent equipment/combat
 regressions, combined add-on loading, strict spec validation and an error-free
 editor import.
 

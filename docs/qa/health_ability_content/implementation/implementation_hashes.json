@@ -1,16 +1,16 @@
 {
   "files": {
-    "docs/qa/health_ability_content/README.md": "0dc40269b58becc6dbd5607e22cdaea0166cbaf803f5602b0b12302c2b15cb8e",
+    "docs/qa/health_ability_content/README.md": "90be2ed52d6d23a6b23e46977f9f9fbb8b7ee84dbd501424417894198f4f94e6",
     "docs/qa/health_ability_content/implementation/run_validation.py": "2622eb8876a97c3546ed2474d435988ae0ed4bbe9ecb75c38c25c45452fe93fb",
-    "game/combat/content/README.md": "62941892fdd3f55e805636cf8e57894302cc09e8e07a6f7625813ed705a85b33",
-    "game/combat/content/zerkov_health_ability_content.gd": "d4f4168c2cc1753cd3dff66692a98b2fa5e8ddb46788981a31a907c0383956d3",
+    "game/combat/content/README.md": "eaa1568b1f3ddc64589dfee80b8698b0f67763fe2c8ceca4de8fbcb65a84f058",
+    "game/combat/content/zerkov_health_ability_content.gd": "0a0ab7c53ecd1c919b03f05440384a355f742dfffd414e8782aca4d924fe9a88",
     "game/combat/content/zerkov_health_ability_content.gd.uid": "5874fdb6767b0e0c8bec1343f49960175e8117d7ae6cc7b3ee489d38c2d99633",
     "game/content/README.md": "0488bc5b0d442d38c78bd97e99fff67e586ad9a64af6959b465258ebfa68bf6d",
     "game/content/zerkov_gameplay_ability_content.gd": "c5b0b94f1918645010c399aac9a90f8fa51922502a33ad4ef3664814e62203e6",
     "game/content/zerkov_gameplay_ability_content.gd.uid": "0ccc430d3f13f5d640aa56035a40258b1a2cd9e436761a51ffe41ddeac45c220",
-    "tests/combat/health_ability_content_contract.gd": "c1bea405fa6f7bb499bd3042f30b3003b0116c304ed018a2a7a2c5afc96cda21",
+    "tests/combat/health_ability_content_contract.gd": "862157e48a14c718dde00884ae4fc17d4d8ad72c6b56ab4cc5cd64612e64b5a4",
     "tests/combat/health_ability_content_contract.gd.uid": "51e659336de95de21677803d0b6767f5c43f58d69eafc3a0ab3e2d4c8c891a17"
   },
-  "git_head_before_task_checkpoint": "a1f8ac1cf5277ffcaefecb0c96e148b6686b0b81",
+  "git_head_before_task_checkpoint": "7665c32a60e02dce328bbb62bd54ec5283c372a7",
   "schema_version": 1
 }

@@ -26,6 +26,7 @@ func run() -> void:
 	_test_bounded_application_and_replay()
 	_test_bounded_rejection_admission_atomicity()
 	_test_bounded_reentrant_rejection_atomicity()
+	_test_foreign_notification_queued_reservations()
 	var first := _new_health_component(51_010)
 	var second := _new_health_component(51_010)
 	var first_snapshot := _drive_persistent_transitions(first, true)
@@ -592,6 +593,106 @@ func _test_bounded_reentrant_rejection_atomicity() -> void:
 		and _base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
 			== 99 * ZerkovHealthAbilityContent.FIXED_SCALE,
 		"reentrant rejection consumes neither the later valid tick nor sequence")
+	_cleanup_component(component)
+
+
+func _test_foreign_notification_queued_reservations() -> void:
+	var component := _new_health_component(51_043)
+	var head := ZerkovHealthAbilityContent.body_zone_declaration(
+		ZerkovHealthAbilityContent.ZONE_HEAD)
+	var bleed_spec := _grant(component,
+		StringName(head["heavy_bleed_ability_identifier"]),
+		"queued.heavy_bleed", 0)
+	var stamina_spec := _grant(component,
+		ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND,
+		"queued.stamina.spend", 0)
+	var observations: Array[Dictionary] = []
+	var first_state := {"armed": true}
+	var second_state := {"armed": true}
+	var first_listener := func(_record: Dictionary) -> void:
+		if not bool(first_state["armed"]):
+			return
+		first_state["armed"] = false
+		var receipt := ZerkovHealthAbilityContent.apply_bounded_instant(
+			component, stamina_spec,
+			ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+			60 * ZerkovHealthAbilityContent.FIXED_SCALE, 0, 1)
+		observations.append({
+			"immediate": receipt.duplicate(true),
+			"live": receipt,
+		})
+	var second_listener := func(_record: Dictionary) -> void:
+		if not bool(second_state["armed"]):
+			return
+		second_state["armed"] = false
+		var receipt := ZerkovHealthAbilityContent.apply_bounded_instant(
+			component, stamina_spec,
+			ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+			60 * ZerkovHealthAbilityContent.FIXED_SCALE, 0, 2)
+		observations.append({
+			"immediate": receipt.duplicate(true),
+			"live": receipt,
+		})
+	component.attribute_changed.connect(first_listener)
+	component.attribute_changed.connect(second_listener)
+	var outer := _activate(component, bleed_spec, 0, 1)
+	component.attribute_changed.disconnect(first_listener)
+	component.attribute_changed.disconnect(second_listener)
+	check(bool((outer.get("status", {}) as Dictionary).get("ok", false))
+		and observations.size() == 2,
+		"direct authored heavy bleed invokes both adversarial attribute listeners")
+	var first_immediate := observations[0]["immediate"] as Dictionary
+	var first_terminal := observations[0]["live"] as Dictionary
+	var second_immediate := observations[1]["immediate"] as Dictionary
+	check(bool(first_immediate.get("accepted", false))
+		and bool(first_immediate.get("queued", false))
+		and not bool(first_immediate.get("terminal", true))
+		and not bool(first_immediate.get("committed", true))
+		and int(first_immediate.get("applied_amount_micros", -1)) == 0
+		and int(first_immediate.get("reserved_amount_micros", 0))
+			== 60 * ZerkovHealthAbilityContent.FIXED_SCALE,
+		"queued admission reports a reservation, never immediate applied state")
+	check(not bool(second_immediate.get("accepted", true))
+		and StringName(second_immediate.get("reason", &""))
+			== &"health_resource_overspend"
+		and not bool(second_immediate.get("native_invoked", true)),
+		"second listener cannot oversubscribe stamina reserved by the first")
+	check(bool(first_terminal.get("accepted", false))
+		and not bool(first_terminal.get("queued", true))
+		and bool(first_terminal.get("terminal", false))
+		and bool(first_terminal.get("committed", false))
+		and bool(first_terminal.get("postcondition_ok", false))
+		and int(first_terminal.get("applied_amount_micros", 0))
+			== 60 * ZerkovHealthAbilityContent.FIXED_SCALE
+		and int(first_terminal.get("reserved_amount_micros", -1)) == 0,
+		"native lifecycle settles the queued reservation to an honest terminal receipt")
+	var terminal_lookup := ZerkovHealthAbilityContent.bounded_application_receipt(
+		component, String(first_immediate.get("reservation_id", "")))
+	check(bool(terminal_lookup.get("terminal", false))
+		and bool(terminal_lookup.get("committed", false))
+		and int(terminal_lookup.get("applied_amount_micros", 0))
+			== 60 * ZerkovHealthAbilityContent.FIXED_SCALE,
+		"bounded receipt lookup exposes queued work's terminal committed result")
+	check(_base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
+			== 40 * ZerkovHealthAbilityContent.FIXED_SCALE
+		and _current_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
+			== 40 * ZerkovHealthAbilityContent.FIXED_SCALE,
+		"queued bounded work leaves stamina base/current inside authored bounds")
+
+	var after_queue := component.write_snapshot()
+	var replay := ZerkovHealthAbilityContent.initialize_component(component, 0)
+	check(bool(replay.get("accepted", false))
+		and component.write_snapshot() == after_queue,
+		"post-queue initialization replay remains byte-for-byte idempotent")
+	var followup := ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec,
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		40 * ZerkovHealthAbilityContent.FIXED_SCALE, 1, 2)
+	check(bool(followup.get("accepted", false))
+		and not bool(followup.get("queued", false))
+		and _base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA) == 0
+		and _current_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA) == 0,
+		"rejected oversubscription consumes no sequence and valid follow-up reaches floor")
 	_cleanup_component(component)
 
 

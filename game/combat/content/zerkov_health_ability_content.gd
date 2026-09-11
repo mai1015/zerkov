@@ -16,6 +16,7 @@ const MAX_COMMAND_SEQUENCE: int = 9_007_199_254_740_000
 const MAX_APPLICATION_AMOUNT_MICROS: int = 1_000_000 * FIXED_SCALE
 const MAX_COMPONENT_ATTRIBUTES: int = 128
 const MAX_ABILITY_GRANTS: int = 64
+const MAX_BOUNDED_QUEUED_RESERVATIONS: int = 64
 const SET_BY_CALLER_AMOUNT: StringName = &"amount"
 const HEALTH_BOOTSTRAP_INPUT_ID: String = "zerkov.bootstrap.health.life"
 
@@ -97,10 +98,11 @@ const ABILITY_DEFINITION_COUNT: int = 41
 # `GameplayAbilityComponent.request_activation()` queues a request when it is
 # entered from one of that component's synchronous change notifications. A
 # queued receipt is not a committed result and cannot be cancelled through the
-# public API, so the bounded seam must never submit one. This per-component
-# guard is held across the native call and lets a notification callback reject
-# a nested application before native tick/queue admission.
+# public API. The in-flight guard rejects callbacks caused by this seam itself;
+# bounded reservations cover callbacks caused by other native operations and
+# settle through the public activation lifecycle signals.
 static var _bounded_application_in_flight: Dictionary = {}
+static var _bounded_queued_reservations: Dictionary = {}
 
 
 static func build_definition_catalog() -> GameplayDefinitionCatalog:
@@ -261,7 +263,9 @@ static func initialize_component(
 ## The only task-5.5 seam allowed to apply set-by-caller instant health or
 ## resource effects. Integer micro-units, exact grant/sequence identity, real
 ## base/current headroom, native effect admission, and non-reentrancy are all
-## validated before activation.
+## validated before activation. A foreign notification's queued admission
+## reserves headroom and returns a nonterminal receipt; query its eventual
+## terminal state with `bounded_application_receipt()`.
 static func apply_bounded_instant(
 	component: GameplayAbilityComponent,
 	ability_spec: int,
@@ -298,7 +302,15 @@ static func apply_bounded_instant(
 			or StringName(grant.get("ability_identifier", &"")) \
 				!= StringName(policy["ability_identifier"]):
 		return _rejection(&"health_ability_spec_mismatch")
-	var last_command_sequence := int(grant.get("last_command_sequence", 0))
+	var reservation_summary := _bounded_reservation_summary(
+		component_instance_id, String(policy["attribute_identifier"]), ability_spec)
+	if int(reservation_summary["count"]) >= MAX_BOUNDED_QUEUED_RESERVATIONS:
+		return _rejection(&"health_queued_reservation_capacity_exceeded", {
+			"native_invoked": false,
+		})
+	var last_command_sequence := maxi(
+		int(grant.get("last_command_sequence", 0)),
+		int(reservation_summary["last_command_sequence"]))
 	if last_command_sequence < 0 or last_command_sequence > MAX_COMMAND_SEQUENCE:
 		return _rejection(&"health_grant_sequence_invalid")
 	if last_command_sequence > 0 and command_sequence <= last_command_sequence:
@@ -321,21 +333,34 @@ static func apply_bounded_instant(
 	if base_before < minimum or base_before > maximum \
 			or current_before < minimum or current_before > maximum:
 		return _rejection(&"health_attribute_out_of_bounds")
+	var admitted_base_before := base_before + int(reservation_summary["attribute_delta_micros"])
+	var admitted_current_before := \
+		current_before + int(reservation_summary["attribute_delta_micros"])
+	if admitted_base_before < minimum or admitted_base_before > maximum \
+			or admitted_current_before < minimum \
+			or admitted_current_before > maximum:
+		return _rejection(&"health_queued_reservation_state_invalid", {
+			"native_invoked": false,
+		})
 	var applied := requested
 	var mode := StringName(policy["bound_policy"])
 	if mode == BOUND_CAP_TO_FLOOR:
 		applied = mini(requested,
-			mini(base_before - minimum, current_before - minimum))
+			mini(admitted_base_before - minimum,
+				admitted_current_before - minimum))
 	elif mode == BOUND_REJECT_OVERSPEND:
-		var available := mini(base_before - minimum, current_before - minimum)
+		var available := mini(admitted_base_before - minimum,
+			admitted_current_before - minimum)
 		if requested > available:
 			return _rejection(&"health_resource_overspend", {
+				"native_invoked": false,
 				"requested_amount_micros": requested,
 				"available_amount_micros": available,
 			})
 	elif mode == BOUND_CAP_TO_HEADROOM:
 		applied = mini(requested,
-			mini(maximum - base_before, maximum - current_before))
+			mini(maximum - admitted_base_before,
+				maximum - admitted_current_before))
 	else:
 		return _rejection(&"health_bound_policy_invalid")
 	if applied == 0:
@@ -349,6 +374,7 @@ static func apply_bounded_instant(
 			"attribute_identifier": attribute_identifier,
 			"base_before_micros": base_before,
 			"base_after_micros": base_before,
+			"projected_base_before_micros": admitted_base_before,
 		}
 	var before := component.write_snapshot()
 	if before.is_empty():
@@ -371,6 +397,11 @@ static func apply_bounded_instant(
 			"native_invoked": false,
 			"status": effect_preflight_status.duplicate(true),
 		})
+	var reservation_setup := _ensure_bounded_reservation_state(component)
+	if not bool(reservation_setup.get("ok", false)):
+		return _rejection(&"health_reservation_tracking_unavailable", {
+			"native_invoked": false,
+		})
 	_bounded_application_in_flight[component_instance_id] = true
 	var activation: Dictionary = component.request_activation({
 		"spec": ability_spec,
@@ -382,23 +413,52 @@ static func apply_bounded_instant(
 	}, tick)
 	_bounded_application_in_flight.erase(component_instance_id)
 	if bool(activation.get("queued", false)):
-		# This cannot occur for calls admitted through this seam: the guard
-		# rejects its only supported reentrant entry path before submission.
-		# Never misreport a queued native command as a rejected/no-mutation
-		# receipt, because the native queue may still commit it after return.
-		return {
+		# A foreign native notification can already be dispatching even though
+		# this helper is not in flight. The add-on intentionally exposes no
+		# dispatch-state query, so account for its queued admission explicitly:
+		# reserve bounds/sequence headroom now, report zero applied work, and
+		# let the public activation lifecycle settle this SAME Dictionary.
+		var queued_reservation_id := _allocate_bounded_reservation_id(
+			component_instance_id, ability_spec, command_sequence, tick)
+		var queued_receipt := {
 			"accepted": true,
 			"reason": &"",
-			"mutation_state": &"queued",
+			"mutation_state": &"reserved",
 			"queued": true,
+			"terminal": false,
+			"committed": false,
 			"requested_amount_micros": requested,
-			"applied_amount_micros": applied,
+			"applied_amount_micros": 0,
+			"reserved_amount_micros": applied,
+			"reservation_id": queued_reservation_id,
 			"clamped": applied != requested,
 			"native_invoked": true,
 			"attribute_identifier": attribute_identifier,
 			"base_before_micros": base_before,
 			"base_after_micros": base_before,
+			"projected_base_before_micros": admitted_base_before,
+			"projected_base_after_micros": \
+				admitted_base_before + int(policy["direction"]) * applied,
+			"activation": activation,
 		}
+		_register_bounded_queued_reservation(component, {
+			"reservation_id": queued_reservation_id,
+			"pending": true,
+			"spec": ability_spec,
+			"command_sequence": command_sequence,
+			"tick": tick,
+			"attribute_identifier": attribute_identifier,
+			"minimum_micros": minimum,
+			"maximum_micros": maximum,
+			"direction": int(policy["direction"]),
+			"amount_micros": applied,
+			"projected_base_after_micros": \
+				admitted_base_before + int(policy["direction"]) * applied,
+			"projected_current_after_micros": \
+				admitted_current_before + int(policy["direction"]) * applied,
+			"receipt": queued_receipt,
+		})
+		return queued_receipt
 	var status := activation.get("status", {}) as Dictionary
 	if not bool(status.get("ok", false)):
 		var rollback_ok := component.write_snapshot() == before
@@ -423,6 +483,10 @@ static func apply_bounded_instant(
 	return {
 		"accepted": true,
 		"reason": &"",
+		"mutation_state": &"committed",
+		"queued": false,
+		"terminal": true,
+		"committed": true,
 		"requested_amount_micros": requested,
 		"applied_amount_micros": applied,
 		"clamped": applied != requested,
@@ -432,6 +496,31 @@ static func apply_bounded_instant(
 		"base_after_micros": base_after,
 		"activation": activation,
 	}
+
+
+## Read-only terminal lookup for a queued receipt returned by
+## `apply_bounded_instant()`. Receipt history is game-owned and bounded to the
+## same 64 records as native pending mutation admission. Its process-local ID
+## is transient accounting, not task 5.6's stable consequence identity.
+static func bounded_application_receipt(
+	component: GameplayAbilityComponent,
+	reservation_id: String
+) -> Dictionary:
+	if component == null or not is_instance_valid(component) \
+			or reservation_id.is_empty():
+		return _rejection(&"health_reservation_lookup_invalid")
+	var state := _bounded_queued_reservations.get(
+		component.get_instance_id(), {}) as Dictionary
+	if state.is_empty():
+		return _rejection(&"health_reservation_unknown")
+	var component_ref := state.get("component") as WeakRef
+	if component_ref == null or component_ref.get_ref() != component:
+		return _rejection(&"health_reservation_unknown")
+	for value in state.get("reservations", []) as Array:
+		var reservation := value as Dictionary
+		if String(reservation.get("reservation_id", "")) == reservation_id:
+			return (reservation.get("receipt", {}) as Dictionary).duplicate(true)
+	return _rejection(&"health_reservation_unknown")
 
 
 static func body_zone_declarations() -> Array[Dictionary]:
@@ -1177,6 +1266,272 @@ static func _execution_uses_spec(
 		if int(component.get_execution(execution_id).get("spec", 0)) == spec:
 			return true
 	return false
+
+
+static func _ensure_bounded_reservation_state(
+	component: GameplayAbilityComponent
+) -> Dictionary:
+	var component_instance_id := component.get_instance_id()
+	if _bounded_queued_reservations.has(component_instance_id):
+		var existing := _bounded_queued_reservations[component_instance_id] \
+			as Dictionary
+		var existing_ref := existing.get("component") as WeakRef
+		if existing_ref != null and existing_ref.get_ref() == component:
+			return {"ok": true}
+		_bounded_queued_reservations.erase(component_instance_id)
+
+	var committed_callback := func(event: Dictionary) -> void:
+		_settle_bounded_queued_reservation(
+			component_instance_id, event, true, &"")
+	var failed_callback := func(event: Dictionary) -> void:
+		_settle_bounded_queued_reservation(
+			component_instance_id, event, false,
+			&"health_native_activation_failed")
+	var revoked_callback := func(event: Dictionary) -> void:
+		_settle_bounded_queued_reservation(
+			component_instance_id, event, false,
+			&"health_ability_revoked_while_queued")
+	var cleanup_callback := func() -> void:
+		_abandon_bounded_queued_reservations(
+			component_instance_id, &"health_component_exited_while_queued")
+	var connections := [
+		[component.activation_committed, committed_callback],
+		[component.activation_cancelled, failed_callback],
+		[component.activation_failed, failed_callback],
+		[component.ability_revoked, revoked_callback],
+		[component.tree_exiting, cleanup_callback],
+	]
+	var connected: Array = []
+	for connection in connections:
+		var signal_value: Signal = connection[0]
+		var callback_value: Callable = connection[1]
+		var error := signal_value.connect(callback_value)
+		if error != OK:
+			for completed in connected:
+				var completed_signal: Signal = completed[0]
+				var completed_callback: Callable = completed[1]
+				if completed_signal.is_connected(completed_callback):
+					completed_signal.disconnect(completed_callback)
+			return {"ok": false}
+		connected.append(connection)
+	_bounded_queued_reservations[component_instance_id] = {
+		"component": weakref(component),
+		"reservations": [],
+		"callbacks": connected,
+		"audit_scheduled": false,
+		"next_reservation_serial": 1,
+	}
+	return {"ok": true}
+
+
+static func _allocate_bounded_reservation_id(
+	component_instance_id: int,
+	ability_spec: int,
+	command_sequence: int,
+	tick: int
+) -> String:
+	var state := _bounded_queued_reservations.get(
+		component_instance_id, {}) as Dictionary
+	var serial := int(state.get("next_reservation_serial", 1))
+	state["next_reservation_serial"] = serial + 1
+	return "%d:%d:%d:%d:%d" % [
+		component_instance_id, ability_spec, command_sequence, tick, serial]
+
+
+static func _bounded_reservation_summary(
+	component_instance_id: int,
+	attribute_identifier: String,
+	ability_spec: int
+) -> Dictionary:
+	var result := {
+		"count": 0,
+		"attribute_delta_micros": 0,
+		"last_command_sequence": 0,
+	}
+	var state := _bounded_queued_reservations.get(
+		component_instance_id, {}) as Dictionary
+	if state.is_empty():
+		return result
+	var component_ref := state.get("component") as WeakRef
+	if component_ref == null or component_ref.get_ref() == null:
+		_abandon_bounded_queued_reservations(
+			component_instance_id, &"health_component_invalid_while_queued")
+		return result
+	var reservations := state.get("reservations", []) as Array
+	for value in reservations:
+		var reservation := value as Dictionary
+		if not bool(reservation.get("pending", false)):
+			continue
+		result["count"] = int(result["count"]) + 1
+		if String(reservation.get("attribute_identifier", "")) \
+				== attribute_identifier:
+			result["attribute_delta_micros"] = \
+				int(result["attribute_delta_micros"]) \
+				+ int(reservation.get("direction", 0)) \
+					* int(reservation.get("amount_micros", 0))
+		if int(reservation.get("spec", 0)) == ability_spec:
+			result["last_command_sequence"] = maxi(
+				int(result["last_command_sequence"]),
+				int(reservation.get("command_sequence", 0)))
+	return result
+
+
+static func _register_bounded_queued_reservation(
+	component: GameplayAbilityComponent,
+	reservation: Dictionary
+) -> void:
+	var component_instance_id := component.get_instance_id()
+	var state := _bounded_queued_reservations.get(
+		component_instance_id, {}) as Dictionary
+	var reservations := state.get("reservations", []) as Array
+	while reservations.size() >= MAX_BOUNDED_QUEUED_RESERVATIONS:
+		var terminal_index := -1
+		for index in range(reservations.size()):
+			if not bool((reservations[index] as Dictionary).get("pending", false)):
+				terminal_index = index
+				break
+		if terminal_index < 0:
+			return
+		reservations.remove_at(terminal_index)
+	reservations.append(reservation)
+	if bool(state.get("audit_scheduled", false)):
+		return
+	var tree := component.get_tree()
+	if tree == null:
+		return
+	state["audit_scheduled"] = true
+	var audit_callback := func() -> void:
+		_audit_bounded_queued_reservations(component_instance_id)
+	state["audit_callback"] = audit_callback
+	tree.process_frame.connect(audit_callback, CONNECT_ONE_SHOT)
+
+
+static func _settle_bounded_queued_reservation(
+	component_instance_id: int,
+	event: Dictionary,
+	committed: bool,
+	failure_reason: StringName
+) -> void:
+	var state := _bounded_queued_reservations.get(
+		component_instance_id, {}) as Dictionary
+	if state.is_empty():
+		return
+	var component_ref := state.get("component") as WeakRef
+	var component := component_ref.get_ref() as GameplayAbilityComponent \
+		if component_ref != null else null
+	if component == null or not is_instance_valid(component):
+		_abandon_bounded_queued_reservations(
+			component_instance_id, &"health_component_invalid_while_queued")
+		return
+	var reservations := state.get("reservations", []) as Array
+	var event_spec := int(event.get("spec", 0))
+	var event_tick := int(event.get("tick", -1))
+	for index in range(reservations.size()):
+		var reservation := reservations[index] as Dictionary
+		if not bool(reservation.get("pending", false)) \
+				or int(reservation.get("spec", 0)) != event_spec:
+			continue
+		if committed and int(reservation.get("tick", -2)) != event_tick:
+			continue
+		if committed:
+			var grant := component.get_grant(event_spec)
+			if int(grant.get("last_command_sequence", 0)) \
+					< int(reservation.get("command_sequence", 0)):
+				continue
+		reservation["pending"] = false
+		_finalize_bounded_queued_receipt(
+			component, reservation, committed, failure_reason, event)
+		return
+
+
+static func _finalize_bounded_queued_receipt(
+	component: GameplayAbilityComponent,
+	reservation: Dictionary,
+	committed: bool,
+	failure_reason: StringName,
+	event: Dictionary
+) -> void:
+	var receipt := reservation.get("receipt", {}) as Dictionary
+	receipt["queued"] = false
+	receipt["terminal"] = true
+	receipt["committed"] = committed
+	receipt["reserved_amount_micros"] = 0
+	receipt["terminal_event"] = event.duplicate(true)
+	if not committed:
+		receipt["accepted"] = false
+		receipt["reason"] = failure_reason
+		receipt["mutation_state"] = &"none"
+		return
+	var attribute_identifier := String(reservation["attribute_identifier"])
+	var base_after := _fixed_micros(
+		component.get_attribute_base(attribute_identifier))
+	var current_after := _fixed_micros(
+		component.get_attribute_current(attribute_identifier))
+	var minimum := int(reservation["minimum_micros"])
+	var maximum := int(reservation["maximum_micros"])
+	var postcondition_ok := \
+		base_after == int(reservation["projected_base_after_micros"]) \
+		and current_after == int(reservation["projected_current_after_micros"]) \
+		and base_after >= minimum and base_after <= maximum \
+		and current_after >= minimum and current_after <= maximum
+	receipt["accepted"] = true
+	receipt["reason"] = &"" if postcondition_ok \
+		else &"health_native_postcondition_failed"
+	receipt["mutation_state"] = &"committed" if postcondition_ok \
+		else &"committed_postcondition_failed"
+	receipt["applied_amount_micros"] = int(reservation["amount_micros"])
+	receipt["base_after_micros"] = base_after
+	receipt["current_after_micros"] = current_after
+	receipt["postcondition_ok"] = postcondition_ok
+
+
+static func _audit_bounded_queued_reservations(
+	component_instance_id: int
+) -> void:
+	var state := _bounded_queued_reservations.get(
+		component_instance_id, {}) as Dictionary
+	if state.is_empty():
+		return
+	state["audit_scheduled"] = false
+	state.erase("audit_callback")
+	var component_ref := state.get("component") as WeakRef
+	var component := component_ref.get_ref() as GameplayAbilityComponent \
+		if component_ref != null else null
+	if component == null or not is_instance_valid(component):
+		_abandon_bounded_queued_reservations(
+			component_instance_id, &"health_component_invalid_while_queued")
+		return
+	var reservations := state.get("reservations", []) as Array
+	for value in reservations:
+		var reservation := value as Dictionary
+		if not bool(reservation.get("pending", false)):
+			continue
+		reservation["pending"] = false
+		_finalize_bounded_queued_receipt(
+			component, reservation, false,
+			&"health_queued_activation_unresolved", {})
+
+
+static func _abandon_bounded_queued_reservations(
+	component_instance_id: int,
+	reason: StringName
+) -> void:
+	var state := _bounded_queued_reservations.get(
+		component_instance_id, {}) as Dictionary
+	for value in state.get("reservations", []) as Array:
+		var reservation := value as Dictionary
+		if not bool(reservation.get("pending", false)):
+			continue
+		reservation["pending"] = false
+		var receipt := reservation.get("receipt", {}) as Dictionary
+		receipt["accepted"] = false
+		receipt["reason"] = reason
+		receipt["mutation_state"] = &"none"
+		receipt["queued"] = false
+		receipt["terminal"] = true
+		receipt["committed"] = false
+		receipt["reserved_amount_micros"] = 0
+	_bounded_queued_reservations.erase(component_instance_id)
 
 
 static func _rollback_initialization(

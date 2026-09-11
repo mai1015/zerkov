@@ -42,10 +42,18 @@ rejects resource overspend, and verifies the exact authored ability grant.
 Before native activation it also rejects stale per-grant command sequences,
 runs the public side-effect-free effect preflight, and holds a per-component
 guard so a synchronous native change notification cannot reenter the seam and
-enqueue a delayed mutation. Rejected calls therefore advance neither canonical
-snapshot bytes nor the component's diagnostic tick watermark. Initialization
-likewise verifies the live sealed-catalog provenance and 60 Hz clock before
-mutation, and remains idempotent after valid gameplay changes.
+enqueue a second helper-owned mutation. If a notification from another native
+operation causes the add-on to queue a request, the seam reserves projected
+attribute headroom and command sequence before another request can be admitted.
+Its receipt reports zero applied work until public activation-lifecycle signals
+settle it, and `bounded_application_receipt()` exposes that terminal result.
+The bounded receipt ID is process-local admission bookkeeping, not the stable
+combat-consequence identity which remains task 5.6-owned.
+Rejected calls therefore advance neither canonical snapshot bytes nor the
+component's diagnostic tick watermark, while multiple queued calls cannot
+oversubscribe a bounded attribute. Initialization likewise verifies the live
+sealed-catalog provenance and 60 Hz clock before mutation, and remains
+idempotent after valid gameplay changes.
 
 The declarations intentionally stop at task 5.5's data/policy boundary. Heavy-
 bleed tick damage and cadence, lethal-zone rules, pain/movement contributions,
