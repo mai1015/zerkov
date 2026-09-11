@@ -24,6 +24,50 @@ enum TickPhase {
 	PUBLISH_PROJECTIONS,
 }
 
+class PhaseHandlerRelay:
+	extends RefCounted
+
+	signal invoked(
+		authority: RaidAuthority,
+		phase: TickPhase,
+		tick: int,
+		intents: Array[ZRaidIntent],
+		result_box: Array
+	)
+
+	var callback_identity: String = ""
+
+	func configure(callback: Callable, identity: String) -> bool:
+		if not callback.is_valid() or identity.is_empty() \
+				or not callback_identity.is_empty():
+			return false
+		callback_identity = identity
+		invoked.connect(func(
+			authority: RaidAuthority,
+			phase: TickPhase,
+			tick: int,
+			intents: Array[ZRaidIntent],
+			result_box: Array
+		) -> void:
+			if not authority.phase_handler_callback_is_safe(callback):
+				result_box.append(false)
+				return
+			result_box.append(callback.call(authority, phase, tick, intents))
+		)
+		return true
+
+	func invoke(
+		authority: RaidAuthority,
+		phase: TickPhase,
+		tick: int,
+		intents: Array[ZRaidIntent]
+	) -> Variant:
+		var result_box: Array = []
+		invoked.emit(authority, phase, tick, intents, result_box)
+		if result_box.size() != 1:
+			return null
+		return result_box[0]
+
 const LIFECYCLE_NAMES: PackedStringArray = [
 	"preparing",
 	"active",
@@ -49,7 +93,6 @@ const PHASE_NAMES: PackedStringArray = [
 const MAX_HANDLERS_PER_PHASE: int = 16
 const MAX_HANDLER_DEPENDENCIES: int = 8
 const MAX_HANDLER_REGISTRATIONS: int = 256
-const MAX_PHASE_HANDLER_OBLIGATIONS: int = 64
 const MIN_PHASE_HANDLER_PRIORITY: int = -1_024
 const MAX_PHASE_HANDLER_PRIORITY: int = 1_024
 
@@ -71,10 +114,10 @@ var _processing_tick: int = 0
 var _processing_phase: int = -1
 var _processing_handler_id: StringName = &""
 var _processing_handler_registration_id: String = ""
+var _processing_handler_callback_identity: String = ""
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _issued_handler_registration_ids: Dictionary = {}
-var _phase_handler_obligations: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
 var _weapon_actor_states: Dictionary = {}
 
@@ -235,11 +278,12 @@ func has_exact_phase_handler(
 			or registration_id.is_empty() or not callback.is_valid():
 		return false
 	var registration := _handler_ids.get(handler_id, {}) as Dictionary
+	var callback_identity := _phase_callback_identity(callback)
 	return not registration.is_empty() \
 		and String(registration.get("registration_id", "")) == registration_id \
 		and int(registration.get("phase", -1)) == int(phase) \
-		and registration.get("callback", Callable()) == callback \
-		and not _variant_graph_contains_hitbox_bearer(callback, 0, {})
+		and not callback_identity.is_empty() \
+		and String(registration.get("callback_identity", "")) == callback_identity
 
 
 func is_dispatching_phase_registration(
@@ -253,80 +297,10 @@ func is_dispatching_phase_registration(
 	return is_processing_tick_phase(phase, tick, expected_generation) \
 		and _processing_handler_id == handler_id \
 		and _processing_handler_registration_id == registration_id \
+		and _processing_handler_callback_identity \
+			== _phase_callback_identity(callback) \
 		and has_exact_phase_handler(
 			handler_id, registration_id, callback, phase, expected_generation)
-
-
-## A phase-5 producer opens one obligation for each irreversible committed
-## shot. The exact phase-6 registration alone may close it, and the tick fails
-## terminally if any obligation remains after WORLD_CONSEQUENCES.
-func can_open_phase_handler_obligation(
-	obligation_id: String,
-	handler_id: StringName,
-	registration_id: String,
-	callback: Callable,
-	tick: int,
-	expected_generation: int
-) -> bool:
-	last_error = &""
-	if not is_processing_tick_phase(
-		TickPhase.INTERACTIONS_AND_WEAPONS, tick, expected_generation):
-		return _reject(&"phase_handler_obligation_phase_invalid")
-	if obligation_id.is_empty() \
-			or obligation_id.to_utf8_buffer().size() > 128:
-		return _reject(&"phase_handler_obligation_id_invalid")
-	if not has_exact_phase_handler(
-		handler_id, registration_id, callback,
-		TickPhase.WORLD_CONSEQUENCES, expected_generation):
-		return _reject(&"phase_handler_registration_stale")
-	if _phase_handler_obligations.has(obligation_id):
-		return _reject(&"phase_handler_obligation_duplicate")
-	if _phase_handler_obligations.size() >= MAX_PHASE_HANDLER_OBLIGATIONS:
-		return _reject(&"phase_handler_obligation_capacity_exceeded")
-	return true
-
-
-func open_phase_handler_obligation(
-	obligation_id: String,
-	handler_id: StringName,
-	registration_id: String,
-	callback: Callable,
-	tick: int,
-	expected_generation: int
-) -> bool:
-	if not can_open_phase_handler_obligation(
-		obligation_id, handler_id, registration_id, callback,
-		tick, expected_generation):
-		return false
-	_phase_handler_obligations[obligation_id] = {
-		"handler_id": handler_id,
-		"registration_id": registration_id,
-		"tick": tick,
-	}
-	return true
-
-
-func close_phase_handler_obligation(
-	obligation_id: String,
-	handler_id: StringName,
-	registration_id: String,
-	callback: Callable,
-	tick: int,
-	expected_generation: int
-) -> bool:
-	last_error = &""
-	if not is_dispatching_phase_registration(
-		handler_id, registration_id, callback,
-		TickPhase.WORLD_CONSEQUENCES, tick, expected_generation):
-		return _reject(&"phase_handler_obligation_dispatch_invalid")
-	var obligation := _phase_handler_obligations.get(obligation_id, {}) as Dictionary
-	if obligation.is_empty() \
-			or StringName(obligation.get("handler_id", &"")) != handler_id \
-			or String(obligation.get("registration_id", "")) != registration_id \
-			or int(obligation.get("tick", -1)) != tick:
-		return _reject(&"phase_handler_obligation_invalid")
-	_phase_handler_obligations.erase(obligation_id)
-	return true
 
 
 func register_phase_handler(
@@ -346,8 +320,11 @@ func register_phase_handler(
 		return _reject(&"phase_invalid")
 	if not ZIdentityRules.is_valid_part(String(handler_id)) or not callback.is_valid():
 		return _reject(&"handler_invalid")
-	if _variant_graph_contains_hitbox_bearer(callback, 0, {}):
+	if not phase_handler_callback_is_safe(callback):
 		return _reject(&"handler_callback_retains_capability")
+	var callback_identity := _phase_callback_identity(callback)
+	if callback_identity.is_empty():
+		return _reject(&"handler_callback_identity_invalid")
 	if priority < MIN_PHASE_HANDLER_PRIORITY or priority > MAX_PHASE_HANDLER_PRIORITY:
 		return _reject(&"handler_priority_invalid")
 	if after_handler_ids.size() > MAX_HANDLER_DEPENDENCIES:
@@ -375,29 +352,33 @@ func register_phase_handler(
 					and String(dependency_id) >= String(handler_id)):
 			return _reject(&"handler_dependency_order_invalid")
 		dependencies.append(String(dependency_id))
-	var handlers: Array = _phase_handlers.get(int(phase), [])
-	if handlers.size() >= MAX_HANDLERS_PER_PHASE:
+	var handler_ids: Array = _phase_handlers.get(int(phase), [])
+	if handler_ids.size() >= MAX_HANDLERS_PER_PHASE:
 		return _reject(&"phase_handler_limit")
-	handlers.append({
+	var relay := PhaseHandlerRelay.new()
+	if not relay.configure(callback, callback_identity):
+		return _reject(&"handler_callback_relay_invalid")
+	var registration := {
 		"id": handler_id,
 		"registration_id": registration_id,
-		"callback": callback,
-		"priority": priority,
-		"after": dependencies,
-	})
-	handlers.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
-		if int(left["priority"]) != int(right["priority"]):
-			return int(left["priority"]) < int(right["priority"])
-		return String(left["id"]) < String(right["id"])
-	)
-	_phase_handlers[int(phase)] = handlers
-	_handler_ids[handler_id] = {
-		"registration_id": registration_id,
-		"callback": callback,
+		"callback_identity": callback_identity,
+		"relay": relay,
 		"phase": int(phase),
 		"priority": priority,
 		"after": dependencies,
 	}
+	_handler_ids[handler_id] = registration
+	handler_ids.append(handler_id)
+	handler_ids.sort_custom(func(left_value: Variant, right_value: Variant) -> bool:
+		var left_id := StringName(left_value)
+		var right_id := StringName(right_value)
+		var left := _handler_ids[left_id] as Dictionary
+		var right := _handler_ids[right_id] as Dictionary
+		if int(left["priority"]) != int(right["priority"]):
+			return int(left["priority"]) < int(right["priority"])
+		return String(left_id) < String(right_id)
+	)
+	_phase_handlers[int(phase)] = handler_ids
 	_issued_handler_registration_ids[registration_id] = true
 	return true
 
@@ -426,10 +407,9 @@ func unregister_phase_handler(
 	var phase_value := int(registration.get("phase", -1))
 	var handlers: Array = _phase_handlers.get(phase_value, [])
 	var retained: Array = []
-	for entry_value in handlers:
-		var entry := entry_value as Dictionary
-		if StringName(entry.get("id", &"")) != handler_id:
-			retained.append(entry)
+	for registered_id_value in handlers:
+		if StringName(registered_id_value) != handler_id:
+			retained.append(registered_id_value)
 	if retained.is_empty():
 		_phase_handlers.erase(phase_value)
 	else:
@@ -736,7 +716,6 @@ func teardown(expected_generation: int) -> bool:
 	_intent_queue.clear()
 	_phase_handlers.clear()
 	_handler_ids.clear()
-	_phase_handler_obligations.clear()
 	_issued_handler_registration_ids.clear()
 	_authorized_actor_sources.clear()
 	_weapon_actor_states.clear()
@@ -790,33 +769,47 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 		last_phase_trace.append(PHASE_NAMES[phase_value])
 		if phase == TickPhase.ADMIT_INTENTS:
 			due_intents = _intent_queue.drain_tick(tick)
-		var handlers: Array = _phase_handlers.get(phase_value, [])
-		for entry in handlers:
-			var callback: Callable = entry["callback"]
-			if not callback.is_valid():
+		var handler_ids: Array = _phase_handlers.get(phase_value, [])
+		if not _phase_handler_roster_is_coherent(phase_value, handler_ids):
+			return _fail_current_tick(tick, &"phase_handler_registration_corrupted")
+		for handler_id_value in handler_ids:
+			if typeof(handler_id_value) != TYPE_STRING_NAME \
+					and typeof(handler_id_value) != TYPE_STRING:
+				return _fail_current_tick(tick, &"phase_handler_registration_corrupted")
+			var handler_id := StringName(handler_id_value)
+			var entry := _handler_ids.get(handler_id, {}) as Dictionary
+			if entry.is_empty() \
+					or StringName(entry.get("id", &"")) != handler_id \
+					or int(entry.get("phase", -1)) != phase_value:
+				return _fail_current_tick(tick, &"phase_handler_registration_corrupted")
+			var relay := entry.get("relay") as PhaseHandlerRelay
+			var callback_identity := String(entry.get("callback_identity", ""))
+			if relay == null or not is_instance_valid(relay) \
+					or callback_identity.is_empty() \
+					or relay.callback_identity != callback_identity:
 				return _fail_current_tick(tick, &"phase_handler_invalidated")
-			_processing_handler_id = StringName(entry["id"])
+			_processing_handler_id = handler_id
 			_processing_handler_registration_id = String(entry["registration_id"])
+			_processing_handler_callback_identity = callback_identity
 			var handler_intents: Array[ZRaidIntent] = []
 			for intent in due_intents:
 				var intent_copy := intent.snapshot()
 				if intent_copy == null:
 					return _fail_current_tick(tick, &"queued_intent_corrupted")
 				handler_intents.append(intent_copy)
-			var outcome: Variant = callback.call(self, phase, tick, handler_intents)
+			var outcome: Variant = relay.invoke(self, phase, tick, handler_intents)
 			_processing_handler_id = &""
 			_processing_handler_registration_id = ""
+			_processing_handler_callback_identity = ""
 			if typeof(outcome) != TYPE_BOOL or not outcome:
 				return _fail_current_tick(tick, &"phase_handler_failed")
-		if phase == TickPhase.WORLD_CONSEQUENCES \
-				and not _phase_handler_obligations.is_empty():
-			return _fail_current_tick(tick, &"phase_handler_obligation_unresolved")
 	last_processed_tick = tick
 	_is_advancing = false
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
 	_processing_handler_registration_id = ""
+	_processing_handler_callback_identity = ""
 	last_error = &""
 	return true
 
@@ -861,6 +854,7 @@ func _fail_current_tick(tick: int, code: StringName) -> bool:
 	_processing_phase = -1
 	_processing_handler_id = &""
 	_processing_handler_registration_id = ""
+	_processing_handler_callback_identity = ""
 	lifecycle = Lifecycle.FAILED
 	_seal_terminal_runtime()
 	return _reject(code)
@@ -886,6 +880,50 @@ func _new_handler_registration_id() -> String:
 		if not _issued_handler_registration_ids.has(candidate):
 			return candidate
 	return ""
+
+
+func _phase_handler_roster_is_coherent(
+	phase_value: int,
+	actual_ids: Array
+) -> bool:
+	var expected_ids: Array = []
+	for handler_id_value in _handler_ids.keys():
+		var handler_id := StringName(handler_id_value)
+		var registration := _handler_ids[handler_id] as Dictionary
+		if int(registration.get("phase", -1)) == phase_value:
+			expected_ids.append(handler_id)
+	expected_ids.sort_custom(func(left_value: Variant, right_value: Variant) -> bool:
+		var left_id := StringName(left_value)
+		var right_id := StringName(right_value)
+		var left := _handler_ids[left_id] as Dictionary
+		var right := _handler_ids[right_id] as Dictionary
+		if int(left.get("priority", 0)) != int(right.get("priority", 0)):
+			return int(left.get("priority", 0)) < int(right.get("priority", 0))
+		return String(left_id) < String(right_id)
+	)
+	return actual_ids == expected_ids
+
+
+func phase_handler_callback_is_safe(callback: Callable) -> bool:
+	return callback.is_valid() \
+		and not _variant_graph_contains_hitbox_bearer(
+			callback, 0, {get_instance_id(): true})
+
+
+func _phase_callback_identity(callback: Callable) -> String:
+	if not callback.is_valid():
+		return ""
+	var owner := callback.get_object()
+	if owner == null or not is_instance_valid(owner):
+		return ""
+	var bound_arguments := callback.get_bound_arguments()
+	if not ZCanonicalValue.is_bounded(bound_arguments):
+		return ""
+	return ZCanonicalValue.sha256({
+		"object_instance_id": owner.get_instance_id(),
+		"method": String(callback.get_method()),
+		"bound_arguments": bound_arguments,
+	})
 
 
 func _variant_graph_contains_hitbox_bearer(
@@ -927,7 +965,12 @@ func _variant_graph_contains_hitbox_bearer(
 				return true
 		return false
 	if typeof(value) == TYPE_DICTIONARY:
-		for child in (value as Dictionary).values():
+		var dictionary := value as Dictionary
+		for key in dictionary.keys():
+			if _variant_graph_contains_hitbox_bearer(
+				key, depth + 1, visited):
+				return true
+			var child: Variant = dictionary[key]
 			if _variant_graph_contains_hitbox_bearer(
 				child, depth + 1, visited):
 				return true

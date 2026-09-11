@@ -333,10 +333,6 @@ func commit_fire(
 	var collision := _reserve_stable_ids(identity, fingerprint, predicted_ids)
 	if not collision.is_empty():
 		return _latch_fatal(collision)
-	if not _authority.open_phase_handler_obligation(
-		identity, PHASE_HANDLER_ID, _phase_registration_id,
-		_phase_callback(_binding_generation), tick, _raid_generation):
-		return _latch_fatal(_authority.last_error)
 	var receipt := {
 		"accepted": true,
 		"queued": true,
@@ -545,10 +541,6 @@ func _resolve_pending(entry: Dictionary) -> bool:
 	_resolved_by_identity[identity] = {
 		"fingerprint": fingerprint, "result": consequence.duplicate(true)}
 	_last_result = consequence.duplicate(true)
-	if not _authority.close_phase_handler_obligation(
-		identity, PHASE_HANDLER_ID, _phase_registration_id,
-		_phase_callback(_binding_generation), tick, _raid_generation):
-		return _reject(_authority.last_error)
 	var publication := _read_only_copy(consequence)
 	_public_signal_active = true
 	consequence_committed.emit(publication)
@@ -888,10 +880,6 @@ func _preflight_downstream_commit(
 	if not _authority.can_record_event(
 		ZRaidEvent.EventKind.HIT, event_id, tick, _admission.actor_id,
 		preflight_payload, _raid_generation):
-		return _authority.last_error
-	if not _authority.can_open_phase_handler_obligation(
-		shot_identity, PHASE_HANDLER_ID, _phase_registration_id,
-		phase_callback, tick, _raid_generation):
 		return _authority.last_error
 	return &""
 

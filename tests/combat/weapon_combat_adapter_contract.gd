@@ -97,6 +97,7 @@ class BearerOwningHandler:
 	extends RefCounted
 
 	var capability: Variant
+	var references: Dictionary = {}
 
 	func handle(
 		_authority: RaidAuthority,
@@ -272,13 +273,39 @@ func _test_binding_and_lifecycle_guards() -> void:
 	var adapter := fixture["adapter"] as WeaponCombatAdapter
 	var world := fixture["world"] as BodyHitboxWorld2D
 	var bearer_owner := BearerOwningHandler.new()
-	bearer_owner.capability = fixture["capability"]
+	bearer_owner.references[fixture["capability"]] = true
 	check(not authority.register_phase_handler(
 		RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
 		&"bearer_owning_handler", Callable(bearer_owner, "handle"),
 		int(fixture["generation"])) \
 		and authority.last_error == &"handler_callback_retains_capability",
 		"authority rejects a callback whose nested owner graph retains the bearer")
+	bearer_owner.references.clear()
+	var mutable_callback := Callable(bearer_owner, "handle")
+	check(authority.register_phase_handler(
+		RaidAuthority.TickPhase.TASKS_AND_AUDIT,
+		&"post_registration_mutation", mutable_callback,
+		int(fixture["generation"])),
+		"bearer-free callback owner registers through the minimal relay")
+	var mutable_registration := authority.phase_handler_registration_id(
+		&"post_registration_mutation", int(fixture["generation"]))
+	bearer_owner.references[fixture["capability"]] = true
+	check(not _object_graph_exposes_reference(adapter, fixture["capability"]),
+		"post-registration Dictionary-key mutation is hidden behind the relay")
+	bearer_owner.references.clear()
+	bearer_owner.capability = fixture["capability"]
+	check(not _object_graph_exposes_reference(adapter, fixture["capability"]),
+		"post-registration ordinary-property mutation is hidden behind the relay")
+	bearer_owner.capability = null
+	check(authority.has_exact_phase_handler(
+		&"post_registration_mutation", mutable_registration, mutable_callback,
+		RaidAuthority.TickPhase.TASKS_AND_AUDIT, int(fixture["generation"])) \
+		and authority.unregister_phase_handler(
+			&"post_registration_mutation", int(fixture["generation"])),
+		"relay preserves exact registration after owner references are cleared")
+	check(not authority.has_method("open_phase_handler_obligation") \
+		and not authority.has_method("can_open_phase_handler_obligation"),
+		"no public DTO-shaped obligation intake can manufacture pending work")
 	var phase_callback := adapter._phase_callback(adapter.binding_generation())
 	var registration_id := authority.phase_handler_registration_id(
 		WeaponCombatAdapter.PHASE_HANDLER_ID, int(fixture["generation"]))
@@ -384,13 +411,33 @@ func _test_exact_registration_and_unresolved_obligation_guards() -> void:
 	var after := (removed["weapon_authority"] as WeaponAuthority).snapshot(
 		String(removed["weapon_id"]))
 	check(removed_authority.lifecycle == RaidAuthority.Lifecycle.FAILED \
-		and removed_authority.last_error == &"phase_handler_obligation_unresolved" \
+		and removed_authority.last_error == &"phase_handler_registration_corrupted" \
 		and (removed["adapter"] as WeaponCombatAdapter).pending_count() == 1 \
 		and int(after.get("loaded_rounds", -1)) \
 			== int(initial.get("loaded_rounds", -1)) - 1 \
 		and _publication_counts(removed) == Vector2i(0, 0),
-		"committed shot obligation terminalizes instead of stranding success")
+		"removed canonical phase roster terminalizes instead of stranding success")
 	_cleanup_fixture(removed)
+
+	var split := _new_fixture(
+		"split_brain", &"miss", null, &"split_brain_callback")
+	var split_authority := split["authority"] as RaidAuthority
+	var split_before := split["initial_weapon_snapshot"] as Dictionary
+	check(split_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE, int(split["generation"])) \
+		and not split_authority.advance_one(int(split["generation"])),
+		"split phase-entry callback cannot dispatch against canonical registration")
+	var split_after := (split["weapon_authority"] as WeaponAuthority).snapshot(
+		String(split["weapon_id"]))
+	check(split_authority.last_error == &"phase_handler_registration_corrupted" \
+		and not bool(_runtime_fixture(split).get("split_brain_called", false)) \
+		and (split["adapter"] as WeaponCombatAdapter).pending_count() == 1 \
+		and (split["adapter"] as WeaponCombatAdapter).ledger_size() == 0 \
+		and int(split_after.get("loaded_rounds", -1)) \
+			== int(split_before.get("loaded_rounds", -1)) - 1 \
+		and _publication_counts(split) == Vector2i(0, 0),
+		"split-brain mutation fails closed without query, event, or consequence")
+	_cleanup_fixture(split)
 
 
 func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
@@ -877,13 +924,35 @@ func _fire_phase(
 			var world_handlers := handlers_by_phase.get(
 				int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES), []) as Array
 			var retained: Array = []
-			for entry_value in world_handlers:
-				var entry := entry_value as Dictionary
-				if StringName(entry.get("id", &"")) \
+			for handler_id_value in world_handlers:
+				if StringName(handler_id_value) \
 						!= WeaponCombatAdapter.PHASE_HANDLER_ID:
-					retained.append(entry)
+					retained.append(handler_id_value)
 			handlers_by_phase[int(
 				RaidAuthority.TickPhase.WORLD_CONSEQUENCES)] = retained
+		&"split_brain_callback":
+			var handlers_by_phase := _authority.get("_phase_handlers") as Dictionary
+			var world_handlers := handlers_by_phase.get(
+				int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES), []) as Array
+			for index in world_handlers.size():
+				if StringName(world_handlers[index]) \
+						== WeaponCombatAdapter.PHASE_HANDLER_ID:
+					world_handlers[index] = {
+						"id": WeaponCombatAdapter.PHASE_HANDLER_ID,
+						"callback": Callable(
+							self, "_split_brain_world_phase").bind(label),
+					}
+	return true
+
+
+func _split_brain_world_phase(
+	_authority: RaidAuthority,
+	_phase: RaidAuthority.TickPhase,
+	_tick: int,
+	_intents: Array[ZRaidIntent],
+	label: String
+) -> bool:
+	(_fixtures[label] as Dictionary)["split_brain_called"] = true
 	return true
 
 
@@ -961,7 +1030,12 @@ func _variant_contains_reference(
 				return true
 		return false
 	if typeof(value) == TYPE_DICTIONARY:
-		for child in (value as Dictionary).values():
+		var dictionary := value as Dictionary
+		for key in dictionary.keys():
+			if _variant_contains_reference(
+				key, needle, depth + 1, visited):
+				return true
+			var child: Variant = dictionary[key]
 			if _variant_contains_reference(child, needle, depth + 1, visited):
 				return true
 		return false

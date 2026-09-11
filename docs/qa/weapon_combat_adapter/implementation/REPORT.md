@@ -6,7 +6,7 @@ remains unchecked by design.
 - Recorded: 2026-09-11
 - Branch: codex/weapon-combat-adapter-5-4
 - Original base: c265d3a4efd9b49f840b87e201ceb8f4b661d26b
-- Accepted integrated main: 64e01051e6676c9582ce5409b683d542dddc8686
+- Accepted integrated main: abc9c107d91b7b01819a67da88add254de2e0bcf
 - Accepted Task 5.3 merge: 49c0ae0f3d512df441858e61c0881cdbe22c40a4
 - Engine: Godot 4.7.2.stable.official.ed1daf0bf, headless only
 
@@ -24,25 +24,26 @@ remains unchecked by design.
   detached recursively read-only original before another native call, query,
   event, or publication. Divergent facts under one command ID fail closed.
 - RaidAuthority issues a random, bounded, non-reusable registration identity
-  and authenticates the exact callback/phase/tick/generation dispatch frame.
-  Reusing the handler label after unregister cannot impersonate the prior
-  registration. Registered callback graphs are recursively screened for a
-  retained Task 5.3 bearer.
+  and keeps one canonical registration record. Phase ordering stores IDs only;
+  a minimal relay hides the caller callback owner behind a signal connection,
+  while dispatch attests the callback-identity commitment, phase, tick and
+  generation. Dictionary keys/values, Callable owners and bound arguments are
+  recursively screened for a Task 5.3 bearer immediately before invocation.
 - The accepted Task 5.3 v2 bearer is used only transiently at bind to authorize
   narrow BodyHitboxWorld2D phase grants. Neither the adapter, authority,
   handler, callback owner, provenance, nor result graph retains the bearer,
   lease, or a bearer-returning callable. Metadata and raycast grants also
   verify exact raid/session/epoch/generation/actor/source/world provenance.
-- Each native commit opens a bounded RaidAuthority phase-6 obligation. Only
-  the exact registered handler dispatch closes it; any removed/bypassed
-  handler leaves an obligation and terminally fails the tick.
+- RaidAuthority verifies every phase roster against canonical registrations
+  before dispatch. Removing or replacing a phase entry cannot strand a
+  committed shot behind a successful tick; incoherent rosters fail terminally.
+  No public obligation/shot-DTO intake exists.
 - The native `command_id + ":shot"`, typed event/query IDs, journal slot,
   hitbox-query slot, exact handler grant, and full target-coordinate envelope
   are preflighted before WeaponAuthority.fire can consume ammo or revision.
   Checked multiplication/addition avoids INT64_MIN-unsafe absolute value.
-- Journal, adapter queue/ledger, hitbox-query, phase-grant, obligation, and
-  lifetime registration storage are bounded and collision checked before
-  publication.
+- Journal, adapter queue/ledger, hitbox-query, phase-grant, and lifetime
+  registration storage are bounded and collision checked before publication.
 - One first-seen operation produces at most one authoritative raycast, one
   immutable hit/miss result, one journal input, and one consequence signal.
 
@@ -54,18 +55,23 @@ truth-spec, or task-ledger change. Accepted-main history is reported separately.
 
 The permanent contract retains the earlier candidate regressions and closes
 every finding against rejected repair
-2db22b1bae222702f4f51eb388550f321b172507:
+fe055d702484c83712f28f911d45d177c9c5fda9:
 
-1. Recursive property inspection follows nested Objects and Callable owners;
-   adapter/authority/handler graphs expose no retained hitbox bearer. A
-   bearer-owning callback is rejected before registration.
-2. Unregister plus a different callback under the same handler ID receives a
-   different identity and cannot call the private resolver as the old handler.
-3. Reflectively removing the active phase-6 handler after native commit leaves
-   a durable obligation, terminally fails the tick, and cannot strand success.
-4. A boundary-valid 124-byte command is rejected because the derived `:shot`
+1. Recursive property inspection follows nested Objects, Callable owners, and
+   Dictionary keys and values. Bearer-owning callback registration is rejected;
+   post-registration key/property mutation cannot become reachable through
+   adapter/authority/world property graphs because the caller is signal-relayed.
+2. Phase ordering and callback facts no longer have split-brain representations.
+   Replacing a phase-list entry while canonical registration remains intact
+   fails roster coherence before the replacement callback can run.
+3. Public `shot_committed` notifications cannot open pending work, and the
+   public phase-obligation intake has been removed. Only `commit_fire` can
+   consume a round and create one pending consequence.
+4. Reflectively removing the active phase-6 handler after native commit fails
+   canonical-roster validation and cannot strand a successful tick.
+5. A boundary-valid 124-byte command is rejected because the derived `:shot`
    identity would exceed the bound; ammo and revision remain unchanged.
-5. A scalable but boundary-adjacent origin is rejected by the complete target
+6. A scalable but boundary-adjacent origin is rejected by the complete target
    envelope before native ammo/revision mutation.
 
 Earlier forged signal DTO, direct native fire, phase-5 resolver, extreme-origin
@@ -76,7 +82,7 @@ immutable replay, duplicate operation, synchronous callback reentry,
 release/rebind, wrong actor/source, stale generation/tick, malformed requests,
 identity collisions, and all capacity preflights.
 
-Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=318 failures=0
+Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=336 failures=0
 
 ## Adjacent headless contracts
 
@@ -99,21 +105,21 @@ Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=318 failures=0
 
 Adjacent: 20,017 checks, 0 failures.
 
-Focused plus adjacent: 20,335 checks, 0 failures.
+Focused plus adjacent: 20,353 checks, 0 failures.
 
 ## Import, diagnostics and spec
 
 - Fresh pinned headless editor import exited 0 with no diagnostic line.
 - All 15 permitted contracts exited 0 with no failure or runtime diagnostic.
 - Git diff checks passed and the task-specific diff has no add-on source.
-- Task 5.3 remains checked; task 5.4 remains unchecked. Accepted tasks 7.9 and
-  8.3 remain checked after the exact-main integration.
+- Task 5.3 remains checked; task 5.4 remains unchecked. Accepted task 8.10 and
+  prior accepted tasks remain checked after the exact-main integration.
 - Strict change validation returned Valid.
 - No UI, viewport, compact, responsive, visual, capture, or screen-size test ran.
 
 ## Limits and remaining risks
 
-- Limits are 64 pending shots/phase obligations, 4,096 resolved operations,
+- Limits are 64 pending shots, 4,096 resolved operations,
   4,096 task-5.3 query results, 8,192 journal events, 16 delegated phase grants,
   and 256 lifetime handler registrations. Capacity is fail-stop, not eviction,
   because replay and non-reuse proofs must remain stable.

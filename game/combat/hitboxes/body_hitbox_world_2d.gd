@@ -286,8 +286,7 @@ func authorize_phase_consumer(
 		return _reject_bool(&"phase_consumer_registration_invalid")
 	if _phase_consumers.has(registration_id):
 		var prior := _phase_consumers[registration_id] as Dictionary
-		return StringName(prior.get("handler_id", &"")) == handler_id \
-			and prior.get("callback", Callable()) == callback
+		return StringName(prior.get("handler_id", &"")) == handler_id
 	for grant_value in _phase_consumers.values():
 		var grant := grant_value as Dictionary
 		if StringName(grant.get("permission", &"")) == &"raycast":
@@ -296,7 +295,6 @@ func authorize_phase_consumer(
 		return _reject_bool(&"phase_consumer_capacity_exceeded")
 	_phase_consumers[registration_id] = {
 		"handler_id": handler_id,
-		"callback": callback,
 		"binding_token": _active_binding_token,
 		"phase": int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES),
 		"permission": &"raycast",
@@ -327,7 +325,6 @@ func authorize_phase_publisher(
 		return _reject_bool(&"phase_consumer_capacity_exceeded")
 	_phase_consumers[registration_id] = {
 		"handler_id": handler_id,
-		"callback": callback,
 		"binding_token": _active_binding_token,
 		"phase": int(RaidAuthority.TickPhase.MOVEMENT),
 		"permission": &"publish",
@@ -1301,13 +1298,16 @@ func _guard_phase_consumer(
 	var consumer := _phase_consumers.get(registration_id, {}) as Dictionary
 	if consumer.is_empty() \
 			or StringName(consumer.get("handler_id", &"")) != handler_id \
-			or consumer.get("callback", Callable()) != callback \
 			or int(consumer.get("binding_token", 0)) != _active_binding_token:
 		return _reject_bool(&"phase_consumer_invalid")
 	if int(consumer.get("phase", -1)) \
 			!= int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES) \
 			or StringName(consumer.get("permission", &"")) != &"raycast":
 		return _reject_bool(&"phase_consumer_invalid")
+	if not _authority.has_exact_phase_handler(
+		handler_id, registration_id, callback,
+		RaidAuthority.TickPhase.WORLD_CONSEQUENCES, _authority_generation):
+		return _reject_bool(&"phase_consumer_registration_invalid")
 	if require_world_dispatch:
 		if not _authority.is_dispatching_phase_registration(
 			handler_id, registration_id, callback,
@@ -1338,11 +1338,13 @@ func _guard_exact_phase_grant(
 	var consumer := _phase_consumers.get(registration_id, {}) as Dictionary
 	if consumer.is_empty() \
 			or StringName(consumer.get("handler_id", &"")) != handler_id \
-			or consumer.get("callback", Callable()) != callback \
 			or int(consumer.get("binding_token", 0)) != _active_binding_token \
 			or int(consumer.get("phase", -1)) != int(phase) \
 			or StringName(consumer.get("permission", &"")) != permission:
 		return _reject_bool(&"phase_consumer_invalid")
+	if not _authority.has_exact_phase_handler(
+		handler_id, registration_id, callback, phase, _authority_generation):
+		return _reject_bool(&"phase_consumer_registration_invalid")
 	if not _authority.is_dispatching_phase_registration(
 		handler_id, registration_id, callback, phase, tick,
 		_authority_generation):
