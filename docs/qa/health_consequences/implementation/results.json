@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-09-11",
+  "branch": "codex/damage-injury-healing-death-5-6",
+  "original_base": "b0ead7da37dcf239c40dd3c706d94b0e457ca310",
+  "integrated_main": "1b201cb031ec174dad616334b302e22cc7a744c5",
+  "intrinsic_checkpoint": "8a40030",
+  "post_merge_pre_evidence_checkpoint": "fbee0bf",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "headless_only": true,
+  "focused": {
+    "contract": "tests/combat/health_consequence_adapter_contract.gd",
+    "runs": [
+      {"checks": 204, "failures": 0, "exit_code": 0},
+      {"checks": 204, "failures": 0, "exit_code": 0}
+    ]
+  },
+  "adjacent": {
+    "checks": 22046,
+    "failures": 0,
+    "contracts": 20
+  },
+  "total_assertions": 22454,
+  "total_failures": 0,
+  "editor_import": {"exit_code": 0, "diagnostics": 0},
+  "strict_spec": {"exit_code": 0, "result": "Valid"},
+  "vendor_integrity": {"tests": 4, "failures": 0, "exit_code": 0},
+  "diff_check": {"exit_code": 0},
+  "forbidden_test_surfaces_run": []
+}
