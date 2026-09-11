@@ -215,12 +215,16 @@ func replace_live(
 	if not _envelope_matches_preflight(normalized, preflight):
 		_end_operation()
 		return _failure(last_error, {}, inventory_id, before_sha256)
-	if (preflight["canonical_bytes"] as PackedByteArray) == before_bytes:
+	var expected_live_bytes := preflight[
+		"expected_live_canonical_bytes"] as PackedByteArray
+	if expected_live_bytes == before_bytes:
 		_end_operation()
 		return _success(
 			inventory_id, true, false, before_sha256,
+			String(preflight["expected_live_canonical_sha256"]),
+			int(preflight["expected_live_canonical_hash"]), {},
 			String(preflight["canonical_sha256"]),
-			int(preflight["canonical_hash"]), {})
+			bool(preflight["allocator_floor_adjusted"]))
 	# Recheck after disposable decoding: no stale caller can win a synchronous
 	# callback boundary by changing the owner or target in between validations.
 	if not _binding_matches_generation(expected_owner_generation):
@@ -258,27 +262,34 @@ func replace_live(
 			inventory_id,
 			before_sha256)
 	var restored_snapshot := live_authority.snapshot(inventory_id)
-	var expected_bytes := preflight["canonical_bytes"] as PackedByteArray
+	var expected_bytes := preflight[
+		"expected_live_canonical_bytes"] as PackedByteArray
 	var restored_bytes := restored_snapshot.canonical_bytes() \
 		if restored_snapshot != null else PackedByteArray()
 	var restored_sha256 := _sha256_bytes(restored_bytes)
 	var exact := _snapshot_matches_preflight(restored_snapshot, preflight) \
 		and restored_bytes == expected_bytes \
-		and restored_sha256 == String(preflight["canonical_sha256"])
+		and restored_sha256 == String(preflight[
+			"expected_live_canonical_sha256"])
 	_end_operation()
 	if not exact:
-		# The native apply already committed. Fail closed and retire this boundary
-		# so no caller can mistake a verification failure for a reusable binding.
-		_invalidate_binding(&"restored_state_verification_failed")
-		return _failure(
-			&"restored_state_verification_failed",
-			native_result.get("status", {}) as Dictionary,
+		# Native replacement is already committed and cannot be rolled back through
+		# the pinned public API. Return a truthful committed/recovery receipt rather
+		# than a false atomic rejection, then retire every captured binding.
+		var committed_unverified := _committed_unverified(
 			inventory_id,
 			before_sha256,
-			restored_sha256)
+			restored_sha256,
+			String(preflight["canonical_sha256"]),
+			native_result.get("status", {}) as Dictionary,
+			bool(preflight["allocator_floor_adjusted"]))
+		_invalidate_binding(&"restored_state_verification_failed")
+		return committed_unverified
 	var result := _success(
 		inventory_id, false, true, before_sha256, restored_sha256,
-		restored_snapshot.hash(), native_result.get("status", {}) as Dictionary)
+		restored_snapshot.hash(), native_result.get("status", {}) as Dictionary,
+		String(preflight["canonical_sha256"]),
+		bool(preflight["allocator_floor_adjusted"]))
 	_invalidate_binding(&"persistence_replacement_committed")
 	return result
 
@@ -332,13 +343,63 @@ func _preflight_bytes_once(
 	var canonical_bytes := snapshot.canonical_bytes()
 	var canonical_sha256 := _sha256_bytes(canonical_bytes)
 	var exact_record_round_trip := remade_record == record_bytes
+	var record_sha256 := _sha256_bytes(record_bytes)
+	if not exact_record_round_trip or canonical_sha256.is_empty() \
+			or record_sha256.is_empty():
+		var round_trip_failure := _failure(
+			&"persistence_round_trip_mismatch",
+			native_result.get("status", {}) as Dictionary,
+			inventory_id)
+		authority.free()
+		return round_trip_failure
+
+	# InventoryAuthority shares item/container/reference allocators across every
+	# runtime it owns and intentionally never rewinds those allocators on live
+	# restore. Replaying the current live target into this disposable authority
+	# establishes the exact live floor; replaying the candidate once more then
+	# predicts the byte-exact post-replacement snapshot without parsing opaque
+	# native bytes or mutating the real authority.
+	var live_authority := target["authority"] as InventoryAuthority
+	var live_record := live_authority.make_persistence_record(inventory_id)
+	if live_record.is_empty() or live_record.size() > MAX_PERSISTENCE_RECORD_BYTES:
+		authority.free()
+		return _failure(&"live_allocator_floor_capture_failed", {}, inventory_id)
+	var floor_result: Dictionary = authority.apply_persistence_record(
+		live_record, true)
+	if not bool(floor_result.get("ok", false)):
+		var floor_failure := _failure(
+			&"live_allocator_floor_preflight_failed",
+			floor_result.get("status", {}) as Dictionary,
+			inventory_id)
+		authority.free()
+		return floor_failure
+	var convergence_result: Dictionary = authority.apply_persistence_record(
+		record_bytes, true)
+	if not bool(convergence_result.get("ok", false)):
+		var convergence_failure := _failure(
+			&"live_allocator_convergence_failed",
+			convergence_result.get("status", {}) as Dictionary,
+			inventory_id)
+		authority.free()
+		return convergence_failure
+	var expected_snapshot := authority.snapshot(inventory_id)
+	var expected_record := authority.make_persistence_record(inventory_id)
+	var expected_bytes := expected_snapshot.canonical_bytes() \
+		if expected_snapshot != null else PackedByteArray()
+	var expected_sha256 := _sha256_bytes(expected_bytes)
+	if not _snapshots_match_visible_state(snapshot, expected_snapshot) \
+			or expected_record.is_empty() or expected_sha256.is_empty():
+		authority.free()
+		return _failure(&"live_allocator_convergence_failed", {}, inventory_id)
 	var result := {
-		"ok": exact_record_round_trip and not canonical_sha256.is_empty(),
-		"accepted": exact_record_round_trip and not canonical_sha256.is_empty(),
+		"ok": true,
+		"accepted": true,
 		"duplicate": false,
 		"replaced": false,
-		"reason": &"" if exact_record_round_trip and not canonical_sha256.is_empty() \
-			else &"persistence_round_trip_mismatch",
+		"committed": false,
+		"verified": true,
+		"recovery_required": false,
+		"reason": &"",
 		"native_status": (native_result.get("status", {}) as Dictionary).duplicate(true),
 		"inventory_id": inventory_id,
 		"profile_identifier": snapshot.get_profile_identifier(),
@@ -347,9 +408,14 @@ func _preflight_bytes_once(
 		"manifest_algorithm": snapshot.get_manifest_algorithm(),
 		"canonical_hash": snapshot.hash(),
 		"canonical_sha256": canonical_sha256,
-		"record_sha256": _sha256_bytes(record_bytes),
+		"record_sha256": record_sha256,
 		"canonical_bytes": canonical_bytes,
 		"record_bytes": remade_record,
+		"expected_live_canonical_hash": expected_snapshot.hash(),
+		"expected_live_canonical_sha256": expected_sha256,
+		"expected_live_canonical_bytes": expected_bytes,
+		"expected_live_record_bytes": expected_record,
+		"allocator_floor_adjusted": expected_bytes != canonical_bytes,
 	}
 	authority.free()
 	return result
@@ -447,7 +513,22 @@ func _snapshot_matches_preflight(
 		and snapshot.get_revision() == int(preflight["revision"]) \
 		and snapshot.get_manifest_fingerprint() == int(preflight["manifest_fingerprint"]) \
 		and snapshot.get_manifest_algorithm() == String(preflight["manifest_algorithm"]) \
-		and snapshot.hash() == int(preflight["canonical_hash"])
+		and snapshot.hash() == int(preflight["expected_live_canonical_hash"])
+
+
+func _snapshots_match_visible_state(
+	left: InventorySnapshotResource,
+	right: InventorySnapshotResource
+) -> bool:
+	return left != null and right != null \
+		and left.get_inventory_id() == right.get_inventory_id() \
+		and left.get_profile_identifier() == right.get_profile_identifier() \
+		and left.get_revision() == right.get_revision() \
+		and left.get_manifest_fingerprint() == right.get_manifest_fingerprint() \
+		and left.get_manifest_algorithm() == right.get_manifest_algorithm() \
+		and left.get_containers() == right.get_containers() \
+		and left.get_items() == right.get_items() \
+		and left.get_references() == right.get_references()
 
 
 func _resolve_live_target(scope: StringName, inventory_id: int) -> Dictionary:
@@ -665,7 +746,9 @@ func _success(
 	previous_sha256: String,
 	restored_sha256: String,
 	canonical_hash: int,
-	native_status: Dictionary
+	native_status: Dictionary,
+	persisted_sha256: String,
+	allocator_floor_adjusted: bool
 ) -> Dictionary:
 	last_error = &""
 	return {
@@ -673,12 +756,45 @@ func _success(
 		"accepted": true,
 		"duplicate": duplicate,
 		"replaced": replaced,
+		"committed": replaced,
+		"verified": true,
+		"recovery_required": false,
 		"reason": &"",
 		"native_status": native_status.duplicate(true),
 		"inventory_id": inventory_id,
 		"previous_canonical_sha256": previous_sha256,
 		"restored_canonical_sha256": restored_sha256,
+		"persisted_canonical_sha256": persisted_sha256,
 		"canonical_hash": canonical_hash,
+		"allocator_floor_adjusted": allocator_floor_adjusted,
+	}
+
+
+func _committed_unverified(
+	inventory_id: int,
+	previous_sha256: String,
+	restored_sha256: String,
+	persisted_sha256: String,
+	native_status: Dictionary,
+	allocator_floor_adjusted: bool
+) -> Dictionary:
+	last_error = &"restored_state_verification_failed"
+	return {
+		"ok": true,
+		"accepted": true,
+		"duplicate": false,
+		"replaced": true,
+		"committed": true,
+		"verified": false,
+		"recovery_required": true,
+		"reason": &"restored_state_verification_failed",
+		"native_status": native_status.duplicate(true),
+		"inventory_id": inventory_id,
+		"previous_canonical_sha256": previous_sha256,
+		"restored_canonical_sha256": restored_sha256,
+		"persisted_canonical_sha256": persisted_sha256,
+		"canonical_hash": 0,
+		"allocator_floor_adjusted": allocator_floor_adjusted,
 	}
 
 
@@ -695,11 +811,16 @@ func _failure(
 		"accepted": false,
 		"duplicate": false,
 		"replaced": false,
+		"committed": false,
+		"verified": false,
+		"recovery_required": false,
 		"reason": reason,
 		"native_status": native_status.duplicate(true),
 		"inventory_id": inventory_id,
 		"previous_canonical_sha256": previous_sha256,
 		"restored_canonical_sha256": restored_sha256,
+		"persisted_canonical_sha256": "",
+		"allocator_floor_adjusted": false,
 	}
 
 

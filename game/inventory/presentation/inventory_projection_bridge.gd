@@ -298,7 +298,8 @@ func _exit_tree() -> void:
 
 func _connect_authority(scope: StringName, authority: InventoryAuthority) -> void:
 	var authority_id := authority.get_instance_id()
-	var transaction_callback := Callable(self, "_on_transaction_committed").bind(scope, authority_id)
+	var transaction_callback := Callable(self, "_on_transaction_committed").bind(
+		scope, authority_id, scope_generation(scope))
 	var unloaded_callback := Callable(self, "_on_inventory_unloaded").bind(scope, authority_id)
 	var generation_callback := Callable(self, "_on_inventory_generation_changing").bind(
 		scope, authority_id)
@@ -306,6 +307,7 @@ func _connect_authority(scope: StringName, authority: InventoryAuthority) -> voi
 	authority.inventory_unloaded.connect(unloaded_callback)
 	authority.inventory_generation_changing.connect(generation_callback)
 	_authority_connections.append({
+		"scope": scope,
 		"authority": authority,
 		"transaction": transaction_callback,
 		"unloaded": unloaded_callback,
@@ -337,8 +339,14 @@ func _disconnect_bound_signals() -> void:
 	_owner_tree_exiting_connection = Callable()
 
 
-func _on_transaction_committed(result: Dictionary, scope: StringName, authority_id: int) -> void:
-	if not _callback_is_current(scope, authority_id):
+func _on_transaction_committed(
+	result: Dictionary,
+	scope: StringName,
+	authority_id: int,
+	callback_scope_generation: int
+) -> void:
+	if not _callback_is_current(scope, authority_id) \
+			or callback_scope_generation != scope_generation(scope):
 		return
 	# A queued receipt is admission bookkeeping, not an authoritative outcome.
 	# Current native authorities emit only the later final result on this signal,
@@ -568,6 +576,9 @@ func _invalidate_scope_inventory(
 	(_scope_revisions.get(scope, {}) as Dictionary).erase(inventory_id)
 	_generation_serial += 1
 	_scope_generations[scope] = _generation_serial
+	_scope_processed_result_ids[scope] = {}
+	_scope_processed_result_order[scope] = []
+	_refresh_transaction_connection(scope)
 	# Build the retained multi-inventory projection before handing the new model
 	# to listeners. A model_replaced callback must never observe only a prefix of
 	# the inventories that survived this lifecycle edge.
@@ -621,7 +632,31 @@ func _invalidate_models(status: ProjectionStatus, disconnected: bool) -> void:
 		_scope_revisions[scope] = {}
 		_generation_serial += 1
 		_scope_generations[scope] = _generation_serial
+		_scope_processed_result_ids[scope] = {}
+		_scope_processed_result_order[scope] = []
 		_set_scope_status(scope, status)
+
+
+func _refresh_transaction_connection(scope: StringName) -> void:
+	var authority := _scope_authorities.get(scope, null) as InventoryAuthority
+	if authority == null or not is_instance_valid(authority):
+		return
+	var authority_id := authority.get_instance_id()
+	for index in range(_authority_connections.size()):
+		var entry := _authority_connections[index]
+		if StringName(entry.get("scope", &"")) != scope \
+				or entry.get("authority", null) != authority:
+			continue
+		var old_callback := entry.get("transaction", Callable()) as Callable
+		if old_callback.is_valid() and authority.transaction_committed.is_connected(
+			old_callback):
+			authority.transaction_committed.disconnect(old_callback)
+		var current_callback := Callable(self, "_on_transaction_committed").bind(
+			scope, authority_id, scope_generation(scope))
+		authority.transaction_committed.connect(current_callback)
+		entry["transaction"] = current_callback
+		_authority_connections[index] = entry
+		return
 
 
 func _cancel_all_pending(model: InventoryPresentationModel, ids: Array[int]) -> void:

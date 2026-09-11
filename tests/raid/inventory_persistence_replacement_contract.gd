@@ -345,6 +345,10 @@ func run() -> void:
 	check(retired_request != null \
 		and not adapter.receipt_for_request(retired_request).is_empty(),
 		"completed request is replayable before generation replacement")
+	var retired_transaction_callback := _transaction_callback_for_scope(
+		bridge, Bridge.SCOPE_RAID)
+	check(retired_transaction_callback.is_valid(),
+		"test captures the exact pre-replacement transaction callback generation")
 	var old_model := bridge.presentation_model(Bridge.SCOPE_RAID)
 	var old_scope_generation := bridge.scope_generation(Bridge.SCOPE_RAID)
 	var remaining_items := controller.items_for(&"crate")
@@ -414,17 +418,18 @@ func run() -> void:
 	check(not bool(stale_adapter_result.get("accepted", true)) \
 		and stale_adapter_result.get("reason", &"") == &"stale_generation",
 		"stale adapter rejects a late request without replaying old success")
-	owner.raid_authority().transaction_committed.emit({
-		"accepted": true,
-		"replayed": false,
-		"queued": false,
-		"command_id": int(accepted.get("command_id", 0)),
-		"revisions": [{
-			"inventory": owner.world_crate_inventory_id,
-			"predecessor": 0,
-			"successor": 1,
-		}],
-	})
+	var replacement_transaction_callback := _transaction_callback_for_scope(
+		bridge, Bridge.SCOPE_RAID)
+	check(replacement_transaction_callback.is_valid() \
+		and _callback_scope_generation(replacement_transaction_callback) \
+			== bridge.scope_generation(Bridge.SCOPE_RAID) \
+		and _callback_scope_generation(retired_transaction_callback) \
+			== old_scope_generation,
+		"replacement installs a transaction callback bound to the new generation")
+	# The native signal has no generation token. Invoke the exact disconnected
+	# callback retained by the old binding to exercise its bound generation
+	# guard without misrepresenting a current signal emission as an old one.
+	retired_transaction_callback.call(accepted.duplicate(true))
 	await process_frame
 	check(owner.raid_authority().snapshot(owner.world_crate_inventory_id) \
 		.canonical_bytes() == restored_bytes_before_late,
@@ -434,6 +439,30 @@ func run() -> void:
 			owner.world_crate_inventory_id).canonical_bytes() \
 			== restored_bytes_before_late,
 		"deferred bridge resync converges only to exact restored bytes")
+	var reused_command_id := int(accepted.get("command_id", 0))
+	var revision_before_reuse := owner.raid_authority().inventory_revision(
+		owner.world_crate_inventory_id)
+	var reused_result: Dictionary = owner.raid_authority().remove_item(
+		owner.world_crate_inventory_id,
+		int(transferred_item.get("item_id", 0)),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		reused_command_id)
+	var revision_after_reuse := owner.raid_authority().inventory_revision(
+		owner.world_crate_inventory_id)
+	check(reused_command_id > 0 \
+		and bool(reused_result.get("accepted", false)) \
+		and not bool(reused_result.get("replayed", true)) \
+		and revision_after_reuse == revision_before_reuse + 1 \
+		and revision_after_reuse == 5,
+		"restored native journal accepts the same command id in the new generation")
+	check(bridge.scope_status(Bridge.SCOPE_RAID) == Bridge.ProjectionStatus.READY \
+		and bridge.confirmed_revision(
+			Bridge.SCOPE_RAID, owner.world_crate_inventory_id) == revision_after_reuse \
+		and bridge.confirmed_snapshot(
+			Bridge.SCOPE_RAID, owner.world_crate_inventory_id).canonical_bytes() \
+			== owner.raid_authority().snapshot(
+				owner.world_crate_inventory_id).canonical_bytes(),
+		"new-generation callback processes the reused id and keeps projection truthful")
 	check(bridge.begin_pending_intent(
 		Bridge.SCOPE_RAID, &"move",
 		{"inventory_id": owner.world_crate_inventory_id, "items": []},
@@ -505,6 +534,7 @@ func run() -> void:
 	await process_frame
 	await process_frame
 	await _test_reentrant_generation_replacement()
+	await _test_shared_allocator_floor_replacement_and_retry()
 	print("INVENTORY_PERSISTENCE_REPLACEMENT_RESULT checks=", checks,
 		" failures=", failures,
 		" exact_round_trips=", targets.size())
@@ -587,6 +617,177 @@ func _test_reentrant_generation_replacement() -> void:
 		"reentrant replacement owner tears down")
 	owner.queue_free()
 	await process_frame
+
+
+func _test_shared_allocator_floor_replacement_and_retry() -> void:
+	var owner := RaidInventoryOwner.new()
+	owner.name = "AllocatorFloorPersistenceOwner"
+	root.add_child(owner)
+	check(owner.configure() and owner.materialize_loot_fixture(),
+		"allocator-floor owner and loot configure")
+	var owner_generation := owner.generation()
+	var authority := owner.raid_authority()
+	var crate_id := owner.world_crate_inventory_id
+	var captured_snapshot := authority.snapshot(crate_id)
+	var boundary := Boundary.new()
+	check(boundary.bind_owner(owner, owner_generation),
+		"allocator-floor persistence boundary binds")
+	var envelope := boundary.capture_record(
+		Boundary.SCOPE_RAID, crate_id, owner_generation)
+	check(not envelope.is_empty(),
+		"allocator-floor fixture captures the pre-allocation crate record")
+
+	var admission := _make_admission()
+	var identity := PersistenceIdentityPort.new()
+	identity.session_key = admission.session_id.canonical_key()
+	identity.actor_key = admission.actor_id.canonical_key()
+	identity.epoch = admission.authority_epoch
+	identity.generation = admission.generation
+	identity.native_actor = RaidInventoryOwner.FIXTURE_ACTOR_ID
+	identity.owned_inventory_id = owner.raid_player_inventory_id
+	var world := PersistenceWorldPort.new()
+	world.actor_key = admission.actor_id.canonical_key()
+	world.generation = admission.generation
+	world.world_ids[crate_id] = true
+	world.world_ids[owner.corpse_inventory_id] = true
+	var adapter := Adapter.new()
+	check(adapter.configure(
+		owner, admission, identity, world, MAX_TRANSFER_DISTANCE_RAW),
+		"allocator-floor intent adapter binds before replacement")
+	var bridge := Bridge.new()
+	root.add_child(bridge)
+	check(bridge.bind_owner(owner, owner_generation),
+		"allocator-floor projection bridge binds before replacement")
+	var controller := Controller.new()
+	check(controller.bind(owner, bridge, adapter, admission),
+		"allocator-floor presentation controller binds before replacement")
+	var adapter_invalidations: Array[StringName] = []
+	adapter.binding_invalidated.connect(func(reason: StringName) -> void:
+		adapter_invalidations.append(reason))
+	var controller_invalidations: Array[StringName] = []
+	controller.binding_invalidated.connect(func(reason: StringName) -> void:
+		controller_invalidations.append(reason))
+
+	var inserted: Dictionary = authority.insert_item(
+		crate_id,
+		String(ZerkovInventoryCatalog.ITEM_BOLTS),
+		1,
+		{"kind": "spatial", "container": owner.world_crate_container_id(),
+			"x": 7, "y": 0, "rotated": false},
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		9_801)
+	var live_after_insert := authority.snapshot(crate_id)
+	check(bool(inserted.get("accepted", false)) \
+		and live_after_insert.canonical_bytes() != captured_snapshot.canonical_bytes(),
+		"post-capture insertion advances shared allocators and visible crate state")
+	var preflight := boundary.preflight_bytes(
+		envelope.get("record_bytes", PackedByteArray()) as PackedByteArray,
+		Boundary.SCOPE_RAID,
+		crate_id,
+		owner_generation)
+	var expected_bytes := preflight.get(
+		"expected_live_canonical_bytes", PackedByteArray()) as PackedByteArray
+	check(bool(preflight.get("ok", false)) \
+		and bool(preflight.get("allocator_floor_adjusted", false)) \
+		and not expected_bytes.is_empty() \
+		and expected_bytes != (preflight.get(
+			"canonical_bytes", PackedByteArray()) as PackedByteArray),
+		"preflight predicts live shared-allocator convergence without weakening the saved digest")
+
+	var replacement := boundary.replace_live(
+		envelope,
+		owner_generation,
+		_sha256_bytes(live_after_insert.canonical_bytes()))
+	var restored_snapshot := authority.snapshot(crate_id)
+	check(bool(replacement.get("ok", false)) \
+		and bool(replacement.get("replaced", false)) \
+		and bool(replacement.get("verified", false)) \
+		and bool(replacement.get("allocator_floor_adjusted", false)),
+		"allocator-drift replacement returns one truthful verified success receipt")
+	check(restored_snapshot.canonical_bytes() == expected_bytes \
+		and String(replacement.get("restored_canonical_sha256", "")) \
+			== _sha256_bytes(expected_bytes) \
+		and String(replacement.get("persisted_canonical_sha256", "")) \
+			== String(envelope.get("canonical_sha256", "")),
+		"live replacement restores the exact convergence-aware canonical bytes and both digests")
+	check(_snapshots_visible_equal(restored_snapshot, captured_snapshot),
+		"allocator convergence changes no restored items, containers, references, or revision")
+	check(adapter_invalidations == [&"inventory_generation_changing"] \
+		and controller_invalidations == [&"inventory_generation_changing"] \
+		and not adapter.is_bound() and not controller.is_bound(),
+		"committed allocator-drift replacement invalidates stale adapters exactly once")
+	await process_frame
+
+	var retry_adapter := Adapter.new()
+	check(retry_adapter.configure(
+		owner, admission, identity, world, MAX_TRANSFER_DISTANCE_RAW),
+		"retry intent adapter binds to the restored generation")
+	var retry_controller := Controller.new()
+	check(retry_controller.bind(owner, bridge, retry_adapter, admission),
+		"retry presentation controller binds to the restored generation")
+	var retry_invalidations: Array[StringName] = []
+	retry_adapter.binding_invalidated.connect(func(reason: StringName) -> void:
+		retry_invalidations.append(reason))
+	retry_controller.binding_invalidated.connect(func(reason: StringName) -> void:
+		retry_invalidations.append(reason))
+	var retry_boundary := Boundary.new()
+	check(retry_boundary.bind_owner(owner, owner_generation),
+		"retry persistence boundary binds to the restored generation")
+	var before_retry := authority.snapshot(crate_id).canonical_bytes()
+	var retry := retry_boundary.replace_live(
+		envelope, owner_generation, _sha256_bytes(before_retry))
+	check(bool(retry.get("ok", false)) \
+		and bool(retry.get("duplicate", false)) \
+		and not bool(retry.get("replaced", true)) \
+		and bool(retry.get("verified", false)) \
+		and authority.snapshot(crate_id).canonical_bytes() == before_retry,
+		"retry recognizes the convergence-aware canonical state as an exact no-op")
+	check(retry_boundary.is_bound() and retry_adapter.is_bound() \
+		and retry_controller.is_bound() and retry_invalidations.is_empty(),
+		"duplicate retry preserves current adapter and controller bindings")
+	check(retry_boundary.release_binding(),
+		"allocator-floor retry boundary releases")
+	retry_controller.unbind()
+	check(retry_adapter.release_binding(),
+		"allocator-floor retry adapter releases")
+	check(owner.teardown(owner_generation),
+		"allocator-floor owner tears down")
+	bridge.queue_free()
+	owner.queue_free()
+	await process_frame
+
+
+func _snapshots_visible_equal(
+	left: InventorySnapshotResource,
+	right: InventorySnapshotResource
+) -> bool:
+	return left != null and right != null \
+		and left.get_inventory_id() == right.get_inventory_id() \
+		and left.get_profile_identifier() == right.get_profile_identifier() \
+		and left.get_revision() == right.get_revision() \
+		and left.get_manifest_fingerprint() == right.get_manifest_fingerprint() \
+		and left.get_manifest_algorithm() == right.get_manifest_algorithm() \
+		and left.get_containers() == right.get_containers() \
+		and left.get_items() == right.get_items() \
+		and left.get_references() == right.get_references()
+
+
+func _transaction_callback_for_scope(
+	bridge: InventoryProjectionBridge,
+	scope: StringName
+) -> Callable:
+	var authority := bridge.authority_for_scope(scope)
+	for entry_value in (bridge.get("_authority_connections") as Array):
+		var entry := entry_value as Dictionary
+		if StringName(entry.get("scope", &"")) == scope \
+				and entry.get("authority", null) == authority:
+			return entry.get("transaction", Callable()) as Callable
+	return Callable()
+
+
+func _callback_scope_generation(callback: Callable) -> int:
+	var bound_arguments := callback.get_bound_arguments()
+	return int(bound_arguments.back()) if not bound_arguments.is_empty() else 0
 
 
 func _minimal_late_intent(admission: ZSessionAdmission) -> ZRaidIntent:

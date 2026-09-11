@@ -541,6 +541,7 @@ func release_binding(reason: StringName = &"teardown", tick: int = 0) -> bool:
 	_bindings.clear()
 	_pending_by_weapon.clear()
 	_pending_by_reservation.clear()
+	_clear_reload_request_receipts()
 	_weapon_port.clear()
 	_emit_invalidation(reason)
 	return true
@@ -1244,6 +1245,14 @@ func _remove_pending(record: Dictionary) -> void:
 
 
 func _request_replay(intent: Dictionary) -> Dictionary:
+	# Completed receipts are generation-scoped. Preserve synchronous publication
+	# replay while the exact binding is current, but never answer from an
+	# invalidated/deferred-stale adapter merely because this check precedes the
+	# normal mutation gate.
+	if lifecycle != Lifecycle.BOUND \
+			or not _deferred_invalidation_reason.is_empty() \
+			or not _binding_is_current():
+		return {}
 	var request_id := String(intent.get("request_id", ""))
 	if request_id.is_empty() or not _request_receipts.has(request_id):
 		return {}
@@ -1447,6 +1456,7 @@ func _resolve_stale_binding(tick: int) -> void:
 		_bindings.clear()
 		_pending_by_weapon.clear()
 		_pending_by_reservation.clear()
+		_clear_reload_request_receipts()
 		_emit_invalidation(last_error)
 		return
 
@@ -1494,6 +1504,7 @@ func _disconnect_inventory_lifecycle() -> void:
 func _on_inventory_unloaded(unloaded_inventory_id: int) -> void:
 	if unloaded_inventory_id != _inventory_id:
 		return
+	_clear_reload_request_receipts()
 	if _transaction_active or _public_signal_active:
 		_deferred_invalidation_reason = &"authority_invalidation"
 		return
@@ -1503,6 +1514,7 @@ func _on_inventory_unloaded(unloaded_inventory_id: int) -> void:
 func _on_inventory_generation_changing(changing_inventory_id: int) -> void:
 	if changing_inventory_id != _inventory_id:
 		return
+	_clear_reload_request_receipts()
 	if _transaction_active or _public_signal_active:
 		_deferred_invalidation_reason = &"authority_invalidation"
 		return
@@ -1512,6 +1524,7 @@ func _on_inventory_generation_changing(changing_inventory_id: int) -> void:
 func _invalidate_after_external_lifecycle(reason: StringName, tick: int) -> void:
 	if lifecycle != Lifecycle.BOUND:
 		return
+	_clear_reload_request_receipts()
 	# The inventory lifecycle operation clears this inventory's ephemeral
 	# reservation ledger. Stop each weapon mechanically so it cannot later
 	# complete against a disappeared hold. No inventory mutation is attempted
@@ -1630,6 +1643,11 @@ func _emit_invalidation(reason: StringName) -> void:
 	_public_signal_active = false
 
 
+func _clear_reload_request_receipts() -> void:
+	_request_receipts.clear()
+	_receipt_order.clear()
+
+
 func _reset_unbound_state() -> void:
 	_disconnect_inventory_lifecycle()
 	lifecycle = Lifecycle.UNBOUND
@@ -1647,8 +1665,7 @@ func _reset_unbound_state() -> void:
 	_bindings.clear()
 	_pending_by_weapon.clear()
 	_pending_by_reservation.clear()
-	_request_receipts.clear()
-	_receipt_order.clear()
+	_clear_reload_request_receipts()
 	_transaction_active = false
 	_public_signal_active = false
 	_deferred_invalidation_reason = &""
