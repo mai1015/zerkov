@@ -286,10 +286,23 @@ func _test_production_source_surface() -> void:
 		"built-in review runners validate both argument sources and exact root size")
 	var capture_source := FileAccess.get_file_as_string(
 		"res://tests/visual/zerkov_screen_lifecycle/capture.gd")
+	var lifecycle_guard_position := capture_source.find(
+		"if not exact_capture_size:")
+	var lifecycle_path_position := capture_source.find(
+		"ProjectSettings.globalize_path(capture_path)")
+	var lifecycle_write_position := capture_source.find("image.save_png")
+	var lifecycle_quit_position := capture_source.find(
+		"quit(2)", lifecycle_guard_position)
+	var lifecycle_return_position := capture_source.find(
+		"return", lifecycle_guard_position)
 	check(capture_source.contains("root.size = FIRST_PLAYABLE_SIZE")
-			and capture_source.contains("quit(2)")
-			and capture_source.find("quit(2)") < capture_source.find("save_png"),
-		"native lifecycle capture fails closed before a non-exact output write")
+			and lifecycle_guard_position >= 0
+			and lifecycle_quit_position >= 0 and lifecycle_return_position >= 0
+			and lifecycle_guard_position < lifecycle_path_position
+			and lifecycle_path_position < lifecycle_write_position
+			and lifecycle_quit_position < lifecycle_path_position
+			and lifecycle_return_position < lifecycle_path_position,
+		"native lifecycle capture validates its framebuffer before path/write")
 	check(main_source.contains("inject_character_runtime")
 			and main_source.contains("character_runtime_for_route"),
 		"accepted Task 8.6 Character composition remains injection-only")

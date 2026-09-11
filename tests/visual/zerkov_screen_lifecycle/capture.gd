@@ -52,6 +52,13 @@ func run() -> void:
 
 	await RenderingServer.frame_post_draw
 	var image := get_root().get_texture().get_image()
+	var exact_capture_size := image.get_size() == FIRST_PLAYABLE_SIZE
+	check(exact_capture_size,
+		"framebuffer is exact 1920x1080 immediately before capture")
+	if not exact_capture_size:
+		capture_path = ""
+		quit(2)
+		return
 	var absolute_path := ProjectSettings.globalize_path(capture_path)
 	DirAccess.make_dir_recursive_absolute(absolute_path.get_base_dir())
 	var save_error := image.save_png(absolute_path)

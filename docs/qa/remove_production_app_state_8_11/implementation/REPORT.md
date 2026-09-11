@@ -86,6 +86,7 @@ provider.
 | UI reflow | `308` checks, `0` failures; exact `1920x1080` only |
 | Built-in route smoke | 28 screens, `0` missing/capture errors; exact `1920x1080` |
 | Exact CLI guard probes | headless and native `--layout=desktop`; 28 screens, `0` errors each |
+| Native lifecycle capture guard | `0` failures; immediate framebuffer check and output both exact `1920x1080` |
 | `git diff --check` | exit `0` |
 
 Every UI/visual invocation used the single approved viewport explicitly:
@@ -109,11 +110,15 @@ Every UI/visual invocation used the single approved viewport explicitly:
 /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 -- --smoke
 /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 -- --smoke --layout=desktop
 /opt/homebrew/bin/godot --path . --resolution 1920x1080 -- --smoke --layout=desktop
+/opt/homebrew/bin/godot --path . --resolution 1920x1080 --script res://tests/visual/zerkov_screen_lifecycle/capture.gd -- --capture-path=/tmp/zerkov-8-11-lifecycle-c6816ff-1920x1080.png
 ```
 
 The editor import, strict spec validation, source/provider and read-only domain
 contracts, static Python gate, hash checks, literal audit and Git checks do not
 render UI and therefore have no acceptance viewport.
+
+The lifecycle guard probe's temporary PNG reported 1920x1080 both in-run and
+through an independent metadata read, then was removed after verification.
 
 The accepted Task 8.10 input runner was serialized. Before and after execution,
 the only matching shared persistence file was `common_ui_bindings.json`, with
