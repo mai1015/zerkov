@@ -517,6 +517,8 @@ func run() -> void:
 	owner.queue_free()
 	_weapon_authority.queue_free()
 	_run_external_owner_teardown()
+	_run_recovery_owner_teardown_quarantine()
+	_run_dropped_identity_retirement_capacity()
 	_run_missing_pose_fails_closed()
 	_run_phase_handler_ordering_contract()
 	_run_cleanup_failure_reachability()
@@ -524,7 +526,8 @@ func run() -> void:
 	print("WEAPON_INSTANCE_CONTEXT_RESULT checks=", checks,
 		" failures=", failures,
 		" accepted_shot=", bool(accepted_fire.get("accepted", false)),
-		" dormant_preserved=true transfer_conserved=true teardown_safe=true")
+		" dormant_preserved=true transfer_conserved=true teardown_safe=true",
+		" dropped_retired=true recovery_quarantine=true")
 	if failures > 0:
 		print("WEAPON_INSTANCE_CONTEXT_FIRE_OUTCOMES ", _fire_outcomes)
 	quit(0 if failures == 0 else 1)
@@ -549,17 +552,29 @@ func _run_external_owner_teardown() -> void:
 		owner, bridge, admission, owner_generation, scope_generation),
 		"external-teardown equipment reconciler binds")
 	var inventory := owner.raid_authority()
+	var inventory_id := owner.raid_player_inventory_id
+	var initial_snapshot := inventory.snapshot(inventory_id)
 	var equipment := _container(
-		inventory.snapshot(owner.raid_player_inventory_id),
-		ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
+		initial_snapshot, ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
+	var pockets := _container(
+		initial_snapshot, ZerkovInventoryCatalog.CONTAINER_POCKETS)
 	var inserted: Dictionary = inventory.insert_item(
-		owner.raid_player_inventory_id,
+		inventory_id,
 		String(ZerkovInventoryCatalog.ITEM_AKM),
 		1,
 		_slot(equipment, EquippedItemReconciler.SLOT_PRIMARY),
 		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
 		52_001)
-	check(bool(inserted.get("accepted", false)), "external-teardown AKM equips")
+	var ammo_inserted: Dictionary = inventory.insert_item(
+		inventory_id,
+		String(ZerkovInventoryCatalog.ITEM_AMMO_762),
+		30,
+		_spatial(pockets, 0, 0),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		52_002)
+	check(bool(inserted.get("accepted", false))
+		and bool(ammo_inserted.get("accepted", false)),
+		"external-teardown AKM and physical ammunition insert")
 	var weapon_id := String(reconciler.mapping_for_slot(
 		EquippedItemReconciler.SLOT_PRIMARY).get("weapon_id", ""))
 	var weapon_authority := WeaponAuthority.new()
@@ -603,14 +618,361 @@ func _run_external_owner_teardown() -> void:
 		and raid_authority.advance_one(raid_authority.generation())
 		and not weapon_authority.snapshot(weapon_id).is_empty(),
 		"external-teardown fixture creates its real native AKM")
+	var binding_generation := adapter.weapon_binding_generation(weapon_id)
+	var reload_begin := reload_adapter.begin_reload({
+		"request_id": ZRequestId.from_parts(PackedStringArray([
+			"weapon_owner_teardown", "reload"])).canonical_key(),
+		"weapon_id": weapon_id,
+		"weapon_binding_generation": binding_generation,
+		"adapter_generation": reload_adapter.adapter_generation(),
+		"authority_epoch": admission.authority_epoch,
+		"inventory_id": inventory_id,
+		"expected_inventory_revision": inventory.inventory_revision(inventory_id),
+		"expected_weapon_revision": int(weapon_authority.snapshot(
+			weapon_id).get("revision", -1)),
+		"tick": 1,
+	})
+	check(bool(reload_begin.get("accepted", false))
+		and reload_adapter.pending_reloads().size() == 1
+		and inventory.active_quantity_reservation_count() == 1
+		and String(weapon_authority.snapshot(weapon_id).get("phase", "")) == "reloading",
+		"owner-first fixture holds one exact active native reload")
+	var stale_phase_callback := Callable(
+		adapter, "_on_weapon_phase").bind(adapter.binding_generation())
 	check(owner.teardown(owner_generation),
 		"owner-first teardown executes without adapter coordination")
 	check(adapter.lifecycle == WeaponInstanceContextAdapter.Lifecycle.INVALIDATED
 		and weapon_authority.snapshot(weapon_id).is_empty()
-		and reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.INVALIDATED,
-		"owner invalidation removes native instance and retires both adapters")
+		and reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.INVALIDATED
+		and reload_adapter.pending_reloads().is_empty()
+		and not inventory.has_inventory(inventory_id)
+		and inventory.active_quantity_reservation_count() == 0
+		and not raid_authority.has_phase_handler(
+			WeaponInstanceContextAdapter.PHASE_HANDLER_ID,
+			raid_authority.generation()),
+		"owner invalidation cancels reload and retires native instance, binding, and handler")
+	var exact_deregistration_replay := reload_adapter.unregister_weapon(
+		weapon_id, binding_generation)
+	var stale_intents: Array[ZRaidIntent] = []
+	check(bool(exact_deregistration_replay.get("accepted", false))
+		and bool(exact_deregistration_replay.get("replayed", false))
+		and bool(stale_phase_callback.call(
+			raid_authority,
+			RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+			2,
+			stale_intents)),
+		"owner-first cleanup is exact-replay-safe and its captured callback is inert")
+	check(raid_authority.advance_one(raid_authority.generation())
+		and raid_authority.lifecycle == RaidAuthority.Lifecycle.ACTIVE,
+		"owner-first cleanup leaves the next raid tick healthy")
 	check(raid_authority.teardown(raid_authority.generation()),
 		"external-teardown raid authority retires after inventory owner")
+	adapter.queue_free()
+	reload_adapter.queue_free()
+	reconciler.queue_free()
+	bridge.queue_free()
+	owner.queue_free()
+	weapon_authority.queue_free()
+
+
+func _run_recovery_owner_teardown_quarantine() -> void:
+	var raid_id := ZRaidId.from_parts(PackedStringArray([
+		"fixture", "recovery_owner_teardown"]))
+	var admission := SessionCoordinator.new(OfflineSessionIngress.new()).open_offline(
+		raid_id, &"recovery_owner_profile", &"player")
+	var owner := RaidInventoryOwner.new()
+	root.add_child(owner)
+	check(owner.configure(), "recovery-owner owner configures")
+	var owner_generation := owner.generation()
+	var bridge := InventoryProjectionBridge.new()
+	root.add_child(bridge)
+	check(bridge.bind_owner(owner, owner_generation),
+		"recovery-owner projection binds")
+	var scope_generation := bridge.scope_generation(InventoryProjectionBridge.SCOPE_RAID)
+	var reconciler := EquippedItemReconciler.new()
+	root.add_child(reconciler)
+	check(reconciler.bind_owner(
+		owner, bridge, admission, owner_generation, scope_generation),
+		"recovery-owner reconciler binds")
+	var inventory := owner.raid_authority()
+	var inventory_id := owner.raid_player_inventory_id
+	var initial_snapshot := inventory.snapshot(inventory_id)
+	var equipment := _container(
+		initial_snapshot, ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
+	var pockets := _container(
+		initial_snapshot, ZerkovInventoryCatalog.CONTAINER_POCKETS)
+	var inserted: Dictionary = inventory.insert_item(
+		inventory_id,
+		String(ZerkovInventoryCatalog.ITEM_AKM),
+		1,
+		_slot(equipment, EquippedItemReconciler.SLOT_PRIMARY),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		55_001)
+	var ammo_inserted: Dictionary = inventory.insert_item(
+		inventory_id,
+		String(ZerkovInventoryCatalog.ITEM_AMMO_762),
+		30,
+		_spatial(pockets, 0, 0),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		55_002)
+	check(bool(inserted.get("accepted", false))
+		and bool(ammo_inserted.get("accepted", false)),
+		"recovery-owner AKM and ammunition insert")
+	var mapping := reconciler.mapping_for_slot(EquippedItemReconciler.SLOT_PRIMARY)
+	var weapon_id := String(mapping.get("weapon_id", ""))
+	var weapon_authority := WeaponAuthority.new()
+	root.add_child(weapon_authority)
+	check(bool(ZerkovCombatContent.configure_authority(
+		weapon_authority).get("ok", false)),
+		"recovery-owner WeaponAuthority configures")
+	var weapon_port := WeaponAuthorityReloadPort.new()
+	check(weapon_port.configure(weapon_authority),
+		"recovery-owner weapon port configures")
+	var reload_adapter := InventoryWeaponAdapter.new()
+	root.add_child(reload_adapter)
+	check(reload_adapter.bind_owner(
+		owner, admission, weapon_port, owner_generation),
+		"recovery-owner reload adapter binds")
+	var raid_authority := RaidAuthority.new()
+	check(raid_authority.configure(raid_id, admission, 5_207),
+		"recovery-owner raid authority configures")
+	var adapter := OneShotRemoveFailureAdapter.new()
+	root.add_child(adapter)
+	check(adapter.bind_owner(
+		owner, reconciler, admission, raid_authority, weapon_authority,
+		weapon_port, reload_adapter, owner_generation, scope_generation,
+		raid_authority.generation()), "recovery-owner instance adapter binds")
+	check(raid_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE, raid_authority.generation())
+		and raid_authority.advance_one(raid_authority.generation())
+		and not weapon_authority.snapshot(weapon_id).is_empty(),
+		"recovery-owner native AKM is created")
+	var binding_generation := adapter.weapon_binding_generation(weapon_id)
+	var begun := reload_adapter.begin_reload({
+		"request_id": ZRequestId.from_parts(PackedStringArray([
+			"recovery_owner", "reload"])).canonical_key(),
+		"weapon_id": weapon_id,
+		"weapon_binding_generation": binding_generation,
+		"adapter_generation": reload_adapter.adapter_generation(),
+		"authority_epoch": admission.authority_epoch,
+		"inventory_id": inventory_id,
+		"expected_inventory_revision": inventory.inventory_revision(inventory_id),
+		"expected_weapon_revision": int(weapon_authority.snapshot(
+			weapon_id).get("revision", -1)),
+		"tick": 1,
+	})
+	var reservation_id := String(begun.get("reservation_id", ""))
+	var due_tick := int(begun.get("due_tick", -1))
+	var reloading_state := weapon_authority.snapshot(weapon_id)
+	var original_port_token := weapon_port.identity_token()
+	var replacement_authority := WeaponAuthority.new()
+	root.add_child(replacement_authority)
+	check(bool(ZerkovCombatContent.configure_authority(
+		replacement_authority).get("ok", false)),
+		"recovery-owner replacement WeaponAuthority configures")
+	weapon_port.clear()
+	var replacement_bound := weapon_port.configure(replacement_authority)
+	var recovery_detected := not reload_adapter.validate_binding(1)
+	check(bool(begun.get("accepted", false)) and not reservation_id.is_empty()
+		and String(reloading_state.get("phase", "")) == "reloading"
+		and replacement_bound and weapon_port.identity_token() != original_port_token
+		and recovery_detected
+		and reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.RECOVERY_REQUIRED
+		and reload_adapter.last_error == &"weapon_binding_invalid_with_live_inventory"
+		and inventory.active_quantity_reservation_count() == 1,
+		"changed weapon-port provenance establishes recovery around an active reload")
+	var premature_quarantine := reload_adapter.quarantine_weapon_after_inventory_loss(
+		weapon_id, binding_generation)
+	check(not bool(premature_quarantine.get("accepted", true))
+		and premature_quarantine.get("reason") == &"inventory_runtime_still_live"
+		and reload_adapter.pending_reloads().size() == 1
+		and inventory.active_quantity_reservation_count() == 1
+		and weapon_authority.snapshot(weapon_id) == reloading_state,
+		"terminal quarantine refuses to mutate or discard evidence while inventory is live")
+	check(not adapter.release_binding(&"teardown", 1)
+		and adapter.last_error == &"weapon_reload_quarantine_failed"
+		and adapter.lifecycle == WeaponInstanceContextAdapter.Lifecycle.RECOVERY_REQUIRED
+		and adapter.instance_records().size() == 1
+		and reload_adapter.pending_reloads().size() == 1
+		and inventory.active_quantity_reservation_count() == 1
+		and weapon_authority.snapshot(weapon_id) == reloading_state,
+		"context release fail-stops without mutation while recovery inventory remains live")
+
+	check(owner.teardown(owner_generation),
+		"recovery-owner inventory unload executes")
+	var retained := adapter.instance_records()
+	check(adapter.lifecycle == WeaponInstanceContextAdapter.Lifecycle.RECOVERY_REQUIRED
+		and adapter.last_error == &"weapon_reload_quarantine_failed"
+		and retained.size() == 1
+		and String(retained[0].get(
+			"terminal_reload_quarantine_reservation", "")) == reservation_id
+		and weapon_authority.snapshot(weapon_id) == reloading_state,
+		"injected native-removal failure retains reachable state and quarantine proof")
+	check(reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.INVALIDATED
+		and reload_adapter.pending_reloads().is_empty()
+		and not inventory.has_inventory(inventory_id)
+		and inventory.active_quantity_reservation_count() == 0
+		and raid_authority.has_phase_handler(
+			WeaponInstanceContextAdapter.PHASE_HANDLER_ID,
+			raid_authority.generation()),
+		"terminal owner-loss quarantine clears no-longer-live inventory state only")
+	var quarantine_replay := reload_adapter.quarantine_weapon_after_inventory_loss(
+		weapon_id, binding_generation)
+	var quarantine_stale := reload_adapter.quarantine_weapon_after_inventory_loss(
+		weapon_id, binding_generation + 1)
+	check(bool(quarantine_replay.get("accepted", false))
+		and bool(quarantine_replay.get("replayed", false))
+		and String(quarantine_replay.get("reservation_id", "")) == reservation_id
+		and not bool(quarantine_stale.get("accepted", true))
+		and quarantine_stale.get("reason") == &"weapon_binding_generation_stale",
+		"terminal quarantine replay is exact-generation scoped")
+	check(adapter.release_binding(&"teardown", due_tick)
+		and adapter.instance_records().is_empty()
+		and weapon_authority.snapshot(weapon_id).is_empty()
+		and not raid_authority.has_phase_handler(
+			WeaponInstanceContextAdapter.PHASE_HANDLER_ID,
+			raid_authority.generation()),
+		"recovery retry removes the reachable native instance and provider lease")
+	check(raid_authority.advance_one(raid_authority.generation())
+		and raid_authority.lifecycle == RaidAuthority.Lifecycle.ACTIVE,
+		"terminal quarantine cleanup leaves the next raid tick healthy")
+	check(raid_authority.teardown(raid_authority.generation()),
+		"recovery-owner raid authority tears down")
+	adapter.queue_free()
+	reload_adapter.queue_free()
+	reconciler.queue_free()
+	bridge.queue_free()
+	owner.queue_free()
+	weapon_authority.queue_free()
+	replacement_authority.queue_free()
+
+
+func _run_dropped_identity_retirement_capacity() -> void:
+	var raid_id := ZRaidId.from_parts(PackedStringArray([
+		"fixture", "dropped_weapon_retirement"]))
+	var admission := SessionCoordinator.new(OfflineSessionIngress.new()).open_offline(
+		raid_id, &"dropped_weapon_profile", &"player")
+	var owner := RaidInventoryOwner.new()
+	root.add_child(owner)
+	check(owner.configure(), "drop-retirement owner configures")
+	var owner_generation := owner.generation()
+	var bridge := InventoryProjectionBridge.new()
+	root.add_child(bridge)
+	check(bridge.bind_owner(owner, owner_generation),
+		"drop-retirement projection binds")
+	var scope_generation := bridge.scope_generation(InventoryProjectionBridge.SCOPE_RAID)
+	var reconciler := EquippedItemReconciler.new()
+	root.add_child(reconciler)
+	check(reconciler.bind_owner(
+		owner, bridge, admission, owner_generation, scope_generation),
+		"drop-retirement reconciler binds")
+	var inventory := owner.raid_authority()
+	var inventory_id := owner.raid_player_inventory_id
+	var equipment := _container(
+		inventory.snapshot(inventory_id),
+		ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
+	var weapon_authority := WeaponAuthority.new()
+	root.add_child(weapon_authority)
+	check(bool(ZerkovCombatContent.configure_authority(
+		weapon_authority).get("ok", false)),
+		"drop-retirement WeaponAuthority configures")
+	var weapon_port := WeaponAuthorityReloadPort.new()
+	check(weapon_port.configure(weapon_authority),
+		"drop-retirement weapon port configures")
+	var reload_adapter := InventoryWeaponAdapter.new()
+	root.add_child(reload_adapter)
+	check(reload_adapter.bind_owner(
+		owner, admission, weapon_port, owner_generation),
+		"drop-retirement reload adapter binds")
+	var raid_authority := RaidAuthority.new()
+	check(raid_authority.configure(raid_id, admission, 5_206),
+		"drop-retirement raid authority configures")
+	var adapter := WeaponInstanceContextAdapter.new()
+	root.add_child(adapter)
+	check(adapter.bind_owner(
+		owner, reconciler, admission, raid_authority, weapon_authority,
+		weapon_port, reload_adapter, owner_generation, scope_generation,
+		raid_authority.generation()), "drop-retirement instance adapter binds")
+	check(raid_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE, raid_authority.generation()),
+		"drop-retirement raid activates")
+
+	var previous_item_id := 0
+	var previous_weapon_id := ""
+	for index in WeaponInstanceContextAdapter.MAX_TRACKED_FIREARMS + 1:
+		var inserted: Dictionary = inventory.insert_item(
+			inventory_id,
+			String(ZerkovInventoryCatalog.ITEM_AKM),
+			1,
+			_slot(equipment, EquippedItemReconciler.SLOT_PRIMARY),
+			RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+			54_000 + index * 2)
+		var item_id := int(inserted.get("new_item_id", 0))
+		var mapping := reconciler.mapping_for_slot(EquippedItemReconciler.SLOT_PRIMARY)
+		var weapon_id := String(mapping.get("weapon_id", ""))
+		check(bool(inserted.get("accepted", false))
+			and item_id > 0 and not weapon_id.is_empty()
+			and (previous_item_id == 0 or item_id != previous_item_id)
+			and (previous_weapon_id.is_empty() or weapon_id != previous_weapon_id),
+			"drop-retirement insert creates a fresh stable item/weapon identity")
+		check(raid_authority.advance_one(raid_authority.generation())
+			and raid_authority.lifecycle == RaidAuthority.Lifecycle.ACTIVE
+			and adapter.instance_records().size() == 1
+			and weapon_authority.snapshots().size() == 1
+			and not weapon_authority.snapshot(weapon_id).is_empty()
+			and (previous_weapon_id.is_empty()
+				or weapon_authority.snapshot(previous_weapon_id).is_empty()),
+			"retired value identity is cleaned before replacement admission")
+		var dropped: Dictionary = inventory.drop_item(
+			inventory_id,
+			item_id,
+			80_000 + index,
+			RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+			54_001 + index * 2)
+		var saw_drop_event := false
+		for event_value in dropped.get("events", []) as Array:
+			var event := event_value as Dictionary
+			if int(event.get("kind", -1)) \
+					== WeaponInstanceContextAdapter.INVENTORY_EVENT_DROPPED \
+					and int(event.get("item", 0)) == item_id:
+				saw_drop_event = true
+		var dropped_values := dropped.get("dropped_items", []) as Array
+		var root_value := dropped_values[0] as Dictionary \
+			if not dropped_values.is_empty() else {}
+		check(bool(dropped.get("accepted", false)) and saw_drop_event
+			and root_value.get("item_definition_identifier", "") \
+				== String(ZerkovInventoryCatalog.ITEM_AKM)
+			and not root_value.has("id") and not root_value.has("item_id"),
+			"DROPPED explicitly retires the old id into bounded value-only custody")
+		if index == 0:
+			var dropped_replay: Dictionary = inventory.drop_item(
+				inventory_id,
+				item_id,
+				80_000 + index,
+				RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+				54_001 + index * 2)
+			check(bool(dropped_replay.get("accepted", false))
+				and bool(dropped_replay.get("replayed", false))
+				and (dropped_replay.get("events", []) as Array).is_empty(),
+				"value-only identity retirement replay emits no second lifecycle event")
+		previous_item_id = item_id
+		previous_weapon_id = weapon_id
+
+	check(raid_authority.advance_one(raid_authority.generation())
+		and raid_authority.lifecycle == RaidAuthority.Lifecycle.ACTIVE
+		and adapter.instance_records().is_empty()
+		and weapon_authority.snapshots().is_empty(),
+		"seventeenth drop retires cleanly without exhausting the sixteen-live-id cap")
+	check(adapter.release_binding(&"teardown", raid_authority.last_processed_tick),
+		"drop-retirement context releases")
+	check(reload_adapter.release_binding(
+		&"teardown", raid_authority.last_processed_tick),
+		"drop-retirement reload adapter releases")
+	reconciler.release_binding(&"test_teardown")
+	bridge.release_binding()
+	check(owner.teardown(owner_generation), "drop-retirement owner tears down")
+	check(raid_authority.teardown(raid_authority.generation()),
+		"drop-retirement raid authority tears down")
 	adapter.queue_free()
 	reload_adapter.queue_free()
 	reconciler.queue_free()
@@ -726,10 +1088,16 @@ func _run_phase_handler_ordering_contract() -> void:
 		"priority/dependency fixture advances one complete tick")
 	check(order == PackedStringArray(["z_provider", "a_consumer", "a_tie", "b_tie"]),
 		"same-phase order is priority first and lexical ID as deterministic tie-break")
+	check(not authority.can_unregister_phase_handler(
+		&"z_provider", authority.generation())
+		and authority.last_error == &"handler_has_dependents"
+		and authority.has_phase_handler(&"z_provider", authority.generation()),
+		"handler-removal preflight reports dependencies without mutating registration")
 	check(not authority.unregister_phase_handler(&"z_provider", authority.generation())
 		and authority.last_error == &"handler_has_dependents",
 		"provider cannot release before a declared consumer")
 	check(authority.unregister_phase_handler(&"a_consumer", authority.generation())
+		and authority.can_unregister_phase_handler(&"z_provider", authority.generation())
 		and authority.unregister_phase_handler(&"z_provider", authority.generation())
 		and authority.unregister_phase_handler(&"z_provider", authority.generation()),
 		"consumer-first deregistration is explicit and idempotent")
@@ -805,18 +1173,46 @@ func _run_cleanup_failure_reachability() -> void:
 		owner, reconciler, admission, raid_authority, weapon_authority,
 		weapon_port, reload_adapter, owner_generation, scope_generation,
 		raid_authority.generation()), "cleanup-reachability instance adapter binds")
+	check(raid_authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"cleanup_consumer",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool: return true,
+		raid_authority.generation(),
+		WeaponInstanceContextAdapter.CONSUMER_PHASE_PRIORITY,
+		WeaponInstanceContextAdapter.consumer_phase_dependencies()),
+		"cleanup-reachability dependent consumer registers")
 	check(raid_authority.transition(
 		RaidAuthority.Lifecycle.ACTIVE, raid_authority.generation())
 		and raid_authority.advance_one(raid_authority.generation())
 		and not weapon_authority.snapshot(weapon_id).is_empty(),
 		"cleanup-reachability fixture creates one native AKM")
 	var binding_generation := adapter.weapon_binding_generation(weapon_id)
+	var native_before_blocked_release := weapon_authority.snapshot(weapon_id)
+	check(not adapter.release_binding(&"teardown", 1)
+		and adapter.last_error == &"handler_has_dependents"
+		and adapter.lifecycle == WeaponInstanceContextAdapter.Lifecycle.BOUND
+		and adapter.instance_records().size() == 1
+		and weapon_authority.snapshot(weapon_id) == native_before_blocked_release
+		and raid_authority.has_phase_handler(
+			WeaponInstanceContextAdapter.PHASE_HANDLER_ID,
+			raid_authority.generation()),
+		"dependent-handler preflight rejects before any native state is destroyed")
+	var retained_binding := reload_adapter.register_weapon(mapping, binding_generation)
+	check(bool(retained_binding.get("accepted", false))
+		and bool(retained_binding.get("replayed", false))
+		and raid_authority.advance_one(raid_authority.generation())
+		and weapon_authority.snapshot(weapon_id) == native_before_blocked_release,
+		"blocked release retains the exact binding and next tick cannot recreate empty state")
+	check(raid_authority.unregister_phase_handler(
+		&"cleanup_consumer", raid_authority.generation()),
+		"dependent consumer releases before cleanup retry")
 	var stale_deregistration := reload_adapter.unregister_weapon(
 		weapon_id, binding_generation + 1)
 	check(not bool(stale_deregistration.get("accepted", true))
 		and stale_deregistration.get("reason") == &"weapon_binding_generation_stale",
 		"stale cleanup callback cannot retire the current reload binding")
-	check(not adapter.release_binding(&"teardown", 1)
+	check(not adapter.release_binding(&"teardown", 2)
 		and adapter.lifecycle == WeaponInstanceContextAdapter.Lifecycle.RECOVERY_REQUIRED,
 		"injected native cleanup failure latches recoverable fail-closed state")
 	var retained_records := adapter.instance_records()
@@ -829,7 +1225,7 @@ func _run_cleanup_failure_reachability() -> void:
 	check(bool(already_deregistered.get("accepted", false))
 		and bool(already_deregistered.get("replayed", false)),
 		"failed native cleanup had already retired its reload binding exactly once")
-	check(adapter.release_binding(&"teardown", 1)
+	check(adapter.release_binding(&"teardown", 2)
 		and adapter.instance_records().is_empty()
 		and weapon_authority.snapshot(weapon_id).is_empty()
 		and not raid_authority.has_phase_handler(

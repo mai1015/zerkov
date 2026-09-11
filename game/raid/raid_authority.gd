@@ -219,24 +219,23 @@ func register_phase_handler(
 ## Phase-handler lifetimes are explicit and generation-scoped. A provider
 ## cannot be removed while a registered consumer still declares that provider
 ## as an ordering dependency; composition tears consumers down first.
+func can_unregister_phase_handler(
+	handler_id: StringName,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	return _phase_handler_removal_is_valid(handler_id, expected_generation)
+
+
 func unregister_phase_handler(
 	handler_id: StringName,
 	expected_generation: int
 ) -> bool:
 	last_error = &""
-	if not _is_current_generation(expected_generation):
-		return _reject(&"stale_generation")
-	if _is_advancing:
-		return _reject(&"handler_change_during_tick")
-	if not ZIdentityRules.is_valid_part(String(handler_id)):
-		return _reject(&"handler_invalid")
+	if not _phase_handler_removal_is_valid(handler_id, expected_generation):
+		return false
 	if not _handler_ids.has(handler_id):
 		return true
-	for registered_value in _handler_ids.values():
-		var registered := registered_value as Dictionary
-		var dependencies := registered.get("after", PackedStringArray()) as PackedStringArray
-		if dependencies.has(String(handler_id)):
-			return _reject(&"handler_has_dependents")
 	var registration := _handler_ids[handler_id] as Dictionary
 	var phase_value := int(registration.get("phase", -1))
 	var handlers: Array = _phase_handlers.get(phase_value, [])
@@ -250,6 +249,26 @@ func unregister_phase_handler(
 	else:
 		_phase_handlers[phase_value] = retained
 	_handler_ids.erase(handler_id)
+	return true
+
+
+func _phase_handler_removal_is_valid(
+	handler_id: StringName,
+	expected_generation: int
+) -> bool:
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if _is_advancing:
+		return _reject(&"handler_change_during_tick")
+	if not ZIdentityRules.is_valid_part(String(handler_id)):
+		return _reject(&"handler_invalid")
+	if not _handler_ids.has(handler_id):
+		return true
+	for registered_value in _handler_ids.values():
+		var registered := registered_value as Dictionary
+		var dependencies := registered.get("after", PackedStringArray()) as PackedStringArray
+		if dependencies.has(String(handler_id)):
+			return _reject(&"handler_has_dependents")
 	return true
 
 

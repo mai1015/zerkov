@@ -9,13 +9,23 @@ evidence, not self-acceptance and not release evidence.
 - `WeaponInstanceContextAdapter` creates a real empty AKM `WeaponAuthority`
   instance from the canonical equipped-inventory mapping in raid tick phase 5.
 - The stable instance and its mechanical state remain dormant while that exact
-  inventory item is unequipped or held in world/external custody, and are reused
-  with the same reload binding when the item returns and re-equips.
-- Only the canonical one-shot `REMOVED` event authorizes permanent native
-  destruction. Transfer/replay never masquerades as destruction. Destruction,
-  explicit teardown and owner-first invalidation deregister the exact reload
-  binding before native removal; cleanup failure retains a reachable record and
-  can be retried from `RECOVERY_REQUIRED`.
+  stable inventory item is unequipped or moves through id-preserving inventory
+  custody, and are reused with the same reload binding when it returns and
+  re-equips.
+- Canonical `REMOVED` destroys an item id. Canonical `DROPPED` also retires that
+  id because Inventory System exports bounded value data without a stable item
+  id; reinsertion is a new identity and does not claim the retired mechanical
+  state. Retired records are cleaned before new-instance admission, so 17
+  consecutive equip/drop/reinsert cycles do not consume the live-id cap.
+- Destruction, explicit teardown and owner-first invalidation settle or
+  terminally quarantine reload state, deregister the exact binding, remove the
+  native weapon and release the provider handler. Owner-loss quarantine is
+  allowed only after the inventory runtime is provably gone, is generation and
+  reservation scoped, and never mutates live inventory. Native cleanup failure
+  retains the record, native instance, handler and quarantine proof for retry.
+- Provider-handler removability is preflighted before any weapon/reload mutation.
+  A dependent consumer therefore rejects misordered release with the exact
+  native snapshot and reload binding intact; consumer-first retry succeeds.
 - `RaidAuthority` phase handlers retain their prior default lexical ordering and
   add a bounded priority/dependency contract. The context provider is explicitly
   ordered before consumers, consumers release first, and stale captured callbacks
@@ -40,7 +50,7 @@ All Godot checks use the repository-pinned executable:
 
 | Evidence | Result |
 | --- | --- |
-| `weapon_instance_context_contract.log` | 211 checks, 0 failures |
+| `weapon_instance_context_contract.log` | 306 checks, 0 failures |
 | `units_clock_contract.log` | 32 checks, 0 failures |
 | `authority_replay_contract.log` | 81 checks, 0 failures |
 | `equipped_item_reconciliation_contract.log` | 123 checks, 0 failures |
@@ -58,7 +68,7 @@ All Godot checks use the repository-pinned executable:
 | `spec_strict.log` | `Valid`, exit 0 |
 | `diff_check.log` | 0 findings; no vendored add-on changes |
 
-The fourteen executable contracts total **20,741 checks and zero failures**. They
+The fourteen executable contracts total **20,836 checks and zero failures**. They
 were rerun outside the restricted filesystem sandbox so macOS certificate and
 user-log access denials do not contaminate the accepted engine logs.
 
@@ -67,11 +77,14 @@ creation from equipment; mutation-free binding; immutable context/publication;
 current-tick pose; normalized aim; a 72-tick inventory-backed reload; one
 accepted shot; forged-origin rejection without ammunition loss; canonical
 equipment=false, usability=false, and liveness=false native rejections;
-dormancy/re-equip; exact loaded-state conservation across transfer out, replay,
-transfer back and re-equip; permanent destruction versus custody change; exact
-reload-binding deregistration; provider/consumer ordering and deterministic
-tie-breaks; stale callbacks; content-fingerprint mismatch; retryable cleanup
-failure; explicit teardown; owner-first teardown; and missing-pose failure closure.
+dormancy/re-equip; exact loaded-state conservation across stable-id transfer
+out, replay, transfer back and re-equip; value-only drop identity retirement
+and replay across 17 cycles; the explicit 16-concurrent-live-firearm cap;
+permanent destruction versus custody change; exact reload-binding deregistration;
+provider/consumer ordering, removal preflight and deterministic tie-breaks;
+stale callbacks; content-fingerprint mismatch; active-reload owner-first
+teardown; upstream reload-recovery quarantine; retryable native cleanup failure;
+explicit teardown; and missing-pose failure closure.
 
 ## Diagnostics and limits
 
@@ -85,4 +98,7 @@ to this implementation handoff. The parent checkpoint is
 
 This task does not claim input routing (5.7), hit resolution/damage (5.3-5.6),
 melee authority (5.8), production UI, multiplayer, human playtest approval,
-milestone readiness, or release readiness.
+milestone readiness, or release readiness. It supports at most 16 concurrently
+live stable firearm identities for one bound player context; a 17th genuinely
+live stable identity is outside this task's admitted boundary and fails closed.
+Value-only `DROPPED` custody is not a stable-identity round trip.

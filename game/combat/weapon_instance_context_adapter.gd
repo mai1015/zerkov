@@ -24,8 +24,10 @@ const PHASE_HANDLER_PRIORITY: int = 100
 const CONSUMER_PHASE_PRIORITY: int = 200
 const NEUTRAL_MODIFIER_PPM: int = 1_000_000
 const MAX_TRACKED_FIREARMS: int = 16
-# Public Inventory System TransactionEventKind::REMOVED.
+# Public Inventory System TransactionEventKind values. REMOVED destroys the
+# item, while DROPPED retires its stable native id into value-only custody.
 const INVENTORY_EVENT_REMOVED: int = 6
+const INVENTORY_EVENT_DROPPED: int = 11
 
 var lifecycle: Lifecycle = Lifecycle.UNBOUND
 var last_error: StringName = &""
@@ -50,7 +52,7 @@ var _binding_generation: int = 0
 var _generation_counter: int = 0
 var _next_weapon_binding_generation: int = 1
 var _records: Dictionary = {}
-var _destroyed_item_ids: Dictionary = {}
+var _retired_item_ids: Dictionary = {}
 var _last_outcome: Dictionary = {}
 var _recovery_details: Dictionary = {}
 var _public_signal_active: bool = false
@@ -268,6 +270,10 @@ func release_binding(reason: StringName = &"teardown", tick: int = 0) -> bool:
 		return _reject(&"adapter_not_bound")
 	if not InventoryWeaponAdapter.INTERRUPT_REASONS.has(reason):
 		return _reject(&"interrupt_reason_invalid")
+	# In the synchronous single-writer runtime this preflight closes every
+	# deterministic handler-removal rejection before weapon state is touched.
+	if not _preflight_phase_handler_removal():
+		return false
 	if not _remove_all_owned_instances(reason, tick):
 		return false
 	if not _unregister_phase_handler():
@@ -326,31 +332,9 @@ func _reconcile_current(tick: int) -> Dictionary:
 	var dormant: Array[Dictionary] = []
 	var parked: Array[Dictionary] = []
 	var removed: Array[Dictionary] = []
-	var active_ids := PackedStringArray(active_firearms.keys())
-	active_ids.sort()
-	for weapon_id in active_ids:
-		var mapping := active_firearms[weapon_id] as Dictionary
-		if not _records.has(weapon_id):
-			if _records.size() >= MAX_TRACKED_FIREARMS:
-				return _reconciliation_rejection(&"weapon_instance_limit")
-			var created := _create_instance(mapping, tick)
-			if not bool(created.get("accepted", false)):
-				return created
-			added.append((created["record"] as Dictionary).duplicate(true))
-		else:
-			var existing := _records[weapon_id] as Dictionary
-			if _destroyed_item_ids.has(int(existing.get("native_item_id", 0))):
-				return _latch_recovery(&"destroyed_weapon_reappeared", existing)
-			if not _record_matches_mapping(existing, mapping):
-				return _latch_recovery(&"weapon_instance_mapping_conflict", existing)
-			existing["equipped"] = true
-			existing["parked"] = false
-			existing["custody"] = &"player"
-			existing["last_inventory_revision"] = snapshot.get_revision()
-			existing["last_reconciled_tick"] = tick
-			_records[weapon_id] = existing
-			retained.append(existing.duplicate(true))
-
+	# Retire or park inactive records before admitting a new native instance.
+	# A value-only DROPPED item therefore cannot consume the live stable-id cap
+	# on the tick where a replacement becomes equipped.
 	var tracked_ids := PackedStringArray(_records.keys())
 	tracked_ids.sort()
 	for weapon_id in tracked_ids:
@@ -376,6 +360,31 @@ func _reconcile_current(tick: int) -> Dictionary:
 			dormant.append(parked_record)
 		else:
 			parked.append(parked_record)
+
+	var active_ids := PackedStringArray(active_firearms.keys())
+	active_ids.sort()
+	for weapon_id in active_ids:
+		var mapping := active_firearms[weapon_id] as Dictionary
+		if not _records.has(weapon_id):
+			if _records.size() >= MAX_TRACKED_FIREARMS:
+				return _reconciliation_rejection(&"weapon_instance_limit")
+			var created := _create_instance(mapping, tick)
+			if not bool(created.get("accepted", false)):
+				return created
+			added.append((created["record"] as Dictionary).duplicate(true))
+		else:
+			var existing := _records[weapon_id] as Dictionary
+			if _retired_item_ids.has(int(existing.get("native_item_id", 0))):
+				return _latch_recovery(&"destroyed_weapon_reappeared", existing)
+			if not _record_matches_mapping(existing, mapping):
+				return _latch_recovery(&"weapon_instance_mapping_conflict", existing)
+			existing["equipped"] = true
+			existing["parked"] = false
+			existing["custody"] = &"player"
+			existing["last_inventory_revision"] = snapshot.get_revision()
+			existing["last_reconciled_tick"] = tick
+			_records[weapon_id] = existing
+			retained.append(existing.duplicate(true))
 
 	_last_outcome = {
 		"accepted": true,
@@ -451,19 +460,60 @@ func _remove_instance(weapon_id: String, reason: StringName, tick: int) -> bool:
 	var record := _records.get(weapon_id, {}) as Dictionary
 	if record.is_empty():
 		return true
-	if _reload_adapter != null and is_instance_valid(_reload_adapter) \
-			and ((_reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.BOUND \
-					and _reload_adapter.is_bound()) \
-				or _reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.RECOVERY_REQUIRED):
-		var interrupted := _reload_adapter.interrupt_reload(weapon_id, reason, tick)
-		if not bool(interrupted.get("accepted", false)):
-			_latch_recovery(&"weapon_reload_interrupt_failed", {
-				"record": record,
-				"interruption": interrupted,
-			})
-			return false
 	if _reload_adapter == null or not is_instance_valid(_reload_adapter):
 		_latch_recovery(&"weapon_reload_binding_unreachable", {"record": record})
+		return false
+	var reload_lifecycle := _reload_adapter.lifecycle
+	if reload_lifecycle == InventoryWeaponAdapter.Lifecycle.BOUND:
+		if _reload_adapter.is_bound():
+			var interrupted := _reload_adapter.interrupt_reload(weapon_id, reason, tick)
+			if not bool(interrupted.get("accepted", false)):
+				_latch_recovery(&"weapon_reload_interrupt_failed", {
+					"record": record,
+					"interruption": interrupted,
+				})
+				return false
+		else:
+			# Owner unload erases inventory state before emitting its lifecycle
+			# signal. Ask the coordinator to cancel mechanically and invalidate
+			# itself before exact deregistration is attempted.
+			_reload_adapter.validate_binding(tick)
+			reload_lifecycle = _reload_adapter.lifecycle
+	if reload_lifecycle == InventoryWeaponAdapter.Lifecycle.RECOVERY_REQUIRED:
+		var quarantined := _reload_adapter.quarantine_weapon_after_inventory_loss(
+			weapon_id, int(record.get("weapon_binding_generation", 0)))
+		if not bool(quarantined.get("accepted", false)):
+			_latch_recovery(&"weapon_reload_quarantine_failed", {
+				"record": record,
+				"quarantine": quarantined,
+				"reload_recovery": _reload_adapter.recovery_details(),
+			})
+			return false
+		var quarantine_reservation := String(quarantined.get("reservation_id", ""))
+		var native_before := _weapon_authority.snapshot(weapon_id)
+		var native_phase := String(native_before.get("phase", ""))
+		var native_reservation := String((native_before.get(
+			"reload", {}) as Dictionary).get("reservation_id", ""))
+		if native_before.is_empty() \
+				or (native_phase == "reloading" \
+					and native_reservation != quarantine_reservation) \
+				or (native_phase != "ready" and native_phase != "reloading"):
+			_latch_recovery(&"weapon_reload_quarantine_state_mismatch", {
+				"record": record,
+				"quarantine": quarantined,
+				"native": native_before,
+			})
+			return false
+		record["terminal_reload_quarantine_reservation"] = quarantine_reservation
+		_records[weapon_id] = record
+		reload_lifecycle = _reload_adapter.lifecycle
+	if reload_lifecycle != InventoryWeaponAdapter.Lifecycle.BOUND \
+			and reload_lifecycle != InventoryWeaponAdapter.Lifecycle.INVALIDATED:
+		_latch_recovery(&"weapon_reload_lifecycle_unsettled", {
+			"record": record,
+			"reload_lifecycle": int(reload_lifecycle),
+			"reload_error": _reload_adapter.last_error,
+		})
 		return false
 	var deregistered := _reload_adapter.unregister_weapon(
 		weapon_id, int(record.get("weapon_binding_generation", 0)))
@@ -474,8 +524,12 @@ func _remove_instance(weapon_id: String, reason: StringName, tick: int) -> bool:
 		})
 		return false
 	var removed := _remove_native_weapon(weapon_id)
+	var reservation_to_release := String(removed.get("reservation_to_release", ""))
+	var quarantined_reservation := String(record.get(
+		"terminal_reload_quarantine_reservation", ""))
 	if not bool(removed.get("ok", false)) \
-			or not String(removed.get("reservation_to_release", "")).is_empty() \
+			or (not reservation_to_release.is_empty() \
+				and reservation_to_release != quarantined_reservation) \
 			or not _weapon_authority.snapshot(weapon_id).is_empty():
 		_latch_recovery(&"weapon_instance_remove_failed", {
 			"record": record,
@@ -484,7 +538,7 @@ func _remove_instance(weapon_id: String, reason: StringName, tick: int) -> bool:
 		})
 		return false
 	_records.erase(weapon_id)
-	_destroyed_item_ids.erase(int(record.get("native_item_id", 0)))
+	_retired_item_ids.erase(int(record.get("native_item_id", 0)))
 	return true
 
 
@@ -596,7 +650,7 @@ func _item_state(snapshot: InventorySnapshotResource, record: Dictionary) -> Dic
 	if matches.size() > 1:
 		return {"valid": false, "reason": &"weapon_item_duplicate_custody"}
 	var native_item_id := int(record.get("native_item_id", 0))
-	if _destroyed_item_ids.has(native_item_id) and not matches.is_empty():
+	if _retired_item_ids.has(native_item_id) and not matches.is_empty():
 		return {"valid": false, "reason": &"destroyed_weapon_still_present"}
 	if matches.size() == 1:
 		var matched_state := matches[0]
@@ -605,7 +659,7 @@ func _item_state(snapshot: InventorySnapshotResource, record: Dictionary) -> Dic
 		matched_state["live"] = true
 		matched_state["destroyed"] = false
 		return matched_state
-	if _destroyed_item_ids.has(native_item_id):
+	if _retired_item_ids.has(native_item_id):
 		return {
 			"valid": true,
 			"live": false,
@@ -614,9 +668,9 @@ func _item_state(snapshot: InventorySnapshotResource, record: Dictionary) -> Dic
 			"equipped": false,
 			"custody": &"destroyed",
 		}
-	# A canonical drop or transfer to a custody service outside the three raid
+	# A stable-id-preserving transfer to a custody service outside the three raid
 	# inventories keeps the same item live. Absence alone is never destruction;
-	# only the one-shot REMOVED event authorizes native disposal.
+	# REMOVED and value-only DROPPED events explicitly retire the native id.
 	return {
 		"valid": true,
 		"live": true,
@@ -705,10 +759,15 @@ func _binding_is_current() -> bool:
 
 
 func _on_reconciler_invalidated(reason: StringName) -> void:
-	if lifecycle != Lifecycle.BOUND:
+	if lifecycle != Lifecycle.BOUND and lifecycle != Lifecycle.RECOVERY_REQUIRED:
 		return
 	var effective := reason if not reason.is_empty() else &"authority_invalidation"
 	var tick := _raid_authority.last_processed_tick if _raid_authority != null else 0
+	if not _preflight_phase_handler_removal():
+		_latch_recovery(&"weapon_phase_handler_release_blocked", {
+			"reason": _raid_authority.last_error if _raid_authority != null else &"raid_missing",
+		})
+		return
 	# The reload adapter may already have observed the same inventory lifecycle
 	# boundary. Removing the native instance is still required; a non-empty
 	# reservation is quarantined because no second inventory release is guessed.
@@ -747,7 +806,9 @@ func _on_inventory_transaction_committed(
 	var events := result.get("events", []) as Array
 	for event_value in events:
 		var event := event_value as Dictionary
-		if int(event.get("kind", -1)) != INVENTORY_EVENT_REMOVED:
+		var event_kind := int(event.get("kind", -1))
+		if event_kind != INVENTORY_EVENT_REMOVED \
+				and event_kind != INVENTORY_EVENT_DROPPED:
 			continue
 		var native_item_id := int(event.get("item", 0))
 		if native_item_id <= 0:
@@ -755,7 +816,7 @@ func _on_inventory_transaction_committed(
 		for record_value in _records.values():
 			var record := record_value as Dictionary
 			if int(record.get("native_item_id", 0)) == native_item_id:
-				_destroyed_item_ids[native_item_id] = true
+				_retired_item_ids[native_item_id] = true
 				break
 
 
@@ -830,6 +891,20 @@ func _unregister_phase_handler() -> bool:
 	return true
 
 
+func _preflight_phase_handler_removal() -> bool:
+	if not _phase_registered:
+		return true
+	if _raid_authority == null:
+		return _reject(&"raid_authority_invalid")
+	if not _raid_authority.has_phase_handler(PHASE_HANDLER_ID, _raid_generation):
+		return true
+	if not _raid_authority.can_unregister_phase_handler(
+			PHASE_HANDLER_ID, _raid_generation):
+		last_error = _raid_authority.last_error
+		return false
+	return true
+
+
 func _reset_unbound_state() -> void:
 	_disconnect_reconciler()
 	_disconnect_inventory_transactions()
@@ -855,7 +930,7 @@ func _reset_unbound_state() -> void:
 	_inventory_authority_instance_id = 0
 	_binding_generation = 0
 	_records.clear()
-	_destroyed_item_ids.clear()
+	_retired_item_ids.clear()
 	_last_outcome.clear()
 	_recovery_details.clear()
 	_public_signal_active = false
