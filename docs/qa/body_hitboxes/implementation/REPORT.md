@@ -149,3 +149,14 @@ and results. Source and packet hashes below seal the post-merge repair state.
   publication remain with their owning world tasks.
 - There is no rendering, damage, injury, healing, death, settlement, UI or
   human combat-feel evidence in this packet.
+
+## Independent acceptance
+
+Accepted on 2026-09-11 at immutable head
+`c0b732693aefa578de2cf2d2359d16fad19c819f` with no P0-P3 findings.
+The final independent pass verified that every public metadata read requires
+the exact current binding object, stale holders cannot inspect a replacement
+raid, and no token-reacquisition getter remains. Task 5.3 passed `356/0` and
+the accepted task 5.2 compatibility matrix passed `398/0`, for `754/0`
+combined. Import diagnostics, source/packet seals and diff checks were clean.
+No UI, viewport, visual, responsive, compact or screen-size suite ran.
