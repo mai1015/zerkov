@@ -1,23 +1,25 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "recorded_date": "2026-09-11",
-  "branch": "codex/damage-injury-healing-5-6-callback-repair",
+  "branch": "codex/damage-injury-healing-5-6-diagnostic-final",
   "original_base": "b0ead7da37dcf239c40dd3c706d94b0e457ca310",
   "sealed_candidate": "fb8b1cf3d1cb11abc0f8d99aea815296ed4b56e5",
-  "integrated_main": "9cb602f0f5674deea7d5ad8739c67dda431006f4",
-  "main_integration_checkpoint": "05e0d30d4f1f01c71ab375be882504aa8ec93259",
+  "callback_repair_candidate": "726492d2056b757e9f6023fc5d37dfda7e9f9e80",
+  "integrated_main": "e12dcd043625c22ea8b62cd7fce2587505bb03a8",
+  "main_integration_checkpoint": "ffe56dc2c0852c7734ad9c7890c41343987a6b0f",
   "intrinsic_checkpoint": "8a400304f724763aef5e0382caae9a19c80b9b77",
   "canonical_outcome_checkpoint": "7ea569556b12079683a561886a4a048f6bb3ebd4",
   "recovery_repair_checkpoint": "21a515049d25343b8cc6da9af70aa2bbda80be94",
   "post_merge_pre_evidence_checkpoint": "3e829d55fe5b40ccea1b3fbc9e354aca376a8bd3",
   "native_cancellation_repair_checkpoint": "9d6035cb0a84b6278b20d69f67203d380ff0b703",
+  "diagnostic_public_error_repair_checkpoint": "87a78328530c44c00d39c9703895feb0de49f2db",
   "engine": "4.7.2.stable.official.ed1daf0bf",
   "headless_only": true,
   "focused": {
     "contract": "tests/combat/health_consequence_adapter_contract.gd",
     "runs": [
-      {"checks": 422, "failures": 0, "exit_code": 0, "diagnostics": 0},
-      {"checks": 422, "failures": 0, "exit_code": 0, "diagnostics": 0}
+      {"checks": 444, "failures": 0, "exit_code": 0, "diagnostics": 0},
+      {"checks": 444, "failures": 0, "exit_code": 0, "diagnostics": 0}
     ]
   },
   "independent_adversarial": {
@@ -36,12 +38,29 @@
       {"checks": 11, "failures": 0, "exit_code": 0, "diagnostics": 0}
     ]
   },
+  "reviewer_diagnostic_reproduction": {
+    "contract": "/private/tmp/zerkov-5-6-sol-review.NmA7fZ/release_callback_surface_probe.gd",
+    "sha256": "0a1070f4d18798fc492fe881cbc71565a09b5f99275e9a3627767761dbcb5e0a",
+    "candidate": "726492d2056b757e9f6023fc5d37dfda7e9f9e80",
+    "pre_repair": {
+      "checks": 18,
+      "failures": 0,
+      "exit_code": 0,
+      "diagnostics": 0,
+      "candidate_observation_assertions": true
+    },
+    "post_repair_coverage": "tests/combat/health_consequence_adapter_contract.gd"
+  },
   "adjacent": {
-    "contract": "tests/combat/health_ability_content_contract.gd",
-    "unchanged_from_sealed_candidate": true,
-    "checks": 392,
+    "runs": [
+      {"contract": "tests/combat/health_ability_content_contract.gd", "checks": 392, "failures": 0, "diagnostics": 0},
+      {"contract": "tests/combat/content_contract.gd", "checks": 80, "failures": 0, "diagnostics": 0},
+      {"contract": "tests/raid/inventory_catalog_contract.gd", "checks": 551, "failures": 0, "diagnostics": 0},
+      {"contract": "tests/raid/authority_replay_contract.gd", "checks": 81, "failures": 0, "diagnostics": 0}
+    ],
+    "checks": 1104,
     "failures": 0,
-    "contracts": 1,
+    "contracts": 4,
     "diagnostics": 0
   },
   "sealed_candidate_baseline": {
@@ -49,15 +68,19 @@
     "total_failures": 0,
     "adjacent_contracts": 25
   },
-  "total_assertions": 1652,
+  "total_assertions": 2408,
   "total_failures": 0,
-  "import_check": {"headless": true, "exit_code": 0, "diagnostics": 0},
+  "import_check": {"headless": true, "fresh_after_main_merge": true, "exit_code": 0, "diagnostics": 0},
   "strict_spec": {"exit_code": 0, "result": "Valid"},
   "vendor_integrity": {"tests": 4, "failures": 0, "exit_code": 0},
   "diff_check": {"exit_code": 0},
-  "analogous_release_audit": [
-    "game/inventory/equipment/inventory_ability_adapter.gd",
-    "game/inventory/equipment/inventory_weapon_adapter.gd"
+  "synchronous_public_signal_audit": [
+    "damage_committed",
+    "injury_committed",
+    "treatment_committed",
+    "death_committed",
+    "recovery_latched",
+    "binding_invalidated"
   ],
   "forbidden_test_surfaces_run": []
 }

@@ -1,20 +1,24 @@
 # Task 5.6 implementation evidence
 
-Status: sealed-review repair candidate ready for renewed independent acceptance.
+Status: diagnostic-repair candidate ready for renewed independent acceptance.
 Task 5.6 remains unchecked by design.
 
 - Recorded: 2026-09-11
-- Branch: `codex/damage-injury-healing-5-6-callback-repair`
+- Branch: `codex/damage-injury-healing-5-6-diagnostic-final`
 - Original base: `b0ead7da37dcf239c40dd3c706d94b0e457ca310`
 - Sealed candidate: `fb8b1cf3d1cb11abc0f8d99aea815296ed4b56e5`
-- Integrated main: `9cb602f0f5674deea7d5ad8739c67dda431006f4`
-- Main-integration checkpoint: `05e0d30d4f1f01c71ab375be882504aa8ec93259`
+- Callback-repair candidate: `726492d2056b757e9f6023fc5d37dfda7e9f9e80`
+- Integrated main: `e12dcd043625c22ea8b62cd7fce2587505bb03a8`
+- Main-integration checkpoint:
+  `ffe56dc2c0852c7734ad9c7890c41343987a6b0f`
 - Intrinsic implementation checkpoint: `8a40030`
 - Canonical-outcome checkpoint: `7ea5695`
 - Reentrancy/recovery repair checkpoint: `21a5150`
 - Post-merge pre-evidence checkpoint: `3e829d5`
 - Native-cancellation repair checkpoint:
   `9d6035cb0a84b6278b20d69f67203d380ff0b703`
+- Diagnostic public-error repair checkpoint:
+  `87a78328530c44c00d39c9703895feb0de49f2db`
 - Engine: Godot `4.7.2.stable.official.ed1daf0bf`, headless only
 
 ## Implemented authority boundary
@@ -73,7 +77,10 @@ Task 5.6 remains unchecked by design.
   callback. Every guarded exit returns through one wrapper that clears the
   fence, including retryable failure. A stable actor/record teardown plan is
   captured before the first native callback boundary, so later actors are never
-  looked up through callback-mutable live storage.
+  looked up through callback-mutable live storage. Once a terminal invalidation
+  or recovery signal returns, the outer operation restores its own public
+  `last_error`; a callback can still observe its nested reentrant rejection,
+  but cannot overwrite the already-emitted outer reason.
 - Damage, treatment and event ledgers never evict replay history. Journal space,
   event identities, damage capacity, treatment queue capacity, bleed schedule
   capacity and native grants are preflighted before the applicable cross-domain
@@ -110,12 +117,16 @@ Gameplay Abilities component and real Inventory System authority. It covers:
 - callback-driven registration context change with exact snapshot cleanup;
 - two-actor native activation cancellation rejecting recursive release while
   both captured components reach terminal cleanup exactly once;
+- `binding_invalidated` callback reentry preserving the outer terminal reason,
+  terminal pending-treatment receipt, journal history and cleanup;
+- `recovery_latched` callback reentry preserving the outer failure reason,
+  pending receipt/history and retryable teardown to one terminal receipt;
 - refusal to treat owner lifecycle alone as proof of native inventory unload;
 - repeated ordered inputs producing equal normalized native state/event traces.
 
-Focused run 1: `422/0`.
+Focused run 1: `444/0`.
 
-Focused run 2: `422/0`.
+Focused run 2: `444/0`.
 
 ## Independent adversarial probe
 
@@ -143,6 +154,20 @@ adapter retains no actors, and both registered components are torn down.
 Callback run 1: `11/0`.
 
 Callback run 2: `11/0`.
+
+## Reviewer diagnostic reentry reproduction
+
+The unmodified reviewer diagnostic at
+`/private/tmp/zerkov-5-6-sol-review.NmA7fZ/release_callback_surface_probe.gd`
+was run against its intended pre-repair callback candidate. Its SHA-256 was
+`0a1070f4d18798fc492fe881cbc71565a09b5f99275e9a3627767761dbcb5e0a`.
+It produced `18/0` while printing the two reproduced masked values:
+`health_binding_change_reentrant` after the successful
+`binding_invalidated` callback and after the
+`medical_inventory_release_failed` recovery callback. The probe's final two
+assertions deliberately encode those candidate observations, so the corrected
+expectations are promoted into the permanent focused contract above rather than
+being treated as a post-repair green oracle.
 
 ## Sealed-candidate adjacent headless baseline
 
@@ -183,28 +208,40 @@ Sealed focused plus adjacent: `23,518/0`.
 
 Sealed focused, adjacent and independent adversarial: `23,912/0`.
 
-For the post-repair adjacent gate,
-`tests/combat/health_ability_content_contract.gd` was byte-unchanged from the
-sealed candidate and passed `392/0`. Post-repair verification executed `1,652`
-assertions with zero failures: focused `844/0`, independent adversarial
-`394/0`, native-cancellation probe `22/0`, and adjacent health content `392/0`.
+## Merge-sensitive adjacent headless gates
+
+After merging current main, the following nonvisual contracts passed:
+
+| Contract | Result |
+| --- | ---: |
+| Health ability content | 392/0 |
+| Combat content | 80/0 |
+| Inventory catalog | 551/0 |
+| Authority replay/journal | 81/0 |
+
+Post-repair verification executed `2,408` green assertions: focused `888/0`,
+independent adversarial `394/0`, native-cancellation probe `22/0`, and adjacent
+headless contracts `1,104/0`. The pre-repair reviewer reproduction is retained
+above as diagnostic evidence and is not included in that green total.
 
 ## Import, validation, hashes and diff
 
-- Exact main `9cb602f0f5674deea7d5ad8739c67dda431006f4` was merged before the
-  repair checkpoint and final evidence seal.
-- Fresh pinned headless import plus a warm headless import/check-only pass both
-  exited 0; the final pass emitted no warning, script error or engine error.
+- Exact main `e12dcd043625c22ea8b62cd7fce2587505bb03a8` was merged at
+  `ffe56dc2c0852c7734ad9c7890c41343987a6b0f` before the final verification.
+- Fresh pinned headless import after that merge exited 0 with no warning, script
+  error or engine error.
 - Strict validation of `add-zerkov-playable-raid-2026-09-09` returned `Valid`.
 - Vendored-add-on integrity tests passed `4/4`; no add-on source changed.
 - `git diff --check` passed. The task diff against integrated main contains no
   `RaidAuthority`, UI, viewport, visual or capture file. No UI, visual,
   viewport or renderer-backed test was run.
-- A narrow analogous-release audit found the Gameplay Ability equipment path
-  already fences native revokes with `_mutation_active`, while reload release
-  fences native cancellation and publication with `_transaction_active` and
-  `_public_signal_active`; neither has the unfenced multi-actor lookup pattern
-  repaired here.
+- A narrow synchronous-public-signal audit covered `damage_committed`,
+  `injury_committed`, `treatment_committed`, `death_committed`,
+  `recovery_latched`, and `binding_invalidated`. The four outcome signals emit
+  immutable receipts while phase/mutation gates remain active and do not publish
+  an outer terminal `last_error` reason; their existing reentry fence remains
+  unchanged. Only recovery and invalidation publish a reason already assigned
+  to `last_error`, so only those two sites restore it after synchronous delivery.
 - `frozen_sources.sha256` seals the implementation, focused contracts,
   governing instructions, approved inputs and accepted Task 5.4/5.5 evidence.
   `packet.sha256` seals this report, the structured results and source manifest.
