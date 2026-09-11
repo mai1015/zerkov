@@ -60,12 +60,24 @@ oversubscribe a bounded attribute. Initialization likewise verifies the live
 sealed-catalog provenance and 60 Hz clock before mutation, and remains
 idempotent after valid gameplay changes.
 
-The declarations intentionally stop at task 5.5's data/policy boundary. Heavy-
-bleed tick damage and cadence, lethal-zone rules, pain/movement contributions,
-and healing eligibility are fingerprinted here. Task 5.6 owns authoritative
-hit/injury evaluation, scheduled bleed requests through the bounded seam,
-stable consequence IDs, death ordering, medical inventory transactions and
-cross-domain idempotency. Presentation remains consequence-free.
+The declarations intentionally stop at task 5.5's data/policy boundary. Task
+5.6's `HealthConsequenceAdapter` consumes exact phase-6 weapon-consequence
+records in journal sequence during phase 7, translates fixed damage through the
+bounded health seam, evaluates the fingerprinted `ZerkovHealthConsequencePolicy`,
+and owns stable damage, injury, bleed, heal, death and kill identities. Heavy
+bleed schedules fixed one-unit damage every 60 ticks; a 25-unit committed hit
+starts heavy bleed and a 35-unit arm/leg hit also fractures. Lethal head or
+thorax damage publishes dead/unusable status and interrupts actor reloads before
+same-tick treatment work can run.
+
+Bandage and splint item quantities remain Inventory System-owned. The
+`InventoryMedicalParticipant` selects their unique sealed traits from the
+declared pocket/rig/backpack/secure order, prepares a quantity hold, and exposes
+silent commit, publication and exact-predecessor rollback to the health
+coordinator. Health and item successors either both commit, both restore, or
+leave a bounded fail-stop recovery record when either mutation cannot be
+proved. Task 5.7 will route player quick-heal actions into the adapter's exact,
+queue-only treatment request schema. Presentation remains consequence-free.
 
 `ZerkovGameplayAbilityContent` is the explicit composition root for health and
 equipment definitions. Gameplay Abilities catalogs do not merge implicitly, so

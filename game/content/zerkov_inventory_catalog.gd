@@ -42,6 +42,8 @@ const TRAIT_RIG: StringName = &"zerkov.trait.slot.rig"
 const TRAIT_BACKPACK: StringName = &"zerkov.trait.slot.backpack"
 const TRAIT_AMMO_762: StringName = &"zerkov.trait.ammo.caliber_762x39"
 const TRAIT_MAGAZINE_AKM: StringName = &"zerkov.trait.magazine.akm"
+const TRAIT_MEDICAL_BANDAGE: StringName = &"zerkov.trait.medical.bandage"
+const TRAIT_MEDICAL_SPLINT: StringName = &"zerkov.trait.medical.splint"
 
 const FIRST_PLAYABLE_ITEM_IDS: PackedStringArray = [
 	ITEM_AKM,
@@ -198,6 +200,8 @@ static func _trait_schemas() -> Array[InventoryTraitSchema]:
 		TRAIT_BACKPACK,
 		TRAIT_AMMO_762,
 		TRAIT_MAGAZINE_AKM,
+		TRAIT_MEDICAL_BANDAGE,
+		TRAIT_MEDICAL_SPLINT,
 	]:
 		var schema := InventoryTraitSchema.new()
 		schema.identifier = identifier
@@ -216,8 +220,10 @@ static func _items() -> Array[InventoryItemDefinition]:
 			[TRAIT_AMMO_762]),
 		_item(ITEM_MAGAZINE_AKM, 1, 350_000, Vector2i(1, 2), true,
 			[TRAIT_MAGAZINE_AKM], [CONTAINER_MAGAZINE_AKM]),
-		_item(ITEM_BANDAGE, 4, 70_000, Vector2i(1, 1)),
-		_item(ITEM_SPLINT, 2, 160_000, Vector2i(1, 2), true),
+		_item(ITEM_BANDAGE, 4, 70_000, Vector2i(1, 1), false,
+			[TRAIT_MEDICAL_BANDAGE]),
+		_item(ITEM_SPLINT, 2, 160_000, Vector2i(1, 2), true,
+			[TRAIT_MEDICAL_SPLINT]),
 		_item(ITEM_SUPPLY_CRATE, 1, 5_000_000, Vector2i(2, 2), true),
 		_item(ITEM_SEALED_DOCUMENTS, 1, 900_000, Vector2i(2, 1), true),
 		_item(ITEM_ENCRYPTED_DRIVE, 1, 120_000, Vector2i(1, 1)),

@@ -358,7 +358,7 @@ failure after mutation. No UI layout was changed. See
 - [x] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
   health, overall life state, stamina, hydration, heavy bleed, fracture,
   bandage and splint.
-- [ ] 5.6 `[SOL]` Implement damage, injury, healing and death consequences with
+- [x] 5.6 `[SOL]` Implement damage, injury, healing and death consequences with
   atomic or idempotent cross-entity application.
 - [ ] 5.7 `[LUNA]` Route aim, fire, reload, cancel reload, melee and quick-heal
   logical actions into bounded game intents.
@@ -405,6 +405,18 @@ reservation; capacity can be reused. Strict spec/import/diagnostics and ten
 source hashes passed. Cross-entity consequences, bleed scheduling, death order
 and medical inventory transactions remain task 5.6. See
 `docs/qa/health_ability_content/README.md`.
+
+Completed task evidence (5.6, 2026-09-11): independent final review accepted
+`1538beb46935a49c3309147017edcf67a5d480f7` with no P0/P1/P2 findings.
+The focused consequence contract passed `444/0` twice; callback, recovery and
+retry probes passed `75/0`, and adjacent health, combat, inventory and replay
+contracts passed `1104/0`. Damage, injury, treatment, bleed and death remain
+atomic/idempotent across native inventory participants; recursive teardown and
+public-signal callbacks cannot duplicate cleanup or replace the outer terminal
+diagnostic. Strict spec, import, vendor and sealed-hash checks passed. This is
+an offline synchronous authority boundary; HUD, input routing, melee, durable
+recovery and networking remain later tasks. See
+`docs/qa/health_consequences/implementation/REPORT.md`.
 
 ## 6. AI, perception and encounter behavior
 

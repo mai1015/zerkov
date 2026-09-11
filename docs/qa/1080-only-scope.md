@@ -114,8 +114,10 @@ discovery passes all fifteen tests. All twelve retired Python entry points exit
 with `DEFERRED_DISPLAY_SUITE`; exact-argument headless import and check-only
 parsing of changed GDScript entry points and the accepted Sawmill capture script
 pass without diagnostics. Both approved specs validate strictly. The accepted
-Sawmill source and packet are unchanged, and no shared input-binding test or
-native capture runs as part of this repair.
+Sawmill packet manifest verifies in full. Its frozen-source audit has exactly
+three expected cross-task drifts (`DESIGN.md`, the task ledger, and the inventory
+catalog), while every Sawmill-specific source remains unchanged. No shared
+input-binding test or native capture runs as part of this repair.
 
 The requirement remains a genuine exact 1920×1080 renderer output. A
 `--resolution 1920x1080` argument alone does not establish it: native harnesses

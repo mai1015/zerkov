@@ -181,9 +181,11 @@ after this validation.
 
 All validator-owned processes were reaped, as recorded in
 [process_cleanup.json](process_cleanup.json). Other Godot processes on the
-machine were left untouched. [packet_hashes.sha256](packet_hashes.sha256) seals
-this packet; the manifest and its verification log are excluded from their own
-seal. The sole unsuccessful runner-authoring attempt used the wrong working
+machine were left untouched. [packet_hashes.sha256](packet_hashes.sha256)
+records the original accepted packet seal. Current retirement-safety overlays
+intentionally differ from that historical seal and do not claim a reseal; the
+manifest and its original verification log are excluded from their own seal.
+The sole unsuccessful runner-authoring attempt used the wrong working
 directory for the earlier manifest verification; its output and explanation
 are preserved under [history](history/initial_runner_attempt.md), excluded from
 accepted totals. It was not a product or Godot failure.

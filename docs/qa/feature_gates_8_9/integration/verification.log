@@ -99,5 +99,40 @@ historical_packet_generators_executed=none
 shared_binding_writers_executed=none
 
 [task_ledger]
-task_8_9=unchecked
+task_8_9=checked
 human_approval=false
+
+[final_exact_output_enforcement_2026-09-11]
+worktree=/Volumes/Data/codes/codex-workspace/zerkov-integrate-1080-final-fix
+exact_output_candidate=d3b8975fe2da3dcf4937917007d586339b73025c
+candidate_base=e12dcd043625c22ea8b62cd7fce2587505bb03a8
+latest_main=26b9d5a94e56278fc3783fcf701644628960cbbb
+merge_conflicts=0
+active_gdscript_runners=25
+retired_gdscript_runners=35
+retired_python_entrypoints=12
+active_png_writers=9
+scanner_receiver_policy=direct_local_only; exact proof bound per save_png occurrence
+qualified_receiver_controls=holder.image,indexed holder[0],same-line first.image/second.image rejected
+retired_import_policy=top-level const/var load or preload rejected before _initialize guard
+task_8_9_writer_policy=physical/root/texture/raw-readback preflight; direct raw-image rejection immediately before save_png; encode/decode after write
+python3 -m unittest -v tests.tooling.test_ui_first_playable_scope: tests=12 failures=0
+python3 -m unittest discover -v -s tests/tooling -p test_*.py: tests=15 failures=0
+feature_gates_8_9_contract.gd: checks=74 failures=0 size=1920x1080
+feature_gates_8_9_visual_evidence.gd: checks=124 failures=0 size=1920x1080 frames=0 capture=skipped_headless
+health_consequence_adapter_contract.gd: checks=444 failures=0 no_ui=true
+inventory_catalog_contract.gd: checks=551 failures=0 findings=39
+changed_gdscript_check_only: files=14 failures=0 diagnostics=none
+pinned_editor_import: exit=0 diagnostics=none
+strict_spec_add_zerkov_playable_raid_2026_09_09=Valid
+strict_spec_refactor_ui_composition=Valid
+sawmill_packet_manifest=all_entries_OK
+sawmill_specific_sources=unchanged
+candidate_manifest_transition=39_unchanged;4_expected_final_differences;0_unexpected
+integration_pngs=7 exact_1920x1080;7 candidate_byte_identical
+native_rerun=not_needed; accepted native evidence unchanged; no image/path/UI behavior change
+alternate_sizes_executed=none
+upscale_output=none
+common_ui_bindings_sha256=ff6f972f99cc7e9a66db4852735ead27d344b3d090d246a420aa0136aff6bde5
+common_ui_bindings.json.tmp=absent
+common_ui_bindings.json.bak=absent

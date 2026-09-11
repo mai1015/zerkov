@@ -202,6 +202,8 @@ after root restaging; the frozen-runtime ACCEPT above does not replace it.
 
 The former `run_validation.py` suite/flow/native invocations and
 `finalize_packet.py` invocation are historical records only and are disabled.
-They now terminate before imports or work. `packet_hashes.sha256` inventories
-the retained evidence; `manifest_verification.log` records the original
-accepted seal check and is not a claim that the retired commands were rerun.
+They now terminate before imports or work. `packet_hashes.sha256` records the
+original accepted evidence seal; current retirement-safety overlays intentionally
+differ from that historical seal and do not claim a reseal.
+`manifest_verification.log` records only the original accepted seal check and is
+not a claim that the retired commands were rerun.

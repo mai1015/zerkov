@@ -22,7 +22,8 @@ func run() -> void:
 	check(resource.items.size() == 16, "first-playable catalog has 16 focused items")
 	check(resource.containers.size() == 9, "catalog has nine container/equipment definitions")
 	check(resource.profiles.size() == 4, "catalog has player, stash, crate, and corpse profiles")
-	check(resource.trait_schemas.size() == 6, "slot and ammunition traits are explicit")
+	check(resource.trait_schemas.size() == 8,
+		"slot, ammunition, and medical-consumption traits are explicit")
 	check(resource.discovery_policies.size() == 1, "world loot has one staged-search policy")
 
 	var identifiers: Dictionary = {}
