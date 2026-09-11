@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-11T01:55:53Z
+updated_at: 2026-09-11T02:14:29Z
 completed_at:
 ---
 
@@ -353,7 +353,7 @@ failure after mutation. No UI layout was changed. See
   deterministic overlap/tie-break policy.
 - [ ] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
   committed shot once and emit one stable hit/miss consequence.
-- [ ] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
+- [x] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
   health, overall life state, stamina, hydration, heavy bleed, fracture,
   bandage and splint.
 - [ ] 5.6 `[SOL]` Implement damage, injury, healing and death consequences with
@@ -376,6 +376,18 @@ failure after mutation. No UI layout was changed. See
 
 Evidence: combat authority suite; captured shot/reload/injury sequences; no
 duplicate consequences; documented tuning values; playtest notes.
+
+Completed task evidence (5.5, 2026-09-10): the accepted content declares seven
+body zones, 12 attributes, 34 tags, 41 effects and 41 abilities. The final
+health contract passed `392/0`; combat content `79/0`, equipment reconciliation
+`546/0` and combined add-ons `155/0` produced a sealed `1172/0` packet. An
+independent `86/86` adversarial pass covered stale future ticks, reentrancy,
+bounded concurrent reservations and a saturated 64-request native queue. A
+rejected request cannot mutate later, advance admission watermarks or strand a
+reservation; capacity can be reused. Strict spec/import/diagnostics and ten
+source hashes passed. Cross-entity consequences, bleed scheduling, death order
+and medical inventory transactions remain task 5.6. See
+`docs/qa/health_ability_content/README.md`.
 
 ## 6. AI, perception and encounter behavior
 
