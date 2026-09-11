@@ -1,34 +1,37 @@
 {
   "task": "5.3",
-  "recorded_at": "2026-09-11T03:35:12Z",
-  "branch": "codex/body-hitboxes-5-3",
+  "recorded_at": "2026-09-11T05:21:08Z",
+  "branch": "codex/body-hitbox-capability-5-3-repair",
   "base_commit": "150207bbf60d98358c8b1adc4412511eaedf68b3",
   "rejected_commit": "09463f291cfe70fddbd59d48e0592655194a272a",
   "godot": "4.7.2.stable.official.ed1daf0bf",
-  "accepted": true,
+  "accepted": false,
   "human_approval": false,
-  "raw_checks": 19423,
+  "raw_checks": 20521,
   "failures": 0,
   "diagnostic_matches": 0,
   "fail_before": {
     "body_hitbox_review_regression": {"checks": 9, "failures": 9},
-    "metadata_rebind_regression": {"checks": 72, "failures": 6}
+    "metadata_rebind_regression": {"checks": 72, "failures": 6},
+    "capability_encapsulation_regression": {"checks": 14, "failures": 8}
   },
   "focused": {
+    "body_hitbox_capability_encapsulation_contract": {"checks": 14, "failures": 0},
     "body_hitbox_contract": {"checks": 111, "failures": 0},
     "body_hitbox_adversarial_contract": {"checks": 173, "failures": 0},
     "body_hitbox_review_regression_contract": {"checks": 72, "failures": 0}
   },
   "adjacent_domain_only": {
-    "combat_content": {"checks": 79, "failures": 0},
+    "combat_content": {"checks": 80, "failures": 0},
     "health_ability_content": {"checks": 392, "failures": 0},
     "authority_replay": {"checks": 81, "failures": 0},
     "identity": {"checks": 18442, "failures": 0},
     "session_lifecycle": {"checks": 44, "failures": 0},
-    "units_clock": {"checks": 29, "failures": 0}
+    "units_clock": {"checks": 32, "failures": 0},
+    "combined_addons": {"checks": 155, "failures": 0},
+    "profile_store": {"checks": 527, "failures": 0}
   },
   "excluded_suites": [
-    "combined_addons",
     "inventory",
     "ui",
     "composition",
@@ -74,6 +77,42 @@
     "raw_checks": 754,
     "failures": 0,
     "diagnostic_matches": 0,
+    "ui_or_viewport_tests_run": false
+  },
+  "capability_encapsulation_repair": {
+    "recorded_at": "2026-09-11T05:21:08Z",
+    "initial_base": "c265d3a4efd9b49f840b87e201ceb8f4b661d26b",
+    "implementation_commit": "c0fbaad2575796c8729ee360a9eca51f62c52bc6",
+    "merged_main": "d4b407fcba49bb2e97b7db1300b597ecf1c5df75",
+    "integration_merge": "f942e689ef0ae0e90f8bb296f52eebe160c3b875",
+    "binding_schema": "zerkov.combat.body_hitbox_binding.v2",
+    "lease_bytes": 32,
+    "task_5_3_focused": {
+      "capability_encapsulation": {"checks": 14, "failures": 0},
+      "body_hitbox": {"checks": 111, "failures": 0},
+      "body_hitbox_adversarial": {"checks": 173, "failures": 0},
+      "body_hitbox_review": {"checks": 72, "failures": 0}
+    },
+    "task_5_2_compatibility": {
+      "weapon_instance_context": {"checks": 306, "failures": 0},
+      "weapon_instance_context_adversarial": {"checks": 49, "failures": 0},
+      "weapon_persistence_integration": {"checks": 43, "failures": 0}
+    },
+    "adjacent_domain_only": {
+      "authority_replay": {"checks": 81, "failures": 0},
+      "session_lifecycle": {"checks": 44, "failures": 0},
+      "units_clock": {"checks": 32, "failures": 0},
+      "combat_content": {"checks": 80, "failures": 0},
+      "health_ability_content": {"checks": 392, "failures": 0},
+      "identity": {"checks": 18442, "failures": 0},
+      "combined_addons": {"checks": 155, "failures": 0},
+      "profile_store": {"checks": 527, "failures": 0}
+    },
+    "raw_checks": 20521,
+    "failures": 0,
+    "diagnostic_matches": 0,
+    "accepted": false,
+    "task_checkbox_open": true,
     "ui_or_viewport_tests_run": false
   },
   "strict_spec_validation": "Valid"

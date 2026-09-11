@@ -26,6 +26,15 @@ var _health_view: HealthView
 var _configured: bool = false
 var _connections_active: bool = false
 var _interaction_state: Dictionary = {}
+# Presentation may deliberately replace `_health_view` with an unavailable
+# snapshot. Keep the last accepted ready truth separately so that a failed
+# rebind or teardown cannot reopen an older/divergent stream on recovery.
+var _health_lineage_actor_key: String = ""
+var _health_lineage_generation: int = 0
+var _has_ready_health_watermark: bool = false
+var _ready_health_revision: int = 0
+var _ready_health_source_tick: int = 0
+var _ready_health_content_digest: String = ""
 
 
 func configure(
@@ -35,13 +44,8 @@ func configure(
 	admission: ZSessionAdmission,
 	health_snapshot: HealthView
 ) -> bool:
-	var previous_actor := _admission.actor_id if _admission != null \
-		else (_health_view.actor_id() if _health_view != null else null)
-	var previous_actor_key := previous_actor.canonical_key() \
-		if previous_actor != null else ""
-	var previous_generation := _admission.generation if _admission != null \
-		else (_health_view.generation() if _health_view != null else 0)
-	var previous_health := _health_view
+	var previous_actor_key := _health_lineage_actor_key
+	var previous_generation := _health_lineage_generation
 	release(&"character_runtime_replaced", false)
 	last_error = &""
 	if owner == null or bridge == null or adapter == null \
@@ -50,14 +54,10 @@ func configure(
 	var admission_copy := admission.snapshot()
 	if admission_copy == null:
 		return _fail_configure(&"character_runtime_dependency_missing")
-	var enforce_previous_health := previous_health != null \
-			and previous_health.is_ready() \
-			and not previous_actor_key.is_empty() \
-			and previous_actor_key == admission_copy.actor_id.canonical_key() \
-			and previous_generation == admission_copy.generation
-	var health_reason := _health_transition_error(
-		health_snapshot, admission_copy,
-		previous_health if enforce_previous_health else null)
+	var lineage_reason := _health_lineage_error(admission_copy)
+	if not lineage_reason.is_empty():
+		return _fail_configure(lineage_reason)
+	var health_reason := _health_transition_error(health_snapshot, admission_copy)
 	if not health_reason.is_empty():
 		return _fail_configure(health_reason)
 	if not previous_actor_key.is_empty() and (
@@ -68,6 +68,7 @@ func configure(
 		return _fail_configure(_controller.last_error)
 	_admission = admission_copy
 	_health_view = health_snapshot
+	_commit_health_lineage(admission_copy, health_snapshot)
 	_configured = true
 	_connect_controller()
 	_refresh_inventory_views()
@@ -115,16 +116,18 @@ func publish_health_view(next_view: HealthView) -> bool:
 	last_error = &""
 	if not _configured or _admission == null:
 		return _fail(&"character_runtime_unavailable")
-	var transition_error := _health_transition_error(
-		next_view, _admission, _health_view)
+	var transition_error := _health_transition_error(next_view, _admission)
 	if not transition_error.is_empty():
 		return _fail(transition_error)
-	if next_view.revision() == _health_view.revision() \
-			and next_view.source_tick() == _health_view.source_tick():
+	if next_view.is_ready() and _health_view != null and _health_view.is_ready() \
+			and next_view.revision() == _health_view.revision() \
+			and next_view.source_tick() == _health_view.source_tick() \
+			and next_view.content_digest() == _health_view.content_digest():
 		# Same-version, same-content delivery is an idempotent replay. Keep the
 		# exact immutable instance already observed by screens and emit nothing.
 		return true
 	_health_view = next_view
+	_commit_health_lineage(_admission, next_view)
 	health_view_changed.emit(_health_view)
 	return true
 
@@ -241,8 +244,7 @@ func _on_controller_binding_invalidated(reason: StringName) -> void:
 
 func _health_transition_error(
 	view: HealthView,
-	admission: ZSessionAdmission,
-	previous: HealthView
+	admission: ZSessionAdmission
 ) -> StringName:
 	if view == null or not view.is_initialized() or admission == null:
 		return &"health_view_binding_invalid"
@@ -253,16 +255,53 @@ func _health_transition_error(
 		return &"health_view_binding_invalid"
 	if view.is_ready() and actor == null:
 		return &"health_view_binding_invalid"
-	if previous == null or previous.generation() != view.generation():
+	if not view.is_ready() or not _has_ready_health_watermark \
+			or _health_lineage_actor_key != admission.actor_id.canonical_key() \
+			or _health_lineage_generation != admission.generation:
 		return &""
-	if view.revision() < previous.revision() \
-			or view.source_tick() < previous.source_tick():
+	if view.revision() < _ready_health_revision \
+			or view.source_tick() < _ready_health_source_tick:
 		return &"health_view_version_regressed"
-	if view.revision() == previous.revision() \
-			and view.source_tick() == previous.source_tick() \
-			and view.content_digest() != previous.content_digest():
+	if view.revision() == _ready_health_revision \
+			and view.source_tick() == _ready_health_source_tick \
+			and view.content_digest() != _ready_health_content_digest:
 		return &"health_view_version_divergent"
 	return &""
+
+
+func _health_lineage_error(admission: ZSessionAdmission) -> StringName:
+	if admission == null or admission.actor_id == null:
+		return &"health_view_binding_invalid"
+	var actor_key := admission.actor_id.canonical_key()
+	if _health_lineage_actor_key.is_empty() \
+			or actor_key != _health_lineage_actor_key:
+		return &""
+	if admission.generation < _health_lineage_generation:
+		return &"health_view_lineage_regressed"
+	return &""
+
+
+func _commit_health_lineage(
+	admission: ZSessionAdmission,
+	view: HealthView
+) -> void:
+	var actor_key := admission.actor_id.canonical_key()
+	var replaces_lineage := _health_lineage_actor_key.is_empty() \
+			or actor_key != _health_lineage_actor_key \
+			or admission.generation > _health_lineage_generation
+	if replaces_lineage:
+		_has_ready_health_watermark = false
+		_ready_health_revision = 0
+		_ready_health_source_tick = 0
+		_ready_health_content_digest = ""
+	_health_lineage_actor_key = actor_key
+	_health_lineage_generation = admission.generation
+	if view == null or not view.is_ready():
+		return
+	_has_ready_health_watermark = true
+	_ready_health_revision = view.revision()
+	_ready_health_source_tick = view.source_tick()
+	_ready_health_content_digest = view.content_digest()
 
 
 func _sanitize_interaction_for_replacement() -> void:

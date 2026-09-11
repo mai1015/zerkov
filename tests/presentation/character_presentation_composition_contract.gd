@@ -69,6 +69,12 @@ func run() -> void:
 		and runtime.inventory_view(&"profile").is_ready()
 		and runtime.health_view().is_ready(),
 		"injected dependencies project ready immutable views")
+	var high_watermark := _health_view(
+		fixture.admission as ZSessionAdmission, 5, 500, 90)
+	check(runtime.publish_health_view(high_watermark)
+		and runtime.health_view().revision() == 5
+		and runtime.health_view().source_tick() == 500,
+		"ready health establishes the same-lineage revision and tick watermark")
 
 	var invalidations: Array[StringName] = []
 	var health_updates: Array[HealthView] = []
@@ -93,10 +99,30 @@ func run() -> void:
 		and (fixture.adapter as InventoryIntentAdapter).is_bound(),
 		"failed composition rebind cannot dispose externally owned dependencies")
 
+	var regressed_recovery := _health_view(
+		fixture.admission as ZSessionAdmission, 6, 499, 89)
+	check(not composition.rebind(
+		fixture.owner, fixture.bridge, fixture.adapter,
+		fixture.admission, regressed_recovery)
+		and runtime.last_error == &"health_view_version_regressed"
+		and not runtime.is_configured()
+		and runtime.health_view().revision() == 5
+		and runtime.health_view().source_tick() == 500,
+		"failed rebind cannot erase the ready watermark or admit a lower tick")
+	var divergent_recovery := _health_view(
+		fixture.admission as ZSessionAdmission, 5, 500, 88)
+	check(not composition.rebind(
+		fixture.owner, fixture.bridge, fixture.adapter,
+		fixture.admission, divergent_recovery)
+		and runtime.last_error == &"health_view_version_divergent"
+		and not runtime.is_configured(),
+		"same-version divergent health remains rejected after unavailable state")
+	var valid_recovery := _health_view(
+		fixture.admission as ZSessionAdmission, 6, 501, 89)
 	check(composition.rebind(
 		fixture.owner, fixture.bridge, fixture.adapter,
-		fixture.admission, fixture.health),
-		"valid dependencies rebind the retained presentation runtime")
+		fixture.admission, valid_recovery),
+		"same-lineage recovery requires monotonic ready health")
 	check(composition.character_runtime() == runtime and runtime.is_configured(),
 		"rebind preserves presentation runtime identity")
 	composition.teardown()
@@ -110,6 +136,34 @@ func run() -> void:
 		and (fixture.bridge as InventoryProjectionBridge).is_bound()
 		and (fixture.adapter as InventoryIntentAdapter).is_bound(),
 		"composition teardown leaves authority lifecycle to the game root")
+	var post_teardown_regression := _health_view(
+		fixture.admission as ZSessionAdmission, 7, 500, 87)
+	check(not composition.start(
+		fixture.owner, fixture.bridge, fixture.adapter,
+		fixture.admission, post_teardown_regression)
+		and runtime.last_error == &"health_view_version_regressed",
+		"teardown preserves the last ready watermark for the same authority lineage")
+
+	var replacement := _build_fixture("replacement")
+	check(bool(replacement.get("ok", false)),
+		"test-only honest replacement authority dependencies configure")
+	if bool(replacement.get("ok", false)):
+		var replacement_health := _health_view(
+			replacement.admission as ZSessionAdmission, 1, 1, 100)
+		check(composition.rebind(
+			replacement.owner, replacement.bridge, replacement.adapter,
+			replacement.admission, replacement_health)
+			and runtime.is_configured()
+			and runtime.health_view().revision() == 1
+			and runtime.health_view().source_tick() == 1,
+			"honest authority identity replacement resets the ready-health watermark")
+		composition.teardown()
+		check((replacement.owner as RaidInventoryOwner).lifecycle
+				== RaidInventoryOwner.Lifecycle.ACTIVE
+			and (replacement.bridge as InventoryProjectionBridge).is_bound()
+			and (replacement.adapter as InventoryIntentAdapter).is_bound(),
+			"replacement teardown also preserves external authority ownership")
+		_dispose_fixture(replacement)
 
 	composition.queue_free()
 	await settle()
@@ -177,6 +231,23 @@ func _build_fixture(tag: String) -> Dictionary:
 		"admission": admission,
 		"health": health,
 	}
+
+
+func _health_view(
+	admission: ZSessionAdmission,
+	revision: int,
+	source_tick: int,
+	stamina: int
+) -> HealthView:
+	var parts: Array[HealthView.BodyPart] = [
+		HealthView.BodyPart.create(
+			&"thorax", "Thorax", 85, 85, HealthView.BodyPartState.HEALTHY),
+	]
+	var effects: Array[HealthView.StatusEffect] = []
+	return HealthView.create(
+		admission.generation, revision, source_tick, admission.actor_id,
+		HealthView.LifeState.ALIVE, stamina, 100, 100, 100, 100, 100,
+		parts, effects)
 
 
 func _dispose_fixture(fixture: Dictionary) -> void:

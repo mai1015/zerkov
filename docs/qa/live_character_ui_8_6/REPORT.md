@@ -3,7 +3,8 @@
 Date: 2026-09-11
 Branch: `codex/live-inventory-health-ui-8-6`
 Original baseline: `c265d3a4efd9b49f840b87e201ceb8f4b661d26b`
-Merged main: `d4b407f` (accepted Tasks 7.9 and 8.3; Task 5.3 remains open)
+Merged main: `6fc090ebe63b0bb86979e004f3295897d0302950` (accepted Tasks 5.3,
+7.9, and 8.3)
 
 ## Scope
 
@@ -31,6 +32,16 @@ Externally owned authority dependencies remain alive after composition
 teardown. `HealthView` now carries a stable immutable SHA-256 content identity:
 same-version identical delivery is a no-op replay, same-version divergent
 content is rejected, and neither revision nor source tick may regress.
+
+The runtime also retains a private last-ready health watermark independently
+of the currently displayed view. Fail-closed dependency replacement,
+controller invalidation, and composition teardown may publish an unavailable
+view, but they cannot erase the accepted actor/generation lineage, revision,
+source tick, or content digest. Recovery on that lineage rejects a higher
+revision with a lower tick and rejects same-version divergent content. The
+watermark resets only after a complete replacement dependency set binds an
+honest new actor/generation lineage; a failed partial replacement cannot reset
+it.
 
 The existing body-wide health area represents every effect. Effects are sorted
 deterministically by severity, harmful state, and content ID; the highest
@@ -75,12 +86,15 @@ The inventory-ready image remains byte-identical to the independently accepted
 critical effect is not hidden and the long label stays within the badge. The
 hover capture records Godot's native multiline tooltip with all three
 aggregated effect names, severities, remaining ticks, and beneficial state.
+The lineage-only repair changed no UI or capture source. Its final validation
+therefore hash-verified these already accepted files instead of regenerating
+pixels; all five hashes remained byte-identical.
 
 ## Focused contracts
 
 ```text
 character_ui_binding_8_6_contract          checks=64  failures=0  size=1920x1080
-character_presentation_composition_contract checks=15 failures=0
+character_presentation_composition_contract checks=22 failures=0
 view_contracts_contract                     checks=115 failures=0
 ```
 
@@ -88,8 +102,9 @@ These contracts cover injection-only production composition, lack of owner /
 session constructors and mutable authority getters, typed unavailable startup,
 external dependency lifetime, open-screen teardown/failure/rebind, stale
 gesture rejection, binding-token advancement, immutable HealthView digest and
-version rules, all-effect health representation and real pointer hover, and
-the accepted inventory geometry and interaction-state preservation.
+version rules, retained ready-health lineage through failed rebind and teardown,
+honest authority replacement, all-effect health representation and real pointer
+hover, and the accepted inventory geometry and interaction-state preservation.
 
 ## Regression matrix
 
@@ -101,7 +116,7 @@ script, warning, or leak diagnostics:
 
 ```text
 character_ui_binding_8_6_contract           checks=64  failures=0  size=1920x1080
-character_presentation_composition_contract checks=15  failures=0
+character_presentation_composition_contract checks=22  failures=0
 inventory_ui_binding_contract               checks=138 failures=0  size=1920x1080
 inventory_loot_ui_4_11_contract              checks=88  failures=0  size=1920x1080
 inventory_persistence_replacement_contract  checks=97  failures=0  exact_round_trips=4
@@ -117,7 +132,9 @@ zerkov_input_bindings_contract               checks=380 failures=0  size=1920x10
 live_character_ui_8_6 capture                checks=12  failures=0  size=1920x1080
 ```
 
-Total: `2528` checks, `0` failures. A clean Godot 4.7.2 editor import and strict
+Total evidence: `2535` checks, `0` failures. The final lineage repair reran
+`2523` of those checks and byte-verified the unchanged 12-check exact capture
+packet instead of regenerating it. A clean Godot 4.7.2 editor import and strict
 spec validation pass; `git diff --check` is clean.
 
 ## Independent acceptance
