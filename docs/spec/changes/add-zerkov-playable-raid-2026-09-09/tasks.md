@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-11T01:38:17Z
+updated_at: 2026-09-11T01:55:53Z
 completed_at:
 ---
 
@@ -190,7 +190,7 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   transfer and focus behavior at 1920x1080. Existing compact code may remain
   but is not part of this task's acceptance gate. Preserve the audited baseline
   in `docs/qa/astra_visual_audit_2026-09-10/INVENTORY_1080P_BASELINE.md`.
-- [ ] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
+- [x] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
   authority replacement invalidate stale UI/adapters safely.
 - [x] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
   stash, world-crate and corpse profiles that can carry item-provided
@@ -328,8 +328,20 @@ adapter or tear down the inventory owner/component before `RaidAuthority`
 terminalizes. Raid terminalization clears its phase handlers and, by itself,
 does not revoke equipment contributions; automatic raid-terminal-first cleanup
 is not claimed. Production UI/input, human playtest, the complete raid loop,
-multiplayer and release gates remain open. Tasks 4.11, 4.12 and 4.12a remain
-unchecked.
+multiplayer and release gates remain open. Task 4.11 remains unchecked and must
+extend the existing audited inventory workspace; 4.12 and 4.12a are accepted.
+
+Completed task evidence (4.12, 2026-09-10): persistence and authority
+replacement passed independent review after repairing allocator-floor
+convergence, generation-scoped projection result ledgers and invalidated reload
+receipt replay. The accepted 4.12a-integrated matrix passed `21157/0`, including
+persistence `97/0` with four exact round trips, nested magazines `258/0`,
+catalog `543/0`, reload `176/0`, projection `99/0` and authority `79/0`.
+Retained UI/lifecycle checks added `306/0`; strict diagnostics, spec validation,
+vendor checks and SHA-256 seals passed. A forced post-commit verification
+mismatch reports committed recovery truthfully instead of returning a false
+failure after mutation. No UI layout was changed. See
+`docs/qa/inventory_persistence/implementation/REPORT.md`.
 
 ## 5. Weapons, health and combat mechanics
 
