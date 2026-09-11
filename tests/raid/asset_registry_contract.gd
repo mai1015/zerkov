@@ -220,6 +220,7 @@ func run() -> void:
 	check(warning_codes.has("pending_unimported"),
 		"absent approved-slice sheets are surfaced as pending")
 	_run_negative_probes(registry)
+	_run_integer_normalization_probes(registry)
 	check(imported_count > 0, "curated in-repo assets are represented")
 	check(pending_count > 0, "approved absent sheets are represented explicitly")
 	check(atlas_count > 0, "explicit atlas metadata is represented")
@@ -228,7 +229,7 @@ func run() -> void:
 		" entries=", entries.size(), " imported=", imported_count,
 		" pending=", pending_count, " atlases=", atlas_count,
 		" warnings=", registry.validation_warnings().size(),
-		" negative_probes=21")
+		" negative_probes=13 integer_matrix=20")
 	quit(0 if failures == 0 else 1)
 
 
@@ -269,44 +270,6 @@ func _run_negative_probes(registry: ZerkovAssetRegistry) -> void:
 	_expect_rejection(candidate, "schema_version_type", "schema version must be an integer")
 
 	candidate = registry.manifest()
-	candidate["schema_version"] = 1.000001
-	_expect_rejection(candidate, "schema_version_type", "near-integer schema version must be rejected")
-
-	candidate = registry.manifest()
-	candidate["content_version"] = 1.000001
-	_expect_rejection(candidate, "content_version", "near-integer content version must be rejected")
-
-	candidate = registry.manifest()
-	var near_source_size := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
-	near_source_size["source_size"] = [384.000001, 64]
-	_expect_rejection(candidate, "atlas_size", "near-integer atlas source dimensions must be rejected")
-
-	candidate = registry.manifest()
-	var near_cell_size := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
-	near_cell_size["cell_size"] = [64.000001, 64]
-	_expect_rejection(candidate, "atlas_size", "near-integer atlas cell dimensions must be rejected")
-
-	candidate = registry.manifest()
-	var near_columns := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
-	near_columns["columns"] = 6.000001
-	_expect_rejection(candidate, "atlas_frames", "near-integer atlas columns must be rejected")
-
-	candidate = registry.manifest()
-	var near_rows := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
-	near_rows["rows"] = 1.000001
-	_expect_rejection(candidate, "atlas_frames", "near-integer atlas rows must be rejected")
-
-	candidate = registry.manifest()
-	var near_frame_count := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
-	near_frame_count["frame_count"] = 6.000001
-	_expect_rejection(candidate, "atlas_frames", "near-integer atlas frame count must be rejected")
-
-	candidate = registry.manifest()
-	var near_frame_order := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
-	near_frame_order["frame_order"] = [0.000001, 1, 2, 3, 4, 5]
-	_expect_rejection(candidate, "atlas_frame_order_type", "near-integer frame order values must be rejected")
-
-	candidate = registry.manifest()
 	_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["availability"] = true
 	_expect_rejection(candidate, "availability_type", "availability must be a string")
 
@@ -335,6 +298,61 @@ func _run_negative_probes(registry: ZerkovAssetRegistry) -> void:
 		["content_link_target", "content_link_syntax", "license_status_type", "license_reference_missing"],
 		"dangling content links and dishonest license evidence are rejected",
 	)
+
+
+func _run_integer_normalization_probes(registry: ZerkovAssetRegistry) -> void:
+	var fields := [
+		"schema_version",
+		"content_version",
+		"source_width",
+		"source_height",
+		"cell_width",
+		"cell_height",
+		"columns",
+		"rows",
+		"frame_count",
+		"frame_order",
+	]
+	for field_value in fields:
+		var field := String(field_value)
+		for fractional in [false, true]:
+			var candidate := registry.manifest()
+			var atlas := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+			var extra := 0.000001 if fractional else 0.0
+			match field:
+				"schema_version":
+					candidate["schema_version"] = 1.0 + extra
+				"content_version":
+					candidate["content_version"] = 1.0 + extra
+				"source_width":
+					atlas["source_size"][0] = 384.0 + extra
+				"source_height":
+					atlas["source_size"][1] = 64.0 + extra
+				"cell_width":
+					atlas["cell_size"][0] = 64.0 + extra
+				"cell_height":
+					atlas["cell_size"][1] = 64.0 + extra
+				"columns":
+					atlas["columns"] = 6.0 + extra
+				"rows":
+					atlas["rows"] = 1.0 + extra
+				"frame_count":
+					atlas["frame_count"] = 6.0 + extra
+				"frame_order":
+					atlas["frame_order"] = [0.0 + extra, 1, 2, 3, 4, 5]
+			var reparsed: Variant = JSON.parse_string(JSON.stringify(candidate))
+			var normalized: Variant = registry._normalize_json_numbers(reparsed)
+			var findings: Array[Dictionary] = []
+			if normalized is Dictionary:
+				findings = registry._validate_manifest(normalized as Dictionary)
+			var rejected := false
+			for finding in findings:
+				if String(finding.get("severity", "")) == "error":
+					rejected = true
+					break
+			check(rejected == fractional,
+				"parse-normalize validation handles integer field " + field
+				+ " fractional=" + str(fractional))
 
 
 func _entry_for(manifest: Dictionary, asset_id: String) -> Dictionary:

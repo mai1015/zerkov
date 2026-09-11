@@ -10,13 +10,13 @@ No assets, Godot import metadata, project settings, UI consumers, TileSets, slic
 
 ## Registry result
 
-ASSET_REGISTRY_RESULT checks=1413 failures=0 entries=74 imported=62 pending=12 atlases=7 warnings=64 negative_probes=21
+ASSET_REGISTRY_RESULT checks=1425 failures=0 entries=74 imported=62 pending=12 atlases=7 warnings=64 negative_probes=13 integer_matrix=20
 
 Manifest SHA-256: `46da7a8974cd2131de8af4631900649bdeb8304814eb9d96d22a3f9c9a7c44fd` (62 runtime hashes and 22 locally present source hashes reverified).
 
-Independent re-review probes: `ADVERSARIAL_REVIEW_RESULT checks=26 failures=0` and `EXTRA_RESULT checks=13 failures=0`, including near-integer schema and atlas values through loader normalization.
+Independent re-review probes: `ADVERSARIAL_REVIEW_RESULT checks=26 failures=0`, `EXTRA_RESULT checks=13 failures=0`, and `INTEGER_MATRIX_RESULT checks=20 failures=0`, including near-integer schema and atlas values through loader normalization.
 
-The contract exercises deterministic SHA-256 fingerprinting, defensive copies (including direct returned-entry mutation), exact aliases and collision rejection, strict path confinement and field types, runtime and local-source byte/hash verification, positive and bounded atlas metadata with exact frame enumeration, case-insensitive forbidden-source rejection, canonical content links and license references, filtering and mipmap fields, pending-entry behavior, and exact integer-only validation for schema, versions, atlas grids, frame counts, and frame order. All 21 independent negative probes are permanent contract cases.
+The contract exercises deterministic SHA-256 fingerprinting, defensive copies (including direct returned-entry mutation), exact aliases and collision rejection, strict path confinement and field types, runtime and local-source byte/hash verification, positive and bounded atlas metadata with exact frame enumeration, case-insensitive forbidden-source rejection, canonical content links and license references, filtering and mipmap fields, pending-entry behavior, and parse→normalize→validate integer-only coverage for all ten schema/version/atlas-grid/frame positions. The original 13 independent negative probes remain permanent, and the 20-case integer matrix includes both valid integer tokens and exact `+0.000001` rejection cases.
 
 The manifest contains 62 imported runtime entries and 12 explicitly pending or unimported external-sheet entries. Pending entries have no runtime path or runtime hash. The three approved distribution blockers remain surfaced and are not cleared.
 
