@@ -1,0 +1,59 @@
+TASK 5.3 OPAQUE-BINDING REPAIR — FINAL MERGED VALIDATION
+recorded_at=2026-09-11T05:21:08Z
+branch=codex/body-hitbox-capability-5-3-repair
+initial_base=c265d3a4efd9b49f840b87e201ceb8f4b661d26b
+implementation_commit=c0fbaad2575796c8729ee360a9eca51f62c52bc6
+implementation_source_blob=3161d1291eb6818f8f5b3745ee741a26dab8aa99
+merged_main=d4b407fcba49bb2e97b7db1300b597ecf1c5df75
+integration_merge=f942e689ef0ae0e90f8bb296f52eebe160c3b875
+godot=4.7.2.stable.official.ed1daf0bf
+
+CLEAN EDITOR IMPORT
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --editor --path /Volumes/Data/codes/codex-workspace/zerkov-5-3-capability-repair --quit
+exit=0
+result=first_scan_filesystem DONE; update_scripts_classes DONE; loading_editor_layout DONE
+diagnostic_matches=0
+
+TASK 5.3 FOCUSED HEADLESS DOMAIN CONTRACTS
+body_hitbox_capability_encapsulation_contract: exit=0 checks=14 failures=0
+body_hitbox_contract: exit=0 checks=111 failures=0
+body_hitbox_adversarial_contract: exit=0 checks=173 failures=0
+body_hitbox_review_regression_contract: exit=0 checks=72 failures=0
+focused_total=370 failures=0
+
+TASK 5.2 COMPATIBILITY HEADLESS DOMAIN CONTRACTS
+weapon_instance_context_contract: exit=0 checks=306 failures=0
+weapon_instance_context_adversarial_contract: exit=0 checks=49 failures=0
+weapon_persistence_integration_contract: exit=0 checks=43 failures=0
+task_5_2_total=398 failures=0
+
+ADJACENT HEADLESS DOMAIN CONTRACTS
+authority_replay_contract: exit=0 checks=81 failures=0
+session_lifecycle_contract: exit=0 checks=44 failures=0
+units_clock_contract: exit=0 checks=32 failures=0
+combat_content_contract: exit=0 checks=80 failures=0
+health_ability_content_contract: exit=0 checks=392 failures=0
+identity_contract: exit=0 checks=18442 failures=0 unique=9216
+combined_addons_smoke: exit=0 checks=155 failures=0
+profile_store_contract: exit=0 checks=527 failures=0
+godot_domain_total=20521 failures=0
+
+NON-GODOT / STRUCTURAL CHECKS
+toolchain: checks=7 failures=0
+vendor_addons: tests=4 failures=0
+strict_spec_validation=Valid
+git_diff_check=0
+current_main_is_ancestor=yes
+changed_paths_relative_to_main=5 production/readme/test paths before evidence
+forbidden_surface_scan=0 live-capability members/getters/published capability IDs
+
+The first optional ProfileStore execution inherited a shared default user://
+test namespace whose process/tick suffix had collided with an old host fixture;
+it reported 11 fixture/setup/cleanup failures and is excluded. No production
+mutation was made. A fresh nonconcurrent rerun with a unique --log-file passed
+527/0. Identity and combined-add-on checks were likewise rerun with unique log
+files after default Godot log rotation reported a shared-path diagnostic; the
+accepted reruns above contain no diagnostics.
+
+screen_policy=No UI, screen, viewport, visual, responsive, compact, composition, inventory-UI, or runtime-capture suite was invoked. No display-size output was generated.
+acceptance_status=repair candidate only; task 5.3 checkbox remains open pending independent review
