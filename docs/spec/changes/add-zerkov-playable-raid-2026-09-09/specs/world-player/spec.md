@@ -32,10 +32,11 @@ The game SHALL render the pixel-world presentation independently from the crisp 
 - **THEN** the HUD and menus remain stable and readable
 - **AND** gameplay input coordinates continue to resolve correctly
 
-#### Scenario: The window resolution changes
-- **WHEN** the viewport changes among supported aspect ratios and display scales
-- **THEN** world presentation follows the declared pixel-scaling policy
-- **AND** the interface follows its independent adaptive-layout policy
+#### Scenario: The game runs at the first-playable output
+- **WHEN** the viewport is 1920x1080
+- **THEN** the 640x360 world presentation uses its declared exact 3x pixel-scaling policy
+- **AND** the interface remains an independent crisp 1920x1080 composition
+- **AND** smaller-output scaling and adaptive layout remain deferred
 
 ### Requirement: Explicit Vision Occlusion Bake
 Vision-blocking geometry SHALL be authored or generated as an explicit, inspectable occluder representation consumed by the perception system. The bake process MUST be deterministic for unchanged source geometry and MUST expose invalid or ambiguous occluders before a raid ships.
@@ -48,4 +49,3 @@ Vision-blocking geometry SHALL be authored or generated as an explicit, inspecta
 - **WHEN** a wall or obstacle produces invalid occlusion geometry
 - **THEN** validation identifies the source object
 - **AND** the raid is not marked release-ready until the issue is resolved or explicitly waived
-

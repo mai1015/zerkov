@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T19:52:55Z
+updated_at: 2026-09-11T01:02:19Z
 ---
 
 ## Why
@@ -21,7 +21,7 @@ and make later multiplayer authority, persistence and recovery unsafe.
   combat, injuries, AI perception, one task, extraction and death.
 - Add an idempotent `RaidSettlementService` and atomic local `ProfileStore`.
 - Replace UI mock state incrementally with immutable projections while
-  preserving the approved Zerkov visual contract and compact layouts.
+  preserving the approved Zerkov visual contract at 1920x1080.
 - Retain authority/replica seams from the beginning, but defer live co-op and
   PvP until add-on network hardening and Windows/Linux artifact gates pass.
 - Add aspect-oriented tasks, model-routing guidance and evidence requirements
@@ -36,6 +36,10 @@ stash, crate/corpse loot, `Supply Run`, raid summary and persistent settlement.
 It excludes PvP, matchmaking, insurance, marketplace, a full trader economy,
 complete bunker progression, procedural maps, every weapon and cosmetic
 variants.
+
+The first-playable display target is 1920x1080 only. Existing responsive and
+compact code may remain as nonblocking regression coverage, but smaller output
+support, adaptation and visual acceptance are deferred to a later proposal.
 
 ## Impact
 

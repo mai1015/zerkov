@@ -27,16 +27,17 @@ Production interface code SHALL render immutable view models derived from author
 - **AND** it cannot commit production profile state
 
 ### Requirement: Preserve the Established Visual Contract
-Migration SHALL preserve the implemented utilitarian post-Soviet visual language, dense information hierarchy, existing route coverage, adaptive layout behavior, and pixel-world versus crisp-interface separation unless an approved visual task changes that contract. Visual changes MUST be reviewed from native captures at declared target resolutions.
+Migration SHALL preserve the implemented utilitarian post-Soviet visual language, dense information hierarchy, existing route coverage, and pixel-world versus crisp-interface separation unless an approved visual task changes that contract. The current first-playable target is 1920x1080 only. Existing adaptive behavior MAY remain, but smaller-output support is deferred and MUST NOT gate this change. Visual changes MUST be reviewed from native 1920x1080 captures.
 
 #### Scenario: A screen is migrated to live data
 - **WHEN** production bindings replace prototype state on an existing route
 - **THEN** its core information hierarchy and interaction affordances remain recognizable
 - **AND** native capture comparison records intentional visual differences
 
-#### Scenario: The interface runs at a narrow supported size
-- **WHEN** the game window uses the declared narrow layout threshold
+#### Scenario: The interface runs at the first-playable target
+- **WHEN** the game window is 1920x1080
 - **THEN** critical actions, status, text, and inventory interaction remain reachable without overlap or clipping
+- **AND** no smaller-output capture or adaptive-layout result is required for acceptance
 
 ### Requirement: Feature-gated Meta Screens
 Hideout, marketplace, advanced traders, skill trees, clan, online social, and other post-slice routes SHALL be disabled, fixture-only, or clearly marked unavailable until their owning systems meet production requirements. They MUST NOT imply that unsaved or unauthoritative changes are durable.
@@ -51,7 +52,7 @@ Hideout, marketplace, advanced traders, skill trees, clan, online social, and ot
 - **THEN** the feature flag can enable the live route without bypassing CommonUI or authority contracts
 
 ### Requirement: Input, Focus, and Accessibility Integrity
-The interface SHALL provide deterministic keyboard, controller, and pointer focus behavior for all production-critical screens. Critical state MUST NOT rely on color alone, and text, selection, disabled state, warnings, and interaction targets MUST remain legible at supported display scales.
+The interface SHALL provide deterministic keyboard, controller, and pointer focus behavior for all production-critical screens. Critical state MUST NOT rely on color alone, and text, selection, disabled state, warnings, and interaction targets MUST remain legible at the 1920x1080 first-playable target.
 
 #### Scenario: Input method changes
 - **WHEN** the player switches between pointer, keyboard, and controller during a screen lifecycle
@@ -61,4 +62,3 @@ The interface SHALL provide deterministic keyboard, controller, and pointer focu
 - **WHEN** the interface presents discard, abandon, sell, or similar high-impact intent
 - **THEN** its consequence and target are clearly identified
 - **AND** the required confirmation policy is applied consistently
-

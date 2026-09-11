@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-10T19:52:55Z
+updated_at: 2026-09-11T01:02:19Z
 completed_at:
 ---
 
@@ -26,6 +26,11 @@ A task is complete only when its scoped implementation, relevant automated
 checks, diagnostics review and named evidence are complete. Runtime errors count
 as failures even when a process exits successfully. Do not check a parent item
 while any required child behavior remains incomplete.
+
+Display-scope decision (2026-09-10): 1920x1080 is the only first-playable UI
+and visual acceptance target. Existing responsive/compact behavior and tests
+may remain, but are nonblocking; do not add smaller-layout implementation or
+review work until a later proposal reopens display support.
 
 ## 0. Proposal and approval
 
@@ -182,7 +187,8 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   presentation, including inaccessible, stale, overweight, disconnected and
   resynchronizing states. Do not introduce a replacement inventory screen;
   bind canonical inventory snapshots/intents into the accepted grid, drag,
-  transfer, focus and compact-layout behavior.
+  transfer and focus behavior at 1920x1080. Existing compact code may remain
+  but is not part of this task's acceptance gate.
 - [ ] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
   authority replacement invalidate stale UI/adapters safely.
 - [x] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
@@ -431,8 +437,8 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   projections with reversible prediction/correction states.
 - [ ] 8.6 `[SOL]` After inventory tasks 4.11, 4.12 and 4.12a are accepted, bind
   the existing designed inventory and health screens to real snapshots while
-  preserving drag state, selection, focus and compact scroll positions. Do
-  not create a replacement inventory interface.
+  preserving drag state, selection, focus and scroll positions at 1920x1080.
+  Do not create a replacement inventory interface; smaller layouts are deferred.
 - [ ] 8.7 `[LUNA]` Bind Tasks and Maps to the Sawmill task/level projections;
   feature-gate unavailable zones and persistent task functions.
 - [ ] 8.8 `[LUNA]` Bind deployment and summary screens to real raid lifecycle and
@@ -443,8 +449,9 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   regression coverage to CommonUI-backed screens.
 - [ ] 8.11 `[SOL]` Remove production reads/writes of `app.state`; keep mock
   fixtures only behind test/developer providers.
-- [ ] 8.12 `[ASTRA]` Review every real-data screen at 1920x1080, 1600x900,
-  1280x720 and the supported compact fallback for hierarchy and readability.
+- [ ] 8.12 `[ASTRA]` Review every real-data screen at 1920x1080 for hierarchy,
+  readability and preserved interaction affordances. Smaller outputs are
+  deferred and MUST NOT block first-playable acceptance.
 - [ ] 8.13 `[PLAYTEST]` Complete mouse/keyboard and controller navigation passes
   without relying on the F1 review catalog.
 
@@ -533,6 +540,9 @@ These items require separate approved changes after the vertical slice.
   provenance and server time are authoritative.
 - [ ] 11.7 `[ASTRA]` Review corresponding UI flows before enabling each meta
   system in production navigation.
+- [ ] 11.8 `[ASTRA]` Propose the post-slice display support matrix and reopen
+  1600x900, 1280x720 and compact adaptation only after 1920x1080 first-playable
+  acceptance is complete.
 
 Evidence: separate validated change proposal for each accepted meta capability.
 
@@ -540,8 +550,9 @@ Evidence: separate validated change proposal for each accepted meta capability.
 
 - [ ] 12.1 `[SOL]` Run the complete deterministic headless suite from profile
   load through raid settlement and profile reload.
-- [ ] 12.2 `[LUNA]` Run all existing UI, responsive, inventory, bunker, raid and
-  utility regressions against the integrated project.
+- [ ] 12.2 `[LUNA]` Run all 1920x1080 UI, inventory, bunker, raid and utility
+  regressions against the integrated project. Existing smaller/responsive
+  suites may run for information but do not gate this slice.
 - [ ] 12.3 `[SOL]` Complete ten consecutive extract/death cycles without item
   duplication, loss outside policy, stale authority mutation or save corruption.
 - [ ] 12.4 `[ASTRA]` Perform final UI, Sawmill composition and combat-feedback

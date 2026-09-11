@@ -202,9 +202,11 @@ fixture restoration is visibly labelled `FIXTURE PREVIEW`. Encrypted Drive and
 Gold Watch retain their true identities with neutral artwork and accessible
 `PLACEHOLDER` disclosure; Health and Stats are explicitly authored preview
 values. The accepted native evidence covers 1920x1080, 1600x900, 1280x720 and
-960x540. This does not claim human playtest, complete raid-loop, multiplayer,
-or other-platform release acceptance; later UI, combat and progression gates
-remain open.
+960x540 as historical regression evidence. The current first-playable visual
+acceptance target is 1920x1080 only; smaller and compact layouts are
+nonblocking and deferred. This does not claim human playtest, complete
+raid-loop, multiplayer, or other-platform release acceptance; later UI,
+combat and progression gates remain open.
 
 ### Identifiers and units
 
@@ -250,11 +252,11 @@ Camera2D smoothing off; simulation positions, ranges, collision shapes and
 `ZWorldUnits` remain unrounded. The HUD remains an independent full-output
 composition and can use the matte without being textured by the world surface.
 
-At 1600x900, the world is displayed at 1280x720 (2x), centered with 160 px
-horizontal and 90 px vertical matte. This is an explicit constant-FOV/fairness
-trade-off: the world view does not expand with output size, so 900p gives up
-matte area instead of granting additional tactical visibility. The independent
-Astra review accepted this selection. The capture evidence records
+For the current first playable, 1920x1080 is the sole supported output: the
+640x360 world surface displays at exact 3x scale and fills the viewport. The
+earlier 1600x900, 1280x720 and compact captures remain useful historical
+regressions but are not release gates. Support policy, adaptation and visual
+approval for smaller outputs are deferred. The capture evidence records
 `human_approval: false`; later animation, combat/readability and cursor-mapping
 gates remain open.
 
@@ -339,8 +341,8 @@ and final gates. `model-routing.md` defines escalation and prompt templates.
 - Cross-domain reload, equipment and settlement behavior can duplicate or lose
   items if signals are treated as transactions. Explicit identities and
   reserve/commit contracts add complexity but are required.
-- Pixel-art scaling that looks correct at 1080p may shimmer at ordinary PC
-  resolutions. The render-surface spike is a hard visual gate.
+- Pixel-art scaling outside 1080p remains unapproved. The current slice gates
+  native captures at 1920x1080 and defers smaller-output adaptation.
 - Current source art provides atlases and props, not finished levels. Sawmill
   Yard requires authored layout, collisions, navigation and occluders.
 - Level Task persistence is incomplete, so persistent quest expansion is gated.
@@ -372,8 +374,8 @@ and final gates. `model-routing.md` defines escalation and prompt templates.
 - Tasks 3.1-3.2 selected the fixed 640x360 internal world surface with nearest
   filtering, integer fit and centered matte after an independent Astra review.
   The final presentation camera rounds once to whole source pixels, while the
-  HUD remains an independent full-output composition. At 1600x900 the world is
-  1280x720 at 2x with 160 px horizontal and 90 px vertical matte. The policy
-  keeps constant FOV for fairness, trading matte area for stable visibility.
-  Human approval remains false; later animation, combat/readability and
-  cursor-mapping gates remain open.
+  HUD remains an independent full-output composition. The first-playable
+  output is now 1920x1080 only, where the world is exact 3x. Smaller and compact
+  outputs are explicitly deferred rather than current acceptance gates. Human
+  approval remains false; later animation, combat/readability and cursor-mapping
+  gates remain open.

@@ -56,9 +56,11 @@ Astra defines the desired result from current captures -> Luna performs bounded
 layout/style/state edits -> Astra compares new native captures -> human accepts
 ```
 
-Use the existing 1920x1080, 1600x900, 1280x720 and compact evidence. Never ask
-an implementation model to improve a screen based only on words when a current
-native capture can be provided.
+Use current 1920x1080 native evidence for first-playable visual decisions.
+Existing smaller and compact captures are nonblocking historical regressions;
+do not spend implementation or review scope adapting them until a later
+proposal reopens display support. Never ask an implementation model to improve
+a screen based only on words when a current native capture can be provided.
 
 ### Combat work
 
@@ -107,7 +109,7 @@ For an Astra visual task, append:
 
 ```text
 Inspect the current native captures before editing. Define observable success
-criteria, capture the same states/resolutions afterward, and compare them.
+criteria, capture the same states at 1920x1080 afterward, and compare them.
 Separate canonical combat/gameplay behavior from presentation changes.
 ```
 
