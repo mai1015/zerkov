@@ -160,3 +160,16 @@ raid, and no token-reacquisition getter remains. Task 5.3 passed `356/0` and
 the accepted task 5.2 compatibility matrix passed `398/0`, for `754/0`
 combined. Import diagnostics, source/packet seals and diff checks were clean.
 No UI, viewport, visual, responsive, compact or screen-size suite ran.
+
+## Acceptance reopened
+
+Reopened on 2026-09-11 after a fresh audit against main
+`c265d3a4efd9b49f840b87e201ceb8f4b661d26b`. Godot's standard
+`Object.get()` and property-list reflection can still recover the live
+`_active_binding_capability` from a retained world after a replacement bind.
+The reacquired exact object authorized replacement metadata reads, snapshot
+publication, a ray query and release. The prior acceptance therefore did not
+prove its stated stale-holder isolation claim. Task 5.3 remains open until a
+new immutable repair passes focused independent review. The reproducer was a
+headless domain probe; no UI, viewport, visual, responsive, compact or
+screen-size suite ran.
