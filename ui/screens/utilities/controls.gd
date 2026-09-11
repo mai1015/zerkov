@@ -14,6 +14,39 @@ const ACTION_GROUPS: Array = [
 	["Interface", ["inventory", "map", "push_to_talk"]]
 ]
 
+const ZerkovActions = preload("res://game/input/zerkov_input_actions.gd")
+
+## The authored controls rows remain the visual contract.  This table only
+## maps those rows to the product-owned logical actions; CommonUI's binding
+## registry remains the source of truth for values, conflicts and persistence.
+const LIVE_ACTIONS := {
+	"move": ZerkovActions.GAME_MOVE,
+	"sprint": ZerkovActions.GAME_SPRINT,
+	"crouch": ZerkovActions.GAME_CROUCH,
+	"interact": ZerkovActions.GAME_INTERACT,
+	"hold_interact": ZerkovActions.GAME_HOLD_INTERACT,
+	"fire": ZerkovActions.GAME_FIRE,
+	"aim": ZerkovActions.GAME_AIM,
+	"reload": ZerkovActions.GAME_RELOAD,
+	"fire_mode": ZerkovActions.GAME_FIRE_MODE,
+	"melee": ZerkovActions.GAME_MELEE,
+	"grenade": ZerkovActions.GAME_GRENADE,
+	"weapon_cycle": ZerkovActions.GAME_WEAPON_CYCLE,
+	"quick_heal": ZerkovActions.GAME_QUICK_HEAL,
+	"quick_use": ZerkovActions.GAME_QUICK_USE,
+	"eat_drink": ZerkovActions.GAME_EAT_DRINK,
+	"inventory": ZerkovActions.UI_OPEN_INVENTORY,
+	"map": ZerkovActions.UI_OPEN_MAP,
+	"push_to_talk": ZerkovActions.GAME_PUSH_TO_TALK,
+}
+
+const LIVE_CONTROLLER_ACTIONS := {
+	"weapon_cycle": ZerkovActions.GAME_WEAPON_CYCLE_CONTROLLER,
+}
+
+var _capture_generation: int = 0
+var _live_refresh_queued: bool = false
+
 
 func build() -> void:
 	reset_adaptive_layout()
@@ -25,6 +58,110 @@ func build() -> void:
 	_wire_actions()
 	_build_focus_graph()
 	queue_adaptive_layout()
+
+
+func _live_input_service() -> ZerkovInputService:
+	if app == null:
+		return null
+	var service := app.input_service()
+	return service if service != null and service.is_configured() else null
+
+
+func _uses_live_bindings() -> bool:
+	return _live_input_service() != null
+
+
+func _live_action(action: String, column: String = "") -> StringName:
+	if column == "controller" and LIVE_CONTROLLER_ACTIONS.has(action):
+		return LIVE_CONTROLLER_ACTIONS[action] as StringName
+	return LIVE_ACTIONS.get(action, &"") as StringName
+
+
+func _live_slot(column: String) -> int:
+	return CommonUIBinding.SLOT_PRIMARY if column == "primary" \
+		else CommonUIBinding.SLOT_SECONDARY
+
+
+func _request_id(operation: String) -> StringName:
+	_capture_generation += 1
+	return StringName("controls_%s_%d" % [operation, _capture_generation])
+
+
+func _bindings_state() -> Dictionary:
+	# The live screen deliberately does not hydrate or write the old fixture
+	# table.  Keep the inherited table only for isolated preview hosts where
+	# CommonUI's product input service is not installed.
+	if _uses_live_bindings():
+		return {}
+	return super._bindings_state()
+
+
+func _binding_value(action: String, column: String) -> String:
+	var service := _live_input_service()
+	var logical_action := _live_action(action, column)
+	if service == null or logical_action == &"":
+		return super._binding_value(action, column)
+
+	# Move is authored as one row but intentionally has four keyboard direction
+	# actions in the catalog.  Keep its compact display useful while resolving
+	# every shown value from the same live registry.
+	if action == "move" and column == "primary":
+		var directions: Array[String] = []
+		for direction in [ZerkovActions.GAME_MOVE_UP, ZerkovActions.GAME_MOVE_LEFT,
+				ZerkovActions.GAME_MOVE_DOWN, ZerkovActions.GAME_MOVE_RIGHT]:
+			var direction_binding := service.effective_binding(direction, CommonUIBinding.SLOT_PRIMARY)
+			var direction_text := CommonBindingText.describe(direction_binding)
+			if not direction_text.is_empty():
+				directions.append(direction_text)
+		return " ".join(directions) if not directions.is_empty() else "—"
+
+	var binding := service.effective_binding(logical_action, _live_slot(column))
+	var text := CommonBindingText.describe(binding)
+	return text if not text.is_empty() else "—"
+
+
+func _set_binding(action: String, column: String, value: String) -> void:
+	if _uses_live_bindings():
+		return
+	super._set_binding(action, column, value)
+
+
+func _binding_conflicts(action: String, column: String) -> Array:
+	var service := _live_input_service()
+	var logical_action := _live_action(action, column)
+	if service == null or logical_action == &"":
+		return super._binding_conflicts(action, column)
+	var candidate := service.effective_binding(logical_action, _live_slot(column))
+	if candidate == null:
+		return []
+	var result: Array = []
+	for conflict_variant in service.preview_conflicts(logical_action, _live_slot(column), candidate):
+		var conflict: Dictionary = conflict_variant
+		var other := str(conflict.get("action", ""))
+		if not other.is_empty():
+			result.append(other)
+	return result
+
+
+func _conflict_pairs() -> Array:
+	if not _uses_live_bindings():
+		return super._conflict_pairs()
+	var pairs: Array = []
+	var seen: Dictionary = {}
+	for group_variant in ACTION_GROUPS:
+		var group: Array = group_variant[1]
+		for action_variant in group:
+			var action := str(action_variant)
+			for column in ["primary", "secondary", "controller"]:
+				for other_variant in _binding_conflicts(action, column):
+					var other := str(other_variant)
+					var key: String = action + "|" + other + "|" + column
+					var reverse: String = other + "|" + action + "|" + column
+					if not seen.has(key) and not seen.has(reverse):
+						seen[key] = true
+						pairs.append({"action": action, "other": other, "column": column,
+							"value": _binding_value(action, column)})
+	return pairs
 
 
 func layout_compact(view: Vector2) -> void:
@@ -325,3 +462,205 @@ func _go_back() -> void:
 
 func _rerender() -> void:
 	refresh_view()
+
+
+# --- CommonUI-backed binding surface --------------------------------------
+
+func _apply_control_preset(preset: String) -> void:
+	var service := _live_input_service()
+	if service != null:
+		if preset == "DEFAULT":
+			var result := service.restore_defaults(_request_id("preset"))
+			_toast("Default controls restored" if bool(result.get("ok", false)) \
+				else "Default controls failed · " + str(result.get("error", "unknown error")))
+		else:
+			_toast("Custom live bindings do not support fixture presets")
+		_rerender()
+		return
+	super._apply_control_preset(preset)
+
+
+func _begin_capture(action: String, column: String) -> void:
+	if _uses_live_bindings() and _live_action(action, column) == &"":
+		return
+	_capture_generation += 1
+	capture_action = action
+	capture_column = column
+	_rerender()
+
+
+func _cancel_capture() -> void:
+	_capture_generation += 1
+	capture_action = ""
+	capture_column = ""
+	_rerender()
+
+
+func _binding_from_event(event: InputEvent) -> CommonUIBinding:
+	var binding := CommonUIBinding.new()
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		binding.set_device_kind(CommonUIBinding.DEVICE_KEYBOARD)
+		binding.set_code(key_event.physical_keycode if key_event.physical_keycode != 0 else key_event.keycode)
+		binding.set_shift_pressed(key_event.shift_pressed)
+		binding.set_ctrl_pressed(key_event.ctrl_pressed)
+		binding.set_alt_pressed(key_event.alt_pressed)
+		binding.set_meta_pressed(key_event.meta_pressed)
+	elif event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		binding.set_device_kind(CommonUIBinding.DEVICE_MOUSE)
+		binding.set_code(mouse_event.button_index)
+		binding.set_shift_pressed(mouse_event.shift_pressed)
+		binding.set_ctrl_pressed(mouse_event.ctrl_pressed)
+		binding.set_alt_pressed(mouse_event.alt_pressed)
+		binding.set_meta_pressed(mouse_event.meta_pressed)
+	elif event is InputEventJoypadButton:
+		binding.set_device_kind(CommonUIBinding.DEVICE_GAMEPAD_BUTTON)
+		binding.set_code((event as InputEventJoypadButton).button_index)
+	elif event is InputEventJoypadMotion:
+		var motion := event as InputEventJoypadMotion
+		if absf(motion.axis_value) < 0.5:
+			return null
+		binding.set_device_kind(CommonUIBinding.DEVICE_GAMEPAD_AXIS)
+		binding.set_code(motion.axis)
+		binding.set_axis_direction(CommonUIBinding.AXIS_DIRECTION_NEGATIVE \
+			if motion.axis_value < 0.0 else CommonUIBinding.AXIS_DIRECTION_POSITIVE)
+	else:
+		return null
+	binding.set_slot(_live_slot(capture_column))
+	return binding
+
+
+func _input(event: InputEvent) -> void:
+	if not accepts_input() or capture_action.is_empty():
+		return
+	# Capture runs before GUI/CommonUI dispatch. This makes Escape a capture
+	# cancel and consumes every accepted candidate so a rebind never also fires
+	# the row action or an overlapping route action.
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		var key_event := event as InputEventKey
+		if key_event.keycode == KEY_ESCAPE:
+			_cancel_capture()
+		elif key_event.keycode == KEY_BACKSPACE:
+			_clear_live_capture()
+		else:
+			_assign_capture(_binding_from_event(key_event))
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.is_pressed():
+		_assign_capture(_binding_from_event(event))
+		get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadButton and event.is_pressed():
+		_assign_capture(_binding_from_event(event))
+		get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadMotion and absf(event.axis_value) >= 0.5:
+		_assign_capture(_binding_from_event(event))
+		get_viewport().set_input_as_handled()
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	# Live capture is deliberately handled in _input, before CommonUI.  The
+	# inherited fixture path remains available only for isolated previews.
+	if not _uses_live_bindings():
+		super._unhandled_key_input(event)
+
+
+func _clear_live_capture() -> void:
+	var service := _live_input_service()
+	if service == null or capture_action.is_empty():
+		return
+	var action := _live_action(capture_action, capture_column)
+	var slot := _live_slot(capture_column)
+	var result := service.clear_binding(action, slot, false, _request_id("clear"))
+	if bool(result.get("ok", false)):
+		_toast("Binding cleared")
+	else:
+		_toast("Binding could not be cleared · " + str(result.get("error", "unknown error")))
+	_capture_generation += 1
+	capture_action = ""
+	capture_column = ""
+	_rerender()
+
+
+func _assign_capture(candidate: Variant) -> void:
+	if capture_action.is_empty() or not accepts_input():
+		return
+	var service := _live_input_service()
+	if service == null:
+		super._assign_capture(str(candidate))
+		return
+	var binding := candidate as CommonUIBinding
+	if binding == null:
+		return
+	var action := _live_action(capture_action, capture_column)
+	var slot := _live_slot(capture_column)
+	var result := service.rebind(action, slot, binding,
+		CommonInputBindingRegistry.CONFLICT_REJECT, false, _request_id("rebind"))
+	if not bool(result.get("ok", false)):
+		var conflicts: Array = result.get("conflicts", [])
+		_toast("Binding conflict · choose a free binding" if not conflicts.is_empty() \
+			else "Binding rejected · " + str(result.get("error", "unknown error")))
+		return
+	_toast("Binding updated")
+	_capture_generation += 1
+	capture_action = ""
+	capture_column = ""
+	_rerender()
+
+
+func _reset_bindings() -> void:
+	var service := _live_input_service()
+	if service != null:
+		var result := service.restore_defaults(_request_id("reset"))
+		_toast("Default controls restored" if bool(result.get("ok", false)) \
+			else "Default controls failed · " + str(result.get("error", "unknown error")))
+		_capture_generation += 1
+		capture_action = ""
+		capture_column = ""
+		_rerender()
+		return
+	super._reset_bindings()
+
+
+func _save_controls() -> void:
+	if not _conflict_pairs().is_empty():
+		_toast("Resolve every conflict before saving")
+		return
+	if _uses_live_bindings():
+		_toast("Controls saved")
+		return
+	super._save_controls()
+
+
+func _on_deactivated() -> void:
+	# A queued physical event must not mutate a retained controls screen after
+	# its CommonUI context has been released. Invalidate the capture before the
+	# screen can be reused or torn down.
+	var service := _live_input_service()
+	var callback := Callable(self, "_on_live_bindings_published")
+	if service != null and service.bindings_published.is_connected(callback):
+		service.bindings_published.disconnect(callback)
+	_capture_generation += 1
+	capture_action = ""
+	capture_column = ""
+	super._on_deactivated()
+
+
+func _on_activated() -> void:
+	super._on_activated()
+	var service := _live_input_service()
+	var callback := Callable(self, "_on_live_bindings_published")
+	if service != null and not service.bindings_published.is_connected(callback):
+		service.bindings_published.connect(callback)
+
+
+func _on_live_bindings_published(_snapshot: Dictionary) -> void:
+	if _live_refresh_queued or not is_inside_tree():
+		return
+	_live_refresh_queued = true
+	call_deferred("_refresh_live_bindings")
+
+
+func _refresh_live_bindings() -> void:
+	_live_refresh_queued = false
+	if is_inside_tree() and accepts_input() and _uses_live_bindings():
+		refresh_view()
