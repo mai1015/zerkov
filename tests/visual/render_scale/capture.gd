@@ -4,9 +4,6 @@ extends SceneTree
 ## later approved display-support proposal reopens the matrix.
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
 
-const Policy = preload("res://game/presentation/render_scale_spike/surface_policy.gd")
-const Probe = preload("res://game/presentation/render_scale_spike/world_probe.gd")
-const Tokens = preload("res://ui/theme/tokens.gd")
 const CURRENT_OUTPUT := "res://docs/qa/render_scale/current_1080"
 
 var checks := 0
@@ -18,12 +15,16 @@ var surface: SubViewport
 var presenter: TextureRect
 var camera: Camera2D
 var caption: Label
+var policy_script
+var probe_script
+var tokens_script
 
 func _initialize() -> void:
 	# Fail before argument handling, viewport setup, renderer work, directory
 	# creation, or image writes.
 	push_error("DEFERRED_DISPLAY_SUITE: render_scale/capture.gd is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 func check(ok: bool, message: String) -> void:
 	checks += 1
@@ -50,8 +51,8 @@ func configure(policy: Dictionary) -> void:
 	caption.text = "RENDER SCALE / %s / %dx%d / %.2fx" % [policy.candidate, policy.surface.x, policy.surface.y, policy.factor]
 
 func stripe_widths(rendered: Image, policy: Dictionary) -> Array[int]:
-	var start := Policy.world_to_output(Probe.STRIPES.position, Vector2.ZERO, policy)
-	var end := Policy.world_to_output(Probe.STRIPES.end, Vector2.ZERO, policy)
+	var start: Vector2 = policy_script.world_to_output(probe_script.STRIPES.position, Vector2.ZERO, policy)
+	var end: Vector2 = policy_script.world_to_output(probe_script.STRIPES.end, Vector2.ZERO, policy)
 	var y := int((start.y + end.y) * 0.5)
 	var widths: Array[int] = []
 	var previous := -1
@@ -67,6 +68,11 @@ func stripe_widths(rendered: Image, policy: Dictionary) -> Array[int]:
 	return widths
 
 func run() -> void:
+	# These lazy loads are retained only for a future explicitly approved
+	# reopening. The current _initialize guard exits before reaching them.
+	policy_script = load("res://game/presentation/render_scale_spike/surface_policy.gd")
+	probe_script = load("res://game/presentation/render_scale_spike/world_probe.gd")
+	tokens_script = load("res://ui/theme/tokens.gd")
 	if DisplayServer.get_name() == "headless":
 		push_error("Native graphical renderer required; headless captures are not evidence.")
 		quit(1)
@@ -78,7 +84,7 @@ func run() -> void:
 	surface.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
 	surface.snap_2d_transforms_to_pixel = true
 	root.add_child(surface)
-	surface.add_child(Probe.new())
+	surface.add_child(probe_script.new())
 	camera = Camera2D.new()
 	camera.position_smoothing_enabled = false
 	camera.rotation_smoothing_enabled = false
@@ -105,8 +111,8 @@ func run() -> void:
 	caption.position = Vector2(56, 132)
 	caption.add_theme_font_override("font", load("res://assets/fonts/IBMPlexMono-Regular.ttf"))
 	caption.add_theme_font_size_override("font_size", 14)
-	caption.add_theme_color_override("font_color", Tokens.TEXT)
-	caption.add_theme_color_override("font_shadow_color", Tokens.BG)
+	caption.add_theme_color_override("font_color", tokens_script.TEXT)
+	caption.add_theme_color_override("font_shadow_color", tokens_script.BG)
 	caption.add_theme_constant_override("shadow_outline_size", 2)
 	root.add_child(caption)
 	for dimensions in [FIRST_PLAYABLE_SIZE]:
@@ -122,8 +128,8 @@ func run() -> void:
 		await frame()
 		Input.warp_mouse(Vector2(8, 8))
 		var hud_reference := PackedByteArray()
-		for candidate in Policy.CANDIDATES:
-			var policy: Dictionary = Policy.layout(candidate, dimensions)
+		for candidate in policy_script.CANDIDATES:
+			var policy: Dictionary = policy_script.layout(candidate, dimensions)
 			configure(policy)
 			var rendered := await frame()
 			check(rendered.get_size() == dimensions, "Native output dimensions")
@@ -154,16 +160,16 @@ func run() -> void:
 			var pointer_error := 0.0
 			for step in range(33):
 				var desired := Vector2(step * 0.125, step * -0.0625)
-				var snapped := Policy.snap_camera(desired, policy.zoom)
+				var snapped: Vector2 = policy_script.snap_camera(desired, policy.zoom)
 				camera_error = maxf(camera_error, maxf(absf(desired.x - snapped.x), absf(desired.y - snapped.y)) * policy.zoom)
 				for point in [Vector2.ZERO, Vector2(-100, 64), Vector2(200, -80)]:
-					var mapped: Vector2 = Policy.world_to_output(point, snapped, policy)
-					var restored: Dictionary = Policy.output_to_world(mapped, snapped, policy)
+					var mapped: Vector2 = policy_script.world_to_output(point, snapped, policy)
+					var restored: Dictionary = policy_script.output_to_world(mapped, snapped, policy)
 					check(restored.accepted, "Inside pointer accepted")
 					pointer_error = maxf(pointer_error, point.distance_to(restored.world))
 			check(camera_error <= 0.50001, key + " camera rounding bounded by half raster pixel")
 			check(pointer_error < 0.0001, key + " pointer inverse round trip")
-			check(not Policy.output_to_world(Vector2(policy.rect.end), Vector2.ZERO, policy).accepted, "Outside right/bottom rejected")
+			check(not policy_script.output_to_world(Vector2(policy.rect.end), Vector2.ZERO, policy).accepted, "Outside right/bottom rejected")
 			if candidate == "640_integer":
 				# Actual GPU temporal checks: subpixel motion holds the frame, then
 				# advances exactly one source pixel. Save world-only pan/impulse frames.
@@ -173,17 +179,17 @@ func run() -> void:
 				camera.force_update_scroll()
 				var still := await frame()
 				save_image(still, key + "_pan_000")
-				camera.position = Policy.snap_camera(Vector2(0.49, 0.49), 1.0)
+				camera.position = policy_script.snap_camera(Vector2(0.49, 0.49), 1.0)
 				camera.force_update_scroll()
 				var hold := await frame()
 				check(still.get_data() == hold.get_data(), key + " subpixel pan has zero changed pixels")
-				camera.position = Policy.snap_camera(Vector2(0.51, 0.0), 1.0)
+				camera.position = policy_script.snap_camera(Vector2(0.51, 0.0), 1.0)
 				camera.force_update_scroll()
 				var pan := await frame()
 				save_image(pan, key + "_pan_051")
 				var crop := Rect2i(policy.rect.position + Vector2i(24, 24), policy.rect.size - Vector2i(64, 64))
 				check(still.get_region(Rect2i(crop.position + Vector2i(int(policy.factor), 0), crop.size)).get_data() == pan.get_region(crop).get_data(), key + " one source pixel pan is exact integer output shift")
-				camera.position = Policy.snap_camera(Vector2(3.6, -2.2), 1.0)
+				camera.position = policy_script.snap_camera(Vector2(3.6, -2.2), 1.0)
 				camera.force_update_scroll()
 				app.show()
 				var shake := await frame()

@@ -642,7 +642,9 @@ Evidence: separate validated change proposal for each accepted meta capability.
   utility regressions against the integrated project. Current acceptance MUST
   NOT invoke smaller-resolution or responsive/compact suites, even for
   information; historical artifacts remain audit-only until task 11.8 or a
-  later approved display-support proposal.
+  later approved display-support proposal. Every tracked historical
+  display/capture launcher or packet generator must fail closed before imports,
+  viewport/layout setup, path creation, subprocess execution or writes.
 - [ ] 12.3 `[SOL]` Complete ten consecutive extract/death cycles without item
   duplication, loss outside policy, stale authority mutation or save corruption.
 - [ ] 12.4 `[ASTRA]` Perform final UI, Sawmill composition and combat-feedback

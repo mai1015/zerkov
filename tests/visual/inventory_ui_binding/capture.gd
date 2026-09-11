@@ -17,6 +17,7 @@ func _initialize() -> void:
 	# invocation fail before setup, resizing or capture can begin.
 	push_error("DEFERRED_DISPLAY_SUITE: inventory_ui_binding visual packet is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 func setup_runtime() -> void:
 	owner = RaidInventoryOwner.new()

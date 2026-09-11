@@ -6,6 +6,7 @@ extends "res://tests/visual/inventory_ui_binding/capture.gd"
 func _initialize() -> void:
 	push_error("DEFERRED_DISPLAY_SUITE: reentrant_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 func run() -> void:
 	setup_runtime()

@@ -9,11 +9,9 @@ var failures = 0
 var capture_dir = ""
 
 func _initialize() -> void:
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--capture-dir="):
-			capture_dir = arg.trim_prefix("--capture-dir=")
 	push_error("DEFERRED_DISPLAY_SUITE: compact_raid_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 func check(condition: bool, message: String) -> void:
 	checks += 1

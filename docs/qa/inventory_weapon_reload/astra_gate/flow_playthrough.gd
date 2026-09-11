@@ -9,7 +9,9 @@ var timeline: Array[Dictionary] = []
 var cases: Array[Dictionary] = []
 
 func _initialize() -> void:
-	call_deferred("run")
+	push_error("DEFERRED_DISPLAY_SUITE: historical 1280x720 QA flow is retired; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+	return
 
 func verify(condition: bool, message: String) -> void:
 	checks += 1

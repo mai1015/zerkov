@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """Independent Astra checkpoint runner; all generated evidence stays here."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical 1280x720 QA packet runner is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import hashlib
 import json
 import pathlib

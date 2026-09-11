@@ -1,4 +1,9 @@
 """Generate immutable audit indexes and derived contact sheets for this gate."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical multi-resolution QA finalizer is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import hashlib
 import json
 from pathlib import Path

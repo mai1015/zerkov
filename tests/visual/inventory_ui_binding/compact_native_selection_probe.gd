@@ -7,6 +7,7 @@ extends "res://tests/visual/inventory_ui_binding/native_drag_probe.gd"
 func _initialize() -> void:
 	push_error("DEFERRED_DISPLAY_SUITE: compact_native_selection_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 
 func _wheel_to(scroll: ScrollContainer, vertical: int, horizontal: int) -> void:

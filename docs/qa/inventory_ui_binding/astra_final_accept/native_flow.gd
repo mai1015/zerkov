@@ -1,4 +1,10 @@
 extends "res://docs/qa/inventory_ui_binding/astra_final_accept/capture.gd"
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: historical multi-resolution inventory QA is retired; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+	return
+
 ## One coherent graphical playthrough of the production 4.7b binding. Every
 ## inventory gesture below goes through Viewport input/Godot's native Controls;
 ## the only direct calls are fixture admission, explicit bridge lifecycle

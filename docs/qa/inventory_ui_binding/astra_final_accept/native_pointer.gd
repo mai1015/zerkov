@@ -1,4 +1,10 @@
 extends "res://docs/qa/inventory_ui_binding/astra_final_accept/native_flow.gd"
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: historical inventory QA packet is retired; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+	return
+
 ## Independent reproduction of the original 1080p real-pointer recursion case.
 func run() -> void:
 	root.borderless = true

@@ -10,6 +10,7 @@ var app: Control
 func _initialize() -> void:
     push_error("DEFERRED_DISPLAY_SUITE: compact_inventory_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
     quit(2)
+    return
 
 func check(condition: bool, message: String) -> void:
     checks += 1

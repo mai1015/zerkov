@@ -10,6 +10,7 @@ extends "res://tests/visual/inventory_ui_binding/capture.gd"
 func _initialize() -> void:
 	push_error("DEFERRED_DISPLAY_SUITE: native_drag_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 const FLOW_OUTPUT := "res://docs/qa/inventory_ui_binding/repair_final"
 

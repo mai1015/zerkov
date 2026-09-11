@@ -1,5 +1,10 @@
 extends "res://docs/qa/inventory_ui_binding/astra_final_accept/capture.gd"
 
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: historical multi-resolution inventory QA is retired; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+	return
+
 ## Committed regression evidence for the two presentation-honesty P2 repairs.
 ## This probe keeps the live authority empty, captures the retained gear panel
 ## at every required native size, then explicitly returns to fixture preview.

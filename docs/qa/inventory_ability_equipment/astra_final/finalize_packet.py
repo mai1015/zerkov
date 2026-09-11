@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """Verify the frozen checkpoint and seal this packet without staging or edits outside it."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical 1280x720 QA packet finalizer is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import datetime
 import base64
 import hashlib

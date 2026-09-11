@@ -36,15 +36,16 @@ supplemental parse/state check; counting both execution variants gives `2154`
 raw assertions with zero failures. Editor import completed cleanly, and strict
 validation of both approved changes returned valid with zero errors/warnings.
 The current static audit finds 23 active first-playable GDScript runners with
-zero forbidden smaller-size/compact-path hits. Fourteen retained GDScript
-runners fail closed during initialization before setup or capture, including
-the responsive/compact family, inherited visual-inventory probes, and the old
-render-scale comparison runner. Two historical Python image generators
-(`inventory_ui_binding/summarize.py` and `render_scale/verify.py`) exit before
-imports, directories, subprocesses, or writes. That is 16 deferred executable
-entry points in total. Immutable
-`docs/qa/**/astra_final` and `astra_gate` native runners are excluded from the
-current audit and remain unlisted/deferred historical packet tooling.
+zero forbidden smaller-size/compact-path hits. Thirty-three retained GDScript
+runners fail closed during initialization before setup or capture. This now
+includes the responsive/compact family, inherited visual-inventory probes, the
+old render-scale comparison runner, and every tracked multi-resolution display
+launcher under the historical inventory, ability/equipment, and weapon/reload
+QA packets.
+Eleven historical Python generators/runners exit as their first executable AST
+statement, before imports, directories, subprocesses, or writes. That is 44
+deferred GDScript/Python entry points in total; tracked `docs/qa/**` launchers are no
+longer excluded from current enforcement.
 
 This note is separate from prior evidence:
 the accepted task 8.1/8.2 frozen-source seals remain valid only for their
@@ -69,12 +70,17 @@ created until an initial genuine 1920×1080 framebuffer preflight passes. QA and
 review sessions reject a later window-size change before scale synchronization
 or layout reflow; ordinary retained production compatibility is unchanged.
 
-The static gate now covers the two Python generators, the retired render-scale
-runner, known active PNG writers, pre-write readback guards, and the QA resize
-guard, including negative controls for the previously unsafe patterns. It
-passes four tests. Exact-argument headless checks also pass for the
-Task 8.11 state contract (`57/0`), unavailable composition (`106/0`), and
-component-state source (`5/0`). All six edited GDScript entry points parse after
-a clean Godot 4.7.2 import, strict change validation is `Valid`, and invoking
-the historical Python wrapper exits with `DEFERRED_DISPLAY_SUITE` without
-creating `docs/qa/render_scale/current_1080/`.
+The static gate now discovers every tracked active PNG writer and structurally
+requires a same-scope, receiver-specific exact-frame proof plus an unconditional
+return before paths or writes. It rejects queued quits, unrelated or commented
+returns, nested-only returns, cross-function/static bleed, checking one image
+then saving another, and replacing/resizing a proven image before a later save.
+Python retirement is AST-checked, so conditional/commented guards or work before
+the guard fail. Production-data capture hosts opt into the exact-canvas resize
+guard without enabling fixtures or changing production navigation/data.
+
+The gate passes seven tests. Exact-argument headless checks pass for the Task 8.11
+state contract (`57/0`), unavailable composition (`111/0`), Character binding
+(`65/0`), and component state (`5/0`). All eleven retired Python entry points
+exit with `DEFERRED_DISPLAY_SUITE`. No smaller renderer, responsive layout, or
+upscaled framebuffer was executed while enforcing this scope.

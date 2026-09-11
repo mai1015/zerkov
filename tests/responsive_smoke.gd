@@ -12,6 +12,7 @@ func _initialize() -> void:
 	# closed before any smaller viewport or responsive capture is exercised.
 	push_error("DEFERRED_DISPLAY_SUITE: responsive_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 func check(value: bool, message: String) -> void:
 	checks += 1

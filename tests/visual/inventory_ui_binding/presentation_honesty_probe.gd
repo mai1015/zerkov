@@ -11,6 +11,7 @@ extends "res://tests/visual/inventory_ui_binding/capture.gd"
 func _initialize() -> void:
 	push_error("DEFERRED_DISPLAY_SUITE: presentation_honesty_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 const HONESTY_OUTPUT := "res://docs/qa/inventory_ui_binding/repair_honesty"
 const PLACEHOLDER_ICON := "res://assets/handoff/item_box.png"

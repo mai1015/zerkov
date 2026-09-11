@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """Fresh Astra 4.10 gate. Authored and generated files stay in this QA packet."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical 1280x720 QA packet runner is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import argparse
 import base64
 import datetime

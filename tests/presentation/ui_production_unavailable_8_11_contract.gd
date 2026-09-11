@@ -49,6 +49,8 @@ func run() -> void:
 func _test_production_routes() -> void:
 	var app := load("res://ui/main.tscn").instantiate() as Control
 	app.name = "ProductionUnavailable811Host"
+	check(app.require_exact_capture_canvas(),
+		"production unavailable host requires the exact capture canvas")
 	root.add_child(app)
 	await settle()
 	check(app.current_route == "title", "normal production boot retains the title")
@@ -169,6 +171,8 @@ func _test_injected_presentation_provider() -> void:
 	root.add_child(provider)
 	var app := load("res://ui/main.tscn").instantiate() as Control
 	app.name = "InjectedPresentation811Host"
+	check(app.require_exact_capture_canvas(),
+		"injected presentation host requires the exact capture canvas")
 	check(app.inject_presentation_provider(provider),
 		"production host accepts one pre-tree typed provider")
 	root.add_child(app)
@@ -211,6 +215,8 @@ func _test_injected_presentation_provider() -> void:
 func _test_input_service_composition_is_preserved() -> void:
 	var app := load("res://ui/main.tscn").instantiate() as Control
 	app.name = "ProductionControls811Host"
+	check(app.require_exact_capture_canvas(),
+		"production controls host requires the exact capture canvas")
 	root.add_child(app)
 	await settle()
 	check(app.request_route("controls", false),
@@ -239,6 +245,8 @@ func _test_input_service_composition_is_preserved() -> void:
 func _test_character_composition_is_preserved() -> void:
 	var app := load("res://ui/main.tscn").instantiate() as Control
 	app.name = "ProductionCharacter811Host"
+	check(app.require_exact_capture_canvas(),
+		"production Character host requires the exact capture canvas")
 	root.add_child(app)
 	await settle()
 	check(app.request_route("inventory", false),
@@ -268,6 +276,8 @@ func _test_explicit_fixture_preview() -> void:
 	var app := load("res://ui/main.tscn").instantiate() as Control
 	app.name = "ExplicitFixture811Host"
 	app.prototype_fixture_mode = true
+	check(app.require_exact_capture_canvas(),
+		"explicit fixture host requires the exact capture canvas")
 	root.add_child(app)
 	await settle()
 	check(app.request_route("main_menu", false),
