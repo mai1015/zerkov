@@ -32,6 +32,7 @@ var qa_mode: bool = false
 var resize_timer: Timer
 var _last_window_size: Vector2i
 var _resize_pending: bool = false
+var _review_navigation_enabled: bool = false
 var ui_layout_mode: String = "auto"
 var common_ui_root: CommonUIScreenRoot
 
@@ -68,6 +69,7 @@ func _ready() -> void:
 			review_start = true
 		if arg == "--qa" or arg == "--smoke":
 			qa_mode = true
+	_review_navigation_enabled = review_start or qa_mode
 	var start_origin := ZUIRouteIntent.Origin.REVIEW \
 			if review_start or qa_mode else ZUIRouteIntent.Origin.PRODUCTION
 	submit_navigation(ZUIRouteIntent.open_route(
@@ -162,11 +164,18 @@ func navigate_for_review(route: String, record: bool = true) -> bool:
 	))
 
 
-func open_developer_route(route: String) -> bool:
+func allows_review_navigation() -> bool:
+	return qa_mode or _review_navigation_enabled
+
+
+func open_developer_route(route: String, authorization: RefCounted = null) -> bool:
 	return submit_navigation(ZUIRouteIntent.open_route(
 		StringName(route),
 		StringName(current_route),
-		ZUIRouteIntent.Origin.DEVELOPER_CATALOG
+		ZUIRouteIntent.Origin.DEVELOPER_CATALOG,
+		ZUIRouteIntent.StackMode.AUTO,
+		null,
+		authorization
 	))
 
 
@@ -241,14 +250,14 @@ func _run_qa() -> void:
 func toast(message: String) -> void:
 	feedback.toast(message)
 
-func confirm(title_text: String, message: String, callback: Callable) -> void:
-	feedback.confirm(title_text, message, callback)
+func confirm(title_text: String, message: String, callback: Callable) -> bool:
+	return feedback.confirm(title_text, message, callback)
 
-func prompt(title_text: String, initial_value: String, callback: Callable, max_length: int = 24) -> void:
-	feedback.prompt(title_text, initial_value, callback, max_length)
+func prompt(title_text: String, initial_value: String, callback: Callable, max_length: int = 24) -> bool:
+	return feedback.prompt(title_text, initial_value, callback, max_length)
 
-func toggle_picker() -> void:
-	feedback.toggle_picker()
+func toggle_picker() -> bool:
+	return feedback.toggle_picker()
 
 func _close_overlay(control: Control) -> void:
 	feedback._close_overlay(control)

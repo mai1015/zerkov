@@ -28,6 +28,9 @@ var origin_route: StringName = &""
 var origin: Origin = Origin.PRODUCTION
 var stack_mode: StackMode = StackMode.AUTO
 var payload: ZUIRoutePayload = null
+## Opaque, one-session capability issued by the live F1 catalog. Merely
+## selecting the DEVELOPER_CATALOG enum never grants developer-route access.
+var authorization: RefCounted = null
 
 
 func _init(
@@ -36,7 +39,8 @@ func _init(
 	p_origin_route: StringName = &"",
 	p_origin: Origin = Origin.PRODUCTION,
 	p_stack_mode: StackMode = StackMode.AUTO,
-	p_payload: ZUIRoutePayload = null
+	p_payload: ZUIRoutePayload = null,
+	p_authorization: RefCounted = null
 ) -> void:
 	kind = p_kind
 	route_id = p_route_id
@@ -45,6 +49,7 @@ func _init(
 	stack_mode = p_stack_mode
 	payload = ZUIRoutePayload.new(p_payload.type_id, p_payload.values()) \
 			if p_payload != null else ZUIRoutePayload.empty()
+	authorization = p_authorization
 
 
 static func open_route(
@@ -52,7 +57,8 @@ static func open_route(
 	p_origin_route: StringName = &"",
 	p_origin: Origin = Origin.PRODUCTION,
 	p_stack_mode: StackMode = StackMode.AUTO,
-	p_payload: ZUIRoutePayload = null
+	p_payload: ZUIRoutePayload = null,
+	p_authorization: RefCounted = null
 ) -> ZUIRouteIntent:
 	return ZUIRouteIntent.new(
 		Kind.OPEN,
@@ -60,7 +66,8 @@ static func open_route(
 		p_origin_route,
 		p_origin,
 		p_stack_mode,
-		p_payload
+		p_payload,
+		p_authorization
 	)
 
 
@@ -74,5 +81,6 @@ static func back(
 		p_origin_route,
 		p_origin,
 		StackMode.AUTO,
-		ZUIRoutePayload.empty()
+		ZUIRoutePayload.empty(),
+		null
 	)

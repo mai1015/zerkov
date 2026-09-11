@@ -105,13 +105,26 @@ static func validate_intent(value: Variant) -> String:
 	var route := String(intent.route_id)
 	if route.is_empty() or not ROUTES.has(route):
 		return "Unknown UI route: " + route
+	if intent.kind == ZUIRouteIntent.Kind.BACK:
+		if intent.route_id != intent.origin_route:
+			return "Back intent route must match its origin route."
+		if intent.stack_mode != ZUIRouteIntent.StackMode.AUTO:
+			return "Back intent cannot request a stack mode."
 	if intent.payload == null:
 		return "Missing typed UI route payload for: " + route
 	if intent.payload.type_id != expected_payload_type(route):
 		return "Unknown UI route payload '%s' for: %s" % [intent.payload.type_id, route]
 	if not intent.payload.is_empty():
 		return "Unexpected UI route payload values for: " + route
-	if is_developer_only(route) and intent.origin not in [
+	if intent.origin == ZUIRouteIntent.Origin.DEVELOPER_CATALOG:
+		if intent.kind != ZUIRouteIntent.Kind.OPEN:
+			return "Developer catalog authorization only opens catalog selections."
+		if intent.authorization == null:
+			return "Developer route requires live F1 catalog authorization."
+	elif intent.authorization != null:
+		return "Unexpected UI route authorization."
+	if intent.kind == ZUIRouteIntent.Kind.OPEN \
+			and is_developer_only(route) and intent.origin not in [
 		ZUIRouteIntent.Origin.DEVELOPER_CATALOG,
 		ZUIRouteIntent.Origin.REVIEW,
 	]:

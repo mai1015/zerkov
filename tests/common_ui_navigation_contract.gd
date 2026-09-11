@@ -130,7 +130,7 @@ func run() -> void:
 		"main-menu activation never falls back to Switch Account")
 
 	# Exercise the keyboard path independently, then activate the focused CTA.
-	check(app.navigate_for_review("title", false), "review reset to title is admitted")
+	check(app.request_route("title", false), "production reset to title is admitted")
 	await settle()
 	await key(KEY_ENTER)
 	check(app.current_route == "main_menu", "physical Enter leaves title through CommonUI")

@@ -15,6 +15,11 @@ func configure(owner_host: Control, screen_root: CommonUIScreenRoot) -> void:
 	host = owner_host
 	root = screen_root
 
+
+func has_work() -> bool:
+	return busy or not _pending.is_empty()
+
+
 func submit(value: Variant) -> bool:
 	var reason := ZRouteCatalog.validate_intent(value)
 	var route := String(value.route_id) if value is ZUIRouteIntent else ""
@@ -22,7 +27,14 @@ func submit(value: Variant) -> bool:
 		_reject(route, reason)
 		return false
 	var intent := value as ZUIRouteIntent
+	if intent.origin == ZUIRouteIntent.Origin.SYSTEM:
+		_reject(route, "System UI route intents are internal-only.")
+		return false
 	reason = _validate_live_origin(intent)
+	if not reason.is_empty():
+		_reject(route, reason)
+		return false
+	reason = _overlay_blocker(intent)
 	if not reason.is_empty():
 		_reject(route, reason)
 		return false
@@ -37,7 +49,8 @@ func submit(value: Variant) -> bool:
 		intent.origin_route,
 		intent.origin,
 		intent.stack_mode,
-		intent.payload
+		intent.payload,
+		intent.authorization
 	))
 	if not busy:
 		_drain.call_deferred()
@@ -45,10 +58,19 @@ func submit(value: Variant) -> bool:
 
 
 func _validate_live_origin(intent: ZUIRouteIntent) -> String:
-	if intent.origin == ZUIRouteIntent.Origin.REVIEW \
-			or intent.origin == ZUIRouteIntent.Origin.SYSTEM:
-		return ""
 	var expected := String(intent.origin_route)
+	if intent.kind == ZUIRouteIntent.Kind.BACK and expected != String(host.current_route):
+		return "Stale Back intent from '%s'; active route is '%s'." % [
+			expected,
+			str(host.current_route),
+		]
+	if intent.origin == ZUIRouteIntent.Origin.REVIEW:
+		if not host.allows_review_navigation():
+			return "Review UI navigation is unavailable in a production session."
+		# Review crawlers intentionally enqueue resets faster than routes commit.
+		return ""
+	if intent.origin == ZUIRouteIntent.Origin.SYSTEM:
+		return ""
 	if expected.is_empty():
 		return "" if String(host.current_route).is_empty() else "Missing UI route intent origin."
 	if expected != String(host.current_route):
@@ -57,6 +79,12 @@ func _validate_live_origin(intent: ZUIRouteIntent) -> String:
 			str(host.current_route),
 		]
 	return ""
+
+
+func _overlay_blocker(intent: ZUIRouteIntent) -> String:
+	if host.feedback == null:
+		return ""
+	return host.feedback.navigation_blocker(intent)
 
 
 func _reject(route: String, reason: String) -> void:
@@ -71,9 +99,26 @@ func _drain() -> void:
 		var reason := ZRouteCatalog.validate_intent(intent)
 		if reason.is_empty():
 			reason = _validate_live_origin(intent)
+		if reason.is_empty():
+			reason = _overlay_blocker(intent)
 		if not reason.is_empty():
 			_reject(String(intent.route_id), reason)
 			continue
+		if intent.origin == ZUIRouteIntent.Origin.DEVELOPER_CATALOG:
+			var close_result: Dictionary = await host.feedback.close_picker_for_navigation(
+				intent.authorization
+			)
+			if int(close_result.get("status", -1)) != CommonUIStackRequest.Status.SUCCESS:
+				_reject(String(intent.route_id), str(close_result.get(
+					"error", "Developer catalog could not close safely."
+				)))
+				continue
+			reason = _validate_live_origin(intent)
+			if reason.is_empty() and host.feedback.has_blocking_overlay():
+				reason = "A UI overlay opened while the developer catalog was closing."
+			if not reason.is_empty():
+				_reject(String(intent.route_id), reason)
+				continue
 		if intent.kind == ZUIRouteIntent.Kind.BACK:
 			await _apply_back(intent)
 		else:
@@ -119,10 +164,17 @@ func _open(intent: ZUIRouteIntent) -> void:
 		next.lower_contexts = active_contexts([root.hud_layer()], true)
 		next.suspends_lower_contexts = not next.lower_contexts.is_empty()
 	var previous := layer.get_top_screen()
+	if reset:
+		next.app.return_route = ""
+	elif replace and previous is ZScreen:
+		next.app.return_route = previous.app.return_route
+	elif previous is ZScreen:
+		next.app.return_route = previous.app.current_route
 	var result: Dictionary
 	var options := {
 		"route_id": intent.route_id,
 		"payload_type": intent.payload.type_id,
+		"return_route": StringName(next.app.return_route),
 	}
 	if replace:
 		result = await layer.replace_screen(next, options)
@@ -163,6 +215,15 @@ func _apply_back(intent: ZUIRouteIntent) -> void:
 	var policy := ZRouteCatalog.back_policy_for(route)
 	if policy.get("operation") == ZRouteCatalog.BACK_OPEN:
 		var target := String(policy.get("target", ""))
+		# When this route was pushed directly over its declared Back target,
+		# reveal that retained CommonUI screen instead of pushing a duplicate.
+		# Example: HUD -> Pause -> Session -> Back must reveal Pause, whose
+		# Resume then reveals the retained HUD.
+		if host.screen is ZScreen \
+				and host.screen.app.return_route == target \
+				and root.menu_layer().get_depth() > 1:
+			await _pop(route)
+			return
 		await _open(ZUIRouteIntent.open_route(
 			StringName(target),
 			StringName(route),

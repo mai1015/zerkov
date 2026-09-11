@@ -6,8 +6,13 @@ extends RefCounted
 var current_route: String
 var _host: WeakRef
 var fixtures: ZUIFixtureStore
+## Records that this view was entered from the explicit developer catalog.
+## It does not confer permission to forge later catalog selections.
 var developer_context: bool = false
 var route_payload: ZUIRoutePayload
+## Route immediately beneath this view when it was pushed, or the inherited
+## return target when it replaced a view. CommonUI remains stack authority.
+var return_route: String = ""
 
 var state: Dictionary:
 	get: return fixtures.state
@@ -42,12 +47,10 @@ func navigate(
 	var host := _service()
 	if host == null:
 		return false
-	var origin := ZUIRouteIntent.Origin.DEVELOPER_CATALOG \
-			if developer_context else ZUIRouteIntent.Origin.PRODUCTION
 	return bool(host.submit_navigation(ZUIRouteIntent.open_route(
 		StringName(route),
 		StringName(current_route),
-		origin,
+		ZUIRouteIntent.Origin.PRODUCTION,
 		ZUIRouteIntent.StackMode.AUTO if record else ZUIRouteIntent.StackMode.RESET,
 		payload
 	)))
@@ -56,21 +59,19 @@ func back() -> bool:
 	var host := _service()
 	if host == null:
 		return false
-	var origin := ZUIRouteIntent.Origin.DEVELOPER_CATALOG \
-			if developer_context else ZUIRouteIntent.Origin.PRODUCTION
 	return bool(host.submit_navigation(ZUIRouteIntent.back(
 		StringName(current_route),
-		origin
+		ZUIRouteIntent.Origin.PRODUCTION
 	)))
 
 func toast(message: String) -> void:
 	if _service() != null: _service().toast(message)
 
-func confirm(title: String, message: String, callback: Callable) -> void:
-	if _service() != null: _service().confirm(title, message, callback)
+func confirm(title: String, message: String, callback: Callable) -> bool:
+	return bool(_service().confirm(title, message, callback)) if _service() != null else false
 
-func prompt(title: String, value: String, callback: Callable, max_length: int = 24) -> void:
-	if _service() != null: _service().prompt(title, value, callback, max_length)
+func prompt(title: String, value: String, callback: Callable, max_length: int = 24) -> bool:
+	return bool(_service().prompt(title, value, callback, max_length)) if _service() != null else false
 
 func accepts_input(view: Control) -> bool:
 	var host := _service()

@@ -60,6 +60,7 @@ godot --headless --path . --editor --import --quit
 godot --headless --path . -- --smoke
 godot --headless --path . --script res://tests/common_ui_integration_smoke.gd
 godot --headless --path . --script res://tests/common_ui_navigation_contract.gd
+godot --headless --path . --script res://tests/common_ui_navigation_1080_regression.gd
 godot --headless --path . --script res://tests/zerkov_screen_lifecycle_contract.gd
 godot --headless --path . --script res://tests/addons/combined_addons_smoke.gd
 godot --headless --path . --script res://tests/ui_smoke.gd
