@@ -1,0 +1,138 @@
+{
+	"checks": 12,
+	"dimensions": [
+		1920,
+		1080
+	],
+	"display": "macOS",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": 0,
+	"records": [
+		{
+			"dimensions": [
+				1920,
+				1080
+			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "Coagulant boost · Major · 240 ticks remaining · beneficial\nLow radiation exposure · Minor · 700 ticks remaining\nDehydrated · Info · 900 ticks remaining",
+				"count_label": "BODY-WIDE · 4",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": "Critical systemic inflammatory response · Critical · 300 ticks remaining"
+			},
+			"grid_cell": 74,
+			"grid_parent": "DesktopStashScroll",
+			"health_sync": "ready",
+			"image": "1920x1080_inventory_ready.png",
+			"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+			"inventory_sync": "ready",
+			"quick_heal_disabled": true,
+			"replacement_panel_present": false,
+			"route": "inventory",
+			"runtime_configured": true,
+			"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]",
+			"state": "inventory_ready"
+		},
+		{
+			"dimensions": [
+				1920,
+				1080
+			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "Coagulant boost · Major · 240 ticks remaining · beneficial\nLow radiation exposure · Minor · 700 ticks remaining\nDehydrated · Info · 900 ticks remaining",
+				"count_label": "BODY-WIDE · 4",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": "Critical systemic inflammatory response · Critical · 300 ticks remaining"
+			},
+			"grid_cell": 74,
+			"grid_parent": "DesktopStashScroll",
+			"health_sync": "ready",
+			"image": "1920x1080_health_ready.png",
+			"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+			"inventory_sync": "ready",
+			"quick_heal_disabled": true,
+			"replacement_panel_present": false,
+			"route": "health",
+			"runtime_configured": true,
+			"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]",
+			"state": "health_ready"
+		},
+		{
+			"dimensions": [
+				1920,
+				1080
+			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "Coagulant boost · Major · 240 ticks remaining · beneficial\nLow radiation exposure · Minor · 700 ticks remaining\nDehydrated · Info · 900 ticks remaining",
+				"count_label": "BODY-WIDE · 4",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": "Critical systemic inflammatory response · Critical · 300 ticks remaining"
+			},
+			"grid_cell": 74,
+			"grid_parent": "DesktopStashScroll",
+			"health_sync": "ready",
+			"image": "1920x1080_health_effects_hover.png",
+			"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+			"inventory_sync": "ready",
+			"quick_heal_disabled": true,
+			"replacement_panel_present": false,
+			"route": "health",
+			"runtime_configured": true,
+			"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]",
+			"state": "health_effects_hover"
+		},
+		{
+			"dimensions": [
+				1920,
+				1080
+			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "",
+				"count_label": "BODY-WIDE",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": ""
+			},
+			"grid_cell": 74,
+			"grid_parent": "DesktopStashScroll",
+			"health_sync": "disconnected",
+			"image": "1920x1080_health_disconnected.png",
+			"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+			"inventory_sync": "disconnected",
+			"quick_heal_disabled": true,
+			"replacement_panel_present": false,
+			"route": "health",
+			"runtime_configured": false,
+			"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]",
+			"state": "health_disconnected"
+		}
+	]
+}
