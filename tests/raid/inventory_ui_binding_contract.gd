@@ -10,6 +10,7 @@ const Adapter = preload("res://game/inventory/inventory_intent_adapter.gd")
 const Catalog = preload("res://game/content/zerkov_inventory_catalog.gd")
 
 const MAX_TRANSFER_DISTANCE_RAW := 2_000_000
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
 
 
 class BindingIdentityPort extends ZInventoryIdentityPort:
@@ -229,7 +230,7 @@ func run() -> void:
 	# The retained screen binds explicitly after its fixture preview exists. Its
 	# canonical grids and read-only controls must then be driven by the bridge,
 	# while the preview dictionary remains byte-for-byte untouched.
-	root.size = Vector2i(1920, 1080)
+	root.size = FIRST_PLAYABLE_SIZE
 	var app: Control = load("res://ui/main.tscn").instantiate()
 	root.add_child(app)
 	await process_frame
@@ -687,11 +688,13 @@ func run() -> void:
 	if not stale_callback_item.is_empty():
 		screen._on_quick_move(stale_callback_item, "loot")
 	check(adapter.tracked_request_count() == before_stale_callback, "pre-bind screen callback token cannot cross a rebind")
-	screen._compact_section = "stash"
-	screen.layout_compact(Vector2(1280, 720))
-	check(screen._compact_section == "stash" and not str((screen._node("PostRaidBar/Title") as Label).text).contains("$") and str((screen._node("RigTitle") as Label).text).contains("LIVE") and not str((screen._node("RigTitle") as Label).text).contains("Scav vest") and (screen._node("RigSwap") as Button).disabled, "compact live layout retains its section and exposes no fixture economy or container claims")
-	screen.layout_compact(Vector2(960, 540))
-	check(screen._compact_section == "stash" and screen._node("CompactWorkspace/CompactStash").visible, "wide compact layout does not destroy the retained narrow section")
+	# Current first-playable verification stays on the authored desktop path. The
+	# retained compact layout remains production compatibility code, but this
+	# active contract must not execute it or regenerate smaller evidence.
+	screen.reflow(Vector2(FIRST_PLAYABLE_SIZE))
+	await process_frame
+	check(root.get_visible_rect().size.is_equal_approx(Vector2(FIRST_PLAYABLE_SIZE)) and screen._live_inventory_binding and not str((screen._node("PostRaidBar/Title") as Label).text).contains("$") and str((screen._node("RigTitle") as Label).text).contains("LIVE") and not str((screen._node("RigTitle") as Label).text).contains("Scav vest") and (screen._node("RigSwap") as Button).disabled, "exact first-playable live layout exposes no fixture economy or container claims")
+	check(root.get_visible_rect().size.is_equal_approx(Vector2(FIRST_PLAYABLE_SIZE)) and not screen._adaptive_applied, "exact first-playable desktop layout retains the authored non-compact path")
 	screen.unbind_inventory_runtime()
 	check(not screen._live_inventory_binding and not (screen._node("RigSwap") as Button).disabled and not (screen._node("SortStash") as Button).disabled and screen._grid_for_source("stash").mutation_enabled, "explicit unbind restores fixture controls without retaining live-disabled state")
 	app.queue_free()

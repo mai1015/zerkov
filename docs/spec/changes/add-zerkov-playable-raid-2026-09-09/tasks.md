@@ -27,10 +27,12 @@ checks, diagnostics review and named evidence are complete. Runtime errors count
 as failures even when a process exits successfully. Do not check a parent item
 while any required child behavior remains incomplete.
 
-Display-scope decision (2026-09-10): 1920x1080 is the only first-playable UI
-and visual acceptance target. Existing responsive/compact behavior and tests
-may remain, but are nonblocking; do not add smaller-layout implementation or
-review work until a later proposal reopens display support.
+Display-scope decision (2026-09-10): exact 1920x1080 is the only current
+first-playable UI and visual acceptance target. Existing responsive/compact
+behavior, historical captures and dedicated sources may remain, but current
+agents, tasks and tests MUST NOT execute their smaller suites or regenerate
+their outputs. Do not add smaller-layout implementation or review work until
+task 11.8 or a later approved proposal reopens display support.
 
 ## 0. Proposal and approval
 
@@ -470,8 +472,10 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   settlement receipts.
 - [ ] 8.9 `[LUNA]` Mark bunker, crafting, friends, insurance and marketplace
   actions as explicit prototype/locked features until their services exist.
-- [ ] 8.10 `[LUNA]` Port modal, focus, action routing, rebinding and adaptive
-  regression coverage to CommonUI-backed screens.
+- [ ] 8.10 `[LUNA]` Port modal, focus and action routing plus rebinding
+  regression coverage to CommonUI-backed screens. Keep any retained adaptive
+  implementation out of the current first-playable test matrix; smaller suites
+  are deferred until task 11.8 or a later approved display-support proposal.
 - [ ] 8.11 `[SOL]` Remove production reads/writes of `app.state`; keep mock
   fixtures only behind test/developer providers.
 - [ ] 8.12 `[ASTRA]` Review every real-data screen at 1920x1080 for hierarchy,
@@ -601,9 +605,12 @@ Evidence: separate validated change proposal for each accepted meta capability.
 
 - [ ] 12.1 `[SOL]` Run the complete deterministic headless suite from profile
   load through raid settlement and profile reload.
-- [ ] 12.2 `[LUNA]` Run all 1920x1080 UI, inventory, bunker, raid and utility
-  regressions against the integrated project. Existing smaller/responsive
-  suites may run for information but do not gate this slice.
+- [ ] 12.2 `[LUNA]` Run all exact 1920x1080 UI, navigation, lifecycle,
+  composition, reflow, component, border, crawler, inventory, bunker, raid and
+  utility regressions against the integrated project. Current acceptance MUST
+  NOT invoke smaller-resolution or responsive/compact suites, even for
+  information; historical artifacts remain audit-only until task 11.8 or a
+  later approved display-support proposal.
 - [ ] 12.3 `[SOL]` Complete ten consecutive extract/death cycles without item
   duplication, loss outside policy, stale authority mutation or save corruption.
 - [ ] 12.4 `[ASTRA]` Perform final UI, Sawmill composition and combat-feedback

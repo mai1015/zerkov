@@ -56,11 +56,13 @@ Astra defines the desired result from current captures -> Luna performs bounded
 layout/style/state edits -> Astra compares new native captures -> human accepts
 ```
 
-Use current 1920x1080 native evidence for first-playable visual decisions.
-Existing smaller and compact captures are nonblocking historical regressions;
-do not spend implementation or review scope adapting them until a later
-proposal reopens display support. Never ask an implementation model to improve
-a screen based only on words when a current native capture can be provided.
+Use current exact 1920x1080 native evidence for first-playable visual
+decisions. Existing smaller and compact captures are historical audit
+artifacts; current agents, tests and reviewers MUST NOT execute their suites or
+regenerate their outputs. Do not spend implementation or review scope adapting
+them until task 11.8 or a later approved proposal reopens display support.
+Never ask an implementation model to improve a screen based only on words when
+a current native capture can be provided.
 
 ### Combat work
 
