@@ -274,6 +274,15 @@ func run() -> void:
 	_test_same_tick_death_rejects_treatment()
 	_test_ambiguous_commit_fail_stops()
 	_test_malformed_and_capacity_fail_before_mutation()
+	_test_due_bleed_after_hit_death()
+	_test_multiple_due_bleeds_after_bleed_death()
+	_test_ambiguous_receipt_after_recovery()
+	_test_queue_after_authority_teardown()
+	_test_real_publish_teardown()
+	_test_forged_phase_and_reentrant_admission()
+	_test_registration_reentrant_release()
+	_test_registration_context_revalidation_cleanup()
+	_test_unproven_owner_unload_cannot_clear_hold()
 	for fixture in _fixtures.duplicate():
 		_cleanup_fixture(fixture)
 	await process_frame
@@ -772,6 +781,353 @@ func _test_repeatable_trace() -> void:
 		and _normalized_event_trace(left["authority"] as RaidAuthority) \
 			== _normalized_event_trace(right["authority"] as RaidAuthority),
 		"identical ordered facts produce identical native state and consequence trace")
+
+
+func _test_due_bleed_after_hit_death() -> void:
+	var fixture := _new_fixture("due_bleed_hit_death")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var publisher := fixture["publisher"] as HitPublisher
+	var target := fixture["target"] as ZEntityId
+	var generation := int(fixture["generation"])
+	publisher.queue_hit(
+		1, target, ZerkovHealthAbilityContent.ZONE_LEFT_LEG, 42_000)
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, generation),
+		"due-bleed/hit-death fixture becomes active")
+	for tick in range(1, 61):
+		check(authority.advance_one(generation),
+			"due-bleed/hit-death fixture advances to tick " + str(tick))
+	publisher.queue_hit(61, target, ZerkovHealthAbilityContent.ZONE_HEAD, 42_000)
+	check(authority.advance_one(generation),
+		"death on a due-bleed tick retires cancelled work without failing the raid")
+	check(adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.BOUND
+		and bool(adapter.actor_snapshot(target).get("dead", false))
+		and adapter.bleed_schedule_count() == 0,
+		"same-tick lethal hit leaves the ordinary dead adapter bound with no bleed")
+
+
+func _test_multiple_due_bleeds_after_bleed_death() -> void:
+	var fixture := _new_fixture("multiple_due_bleeds_death")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var publisher := fixture["publisher"] as HitPublisher
+	var target := fixture["target"] as ZEntityId
+	var generation := int(fixture["generation"])
+	publisher.queue_hit(
+		1, target, ZerkovHealthAbilityContent.ZONE_HEAD, 34_000)
+	publisher.queue_hit(
+		1, target, ZerkovHealthAbilityContent.ZONE_LEFT_LEG, 42_000)
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, generation),
+		"multiple-due-bleeds fixture becomes active")
+	for tick in range(1, 61):
+		check(authority.advance_one(generation),
+			"multiple-due-bleeds fixture advances to tick " + str(tick))
+	check(authority.advance_one(generation),
+		"one lethal due bleed retires other cancelled due bleeds")
+	check(adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.BOUND
+		and bool(adapter.actor_snapshot(target).get("dead", false))
+		and adapter.bleed_schedule_count() == 0,
+		"lethal bleed leaves the ordinary dead adapter bound with no schedules")
+
+
+func _test_ambiguous_receipt_after_recovery() -> void:
+	var fixture := _new_fixture("ambiguous_receipt")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var publisher := fixture["publisher"] as HitPublisher
+	var target := fixture["target"] as ZEntityId
+	var port := FakeMedicalPort.new()
+	port.actor_key = target.canonical_key()
+	port.commit_mode = &"fail_ambiguous"
+	check(adapter.attach_medical_inventory(target, port),
+		"ambiguous receipt port binds")
+	publisher.queue_hit(
+		1, target, ZerkovHealthAbilityContent.ZONE_LEFT_LEG, 42_000)
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE,
+		int(fixture["generation"])) and authority.advance_one(
+			int(fixture["generation"])), "ambiguous receipt injury setup")
+	var request := _treatment_request(
+		fixture, "ambiguous_recovery", 2, 1,
+		ZerkovHealthAbilityContent.ZONE_LEFT_LEG,
+		ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE, 1, 0)
+	check(bool(adapter.queue_treatment(request).get("accepted", false)),
+		"ambiguous receipt request queues")
+	check(not authority.advance_one(int(fixture["generation"])),
+		"ambiguous receipt request fails stop")
+	port.teardown_proven = true
+	check(adapter.recover_by_teardown(2),
+		"ambiguous receipt recovery proves teardown")
+	var receipt := adapter.treatment_receipt(String(request["request_id"]))
+	check(bool(receipt.get("terminal", false))
+		and not bool(receipt.get("queued", true))
+		and receipt.get("reason") == &"health_adapter_released"
+		and adapter.pending_treatment_count() == 0,
+		"resolved teardown terminalizes a dequeued ambiguous treatment receipt")
+
+
+func _test_queue_after_authority_teardown() -> void:
+	var fixture := _new_fixture("queue_late")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var request := _treatment_request(
+		fixture, "post_teardown", 2, 1,
+		ZerkovHealthAbilityContent.ZONE_LEFT_LEG,
+		ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE, 0, 0)
+	check(authority.teardown(int(fixture["generation"])),
+		"late-queue owner authority tears down")
+	var receipt := adapter.queue_treatment(request)
+	check(not bool(receipt.get("accepted", true))
+		and receipt.get("reason") == &"health_treatment_queue_unavailable"
+		and adapter.pending_treatment_count() == 0,
+		"torn-down authority generation cannot admit a treatment slot")
+
+
+func _test_real_publish_teardown() -> void:
+	var fixture := _new_fixture("publish_teardown", true)
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var publisher := fixture["publisher"] as HitPublisher
+	var target := fixture["target"] as ZEntityId
+	var admission := fixture["admission"] as ZSessionAdmission
+	var component := fixture["component"] as GameplayAbilityComponent
+	var owner := RaidInventoryOwner.new()
+	root.add_child(owner)
+	check(owner.configure(), "reentrant medical inventory owner configures")
+	fixture["inventory_owner"] = owner
+	var inventory_authority := owner.raid_authority()
+	var inventory_id := owner.raid_player_inventory_id
+	var pockets := _root_container(owner, ZerkovInventoryCatalog.CONTAINER_POCKETS)
+	var inserted := inventory_authority.insert_item(
+		inventory_id, String(ZerkovInventoryCatalog.ITEM_BANDAGE), 2,
+		_spatial(pockets, 0, 0), RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID, 56_501)
+	check(bool(inserted.get("accepted", false)),
+		"reentrant fixture inserts bandages")
+	var identity := OfflineInventoryIdentity.new()
+	check(identity.configure(admission, owner, component.entity_id),
+		"reentrant fixture identity binds")
+	fixture["inventory_identity"] = identity
+	var port := InventoryMedicalParticipant.new()
+	check(port.configure(owner, admission, identity, owner.generation()),
+		"reentrant production port configures")
+	check(adapter.attach_medical_inventory(target, port),
+		"reentrant production port attaches")
+	var publication_observed: Array[Dictionary] = []
+	inventory_authority.quantity_reservation_published.connect(
+		func(_result: Dictionary) -> void:
+			publication_observed.append({
+				"teardown": owner.teardown(owner.generation()),
+				"port_ready": port.is_ready(),
+				"inventory_loaded": inventory_authority.has_inventory(inventory_id),
+			}))
+	publisher.queue_hit(
+		1, target, ZerkovHealthAbilityContent.ZONE_LEFT_LEG, 42_000)
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE,
+		int(fixture["generation"])) and authority.advance_one(
+			int(fixture["generation"])), "reentrant treatment injury setup")
+	var request := _treatment_request(
+		fixture, "reentrant_bandage", 2, 1,
+		ZerkovHealthAbilityContent.ZONE_LEFT_LEG,
+		ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE, 1,
+		port.current_revision())
+	check(bool(adapter.queue_treatment(request).get("accepted", false)),
+		"reentrant bandage queues")
+	check(not authority.advance_one(int(fixture["generation"]))
+		and adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.RECOVERY_REQUIRED
+		and port.lifecycle == InventoryMedicalParticipant.Lifecycle.RECOVERY_REQUIRED,
+		"owner teardown during native publication fails the stale continuation")
+	check(publication_observed.size() == 1
+		and not bool(publication_observed[0].get("teardown", true))
+		and bool(publication_observed[0].get("inventory_loaded", false)),
+		"reentrant owner teardown is not mistaken for a completed scoped unload")
+	var recovery := adapter.recovery_details()
+	var recovery_details := recovery.get("details", {}) as Dictionary
+	var publication := recovery_details.get("publication", {}) as Dictionary
+	var port_recovery := publication.get("recovery", {}) as Dictionary
+	var port_details := port_recovery.get("details", {}) as Dictionary
+	check(publication.get("mutation_state") \
+			== MedicalInventoryParticipantPort.MUTATION_COMMITTED
+		and bool(port_details.get("native_publication_committed", false)),
+		"reentrant publication reports its proven committed mutation honestly")
+	check(adapter.recover_by_teardown(2),
+		"reentrant publication recovery resolves exact native reservation health")
+	var receipt := adapter.treatment_receipt(String(request["request_id"]))
+	check(bool(receipt.get("terminal", false))
+		and not bool(receipt.get("queued", true))
+		and not bool(receipt.get("committed", true))
+		and receipt.get("reason") == &"health_adapter_released"
+		and receipt.get("mutation_state") \
+			== MedicalInventoryParticipantPort.MUTATION_COMMITTED
+		and adapter.pending_treatment_count() == 0,
+		"reentrant publication recovery terminalizes the in-flight receipt")
+
+
+func _test_forged_phase_and_reentrant_admission() -> void:
+	var fixture := _new_fixture("phase_fence")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var publisher := fixture["publisher"] as HitPublisher
+	var target := fixture["target"] as ZEntityId
+	var before := adapter.actor_snapshot(target)
+	check(not adapter.handle_raid_phase(
+		authority, RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK,
+		1, [], adapter.binding_generation())
+		and adapter.actor_snapshot(target) == before,
+		"direct phase callback outside exact authority dispatch cannot mutate health")
+	var request := _treatment_request(
+		fixture, "during_damage", 2, 1,
+		ZerkovHealthAbilityContent.ZONE_LEFT_LEG,
+		ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE, 1, 0)
+	var observed: Array[Dictionary] = []
+	adapter.damage_committed.connect(func(_result: Dictionary) -> void:
+		observed.append({
+			"queue": adapter.queue_treatment(request),
+			"release": adapter.release_binding(),
+			"phase": adapter.handle_raid_phase(
+				authority, RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK,
+				1, [], adapter.binding_generation()),
+		}))
+	publisher.queue_hit(
+		1, target, ZerkovHealthAbilityContent.ZONE_LEFT_LEG, 42_000)
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE,
+		int(fixture["generation"])) and authority.advance_one(
+			int(fixture["generation"])),
+		"reentrant public callback leaves genuine damage successful")
+	check(observed.size() == 1 and not bool(observed[0].get("release", true))
+		and not bool(observed[0].get("phase", true))
+		and not bool((observed[0].get("queue", {}) as Dictionary).get(
+			"accepted", true))
+		and adapter.pending_treatment_count() == 0
+		and int(_zone(adapter.actor_snapshot(target),
+			ZerkovHealthAbilityContent.ZONE_LEFT_LEG).get(
+				"health_micros", -1)) == 23_000_000,
+		"public damage callback rejects recursive queue, release, and phase calls")
+
+
+func _test_registration_reentrant_release() -> void:
+	var raid_id := ZRaidId.from_parts(PackedStringArray([
+		"health_consequence", "register_reentry"]))
+	var admission := SessionCoordinator.new().open_offline(
+		raid_id, &"register_reentry", &"player")
+	var authority := RaidAuthority.new()
+	check(authority.configure(raid_id, admission, 560),
+		"registration reentry authority configures")
+	var adapter := HealthConsequenceAdapter.new()
+	check(adapter.bind_authority(authority, authority.generation()),
+		"registration reentry adapter binds")
+	var component := _new_health_component(88_001)
+	var observed: Array[Dictionary] = []
+	component.ability_granted.connect(func(_grant: Dictionary) -> void:
+		if observed.is_empty():
+			observed.append({
+				"released": adapter.release_binding(),
+				"lifecycle": adapter.lifecycle,
+			}))
+	var result := adapter.register_actor(
+		admission.actor_id, ZRaidIntent.Source.PLAYER,
+		component, component.entity_id)
+	check(observed.size() == 1 and not bool(observed[0].get("released", true))
+		and bool(result.get("accepted", false)) and adapter.is_bound(),
+		"bootstrap ability notification cannot release binding mid-registration")
+	if adapter.is_bound():
+		adapter.release_binding()
+	authority.teardown(authority.generation())
+	if not component.is_torn_down():
+		component.queue_teardown(component.get_current_tick())
+	component.queue_free()
+
+
+func _test_registration_context_revalidation_cleanup() -> void:
+	var raid_id := ZRaidId.from_parts(PackedStringArray([
+		"health_consequence", "register_context_change"]))
+	var admission := SessionCoordinator.new().open_offline(
+		raid_id, &"register_context_change", &"player")
+	var authority := RaidAuthority.new()
+	check(authority.configure(raid_id, admission, 561),
+		"registration context-change authority configures")
+	var generation := authority.generation()
+	var adapter := HealthConsequenceAdapter.new()
+	check(adapter.bind_authority(authority, generation),
+		"registration context-change adapter binds")
+	var component := _new_health_component(88_002)
+	var before := component.write_snapshot()
+	var transitioned: Array[bool] = []
+	component.ability_granted.connect(func(_grant: Dictionary) -> void:
+		if transitioned.is_empty():
+			transitioned.append(authority.transition(
+				RaidAuthority.Lifecycle.ACTIVE, generation)))
+	var result := adapter.register_actor(
+		admission.actor_id, ZRaidIntent.Source.PLAYER,
+		component, component.entity_id)
+	check(transitioned == [true]
+		and not bool(result.get("accepted", true))
+		and result.get("reason") == &"health_registration_context_changed"
+		and bool(result.get("cleanup_proven", false))
+		and adapter.actor_count() == 0
+		and component.write_snapshot() == before,
+		"callback-driven authority transition rejects registration and restores bytes")
+	if adapter.is_bound():
+		adapter.release_binding()
+	if authority.lifecycle != RaidAuthority.Lifecycle.TORN_DOWN:
+		authority.teardown(generation)
+	if not component.is_torn_down():
+		component.queue_teardown(component.get_current_tick())
+	component.queue_free()
+
+
+func _test_unproven_owner_unload_cannot_clear_hold() -> void:
+	var fixture := _new_fixture("unload_proof", true)
+	var owner := RaidInventoryOwner.new()
+	root.add_child(owner)
+	check(owner.configure(), "unload proof owner configures")
+	fixture["inventory_owner"] = owner
+	var inventory_authority := owner.raid_authority()
+	var inventory_id := owner.raid_player_inventory_id
+	var pockets := _root_container(owner, ZerkovInventoryCatalog.CONTAINER_POCKETS)
+	var inserted := inventory_authority.insert_item(
+		inventory_id, String(ZerkovInventoryCatalog.ITEM_BANDAGE), 2,
+		_spatial(pockets, 0, 0), RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID, 56_601)
+	check(bool(inserted.get("accepted", false)),
+		"unload proof fixture inserts bandages")
+	var identity := OfflineInventoryIdentity.new()
+	check(identity.configure(
+		fixture["admission"] as ZSessionAdmission, owner,
+		(fixture["component"] as GameplayAbilityComponent).entity_id),
+		"unload proof identity binds")
+	fixture["inventory_identity"] = identity
+	var port := InventoryMedicalParticipant.new()
+	check(port.configure(owner, fixture["admission"] as ZSessionAdmission,
+		identity, owner.generation()), "unload proof port configures")
+	var held := port.prepare_treatment(
+		"medical-held-before-unload",
+		ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE,
+		port.current_revision(), 100)
+	check(bool(held.get("accepted", false)), "unload proof medical item held")
+	var other_hold := inventory_authority.prepare_quantity_reservation(
+		inventory_id, "other-reservation-to-publish",
+		String(ZerkovInventoryCatalog.TRAIT_MEDICAL_BANDAGE),
+		[String(ZerkovInventoryCatalog.CONTAINER_POCKETS)],
+		1, port.current_revision(), 100)
+	check(bool(other_hold.get("accepted", false)),
+		"unload proof independent remainder held")
+	var observed: Array[Dictionary] = []
+	inventory_authority.quantity_reservation_published.connect(
+		func(_result: Dictionary) -> void:
+			observed.append({
+				"owner_teardown": owner.teardown(owner.generation()),
+				"native_inventory_loaded": inventory_authority.has_inventory(inventory_id),
+			}))
+	var other_commit := inventory_authority.commit_quantity_reservation_silent(
+		inventory_id, "other-reservation-to-publish")
+	var other_published := inventory_authority.publish_quantity_reservation(
+		"other-reservation-to-publish")
+	check(bool(other_commit.get("accepted", false))
+		and bool(other_published.get("accepted", false)),
+		"independent publication reaches reentrant teardown")
+	var cleared := port.clear()
+	var late_commit := inventory_authority.commit_quantity_reservation_silent(
+		inventory_id, "medical-held-before-unload")
+	check(not cleared or not bool(late_commit.get("accepted", false)),
+		"clear never claims unload while the exact native hold can still commit")
 
 
 func _new_fixture(label: String, use_player_actor: bool = false) -> Dictionary:

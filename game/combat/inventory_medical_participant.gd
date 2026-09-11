@@ -266,6 +266,24 @@ func publish_treatment(reservation_id: String) -> Dictionary:
 	_transaction_active = true
 	var result: Dictionary = _authority.publish_quantity_reservation(reservation_id)
 	_transaction_active = false
+	# Publication emits transaction/delta/reservation signals synchronously. A
+	# callback may tear down the exact owner generation even when the native call
+	# itself returns a valid published result. Never continue through that stale
+	# boundary or report the cross-domain operation as ordinarily successful.
+	if not is_ready():
+		var published_before_context_loss := _result_is(
+			result, STAGE_PUBLISHED, reservation_id, 1) \
+			and int(result.get("revision", -1)) \
+				== int(record["predecessor_revision"]) + 1
+		return _latch_recovery(
+			&"medical_inventory_publish_context_lost",
+			{
+				"record": record,
+				"publication": result,
+				"native_publication_committed": published_before_context_loss,
+			},
+			MUTATION_COMMITTED if published_before_context_loss \
+				else MUTATION_AMBIGUOUS)
 	if not _result_is(result, STAGE_PUBLISHED, reservation_id, 1) \
 			or int(result.get("revision", -1)) \
 				!= int(record["predecessor_revision"]) + 1:
@@ -341,19 +359,19 @@ func clear() -> bool:
 		var stage := int((record_value as Dictionary).get("stage", 0))
 		if stage == STAGE_HELD or stage == STAGE_COMMITTED:
 			has_unfinished = true
-	if has_unfinished and not _owner_proves_scoped_unload():
-		return _reject_bool(&"medical_inventory_reservation_active")
 	if has_unfinished:
-		# Owner teardown synchronously unloads this exact inventory generation.
-		# That lifecycle boundary proves a held or unpublished reservation can no
-		# longer commit, so recovery may finish without pretending it rolled back.
-		for reservation_id in _records.keys():
-			var record := _records[reservation_id] as Dictionary
-			if int(record.get("stage", 0)) == STAGE_HELD \
-					or int(record.get("stage", 0)) == STAGE_COMMITTED:
-				record["stage"] = STAGE_RELEASED
-				_records[reservation_id] = record
-		_recovery["resolved_by_owner_teardown"] = true
+		if _owner_proves_scoped_unload():
+			# Owner teardown synchronously unloaded this exact inventory generation.
+			# That proves a held or unpublished reservation can no longer commit.
+			for reservation_id in _records.keys():
+				var record := _records[reservation_id] as Dictionary
+				if int(record.get("stage", 0)) == STAGE_HELD \
+						or int(record.get("stage", 0)) == STAGE_COMMITTED:
+					record["stage"] = STAGE_RELEASED
+					_records[reservation_id] = record
+			_recovery["resolved_by_owner_teardown"] = true
+		elif not _resolve_unfinished_for_clear():
+			return _reject_bool(&"medical_inventory_reservation_active")
 	_owner = null
 	_owner_instance_id = 0
 	_owner_generation = 0
@@ -480,10 +498,68 @@ func _owner_proves_scoped_unload() -> bool:
 		and _owner.get_instance_id() == _owner_instance_id \
 		and _owner.lifecycle == RaidInventoryOwner.Lifecycle.TORN_DOWN \
 		and _owner.generation() != _owner_generation \
-		and _owner.raid_player_inventory_id == 0
+		and _owner.raid_player_inventory_id == 0 \
+		and (_authority == null or not is_instance_valid(_authority) \
+			or not _authority.has_inventory(_inventory_id))
 
 
-func _latch_recovery(reason: StringName, details: Dictionary) -> Dictionary:
+func _resolve_unfinished_for_clear() -> bool:
+	# A reentrant owner teardown can fail its unload while still detaching and
+	# queueing the native authority. While that exact authority remains callable,
+	# actively terminalize our exact reservations instead of treating the owner's
+	# advanced generation as proof. Every accepted cleanup is re-read below.
+	if _authority == null or not is_instance_valid(_authority) \
+			or _authority.get_instance_id() != _authority_instance_id \
+			or not _authority.has_inventory(_inventory_id):
+		return false
+	var reservation_ids := PackedStringArray(_records.keys())
+	reservation_ids.sort()
+	for reservation_id in reservation_ids:
+		var record := _records[reservation_id] as Dictionary
+		var local_stage := int(record.get("stage", 0))
+		if local_stage != STAGE_HELD and local_stage != STAGE_COMMITTED:
+			continue
+		var health: Dictionary = _authority.health_quantity_reservation(reservation_id)
+		var native_stage := int(health.get("stage", 0))
+		if not _result_is(health, native_stage, reservation_id, 1):
+			return false
+		if native_stage == STAGE_PUBLISHED:
+			record["stage"] = STAGE_PUBLISHED
+			_records[reservation_id] = record
+			continue
+		if native_stage == STAGE_RELEASED:
+			record["stage"] = STAGE_RELEASED
+			_records[reservation_id] = record
+			continue
+		var resolved: Dictionary
+		if native_stage == STAGE_HELD:
+			resolved = _authority.release_quantity_reservation(
+				_inventory_id, reservation_id)
+		elif native_stage == STAGE_COMMITTED:
+			resolved = _authority.rollback_quantity_reservation(
+				_inventory_id, reservation_id)
+		else:
+			return false
+		if not _result_is(resolved, STAGE_RELEASED, reservation_id, 1):
+			return false
+		# Releasing an uncommitted hold does not own the inventory revision and
+		# may legitimately follow unrelated accepted mutations. Rolling back our
+		# own silent successor must, however, restore its exact predecessor.
+		if native_stage == STAGE_COMMITTED \
+				and _authority.inventory_revision(_inventory_id) \
+					!= int(record.get("predecessor_revision", -1)):
+			return false
+		record["stage"] = STAGE_RELEASED
+		_records[reservation_id] = record
+	_recovery["resolved_by_reservation_cleanup"] = true
+	return true
+
+
+func _latch_recovery(
+	reason: StringName,
+	details: Dictionary,
+	mutation_state: StringName = MUTATION_AMBIGUOUS
+) -> Dictionary:
 	lifecycle = Lifecycle.RECOVERY_REQUIRED
 	last_error = reason
 	_recovery = {
@@ -494,7 +570,7 @@ func _latch_recovery(reason: StringName, details: Dictionary) -> Dictionary:
 		"owner_generation": _owner_generation,
 	}
 	return _rejection(reason, {
-		"mutation_state": MUTATION_AMBIGUOUS,
+		"mutation_state": mutation_state,
 		"recovery": _recovery,
 	})
 

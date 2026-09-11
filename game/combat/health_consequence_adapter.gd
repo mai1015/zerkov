@@ -79,6 +79,7 @@ var _damage_results: Dictionary = {}
 var _treatment_records: Dictionary = {}
 var _treatment_order: PackedStringArray = PackedStringArray()
 var _bleed_schedules: Dictionary = {}
+var _phase_cancelled_bleeds: Dictionary = {}
 var _reserved_event_ids: Dictionary = {}
 var _recovery: Dictionary = {}
 var _phase_active: bool = false
@@ -167,7 +168,7 @@ func damage_result_count() -> int:
 
 
 func pending_treatment_count() -> int:
-	return _treatment_order.size()
+	return _pending_treatment_record_count()
 
 
 func bleed_schedule_count() -> int:
@@ -193,6 +194,9 @@ func register_actor(
 		return _rejection(&"health_adapter_not_mutable")
 	if _authority.lifecycle != RaidAuthority.Lifecycle.PREPARING:
 		return _rejection(&"health_actor_registration_closed")
+	if initial_tick != _last_tick \
+			or _authority.last_processed_tick != _last_tick:
+		return _rejection(&"health_actor_registration_tick_invalid")
 	if actor_id == null or ZEntityId.parse(actor_id.canonical_key()) == null \
 			or not _authority.has_authorized_actor_source(
 				actor_id, source, _raid_generation):
@@ -208,12 +212,21 @@ func register_actor(
 	var before := component.write_snapshot()
 	if before.is_empty():
 		return _rejection(&"health_component_snapshot_unavailable")
+	# Initialization grants the native alive bootstrap ability and therefore
+	# emits callbacks. Fence the entire mutation lifetime, including rollback,
+	# before crossing the first callback-producing boundary.
+	_mutation_active = true
 	var initialized := ZerkovHealthAbilityContent.initialize_component(
 		component, initial_tick)
+	if not _registration_context_is_current(
+			component, native_entity_id, initial_tick):
+		return _abort_registration_context(
+			component, before, &"initialize_component")
 	if not bool(initialized.get("accepted", false)) \
 			or StringName(initialized.get("life_state", &"")) != &"alive":
-		return _rejection(StringName(initialized.get(
-			"reason", &"health_component_initialization_failed")), initialized)
+		return _rollback_registration(
+			component, before, StringName(initialized.get(
+				"reason", &"health_component_initialization_failed")), initialized)
 	var abilities := _required_ability_identifiers()
 	var existing := _existing_required_grants(component, abilities)
 	if not existing.is_empty():
@@ -230,7 +243,6 @@ func register_actor(
 				component, before, &"health_ability_definition_missing", {
 					"ability_identifier": ability_identifier})
 
-	_mutation_active = true
 	var specs: Dictionary = {}
 	var input_ids: Dictionary = {}
 	var actor_registration_generation := 1
@@ -243,7 +255,6 @@ func register_actor(
 		var spec := int(granted.get("spec", 0))
 		if not bool(status.get("ok", false)) or bool(granted.get("queued", false)) \
 				or spec <= 0:
-			_mutation_active = false
 			return _rollback_registration(
 				component, before, &"health_ability_grant_failed", {
 					"ability_identifier": ability_identifier,
@@ -251,12 +262,19 @@ func register_actor(
 				})
 		specs[String(ability_identifier)] = spec
 		input_ids[String(ability_identifier)] = input_id
-	_mutation_active = false
+		if not _registration_context_is_current(
+				component, native_entity_id, initial_tick):
+			return _abort_registration_context(
+				component, before, &"grant_ability")
 	if not _authority.publish_weapon_actor_status(
 			actor_id, true, true, initial_tick, _raid_generation):
 		return _rollback_registration(
 			component, before, &"health_initial_liveness_publish_failed", {
 				"authority_error": _authority.last_error})
+	if not _registration_context_is_current(
+			component, native_entity_id, initial_tick):
+		return _abort_registration_context(
+			component, before, &"publish_initial_liveness")
 	var record := {
 		"actor_id": actor_key,
 		"actor_source": int(source),
@@ -287,6 +305,7 @@ func register_actor(
 	component.tree_exiting.connect(callback)
 	_actors[actor_key] = record
 	_native_entity_owners[native_entity_id] = actor_key
+	_mutation_active = false
 	return _read_only_copy({
 		"accepted": true,
 		"actor_id": actor_key,
@@ -332,7 +351,7 @@ func attach_medical_inventory(
 ## Gameplay Ability or inventory mutation occurs before the phase-7 callback.
 func queue_treatment(request: Dictionary) -> Dictionary:
 	last_error = &""
-	if lifecycle != Lifecycle.BOUND or _phase_active \
+	if not is_bound() or _phase_active \
 			or _mutation_active or _public_signal_active:
 		return _rejection(&"health_treatment_queue_unavailable")
 	# Stable identity replay is resolved before time/revision admission. A
@@ -358,7 +377,7 @@ func queue_treatment(request: Dictionary) -> Dictionary:
 		return _rejection(StringName(validation.get(
 			"reason", &"health_treatment_request_invalid")))
 	if _treatment_records.size() >= MAX_TREATMENT_REQUESTS \
-			or _treatment_order.size() >= MAX_PENDING_TREATMENTS:
+			or _pending_treatment_record_count() >= MAX_PENDING_TREATMENTS:
 		return _rejection(&"health_treatment_queue_capacity")
 	var receipt := {
 		"accepted": true,
@@ -378,6 +397,9 @@ func queue_treatment(request: Dictionary) -> Dictionary:
 		"request": request.duplicate(true),
 		"receipt": receipt,
 		"pending": true,
+		"processing": false,
+		"mutation_state": MedicalInventoryParticipantPort.MUTATION_NONE,
+		"reservation_id": "",
 	}
 	_treatment_order.append(request_id)
 	_sort_treatment_order()
@@ -473,7 +495,6 @@ func release_binding(
 					or _authority.lifecycle == RaidAuthority.Lifecycle.EXTRACTING):
 			return _reject_bool(&"health_phase_registration_lost")
 	_phase_registered = false
-	_finalize_pending_treatments(&"health_adapter_released")
 	var actor_ids := PackedStringArray(_actors.keys())
 	actor_ids.sort()
 	for actor_key in actor_ids:
@@ -492,9 +513,14 @@ func release_binding(
 				_latch_recovery(&"health_component_teardown_unproven", {
 					"actor_id": actor_key})
 				return false
+	# A receipt remains pending while participant/component teardown is
+	# unproven. Only the completed authoritative boundary may terminalize a
+	# dequeued in-flight cross-domain treatment.
+	_finalize_pending_treatments(&"health_adapter_released")
 	_actors.clear()
 	_native_entity_owners.clear()
 	_bleed_schedules.clear()
+	_phase_cancelled_bleeds.clear()
 	_treatment_order.clear()
 	_generation_counter += 1
 	_binding_generation = _generation_counter
@@ -502,6 +528,7 @@ func release_binding(
 	lifecycle = Lifecycle.RELEASED
 	last_error = reason
 	_emit_binding_invalidated(reason)
+	_disconnect_public_signal_callbacks()
 	return true
 
 
@@ -516,6 +543,9 @@ func _advance_phase(tick: int) -> bool:
 			or tick <= 0 or tick > MAX_AUTHORITY_TICK:
 		return _latch_recovery(&"health_phase_tick_or_binding_invalid", {
 			"tick": tick, "last_tick": _last_tick})
+	if not _phase_cancelled_bleeds.is_empty():
+		return _latch_recovery(&"health_bleed_cancellation_state_stale", {
+			"tick": tick, "cancellations": _phase_cancelled_bleeds})
 	var actor_ids := PackedStringArray(_actors.keys())
 	actor_ids.sort()
 	for actor_key in actor_ids:
@@ -543,6 +573,18 @@ func _advance_phase(tick: int) -> bool:
 		if not _apply_weapon_hit(hit_value as Dictionary, tick):
 			return false
 	for schedule_key in due_bleeds:
+		if not _bleed_schedules.has(String(schedule_key)):
+			# Due work is snapshotted before hits. An earlier same-phase lethal
+			# consequence intentionally cancels every actor bleed, including a due
+			# entry. Only that explicitly recorded transition may remove a captured
+			# key; any other disappearance remains a fail-stop invariant breach.
+			var cancellation := _phase_cancelled_bleeds.get(
+				String(schedule_key), {}) as Dictionary
+			if cancellation.get("reason") == &"death" \
+					and int(cancellation.get("tick", -1)) == tick:
+				continue
+			return _latch_recovery(&"health_bleed_schedule_disappeared", {
+				"schedule_key": schedule_key, "tick": tick})
 		if not _apply_bleed_tick(String(schedule_key), tick):
 			return false
 	for request_id in due_treatments:
@@ -565,6 +607,7 @@ func _advance_phase(tick: int) -> bool:
 		_actors[actor_key] = record
 	_journal_cursor = int(collected.get("cursor", _journal_cursor))
 	_last_tick = tick
+	_phase_cancelled_bleeds.clear()
 	return true
 
 
@@ -878,7 +921,7 @@ func _apply_damage_operation(
 		actor["dead"] = true
 		actor["death_tick"] = tick
 		actor["death_operation_id"] = operation_id
-		_remove_actor_bleeds(target_key)
+		_remove_actor_bleeds(target_key, tick, operation_id)
 		var target_id := ZEntityId.parse(target_key)
 		if target_id == null or not _authority.publish_weapon_actor_status(
 				target_id, false, false, tick, _raid_generation):
@@ -927,6 +970,8 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 	if request_record.is_empty() or not bool(request_record.get("pending", false)):
 		return _latch_recovery(&"health_treatment_queue_corrupted", {
 			"request_id": request_id})
+	request_record["processing"] = true
+	_treatment_records[request_id] = request_record
 	_remove_treatment_from_order(request_id)
 	var request := request_record["request"] as Dictionary
 	var actor_key := String(request["actor_id"])
@@ -977,9 +1022,13 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 			or tick > MAX_AUTHORITY_TICK - MEDICAL_RESERVATION_TTL_TICKS:
 		return _latch_recovery(&"medical_reservation_identity_invalid", {
 			"request_id": request_id})
+	_update_treatment_progress(
+		request_id, reservation_id, MedicalInventoryParticipantPort.MUTATION_NONE)
 	var prepared := port.prepare_treatment(
 		reservation_id, treatment, int(request["expected_inventory_revision"]),
 		tick + MEDICAL_RESERVATION_TTL_TICKS)
+	_update_treatment_progress(request_id, reservation_id, StringName(prepared.get(
+		"mutation_state", MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS)))
 	if not bool(prepared.get("accepted", false)):
 		if StringName(prepared.get(
 				"mutation_state", MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS)) \
@@ -989,6 +1038,11 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 		_finalize_treatment(request_id, false, StringName(prepared.get(
 			"reason", &"medical_inventory_prepare_rejected")), {"inventory": prepared})
 		return true
+	if not _medical_port_is_current(actor, port):
+		return _latch_recovery(&"medical_inventory_prepare_context_lost", {
+			"request_id": request_id, "inventory": prepared,
+			"reservation_id": reservation_id,
+		})
 	var before := component.write_snapshot()
 	if before.is_empty():
 		var released := port.release_treatment(reservation_id)
@@ -1018,12 +1072,15 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 			"activation": activation})
 		return true
 	var committed := port.commit_treatment_silent(reservation_id)
+	var commit_mutation := StringName(committed.get(
+		"mutation_state", MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS))
+	_update_treatment_progress(request_id, reservation_id, commit_mutation)
 	if not bool(committed.get("accepted", false)):
-		if StringName(committed.get(
-				"mutation_state", MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS)) \
-				== MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS:
+		if commit_mutation != MedicalInventoryParticipantPort.MUTATION_NONE:
 			return _latch_recovery(&"health_treatment_commit_ambiguous", {
-				"request_id": request_id, "commit": committed})
+				"request_id": request_id, "commit": committed,
+				"mutation_state": commit_mutation,
+			})
 		var rolled_back := _rollback_treatment_pair(component, before, port, reservation_id)
 		if not bool(rolled_back.get("accepted", false)):
 			return _latch_recovery(&"health_treatment_commit_recovery_required", {
@@ -1032,14 +1089,21 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 		_finalize_treatment(request_id, false, &"medical_inventory_commit_failed", {
 			"inventory": committed})
 		return true
+	if not _medical_port_is_current(actor, port):
+		return _latch_recovery(&"medical_inventory_commit_context_lost", {
+			"request_id": request_id, "commit": committed,
+			"reservation_id": reservation_id,
+			"mutation_state": MedicalInventoryParticipantPort.MUTATION_COMMITTED,
+		})
 	var published := port.publish_treatment(reservation_id)
+	var publication_mutation := StringName(published.get(
+		"mutation_state", MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS))
+	_update_treatment_progress(request_id, reservation_id, publication_mutation)
 	if not bool(published.get("accepted", false)):
-		if StringName(published.get(
-				"mutation_state", MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS)) \
-				== MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS:
+		if publication_mutation != MedicalInventoryParticipantPort.MUTATION_NONE:
 			return _latch_recovery(&"health_treatment_publish_ambiguous", {
 				"request_id": request_id, "publication": published,
-				"mutation_state": &"committed_or_ambiguous"})
+				"mutation_state": publication_mutation})
 		var rolled_back := _rollback_treatment_pair(component, before, port, reservation_id)
 		if not bool(rolled_back.get("accepted", false)):
 			return _latch_recovery(&"health_treatment_publish_recovery_required", {
@@ -1048,6 +1112,12 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 		_finalize_treatment(request_id, false, &"medical_inventory_publish_failed", {
 			"inventory": published})
 		return true
+	if not _medical_port_is_current(actor, port):
+		return _latch_recovery(&"medical_inventory_publish_context_lost", {
+			"request_id": request_id, "publication": published,
+			"reservation_id": reservation_id,
+			"mutation_state": MedicalInventoryParticipantPort.MUTATION_COMMITTED,
+		})
 	if treatment == ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE:
 		_bleed_schedules.erase(_bleed_schedule_key(actor_key, zone))
 	actor["health_revision"] = int(actor["health_revision"]) + 1
@@ -1464,15 +1534,74 @@ func _rollback_registration(
 	reason: StringName,
 	details: Dictionary
 ) -> Dictionary:
-	_mutation_active = false
-	var restored := component.restore_snapshot(before) \
+	# Snapshot restore is itself a native mutation boundary. Keep the adapter
+	# fenced until both restore and its exact-byte postcondition are complete.
+	var restored := component != null and is_instance_valid(component) \
+		and not component.is_torn_down() \
+		and component.restore_snapshot(before) \
 		and component.write_snapshot() == before
+	var binding_current := _binding_is_current()
+	_mutation_active = false
 	if not restored:
 		_latch_recovery(&"health_registration_rollback_failed", {
 			"reason": reason, "details": details})
 		return _rejection(last_error, {
 			"rollback_ok": false, "requires_recovery": true})
+	if not binding_current:
+		lifecycle = Lifecycle.INVALIDATED
+		_phase_registered = false
+		last_error = &"health_registration_binding_invalidated"
+		return _rejection(last_error, {
+			"details": details, "rollback_ok": true})
 	return _rejection(reason, {"details": details, "rollback_ok": true})
+
+
+func _registration_context_is_current(
+	component: GameplayAbilityComponent,
+	native_entity_id: int,
+	initial_tick: int
+) -> bool:
+	return _mutation_active and lifecycle == Lifecycle.BOUND \
+		and _binding_is_current() \
+		and _authority.lifecycle == RaidAuthority.Lifecycle.PREPARING \
+		and _authority.last_processed_tick == _last_tick \
+		and initial_tick == _last_tick \
+		and component != null and is_instance_valid(component) \
+		and not component.is_queued_for_deletion() \
+		and component.entity_id == native_entity_id \
+		and component.is_configured() and not component.is_torn_down() \
+		and component.is_owner_valid() \
+		and component.get_current_tick() == initial_tick
+
+
+func _abort_registration_context(
+	component: GameplayAbilityComponent,
+	before: PackedByteArray,
+	boundary: StringName
+) -> Dictionary:
+	var cleanup_proven := false
+	if component != null and is_instance_valid(component):
+		if component.is_torn_down() or not component.is_owner_valid():
+			# A torn-down/quarantined native owner cannot retain a live grant.
+			cleanup_proven = true
+		else:
+			cleanup_proven = component.restore_snapshot(before) \
+				and component.write_snapshot() == before
+	var binding_current := _binding_is_current()
+	_mutation_active = false
+	if not cleanup_proven:
+		_latch_recovery(&"health_registration_context_cleanup_failed", {
+			"boundary": boundary})
+		return _rejection(last_error, {
+			"cleanup_proven": false, "requires_recovery": true})
+	if not binding_current:
+		lifecycle = Lifecycle.INVALIDATED
+		_phase_registered = false
+		last_error = &"health_registration_binding_invalidated"
+		return _rejection(last_error, {
+			"boundary": boundary, "cleanup_proven": true})
+	return _rejection(&"health_registration_context_changed", {
+		"boundary": boundary, "cleanup_proven": true})
 
 
 func _activate_owned(
@@ -1643,11 +1772,21 @@ func _start_bleed_schedule(
 	}
 
 
-func _remove_actor_bleeds(actor_key: String) -> void:
+func _remove_actor_bleeds(
+	actor_key: String,
+	tick: int,
+	death_operation_id: String
+) -> void:
 	var keys := PackedStringArray(_bleed_schedules.keys())
 	for key in keys:
-		if String((_bleed_schedules[key] as Dictionary).get("actor_id", "")) \
-				== actor_key:
+		var schedule := _bleed_schedules[key] as Dictionary
+		if String(schedule.get("actor_id", "")) == actor_key:
+			_phase_cancelled_bleeds[String(key)] = {
+				"reason": &"death",
+				"tick": tick,
+				"death_operation_id": death_operation_id,
+				"schedule": schedule.duplicate(true),
+			}
 			_bleed_schedules.erase(key)
 
 
@@ -1705,6 +1844,37 @@ func _remove_treatment_from_order(request_id: String) -> void:
 	_treatment_order = retained
 
 
+func _pending_treatment_record_count() -> int:
+	var result := 0
+	for value in _treatment_records.values():
+		if bool((value as Dictionary).get("pending", false)):
+			result += 1
+	return result
+
+
+func _update_treatment_progress(
+	request_id: String,
+	reservation_id: String,
+	mutation_state: StringName
+) -> void:
+	var record := _treatment_records.get(request_id, {}) as Dictionary
+	if record.is_empty() or not bool(record.get("pending", false)):
+		return
+	record["processing"] = true
+	record["reservation_id"] = reservation_id
+	record["mutation_state"] = mutation_state
+	_treatment_records[request_id] = record
+
+
+func _medical_port_is_current(
+	actor: Dictionary,
+	port: MedicalInventoryParticipantPort
+) -> bool:
+	return port != null and actor.get("medical_port") == port \
+		and port.is_ready() \
+		and port.identity_token() == String(actor.get("medical_port_token", ""))
+
+
 func _finalize_treatment(
 	request_id: String,
 	committed: bool,
@@ -1715,6 +1885,7 @@ func _finalize_treatment(
 	if record.is_empty():
 		return
 	record["pending"] = false
+	record["processing"] = false
 	var receipt := record.get("receipt", {}) as Dictionary
 	receipt["accepted"] = committed
 	receipt["queued"] = false
@@ -1725,12 +1896,22 @@ func _finalize_treatment(
 		receipt[key] = _duplicate_variant(details[key])
 	record["receipt"] = receipt
 	_treatment_records[request_id] = record
+	_remove_treatment_from_order(request_id)
 
 
 func _finalize_pending_treatments(reason: StringName) -> void:
-	var ids := _treatment_order.duplicate()
+	var ids := PackedStringArray(_treatment_records.keys())
+	ids.sort()
 	for request_id in ids:
-		_finalize_treatment(request_id, false, reason, {})
+		var record := _treatment_records[request_id] as Dictionary
+		if not bool(record.get("pending", false)):
+			continue
+		var details := {}
+		if bool(record.get("processing", false)):
+			details["reservation_id"] = String(record.get("reservation_id", ""))
+			details["mutation_state"] = StringName(record.get(
+				"mutation_state", MedicalInventoryParticipantPort.MUTATION_AMBIGUOUS))
+		_finalize_treatment(request_id, false, reason, details)
 	_treatment_order.clear()
 
 
@@ -1932,6 +2113,21 @@ func _disconnect_actor_callback(actor: Dictionary) -> void:
 		component.tree_exiting.disconnect(callback)
 
 
+func _disconnect_public_signal_callbacks() -> void:
+	# A released RefCounted adapter must not be kept alive by a subscriber lambda
+	# that captured it during a synchronous notification. No public signal can
+	# fire after release, so retaining those connections has no valid purpose.
+	for signal_name in [
+		&"damage_committed", &"injury_committed", &"treatment_committed",
+		&"death_committed", &"recovery_latched", &"binding_invalidated",
+	]:
+		for connection_value in get_signal_connection_list(signal_name):
+			var connection := connection_value as Dictionary
+			var callback := connection.get("callable", Callable()) as Callable
+			if callback.is_valid() and is_connected(signal_name, callback):
+				disconnect(signal_name, callback)
+
+
 func _latch_recovery(reason: StringName, details: Dictionary) -> bool:
 	if lifecycle != Lifecycle.RECOVERY_REQUIRED:
 		lifecycle = Lifecycle.RECOVERY_REQUIRED
@@ -1945,7 +2141,7 @@ func _latch_recovery(reason: StringName, details: Dictionary) -> bool:
 			"last_tick": _last_tick,
 			"journal_cursor": _journal_cursor,
 			"damage_result_count": _damage_results.size(),
-			"pending_treatment_count": _treatment_order.size(),
+			"pending_treatment_count": _pending_treatment_record_count(),
 			"bleed_schedule_count": _bleed_schedules.size(),
 			"requires_authoritative_teardown": true,
 		}
