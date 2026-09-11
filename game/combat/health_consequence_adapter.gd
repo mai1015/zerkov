@@ -760,6 +760,9 @@ func _apply_damage_operation(
 		var ignored := _damage_outcome(
 			operation_id, source_fingerprint, source_type, attacker_key,
 			target_key, zone, requested_micros, 0, tick, actor, [], true, extra)
+		if ignored.is_empty():
+			return _latch_recovery(&"health_damage_outcome_invalid", {
+				"operation_id": operation_id})
 		_damage_results[operation_id] = ignored
 		_emit_damage(ignored)
 		return true
@@ -909,6 +912,9 @@ func _apply_damage_operation(
 		operation_id, source_fingerprint, source_type, attacker_key,
 		target_key, zone, requested_micros, applied_expected, tick,
 		actor, injury_results, false, outcome_extra)
+	if outcome.is_empty():
+		return _latch_recovery(&"health_damage_outcome_invalid", {
+			"operation_id": operation_id, "mutation_state": &"committed"})
 	_damage_results[operation_id] = outcome
 	_emit_damage(outcome)
 	if lethal:
@@ -1087,6 +1093,11 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 		"health_revision": int(actor["health_revision"]),
 		"tick": tick,
 	}
+	var outcome_digest := ZCanonicalValue.sha256(outcome)
+	if outcome_digest.length() != 64:
+		return _latch_recovery(&"health_treatment_outcome_invalid", {
+			"request_id": request_id, "mutation_state": &"committed"})
+	outcome["outcome_digest"] = outcome_digest
 	_finalize_treatment(request_id, true, &"", outcome)
 	_emit_treatment(outcome)
 	return true
@@ -1810,7 +1821,10 @@ func _damage_outcome(
 	}
 	for key in extra.keys():
 		outcome[key] = _duplicate_variant(extra[key])
-	outcome["outcome_digest"] = ZCanonicalValue.sha256(outcome)
+	var digest := ZCanonicalValue.sha256(outcome)
+	if digest.length() != 64:
+		return {}
+	outcome["outcome_digest"] = digest
 	_make_deep_read_only(outcome)
 	return outcome
 
@@ -1829,8 +1843,8 @@ func _event_payload(schema: String, fields: Dictionary) -> Dictionary:
 	return result
 
 
-func _event_ids_from_plan(plan: Array[Dictionary]) -> PackedStringArray:
-	var result := PackedStringArray()
+func _event_ids_from_plan(plan: Array[Dictionary]) -> Array[String]:
+	var result: Array[String] = []
 	for entry in plan:
 		result.append(String(entry["event_id"]))
 	return result

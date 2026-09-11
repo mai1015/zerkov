@@ -330,7 +330,8 @@ func _test_damage_bleed_and_death_order() -> void:
 	var outcome := adapter.damage_result(operation)
 	check(bool(outcome.get("committed", false))
 		and int(outcome.get("health_revision", -1)) == 1
-		and (outcome.get("event_ids", PackedStringArray()) as PackedStringArray).size() == 2
+		and (outcome.get("event_ids", []) as Array).size() == 2
+		and String(outcome.get("outcome_digest", "")).length() == 64
 		and adapter.damage_result(operation) == outcome,
 		"stable damage identity stores one detached replay result and two injuries")
 	check(adapter.bleed_schedule_count() == 1,
@@ -415,6 +416,7 @@ func _test_atomic_treatment_and_rollback() -> void:
 	var leg := _zone(adapter.actor_snapshot(target),
 		ZerkovHealthAbilityContent.ZONE_LEFT_LEG)
 	check(bool(receipt.get("committed", false)) and port.consumed == 1
+		and String(receipt.get("outcome_digest", "")).length() == 64
 		and not bool(leg.get("heavy_bleed", true))
 		and bool(leg.get("bandaged", false))
 		and adapter.bleed_schedule_count() == 0,
