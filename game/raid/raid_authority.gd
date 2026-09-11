@@ -36,13 +36,14 @@ class PhaseHandlerRelay:
 	)
 
 	var callback_identity: String = ""
+	var bridge_connection_identity: String = ""
 
 	func configure(callback: Callable, identity: String) -> bool:
 		if not callback.is_valid() or identity.is_empty() \
 				or not callback_identity.is_empty():
 			return false
 		callback_identity = identity
-		invoked.connect(func(
+		var bridge := func(
 			authority: RaidAuthority,
 			phase: TickPhase,
 			tick: int,
@@ -53,8 +54,15 @@ class PhaseHandlerRelay:
 				result_box.append(false)
 				return
 			result_box.append(callback.call(authority, phase, tick, intents))
-		)
-		return true
+		invoked.connect(bridge)
+		var connections := get_signal_connection_list(&"invoked")
+		if connections.size() != 1:
+			return false
+		var connected_callable := (
+			(connections[0] as Dictionary).get("callable", Callable()) as Callable)
+		bridge_connection_identity = _connection_identity(
+			connected_callable)
+		return not bridge_connection_identity.is_empty()
 
 	func invoke(
 		authority: RaidAuthority,
@@ -62,11 +70,29 @@ class PhaseHandlerRelay:
 		tick: int,
 		intents: Array[ZRaidIntent]
 	) -> Variant:
+		var connections := get_signal_connection_list(&"invoked")
+		if connections.size() != 1 \
+				or _connection_identity(
+					(connections[0] as Dictionary).get("callable", Callable())) \
+					!= bridge_connection_identity:
+			return null
 		var result_box: Array = []
 		invoked.emit(authority, phase, tick, intents, result_box)
 		if result_box.size() != 1:
 			return null
 		return result_box[0]
+
+	func _connection_identity(callback: Callable) -> String:
+		if not callback.is_valid():
+			return ""
+		var owner := callback.get_object()
+		if owner == null or not is_instance_valid(owner):
+			return ""
+		return ZCanonicalValue.sha256({
+			"object_instance_id": owner.get_instance_id(),
+			"method": String(callback.get_method()),
+			"bound_argument_count": callback.get_bound_arguments_count(),
+		})
 
 const LIFECYCLE_NAMES: PackedStringArray = [
 	"preparing",
@@ -115,6 +141,8 @@ var _processing_phase: int = -1
 var _processing_handler_id: StringName = &""
 var _processing_handler_registration_id: String = ""
 var _processing_handler_callback_identity: String = ""
+var _tick_handler_roster_commitment: String = ""
+var _named_phase_handlers_only: bool = false
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _issued_handler_registration_ids: Dictionary = {}
@@ -320,6 +348,8 @@ func register_phase_handler(
 		return _reject(&"phase_invalid")
 	if not ZIdentityRules.is_valid_part(String(handler_id)) or not callback.is_valid():
 		return _reject(&"handler_invalid")
+	if _named_phase_handlers_only and _phase_callback_is_anonymous(callback):
+		return _reject(&"anonymous_phase_handler_forbidden")
 	if not phase_handler_callback_is_safe(callback):
 		return _reject(&"handler_callback_retains_capability")
 	var callback_identity := _phase_callback_identity(callback)
@@ -362,6 +392,8 @@ func register_phase_handler(
 		"id": handler_id,
 		"registration_id": registration_id,
 		"callback_identity": callback_identity,
+		"bridge_connection_identity": relay.bridge_connection_identity,
+		"anonymous": _phase_callback_is_anonymous(callback),
 		"relay": relay,
 		"phase": int(phase),
 		"priority": priority,
@@ -380,6 +412,29 @@ func register_phase_handler(
 	)
 	_phase_handlers[int(phase)] = handler_ids
 	_issued_handler_registration_ids[registration_id] = true
+	return true
+
+
+## A live spatial bearer and an opaque callable closure must never coexist in
+## the retained phase graph. BodyHitboxWorld2D calls this before issuing its
+## capability; later handler registrations must be named Object methods.
+func require_named_phase_handlers(expected_generation: int) -> bool:
+	last_error = &""
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if lifecycle != Lifecycle.PREPARING:
+		return _reject(&"handler_registration_closed")
+	for registration_value in _handler_ids.values():
+		var registration := registration_value as Dictionary
+		if bool(registration.get("anonymous", true)):
+			return _reject(&"anonymous_phase_handler_forbidden")
+		var relay := registration.get("relay") as PhaseHandlerRelay
+		if relay == null or not is_instance_valid(relay):
+			return _reject(&"phase_handler_registration_corrupted")
+		var connections := relay.get_signal_connection_list(&"invoked")
+		if connections.size() != 1:
+			return _reject(&"phase_handler_registration_corrupted")
+	_named_phase_handlers_only = true
 	return true
 
 
@@ -759,11 +814,17 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	if tick != last_processed_tick + 1:
 		return _reject(&"tick_regressed_or_skipped")
 
+	_tick_handler_roster_commitment = _phase_handler_roster_commitment()
+	if _tick_handler_roster_commitment.is_empty():
+		return _reject(&"phase_handler_roster_invalid")
 	_is_advancing = true
 	_processing_tick = tick
 	last_phase_trace = PackedStringArray()
 	var due_intents: Array[ZRaidIntent] = []
 	for phase_value in PHASE_NAMES.size():
+		if _phase_handler_roster_commitment() \
+				!= _tick_handler_roster_commitment:
+			return _fail_current_tick(tick, &"phase_handler_registration_corrupted")
 		var phase: TickPhase = phase_value
 		_processing_phase = phase_value
 		last_phase_trace.append(PHASE_NAMES[phase_value])
@@ -784,9 +845,13 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 				return _fail_current_tick(tick, &"phase_handler_registration_corrupted")
 			var relay := entry.get("relay") as PhaseHandlerRelay
 			var callback_identity := String(entry.get("callback_identity", ""))
+			var bridge_identity := String(
+				entry.get("bridge_connection_identity", ""))
 			if relay == null or not is_instance_valid(relay) \
 					or callback_identity.is_empty() \
-					or relay.callback_identity != callback_identity:
+					or bridge_identity.is_empty() \
+					or relay.callback_identity != callback_identity \
+					or relay.bridge_connection_identity != bridge_identity:
 				return _fail_current_tick(tick, &"phase_handler_invalidated")
 			_processing_handler_id = handler_id
 			_processing_handler_registration_id = String(entry["registration_id"])
@@ -810,6 +875,7 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	_processing_handler_id = &""
 	_processing_handler_registration_id = ""
 	_processing_handler_callback_identity = ""
+	_tick_handler_roster_commitment = ""
 	last_error = &""
 	return true
 
@@ -855,6 +921,7 @@ func _fail_current_tick(tick: int, code: StringName) -> bool:
 	_processing_handler_id = &""
 	_processing_handler_registration_id = ""
 	_processing_handler_callback_identity = ""
+	_tick_handler_roster_commitment = ""
 	lifecycle = Lifecycle.FAILED
 	_seal_terminal_runtime()
 	return _reject(code)
@@ -904,10 +971,52 @@ func _phase_handler_roster_is_coherent(
 	return actual_ids == expected_ids
 
 
+func _phase_handler_roster_commitment() -> String:
+	var handler_ids := PackedStringArray(_handler_ids.keys())
+	handler_ids.sort()
+	var encoded := "raid-phase-roster-v1|%d|" % handler_ids.size()
+	for handler_id_value in handler_ids:
+		var handler_id := StringName(handler_id_value)
+		var registration := _handler_ids.get(handler_id, {}) as Dictionary
+		if registration.is_empty():
+			return ""
+		var fields := PackedStringArray([
+			String(handler_id),
+			String(registration.get("registration_id", "")),
+			String(registration.get("callback_identity", "")),
+			String(registration.get("bridge_connection_identity", "")),
+			str(int(registration.get("phase", -1))),
+			str(int(registration.get("priority", 0))),
+			"1" if bool(registration.get("anonymous", true)) else "0",
+		])
+		var dependencies := PackedStringArray(
+			registration.get("after", PackedStringArray()))
+		fields.append(str(dependencies.size()))
+		for dependency in dependencies:
+			fields.append(dependency)
+		for field in fields:
+			encoded += "%d:%s|" % [field.to_utf8_buffer().size(), field]
+	for phase_value in PHASE_NAMES.size():
+		var ordered_ids: Array = _phase_handlers.get(phase_value, [])
+		encoded += "p%d:%d|" % [phase_value, ordered_ids.size()]
+		for handler_id_value in ordered_ids:
+			if typeof(handler_id_value) != TYPE_STRING \
+					and typeof(handler_id_value) != TYPE_STRING_NAME:
+				return ""
+			var encoded_id := String(handler_id_value)
+			encoded += "%d:%s|" % [
+				encoded_id.to_utf8_buffer().size(), encoded_id]
+	return encoded.sha256_text()
+
+
 func phase_handler_callback_is_safe(callback: Callable) -> bool:
 	return callback.is_valid() \
 		and not _variant_graph_contains_hitbox_bearer(
 			callback, 0, {get_instance_id(): true})
+
+
+func _phase_callback_is_anonymous(callback: Callable) -> bool:
+	return String(callback.get_method()) == "<anonymous lambda>"
 
 
 func _phase_callback_identity(callback: Callable) -> String:
@@ -963,6 +1072,16 @@ func _variant_graph_contains_hitbox_bearer(
 			if _variant_graph_contains_hitbox_bearer(
 				object.get(property_name), depth + 1, visited):
 				return true
+		# PhaseHandlerRelay signal connections are an intentional retained edge
+		# and must be scanned. Arbitrary engine-object signals are excluded: their
+		# process-wide graphs are neither owned by this registration nor bounded.
+		if object is PhaseHandlerRelay:
+			for connection_value in object.get_signal_connection_list(&"invoked"):
+				var connection := connection_value as Dictionary
+				if _variant_graph_contains_hitbox_bearer(
+					connection.get("callable", Callable()),
+					depth + 1, visited):
+					return true
 		return false
 	if typeof(value) == TYPE_DICTIONARY:
 		var dictionary := value as Dictionary

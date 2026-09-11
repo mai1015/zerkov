@@ -109,6 +109,7 @@ var _active_binding_token: int = 0
 # intentionally absent from every published/canonical/replay record.
 var _active_binding_commitment: PackedByteArray = PackedByteArray()
 var _binding_provenance: Dictionary = {}
+var _delegated_only: bool = false
 
 var _snapshot_tick: int = -1
 var _snapshot_revision: int = 0
@@ -157,6 +158,9 @@ func bind_raid_authority(
 	if not authority.has_authorized_actor_source(
 		owner_actor, owner_source, expected_generation):
 		return _reject_capability(&"binding_owner_not_authorized")
+	if not authority.require_named_phase_handlers(expected_generation):
+		last_error = authority.last_error
+		return null
 	if _binding_counter >= MAX_BINDING_TOKEN:
 		return _reject_capability(&"binding_token_exhausted")
 	var next_token := _binding_counter + 1
@@ -215,6 +219,58 @@ func binding_provenance(capability: Variant) -> Dictionary:
 	return _read_only_dictionary(_binding_provenance)
 
 
+## Finalizes composition after all narrow phase grants are installed. The raw
+## Task 5.3 bearer is synchronously revoked and can never authorize again,
+## including when recovered from a closure or Dictionary key.
+func seal_phase_grants(capability: Variant) -> bool:
+	last_error = &""
+	if not _guard_binding_capability(capability) or not _binding_identity_is_current():
+		return false
+	var has_raycast_consumer := false
+	for grant_value in _phase_consumers.values():
+		var grant := grant_value as Dictionary
+		if StringName(grant.get("permission", &"")) == &"raycast":
+			has_raycast_consumer = true
+			break
+	if not has_raycast_consumer:
+		return _reject_bool(&"phase_raycast_consumer_missing")
+	_active_binding_commitment = PackedByteArray()
+	(capability as BindingCapability)._revoke()
+	_delegated_only = true
+	return true
+
+
+func release_delegated_binding(
+	reason: StringName = &"body_hitbox_world_delegated_released"
+) -> bool:
+	last_error = &""
+	if lifecycle != Lifecycle.BOUND or not _delegated_only:
+		return _reject_bool(&"delegated_binding_not_active")
+	if reason.is_empty() or not ZIdentityRules.is_valid_part(String(reason)):
+		return _reject_bool(&"release_reason_invalid")
+	if _authority != null and is_instance_valid(_authority) \
+			and _authority.lifecycle not in [
+				RaidAuthority.Lifecycle.COMPLETED,
+				RaidAuthority.Lifecycle.FAILED,
+				RaidAuthority.Lifecycle.TORN_DOWN,
+			]:
+		return _reject_bool(&"delegated_binding_authority_active")
+	_clear_snapshot_state()
+	_authority = null
+	_authority_instance_id = 0
+	_authority_generation = 0
+	_raid_id = null
+	_session_id = null
+	_authority_epoch = 0
+	_owner_actor_id = null
+	_owner_actor_source = ZRaidIntent.Source.PLAYER
+	_active_binding_token = 0
+	_binding_provenance = {}
+	_delegated_only = false
+	lifecycle = Lifecycle.RELEASED
+	return true
+
+
 ## Release remains available after the captured authority terminalizes. It
 ## requires the exact binding capability, invalidates it synchronously before
 ## clearing geometry/replay state, and permits a safe replacement bind.
@@ -244,6 +300,7 @@ func release_binding(
 	_owner_actor_source = ZRaidIntent.Source.PLAYER
 	_active_binding_token = 0
 	_binding_provenance = {}
+	_delegated_only = false
 	lifecycle = Lifecycle.RELEASED
 	return true
 
@@ -1271,6 +1328,8 @@ func _guard_binding(
 func _guard_binding_capability(capability: Variant) -> bool:
 	if lifecycle != Lifecycle.BOUND:
 		return _reject_bool(&"hitbox_world_not_bound")
+	if _delegated_only:
+		return _reject_bool(&"binding_capability_revoked")
 	if capability == null or not capability is BindingCapability:
 		return _reject_bool(&"binding_capability_mismatch")
 	var candidate := capability as BindingCapability

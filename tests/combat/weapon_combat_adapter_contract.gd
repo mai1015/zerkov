@@ -166,9 +166,7 @@ func _test_hit_replay_and_reentry() -> void:
 	check(adapter.ledger_size() == 1 and adapter.pending_count() == 0 \
 		and publications.size() == 1,
 		"one first-seen shot creates one ledger result and one publication")
-	var metadata := (fixture["world"] as BodyHitboxWorld2D).snapshot_metadata(
-		fixture["capability"])
-	check(int(metadata.get("query_result_count", -1)) == 1 \
+	check(_query_count(fixture["world"] as BodyHitboxWorld2D) == 1 \
 		and (fixture["authority"] as RaidAuthority).journal.size() == 1,
 		"one first-seen shot performs one query and writes one audit input")
 	check(result.is_read_only() \
@@ -189,10 +187,8 @@ func _test_hit_replay_and_reentry() -> void:
 		and StringName(replay_result.get("body_zone", &"")) \
 			!= StringName(first_copy.get("body_zone", &"")),
 		"adapter-owned operation replay returns a detached original consequence")
-	metadata = (fixture["world"] as BodyHitboxWorld2D).snapshot_metadata(
-		fixture["capability"])
 	check(publications.size() == 1 \
-		and int(metadata.get("query_result_count", -1)) == 1 \
+		and _query_count(fixture["world"] as BodyHitboxWorld2D) == 1 \
 		and (fixture["authority"] as RaidAuthority).journal.size() == 1,
 		"operation replay performs no native call, query, event, or emission")
 	var divergent_replay := adapter.commit_fire(
@@ -252,6 +248,36 @@ func _test_miss_and_occlusion() -> void:
 
 
 func _test_binding_and_lifecycle_guards() -> void:
+	var closure_raid := ZRaidId.from_parts(PackedStringArray([
+		"weapon_combat", "preexisting_closure"]))
+	var closure_admission := SessionCoordinator.new().open_offline(
+		closure_raid, &"weapon_combat_preexisting_closure", &"player")
+	var closure_authority := RaidAuthority.new()
+	check(closure_authority.configure(
+		closure_raid, closure_admission, 154),
+		"preexisting closure authority configures")
+	var future_bearer: Array = [null]
+	var preexisting_closure := func(
+		_authority_value: RaidAuthority,
+		_phase_value: RaidAuthority.TickPhase,
+		_tick_value: int,
+		_intents_value: Array[ZRaidIntent]
+	) -> bool:
+		return future_bearer[0] != null
+	check(closure_authority.register_phase_handler(
+		RaidAuthority.TickPhase.MOVEMENT, &"preexisting_closure",
+		preexisting_closure, closure_authority.generation()),
+		"closure may register only before a hitbox bearer exists")
+	var closure_world := BodyHitboxWorld2D.new()
+	var refused_bearer := closure_world.bind_raid_authority(
+		closure_authority, closure_admission.actor_id,
+		ZRaidIntent.Source.PLAYER, closure_authority.generation())
+	check(refused_bearer == null \
+		and closure_world.last_error == &"anonymous_phase_handler_forbidden" \
+		and closure_world.lifecycle == BodyHitboxWorld2D.Lifecycle.UNBOUND,
+		"preexisting closure prevents bearer issuance before it can capture authority")
+	closure_authority.teardown(closure_authority.generation())
+
 	var direct := _new_fixture("direct_phase", &"miss", null, &"direct_phase")
 	var direct_adapter := direct["adapter"] as WeaponCombatAdapter
 	check(not _object_graph_exposes_reference(
@@ -273,6 +299,23 @@ func _test_binding_and_lifecycle_guards() -> void:
 	var adapter := fixture["adapter"] as WeaponCombatAdapter
 	var world := fixture["world"] as BodyHitboxWorld2D
 	var bearer_owner := BearerOwningHandler.new()
+	var captured_capability: Variant = fixture["capability"]
+	var closure_bearer := func(
+		_authority_value: RaidAuthority,
+		_phase_value: RaidAuthority.TickPhase,
+		_tick_value: int,
+		_intents_value: Array[ZRaidIntent]
+	) -> bool:
+		return not world.binding_provenance(captured_capability).is_empty()
+	check(not authority.register_phase_handler(
+		RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK,
+		&"closure_bearer", closure_bearer, int(fixture["generation"])) \
+		and authority.last_error == &"anonymous_phase_handler_forbidden",
+		"live hitbox commissioning rejects opaque closure bearer handlers")
+	check(not (authority.get("_handler_ids") as Dictionary).has(
+		&"closure_bearer") \
+		and world.binding_provenance(captured_capability).is_empty(),
+		"rejected closure creates no public relay path and sealed bearer cannot authorize")
 	bearer_owner.references[fixture["capability"]] = true
 	check(not authority.register_phase_handler(
 		RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
@@ -354,9 +397,9 @@ func _test_binding_and_lifecycle_guards() -> void:
 		"accepted", true) \
 		and adapter.last_error == &"combat_binding_invalidated",
 		"released binding cannot expose a prior replay ledger")
-	(fixture["world"] as BodyHitboxWorld2D).release_binding(
-		fixture["capability"], &"test_release")
 	authority.teardown(int(fixture["generation"]))
+	check((fixture["world"] as BodyHitboxWorld2D).release_delegated_binding(
+		&"test_release"), "released adapter world grant tears down terminally")
 	fixture["weapon_context"].queue_free()
 	fixture["weapon_authority"].queue_free()
 	_fixtures.erase(String(fixture["label"]))
@@ -418,6 +461,55 @@ func _test_exact_registration_and_unresolved_obligation_guards() -> void:
 		and _publication_counts(removed) == Vector2i(0, 0),
 		"removed canonical phase roster terminalizes instead of stranding success")
 	_cleanup_fixture(removed)
+
+	var canonically_removed := _new_fixture(
+		"canonical_handler_removed", &"miss", null, &"canonical_remove_handler")
+	var canonically_removed_authority := (
+		canonically_removed["authority"] as RaidAuthority)
+	var canonical_initial := (
+		canonically_removed["initial_weapon_snapshot"] as Dictionary)
+	check(canonically_removed_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE,
+		int(canonically_removed["generation"])) \
+		and not canonically_removed_authority.advance_one(
+			int(canonically_removed["generation"])),
+		"canonical handler removal after fire terminalizes the tick")
+	var canonical_after := (
+		canonically_removed["weapon_authority"] as WeaponAuthority).snapshot(
+			String(canonically_removed["weapon_id"]))
+	check(canonically_removed_authority.lifecycle == RaidAuthority.Lifecycle.FAILED \
+		and canonically_removed_authority.last_error \
+			== &"phase_handler_registration_corrupted" \
+		and (canonically_removed["adapter"] as WeaponCombatAdapter).pending_count() == 1 \
+		and (canonically_removed["adapter"] as WeaponCombatAdapter).ledger_size() == 0 \
+		and int(canonical_after.get("loaded_rounds", -1)) \
+			== int(canonical_initial.get("loaded_rounds", -1)) - 1 \
+		and _publication_counts(canonically_removed) == Vector2i(0, 0),
+		"canonical removal cannot strand a committed shot behind tick success")
+	_cleanup_fixture(canonically_removed)
+
+	var relay_replaced := _new_fixture(
+		"relay_connection_replaced", &"miss", null, &"replace_relay_connection")
+	var relay_authority := relay_replaced["authority"] as RaidAuthority
+	var relay_initial := relay_replaced["initial_weapon_snapshot"] as Dictionary
+	check(relay_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE, int(relay_replaced["generation"])) \
+		and not relay_authority.advance_one(int(relay_replaced["generation"])),
+		"different relay connection cannot resolve the old registration")
+	var relay_after := (
+		relay_replaced["weapon_authority"] as WeaponAuthority).snapshot(
+			String(relay_replaced["weapon_id"]))
+	check(relay_authority.lifecycle == RaidAuthority.Lifecycle.FAILED \
+		and relay_authority.last_error == &"phase_handler_failed" \
+		and not bool(_runtime_fixture(relay_replaced).get(
+			"replacement_relay_called", false)) \
+		and (relay_replaced["adapter"] as WeaponCombatAdapter).pending_count() == 1 \
+		and (relay_replaced["adapter"] as WeaponCombatAdapter).ledger_size() == 0 \
+		and int(relay_after.get("loaded_rounds", -1)) \
+			== int(relay_initial.get("loaded_rounds", -1)) - 1 \
+		and _publication_counts(relay_replaced) == Vector2i(0, 0),
+		"relay replacement fails before query, event, result, or replacement call")
+	_cleanup_fixture(relay_replaced)
 
 	var split := _new_fixture(
 		"split_brain", &"miss", null, &"split_brain_callback")
@@ -610,8 +702,7 @@ func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
 		"hitbox-query ledger saturation fails the tick")
 	check((query_full["adapter"] as WeaponCombatAdapter).last_error \
 		== &"hitbox_query_capacity_exceeded" \
-		and int(full_world.snapshot_metadata(query_full["capability"]).get(
-			"query_result_count", -1)) == BodyHitboxWorld2D.MAX_QUERY_RESULTS \
+		and _query_count(full_world) == BodyHitboxWorld2D.MAX_QUERY_RESULTS \
 		and (query_full["authority"] as RaidAuthority).journal.size() == 0,
 		"hitbox-query ledger capacity fails before query or audit publication")
 	_cleanup_fixture(query_full)
@@ -634,8 +725,7 @@ func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
 		"journal saturation fails the world-consequence phase")
 	check((journal_full["adapter"] as WeaponCombatAdapter).last_error \
 		== &"journal_full" \
-		and int(((journal_full["world"] as BodyHitboxWorld2D).snapshot_metadata(
-			journal_full["capability"])).get("query_result_count", -1)) == 0 \
+		and _query_count(journal_full["world"] as BodyHitboxWorld2D) == 0 \
 		and replacement_journal.size() == 1,
 		"journal capacity is preflighted before the spatial query")
 	_cleanup_fixture(journal_full)
@@ -656,8 +746,7 @@ func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
 		"preexisting audit consequence identity fails the shot tick")
 	check((journal_collision["adapter"] as WeaponCombatAdapter).last_error \
 		== &"duplicate_event" \
-		and int(((journal_collision["world"] as BodyHitboxWorld2D).snapshot_metadata(
-			journal_collision["capability"])).get("query_result_count", -1)) == 0 \
+		and _query_count(journal_collision["world"] as BodyHitboxWorld2D) == 0 \
 		and (journal_collision["authority"] as RaidAuthority).journal.size() == 1,
 		"journal consequence-ID collision fails before the spatial query")
 	_cleanup_fixture(journal_collision)
@@ -755,10 +844,6 @@ func _new_fixture(
 	adapter.consequence_committed.connect(func(value: Dictionary) -> void:
 		fixture_publications.append(value)
 	)
-	check(adapter.bind_context(
-		authority, weapon_authority, weapon_context, world, capability,
-		generation, weapon_context.expected_generation,
-		BODY_LAYER, OBSTRUCTION_LAYER), "%s combat adapter binds" % label)
 	var publisher_id := StringName("world_" + label)
 	var publisher_callback := Callable(self, "_publish_world_phase").bind(label)
 	check(authority.register_phase_handler(
@@ -770,6 +855,10 @@ func _new_fixture(
 	check(world.authorize_phase_publisher(
 		capability, publisher_id, publisher_registration, publisher_callback),
 		"%s world publisher receives a bearer-free phase grant" % label)
+	check(adapter.bind_context(
+		authority, weapon_authority, weapon_context, world, capability,
+		generation, weapon_context.expected_generation,
+		BODY_LAYER, OBSTRUCTION_LAYER), "%s combat adapter binds" % label)
 	check(authority.register_phase_handler(
 		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
 		StringName("fire_" + label),
@@ -930,6 +1019,24 @@ func _fire_phase(
 					retained.append(handler_id_value)
 			handlers_by_phase[int(
 				RaidAuthority.TickPhase.WORLD_CONSEQUENCES)] = retained
+		&"canonical_remove_handler":
+			var handlers_by_phase := _authority.get("_phase_handlers") as Dictionary
+			var world_handlers := handlers_by_phase.get(
+				int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES), []) as Array
+			world_handlers.erase(WeaponCombatAdapter.PHASE_HANDLER_ID)
+			(_authority.get("_handler_ids") as Dictionary).erase(
+				WeaponCombatAdapter.PHASE_HANDLER_ID)
+		&"replace_relay_connection":
+			var registrations := _authority.get("_handler_ids") as Dictionary
+			var registration := registrations.get(
+				WeaponCombatAdapter.PHASE_HANDLER_ID, {}) as Dictionary
+			var relay := registration.get("relay") as Object
+			for connection_value in relay.get_signal_connection_list(&"invoked"):
+				var connection := connection_value as Dictionary
+				relay.disconnect(
+					&"invoked", connection.get("callable", Callable()) as Callable)
+			relay.connect(&"invoked", Callable(
+				self, "_replacement_relay_bridge").bind(label))
 		&"split_brain_callback":
 			var handlers_by_phase := _authority.get("_phase_handlers") as Dictionary
 			var world_handlers := handlers_by_phase.get(
@@ -956,6 +1063,17 @@ func _split_brain_world_phase(
 	return true
 
 
+func _replacement_relay_bridge(
+	_authority: RaidAuthority,
+	_phase: RaidAuthority.TickPhase,
+	_tick: int,
+	_intents: Array[ZRaidIntent],
+	_result_box: Array,
+	label: String
+) -> void:
+	(_fixtures[label] as Dictionary)["replacement_relay_called"] = true
+
+
 func _native_fire_for_fixture(fixture: Dictionary) -> Dictionary:
 	var args := fixture["fire_args"] as Array
 	var weapon_authority := fixture["weapon_authority"] as WeaponAuthority
@@ -977,11 +1095,13 @@ func _native_fire_for_fixture(fixture: Dictionary) -> Dictionary:
 
 
 func _publication_counts(fixture: Dictionary) -> Vector2i:
-	var metadata := (fixture["world"] as BodyHitboxWorld2D).snapshot_metadata(
-		fixture["capability"])
 	return Vector2i(
-		int(metadata.get("query_result_count", -1)),
+		_query_count(fixture["world"] as BodyHitboxWorld2D),
 		(fixture["authority"] as RaidAuthority).journal.size())
+
+
+func _query_count(world: BodyHitboxWorld2D) -> int:
+	return (world.get("_query_ledger") as Dictionary).size()
 
 
 func _runtime_fixture(fixture: Dictionary) -> Dictionary:
@@ -1018,6 +1138,17 @@ func _variant_contains_reference(
 			if _variant_contains_reference(
 				object.get(property_name), needle, depth + 1, visited):
 				return true
+		for signal_value in object.get_signal_list():
+			var signal_name := StringName(
+				(signal_value as Dictionary).get("name", &""))
+			if signal_name.is_empty():
+				continue
+			for connection_value in object.get_signal_connection_list(signal_name):
+				var connection := connection_value as Dictionary
+				if _variant_contains_reference(
+					connection.get("callable", Callable()), needle,
+					depth + 1, visited):
+					return true
 		return false
 	if typeof(value) == TYPE_CALLABLE:
 		var callable := value as Callable
@@ -1057,6 +1188,8 @@ func _cleanup_fixture(fixture: Dictionary) -> void:
 	var authority := fixture["authority"] as RaidAuthority
 	if authority.lifecycle != RaidAuthority.Lifecycle.TORN_DOWN:
 		authority.teardown(int(fixture["generation"]))
+	if world.lifecycle == BodyHitboxWorld2D.Lifecycle.BOUND:
+		world.release_delegated_binding(&"test_release")
 	fixture["weapon_context"].queue_free()
 	fixture["weapon_authority"].queue_free()
 	adapter.queue_free()

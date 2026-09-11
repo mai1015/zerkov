@@ -25,18 +25,24 @@ remains unchecked by design.
   event, or publication. Divergent facts under one command ID fail closed.
 - RaidAuthority issues a random, bounded, non-reusable registration identity
   and keeps one canonical registration record. Phase ordering stores IDs only;
-  a minimal relay hides the caller callback owner behind a signal connection,
-  while dispatch attests the callback-identity commitment, phase, tick and
-  generation. Dictionary keys/values, Callable owners and bound arguments are
-  recursively screened for a Task 5.3 bearer immediately before invocation.
+  dispatch attests the original callback identity and the relay's exact signal
+  connection identity together with phase, tick, and generation. Replacing a
+  signal connection cannot inherit the old registration.
+- Before BodyHitboxWorld2D issues a bearer it locks that raid authority to named
+  method handlers and refuses any already-retained anonymous closure. Once all
+  required named publisher/consumer grants are commissioned, the original
+  bearer is erased and synchronously revoked; only the bounded exact phase
+  grants remain. Dictionary keys/values, Object properties, Object signals,
+  Callable owners, and bound arguments are recursively screened.
 - The accepted Task 5.3 v2 bearer is used only transiently at bind to authorize
   narrow BodyHitboxWorld2D phase grants. Neither the adapter, authority,
   handler, callback owner, provenance, nor result graph retains the bearer,
   lease, or a bearer-returning callable. Metadata and raycast grants also
   verify exact raid/session/epoch/generation/actor/source/world provenance.
-- RaidAuthority verifies every phase roster against canonical registrations
-  before dispatch. Removing or replacing a phase entry cannot strand a
-  committed shot behind a successful tick; incoherent rosters fail terminally.
+- RaidAuthority commits the complete canonical registration and ordered phase
+  roster at tick start, then rechecks it before every phase. Removing canonical
+  registration and ordering entries together after fire therefore cannot
+  strand a committed shot behind a successful tick; mutation fails terminally.
   No public obligation/shot-DTO intake exists.
 - The native `command_id + ":shot"`, typed event/query IDs, journal slot,
   hitbox-query slot, exact handler grant, and full target-coordinate envelope
@@ -55,7 +61,7 @@ truth-spec, or task-ledger change. Accepted-main history is reported separately.
 
 The permanent contract retains the earlier candidate regressions and closes
 every finding against rejected repair
-fe055d702484c83712f28f911d45d177c9c5fda9:
+499fa37efde7e0c37cb8401a990d517811370307:
 
 1. Recursive property inspection follows nested Objects, Callable owners, and
    Dictionary keys and values. Bearer-owning callback registration is rejected;
@@ -73,6 +79,16 @@ fe055d702484c83712f28f911d45d177c9c5fda9:
    identity would exceed the bound; ammo and revision remain unchanged.
 6. A scalable but boundary-adjacent origin is rejected by the complete target
    envelope before native ammo/revision mutation.
+7. Anonymous closure handlers cannot coexist with a live Task 5.3 bearer:
+   closure-first commissioning refuses bearer issuance, bearer-first
+   commissioning refuses closure registration, and the commissioning bearer
+   is revoked after narrow grants are installed.
+8. Removing both the canonical handler record and its ordered phase entry after
+   native fire changes the tick-start roster commitment, terminalizes the tick,
+   and leaves zero query/event/result publications.
+9. Disconnecting the registered relay bridge and connecting a different
+   callback fails the exact connection-identity attestation before either the
+   replacement or the original handler can resolve the pending shot.
 
 Earlier forged signal DTO, direct native fire, phase-5 resolver, extreme-origin
 checked-arithmetic, replay, collision, and capacity regressions remain covered.
@@ -82,7 +98,7 @@ immutable replay, duplicate operation, synchronous callback reentry,
 release/rebind, wrong actor/source, stale generation/tick, malformed requests,
 identity collisions, and all capacity preflights.
 
-Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=336 failures=0
+Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=368 failures=0
 
 ## Adjacent headless contracts
 
@@ -105,7 +121,7 @@ Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=336 failures=0
 
 Adjacent: 20,017 checks, 0 failures.
 
-Focused plus adjacent: 20,353 checks, 0 failures.
+Focused plus adjacent: 20,385 checks, 0 failures.
 
 ## Import, diagnostics and spec
 

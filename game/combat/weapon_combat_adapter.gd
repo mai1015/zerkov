@@ -167,6 +167,12 @@ func bind_context(
 		_reset_runtime_state()
 		last_error = consumer_error
 		return false
+	if not hitbox_world.seal_phase_grants(hitbox_capability):
+		var seal_error := hitbox_world.last_error
+		authority.unregister_phase_handler(PHASE_HANDLER_ID, expected_raid_generation)
+		_reset_runtime_state()
+		last_error = seal_error
+		return false
 	_phase_registered = true
 	_generation_counter = next_generation
 	_binding_generation = next_generation
