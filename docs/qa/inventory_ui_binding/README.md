@@ -1,5 +1,11 @@
 # Inventory UI binding evidence
 
+This is a retained historical evidence packet. Its smaller-resolution and
+compact probes are not part of the current first-playable matrix; current
+agents/tests MUST NOT invoke or regenerate them until task 11.8 or a later
+approved display-support proposal. The immutable packet and source seals are
+not current aggregate checks.
+
 The accepted checkpoint packet is
 [`astra_final_accept/REPORT.md`](astra_final_accept/REPORT.md), with machine
 totals in [`astra_final_accept/audit_summary.json`](astra_final_accept/audit_summary.json).

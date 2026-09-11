@@ -7,6 +7,7 @@ const GODOT_PIXELS_PER_WORLD_UNIT: int = 32
 const VISION_MICROUNITS_PER_WORLD_UNIT: int = 1_000_000
 const ABILITY_MICROUNITS_PER_WHOLE: int = 1_000_000
 const WEAPON_MILLIUNITS_PER_WORLD_UNIT: int = 1_000
+const WEAPON_DIRECTION_SCALE: int = 1_000_000
 const WEAPON_DAMAGE_MILLIUNITS_PER_WHOLE: int = 1_000
 const MAX_GODOT_COORDINATE_PX: float = 1_048_576.0
 const MAX_CANONICAL_RAW: int = 32_768_000_000
@@ -63,6 +64,24 @@ static func weapon_to_godot(point_raw: Vector2i) -> ZUnitConversion:
 		float(point_raw.x) * GODOT_PIXELS_PER_WORLD_UNIT / WEAPON_MILLIUNITS_PER_WORLD_UNIT,
 		float(point_raw.y) * GODOT_PIXELS_PER_WORLD_UNIT / WEAPON_MILLIUNITS_PER_WORLD_UNIT
 	))
+
+
+## Converts a game-owned Godot direction to Weapon System's fixed unit-vector
+## vocabulary. Direction magnitude is intentionally discarded at this trusted
+## seam; callers cannot smuggle presentation distance into authoritative aim.
+static func godot_direction_to_weapon(direction: Vector2) -> ZUnitConversion:
+	if not _is_valid_godot_point(direction) or direction.is_zero_approx():
+		return ZUnitConversion.failure(&"invalid_godot_direction")
+	var normalized := direction.normalized()
+	if not _is_valid_godot_point(normalized) or normalized.is_zero_approx():
+		return ZUnitConversion.failure(&"invalid_godot_direction")
+	var fixed := Vector2i(
+		_round_half_away_from_zero(normalized.x * WEAPON_DIRECTION_SCALE),
+		_round_half_away_from_zero(normalized.y * WEAPON_DIRECTION_SCALE)
+	)
+	if fixed == Vector2i.ZERO:
+		return ZUnitConversion.failure(&"invalid_godot_direction")
+	return ZUnitConversion.point_i(fixed)
 
 
 static func godot_to_tile(point_px: Vector2) -> ZUnitConversion:

@@ -1,6 +1,8 @@
 extends SceneTree
 ## Run with: godot --headless --path . --script res://tests/common_ui_integration_smoke.gd
 
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var failures: int = 0
 var checks: int = 0
 var app: Control
@@ -23,7 +25,7 @@ func settle() -> void:
 
 
 func run() -> void:
-	root.size = Vector2i(1280, 720)
+	root.size = FIRST_PLAYABLE_SIZE
 
 	var runtime := get_root().get_node_or_null("CommonUI")
 	check(CommonUIBoot.is_native_runtime_available(), "native CommonUI classes are registered")

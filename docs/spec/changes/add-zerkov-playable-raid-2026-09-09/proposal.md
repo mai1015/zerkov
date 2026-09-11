@@ -37,9 +37,12 @@ It excludes PvP, matchmaking, insurance, marketplace, a full trader economy,
 complete bunker progression, procedural maps, every weapon and cosmetic
 variants.
 
-The first-playable display target is 1920x1080 only. Existing responsive and
-compact code may remain as nonblocking regression coverage, but smaller output
-support, adaptation and visual acceptance are deferred to a later proposal.
+The first-playable display target is exact 1920x1080 only. Existing responsive
+and compact production code, historical captures and dedicated test sources
+may remain as retained compatibility artifacts, but current agents, tasks and
+tests MUST NOT execute smaller-output layouts or regenerate smaller captures.
+Smaller-output support, adaptation and visual acceptance are deferred to task
+11.8 or a later approved display-support proposal.
 
 ## Impact
 

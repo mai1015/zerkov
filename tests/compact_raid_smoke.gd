@@ -1,6 +1,7 @@
 extends SceneTree
-## --headless --script res://tests/compact_raid_smoke.gd
-## Omit --headless and add -- --capture-dir=/absolute/path for visual evidence.
+## DEFERRED / HISTORICAL SUITE: compact raid regression.
+## Do not invoke or regenerate smaller-window evidence until task 11.8 or a
+## later approved display-support proposal explicitly reopens this suite.
 
 var app: Control
 var checks = 0
@@ -11,7 +12,8 @@ func _initialize() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture-dir="):
 			capture_dir = arg.trim_prefix("--capture-dir=")
-	call_deferred("run")
+	push_error("DEFERRED_DISPLAY_SUITE: compact_raid_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 func check(condition: bool, message: String) -> void:
 	checks += 1

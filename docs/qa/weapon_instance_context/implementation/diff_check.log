@@ -1,0 +1,7 @@
+git diff --check
+exit=0
+findings=0
+
+git diff -- addons
+exit=0
+changed_vendored_addon_lines=0

@@ -1,6 +1,8 @@
 extends SceneTree
 ## Run with: godot --headless --path . --script res://tests/zerkov_screen_lifecycle_contract.gd
 
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var failures: int = 0
 var checks: int = 0
 var app: Control
@@ -184,12 +186,7 @@ func run() -> void:
 
 	var geometry_records: Array[String] = []
 	var geometry_controls := 0
-	for view_size in [
-		Vector2i(1920, 1080),
-		Vector2i(1600, 900),
-		Vector2i(1280, 720),
-		Vector2i(960, 540),
-	]:
+	for view_size in [FIRST_PLAYABLE_SIZE]:
 		var result: Dictionary = await exercise_resolution(view_size, runtime)
 		geometry_controls += int(result.controls)
 		geometry_records.append("%s:%s" % [result.label, result.hash])
