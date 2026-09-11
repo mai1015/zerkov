@@ -1,0 +1,4 @@
+scope=fourteen Godot contract logs plus editor_import.log (evidence metadata logs excluded)
+pattern=ERROR|SCRIPT ERROR|Assertion|assertion|Stack overflow|stack overflow|ObjectDB|RID|resource leak|font leak|Parse Error|Parser Error|Invalid call|Invalid get index
+findings=0
+rg_exit=1 (expected when no pattern matches)

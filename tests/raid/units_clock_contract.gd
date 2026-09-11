@@ -34,6 +34,16 @@ func _test_units() -> void:
 	var weapon := WorldUnits.godot_to_weapon(Vector2(32.0, -64.0))
 	check(weapon.ok and weapon.vector2i_value == Vector2i(1000, -2000),
 		"32 px equals 1000 weapon milliunits")
+	var weapon_direction := WorldUnits.godot_direction_to_weapon(Vector2(3.0, 4.0))
+	check(weapon_direction.ok
+		and weapon_direction.vector2i_value == Vector2i(600_000, 800_000),
+		"weapon aim is normalized to the fixed one-million direction scale")
+	var negative_direction := WorldUnits.godot_direction_to_weapon(Vector2(-1.0, 0.0))
+	check(negative_direction.ok
+		and negative_direction.vector2i_value == Vector2i(-1_000_000, 0),
+		"negative weapon aim preserves direction after normalization")
+	check(not WorldUnits.godot_direction_to_weapon(Vector2.ZERO).ok,
+		"zero weapon aim fails closed")
 	var restored := WorldUnits.canonical_to_godot(canonical.vector2i_value)
 	check(restored.ok and restored.vector2_value.is_equal_approx(Vector2(32.0, -64.0)),
 		"canonical coordinates round-trip")
