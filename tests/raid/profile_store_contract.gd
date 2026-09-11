@@ -23,6 +23,9 @@ class FakeFileOperations extends ProfileFileOperations:
 	var failures_after: Dictionary = {}
 	var corrupt_primary_after_replace: bool = false
 	var durable_writes: bool = false
+	var primary_replace_result_override: bool = false
+	var primary_replace_ok: bool = true
+	var primary_replace_committed: bool = true
 	var directory_sync_supported: bool = false
 	var directory_sync_ok: bool = false
 	var configure_calls: int = 0
@@ -89,6 +92,17 @@ class FakeFileOperations extends ProfileFileOperations:
 			return {"ok": false, "committed": false, "reason": &"injected_before_replace"}
 		if not slots.has(source_slot):
 			return {"ok": false, "committed": false, "reason": &"fake_source_missing"}
+		var reported_ok := true
+		var reported_committed := true
+		if destination_slot == SLOT_PRIMARY and primary_replace_result_override:
+			reported_ok = primary_replace_ok
+			reported_committed = primary_replace_committed
+		if not reported_committed:
+			return {
+				"ok": reported_ok,
+				"committed": false,
+				"reason": &"injected_primary_not_committed",
+			}
 		slots[destination_slot] = (slots[source_slot] as PackedByteArray).duplicate()
 		slots.erase(source_slot)
 		if destination_slot == SLOT_PRIMARY and corrupt_primary_after_replace:
@@ -99,7 +113,11 @@ class FakeFileOperations extends ProfileFileOperations:
 			slots[destination_slot] = corrupt
 		if _consume_failure(failures_after, action):
 			return {"ok": false, "committed": true, "reason": &"injected_after_replace"}
-		return {"ok": true, "committed": true, "reason": &""}
+		return {
+			"ok": reported_ok,
+			"committed": true,
+			"reason": &"" if reported_ok else &"injected_primary_replace_error",
+		}
 
 	func remove_slot(slot: StringName) -> Dictionary:
 		var action := "remove:%s" % slot
@@ -116,7 +134,7 @@ class FakeFileOperations extends ProfileFileOperations:
 		if _consume_failure(failures_before, "sync_directory"):
 			return {"ok": false, "supported": true, "reason": &"injected_directory_sync_failure"}
 		return {
-			"ok": directory_sync_supported and directory_sync_ok,
+			"ok": directory_sync_ok,
 			"supported": directory_sync_supported,
 			"reason": &"" if directory_sync_supported and directory_sync_ok \
 				else &"directory_sync_unavailable",
@@ -275,6 +293,7 @@ func check(condition: bool, message: String) -> void:
 func run() -> void:
 	_test_canonical_codec()
 	_test_identity_and_writer_boundary()
+	_test_public_result_immutability()
 	_test_concurrent_lease_and_operation_admission()
 	_test_initial_save_load_replay_and_rotation()
 	_test_validation_and_recovery_precedence()
@@ -402,6 +421,40 @@ func _test_identity_and_writer_boundary() -> void:
 		"the store seam is slot-based and receives no caller path")
 
 
+func _test_public_result_immutability() -> void:
+	var unconfigured := Store.new()
+	var capabilities := unconfigured.storage_capabilities()
+	check(capabilities.is_empty() and _is_recursively_read_only(capabilities),
+		"unconfigured storage capabilities return a read-only empty dictionary")
+	var load_admission := unconfigured.load_profile()
+	check(load_admission.get("reason", &"") == &"profile_store_not_configured" \
+		and _is_recursively_read_only(load_admission),
+		"unconfigured load admission failure is recursively read-only")
+	var save_admission := unconfigured.save_profile(_payload(1), 0, 1)
+	check(save_admission.get("reason", &"") == &"profile_store_not_configured" \
+		and _is_recursively_read_only(save_admission),
+		"unconfigured save admission failure is recursively read-only")
+
+	var ops := FakeFileOperations.new("immutable_failures")
+	var store := _open_store(ops)
+	var before_calls := ops.calls.size()
+	var lineage_failure := store.save_profile(_payload(1), 0, 2)
+	check(lineage_failure.get("reason", &"") \
+		== &"generation_revision_lineage_invalid" \
+		and _is_recursively_read_only(lineage_failure),
+		"pre-selection lineage failure is recursively read-only")
+	check(ops.calls.size() == before_calls,
+		"invalid requested lineage reaches no storage selection or mutation")
+	var missing := store.load_profile()
+	check(missing.get("reason", &"") == &"profile_missing" \
+		and _is_recursively_read_only(missing),
+		"missing-profile failure and nested diagnostics are recursively read-only")
+	var configured_capabilities := store.storage_capabilities()
+	check(_is_recursively_read_only(configured_capabilities),
+		"configured storage capabilities are recursively read-only")
+	check(store.close(), "immutability probe releases its lease")
+
+
 func _test_concurrent_lease_and_operation_admission() -> void:
 	_test_concurrent_configure_lease()
 	_test_concurrent_same_store_save()
@@ -501,6 +554,7 @@ func _test_concurrent_same_store_save() -> void:
 	check(bool(joined.get("complete", false)), "concurrent save workers join without deadlock")
 	var committed_count := 0
 	var rejected_count := 0
+	var rejected_receipt_frozen := true
 	for value in joined.get("results", []) as Array:
 		if value is Dictionary and bool((value as Dictionary).get("committed", false)):
 			committed_count += 1
@@ -508,8 +562,12 @@ func _test_concurrent_same_store_save() -> void:
 				and (value as Dictionary).get("reason", &"") \
 				== &"profile_store_reentrant_operation":
 			rejected_count += 1
+			rejected_receipt_frozen = _is_recursively_read_only(value) \
+				and rejected_receipt_frozen
 	check(committed_count == 1, "exactly one concurrent save commits")
 	check(rejected_count == 1, "exactly one concurrent save is rejected at admission")
+	check(rejected_receipt_frozen,
+		"the concurrent-save admission loser receives a recursively read-only receipt")
 	var loaded := store.load_profile()
 	check(bool(loaded.get("ok", false)) and int(loaded.get("generation", 0)) == 1 \
 		and (loaded.get("payload", {}) as Dictionary) \
@@ -726,6 +784,37 @@ func _test_validation_and_recovery_precedence() -> void:
 		"higher valid backup generation deterministically wins over stale primary")
 	newer_backup_store.close()
 
+	var invalid_newer_primary := _mutate_envelope_and_recompute_fingerprint(
+		primary_two, func(envelope: Dictionary) -> void:
+			envelope["generation"] = 3
+			envelope["revision"] = 2)
+	var invalid_primary_ops := _ops_with(
+		"invalid_newer_primary", invalid_newer_primary, backup_one)
+	var invalid_primary_store := _open_store(invalid_primary_ops)
+	var invalid_primary_load := invalid_primary_store.load_profile()
+	check(bool(invalid_primary_load.get("recovered_backup", false)) \
+		and int(invalid_primary_load.get("generation", 0)) == 1 \
+		and (invalid_primary_load.get("primary_validation", {}) as Dictionary) \
+			.get("reason", &"") == &"generation_revision_lineage_invalid",
+		"re-signed mismatched newer primary is invalid before backup selection")
+	invalid_primary_store.close()
+
+	var invalid_newer_backup := _mutate_envelope_and_recompute_fingerprint(
+		primary_two, func(envelope: Dictionary) -> void:
+			envelope["generation"] = 4
+			envelope["revision"] = 3)
+	var invalid_backup_ops := _ops_with(
+		"invalid_newer_backup", primary_two, invalid_newer_backup)
+	var invalid_backup_store := _open_store(invalid_backup_ops)
+	var invalid_backup_load := invalid_backup_store.load_profile()
+	check(bool(invalid_backup_load.get("ok", false)) \
+		and not bool(invalid_backup_load.get("recovered_backup", true)) \
+		and int(invalid_backup_load.get("generation", 0)) == 2 \
+		and (invalid_backup_load.get("backup_validation", {}) as Dictionary) \
+			.get("reason", &"") == &"generation_revision_lineage_invalid",
+		"re-signed mismatched newer backup cannot outrank a valid primary")
+	invalid_backup_store.close()
+
 	var divergent_bytes := _single_generation_bytes(
 		"divergent_source", _payload(999, PackedByteArray([9])))
 	var divergent_ops := _ops_with("divergent", backup_one, divergent_bytes)
@@ -802,6 +891,7 @@ func _test_injected_failures() -> void:
 	_test_replace_failure(FileOps.SLOT_PRIMARY, true)
 	_test_replace_failure(FileOps.SLOT_BACKUP, false)
 	_test_replace_failure(FileOps.SLOT_BACKUP, true)
+	_test_durability_result_cross_product()
 
 	var corrupt_fixture := _one_generation_fixture("post_commit_corrupt")
 	var corrupt_store := corrupt_fixture["store"] as ProfileStore
@@ -864,6 +954,63 @@ func _test_injected_failures() -> void:
 		== (cleanup_fail_fixture["generation_one"] as PackedByteArray),
 		"cleanup failure leaves primary generation unchanged")
 	cleanup_fail_store.close()
+
+
+func _test_durability_result_cross_product() -> void:
+	var case_count := 0
+	for write_durable in [false, true]:
+		for replace_ok in [false, true]:
+			for replace_committed in [false, true]:
+				for sync_supported in [false, true]:
+					for sync_ok in [false, true]:
+						var label := "durability_%s_%s_%s_%s_%s" % [
+							write_durable,
+							replace_ok,
+							replace_committed,
+							sync_supported,
+							sync_ok,
+						]
+						var ops := FakeFileOperations.new(label)
+						ops.durable_writes = write_durable
+						ops.primary_replace_result_override = true
+						ops.primary_replace_ok = replace_ok
+						ops.primary_replace_committed = replace_committed
+						ops.directory_sync_supported = sync_supported
+						ops.directory_sync_ok = sync_ok
+						var store := _open_store(ops)
+						var result := store.save_profile(_payload(case_count + 1), 0, 1)
+						var expected_durable: bool = write_durable and replace_ok \
+							and replace_committed and sync_supported and sync_ok
+						if not replace_committed:
+							check(result.get("status", &"") \
+								== Store.WRITE_PRE_COMMIT_FAILED \
+								and not bool(result.get("committed", true)) \
+								and not bool(result.get("durable", true)),
+								"uncommitted replace result is pre-commit: " + label)
+							check(not ops.slots.has(FileOps.SLOT_PRIMARY) \
+								and not ops.calls.has("sync_directory"),
+								"uncommitted replace installs no primary or sync: " + label)
+						else:
+							var expected_status := Store.WRITE_COMMITTED_DURABLE \
+								if expected_durable \
+								else Store.WRITE_COMMITTED_DURABILITY_UNCERTAIN
+							check(result.get("status", &"") == expected_status \
+								and bool(result.get("ok", false)) \
+								and bool(result.get("committed", false)) \
+								and bool(result.get("verified", false)) \
+								and bool(result.get("durable", false)) == expected_durable,
+								"committed durability tuple is exact: " + label)
+							check(ops.slots.has(FileOps.SLOT_PRIMARY) \
+								and ops.calls.has("sync_directory") \
+								and (replace_ok \
+									or result.get("reason", &"") \
+										== &"injected_primary_replace_error"),
+								"committed replace is retained and errors stay explicit: " + label)
+						check(_is_recursively_read_only(result),
+							"durability cross-product receipt is recursively read-only: " + label)
+						check(store.close(), "durability cross-product store closes: " + label)
+						case_count += 1
+	check(case_count == 32, "durability result cross-product covers all 32 tuples")
 
 
 func _test_write_failure(after_write: bool) -> void:
@@ -1128,6 +1275,27 @@ func _bounded_join(threads: Array[Thread], started: Array[bool]) -> Dictionary:
 	return {"complete": complete, "results": results}
 
 
+func _is_recursively_read_only(value: Variant) -> bool:
+	match typeof(value):
+		TYPE_DICTIONARY:
+			var dictionary := value as Dictionary
+			if not dictionary.is_read_only():
+				return false
+			for child in dictionary.values():
+				if not _is_recursively_read_only(child):
+					return false
+			return true
+		TYPE_ARRAY:
+			var array := value as Array
+			if not array.is_read_only():
+				return false
+			for child in array:
+				if not _is_recursively_read_only(child):
+					return false
+			return true
+	return true
+
+
 func _one_generation_fixture(label: String) -> Dictionary:
 	var ops := FakeFileOperations.new(label)
 	var store := _open_store(ops)
@@ -1200,7 +1368,35 @@ func _tamper_payload_without_digests(bytes: PackedByteArray) -> PackedByteArray:
 
 func _tamper_metadata_without_fingerprint(bytes: PackedByteArray) -> PackedByteArray:
 	return _mutate_envelope(bytes, func(envelope: Dictionary) -> void:
+		envelope["generation"] = int(envelope["generation"]) + 1
 		envelope["revision"] = int(envelope["revision"]) + 1)
+
+
+func _mutate_envelope_and_recompute_fingerprint(
+	bytes: PackedByteArray,
+	mutation: Callable
+) -> PackedByteArray:
+	var decoded := Codec.decode(bytes)
+	check(bool(decoded.get("ok", false)),
+		"lineage fixture decodes before mutation")
+	if not bool(decoded.get("ok", false)):
+		return PackedByteArray([0xff])
+	var envelope := decoded["value"] as Dictionary
+	mutation.call(envelope)
+	var core := envelope.duplicate(true)
+	core.erase("fingerprint")
+	var core_encoded := Codec.encode(core)
+	check(bool(core_encoded.get("ok", false)),
+		"lineage fixture core remains canonical")
+	if not bool(core_encoded.get("ok", false)):
+		return PackedByteArray([0xfe])
+	envelope["fingerprint"] = Codec.sha256_domain(
+		Store.ENVELOPE_FINGERPRINT_DOMAIN,
+		core_encoded.get("bytes", PackedByteArray()) as PackedByteArray)
+	var encoded := Codec.encode(envelope)
+	check(bool(encoded.get("ok", false)),
+		"lineage fixture with recomputed fingerprint remains canonical")
+	return encoded.get("bytes", PackedByteArray()) as PackedByteArray
 
 
 func _mutate_envelope(bytes: PackedByteArray, mutation: Callable) -> PackedByteArray:

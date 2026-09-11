@@ -15,10 +15,13 @@ The payload shape is exact:
 
 Call `configure("zerkov.profile.local")`, then `load_profile()` or
 `save_profile(payload, expected_generation, revision)`. A save always targets
-`expected_generation + 1`, and revision must advance exactly once. Repeating
-the exact request is an I/O-free replay; a divergent request for the same or a
-stale generation is rejected. Call `close()` after the final operation; it is
-idempotent, returns `true` after releasing the lease, and returns `false` with
+`expected_generation + 1`; version 1 starts at generation/revision `1/1` and
+keeps those counters equal as they advance exactly once. Repeating the exact
+request is write-free and mutation-free, but still reads and validates primary
+and backup before selecting the committed copy. A divergent request for the
+same or a stale generation is rejected. Call `close()` after the final
+operation; it is idempotent, returns `true` after releasing the lease, and
+returns `false` with
 `profile_store_operation_active` or `profile_store_configuration_active` when
 teardown races work that still owns the store.
 
@@ -43,18 +46,23 @@ Reads validate primary and backup independently. The valid higher generation
 wins; byte-identical ties prefer primary, while divergent equal generations
 fail closed. A valid backup is returned with `recovered_backup` when primary is
 missing/corrupt; reads never invent defaults or automatically rewrite storage.
-Unsafe filesystem objects and I/O uncertainty fail closed.
+Version-1 copies with unequal generation/revision counters are invalid before
+selection, even if their checksum and fingerprint were recomputed. Unsafe
+filesystem objects and I/O uncertainty fail closed.
 
 Write results distinguish:
 
 - `pre_commit_failed`: the candidate did not replace primary;
-- `committed_durable`: the injected adapter proved both file and directory
-  durability;
+- `committed_durable`: the injected adapter reported a successful committed
+  primary replacement and proved both file and directory durability;
 - `committed_durability_uncertain`: primary was replaced and verified, but the
   adapter cannot prove power-loss durability;
 - `committed_recovery_required`: replacement occurred but read-back could not
   prove the committed candidate;
 - `replayed_exact_write`: the exact candidate was already committed.
+
+All public load/save receipts and capability dictionaries are recursively
+read-only snapshots, including admission failures returned by racing calls.
 
 On the production Godot adapter, `FileAccess.flush()` is called and the commit
 uses `DirAccess.rename_absolute()` in one directory. Godot 4.7 exposes no

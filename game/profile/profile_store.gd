@@ -148,7 +148,7 @@ func profile_id() -> String:
 func storage_capabilities() -> Dictionary:
 	var operations := _snapshot_current_operations()
 	if operations == null:
-		return {}
+		return _freeze({}) as Dictionary
 	# The adapter callback stays outside both mutexes. The local strong reference
 	# remains valid if another thread closes immediately after the snapshot.
 	var result := operations.capabilities().duplicate(true)
@@ -202,9 +202,10 @@ func load_profile() -> Dictionary:
 
 
 ## Compare-and-swap save. candidate generation is expected_generation + 1;
-## profile revision must also advance exactly once. Replaying the exact payload,
-## expected generation, and revision returns the prior committed result without
-## touching any file. A divergent candidate at that generation fails closed.
+## profile revision must match that generation and therefore advance exactly
+## once. Replaying the exact payload, expected generation, and revision reads
+## both copies for validation, but performs no write or storage mutation. A
+## divergent candidate at that generation fails closed.
 func save_profile(
 	payload: Dictionary,
 	expected_generation: int,
@@ -227,6 +228,9 @@ func _save_profile_active(
 		return _write_failure(&"expected_generation_invalid")
 	if revision <= 0 or revision > MAX_COUNTER:
 		return _write_failure(&"revision_invalid")
+	var candidate_generation := expected_generation + 1
+	if revision != candidate_generation:
+		return _write_failure(&"generation_revision_lineage_invalid")
 	var payload_validation := _validate_payload(payload)
 	if not bool(payload_validation.get("ok", false)):
 		return _write_failure(StringName(payload_validation.get("reason", &"payload_invalid")))
@@ -241,7 +245,6 @@ func _save_profile_active(
 	var current: Dictionary = {}
 	if not is_missing:
 		current = selection["selected"] as Dictionary
-	var candidate_generation := expected_generation + 1
 	var candidate := _build_envelope_bytes(payload, candidate_generation, revision)
 	if not bool(candidate.get("ok", false)):
 		return _write_failure(StringName(candidate.get("reason", &"envelope_build_failed")))
@@ -318,10 +321,13 @@ func _save_profile_active(
 		ProfileFileOperations.SLOT_WRITE_TEMP,
 		ProfileFileOperations.SLOT_PRIMARY)
 	var replace_committed := bool(primary_replace.get("committed", false))
-	if not bool(primary_replace.get("ok", false)) and not replace_committed:
+	if not replace_committed:
 		var replace_cleanup := _cleanup_temps()
+		var replace_reason := StringName(primary_replace.get("reason", &""))
+		if replace_reason.is_empty():
+			replace_reason = &"primary_replace_not_committed"
 		return _write_failure(
-			StringName(primary_replace.get("reason", &"primary_replace_failed")),
+			replace_reason,
 			selection, replace_cleanup, backup_rotation)
 
 	var committed_validation := _validate_staged(
@@ -336,16 +342,29 @@ func _save_profile_active(
 			{}, primary_replace)
 
 	var directory_sync := _operations.sync_directory()
-	var fully_durable := bool(candidate_write.get("durable", false)) \
+	var fully_durable := bool(primary_replace.get("ok", false)) \
+		and replace_committed \
+		and bool(candidate_write.get("durable", false)) \
 		and bool(directory_sync.get("supported", false)) \
 		and bool(directory_sync.get("ok", false))
 	var status := WRITE_COMMITTED_DURABLE if fully_durable \
 		else WRITE_COMMITTED_DURABILITY_UNCERTAIN
-	var durability_reason := &"" if fully_durable else StringName(
-		directory_sync.get("reason", &"durability_not_proven"))
-	if not bool(primary_replace.get("ok", false)):
-		durability_reason = StringName(primary_replace.get(
-			"reason", &"post_replace_operation_failed"))
+	var durability_reason: StringName = &""
+	if not fully_durable:
+		if not bool(primary_replace.get("ok", false)):
+			durability_reason = StringName(primary_replace.get("reason", &""))
+			if durability_reason.is_empty():
+				durability_reason = &"post_replace_operation_failed"
+		elif not bool(candidate_write.get("durable", false)):
+			durability_reason = &"file_durability_not_proven"
+		elif not bool(directory_sync.get("supported", false)):
+			durability_reason = StringName(directory_sync.get("reason", &""))
+			if durability_reason.is_empty():
+				durability_reason = &"directory_sync_unsupported"
+		else:
+			durability_reason = StringName(directory_sync.get("reason", &""))
+			if durability_reason.is_empty():
+				durability_reason = &"directory_sync_failed"
 	return _write_success(
 		status, candidate, false, true, ProfileFileOperations.SLOT_PRIMARY,
 		selection, backup_rotation, cleanup_after, durability_reason,
@@ -583,6 +602,8 @@ func _decode_envelope(bytes: PackedByteArray) -> Dictionary:
 	if generation <= 0 or generation > MAX_COUNTER \
 			or revision <= 0 or revision > MAX_COUNTER:
 		return {"ok": false, "reason": &"envelope_counter_invalid"}
+	if generation != revision:
+		return {"ok": false, "reason": &"generation_revision_lineage_invalid"}
 	var payload := envelope["payload"] as Dictionary
 	var payload_validation := _validate_payload(payload)
 	if not bool(payload_validation.get("ok", false)):
@@ -874,7 +895,7 @@ static func _write_failure(
 	cleanup: Dictionary = {},
 	backup_rotation: Dictionary = {}
 ) -> Dictionary:
-	return {
+	return _freeze({
 		"ok": false,
 		"status": WRITE_PRE_COMMIT_FAILED,
 		"reason": reason,
@@ -887,7 +908,7 @@ static func _write_failure(
 		"selection": selection,
 		"cleanup": cleanup,
 		"backup_rotation": backup_rotation,
-	}
+	}) as Dictionary
 
 
 static func _write_success(
