@@ -205,6 +205,30 @@ func weapon_binding_generation(weapon_id: String) -> int:
 	return int(record.get("weapon_binding_generation", 0))
 
 
+## Side-effect-free, non-enumerating proof for game-owned consumers.  The
+## combat adapter uses this instead of trusting caller-supplied raid, actor, or
+## WeaponAuthority provenance.
+func authenticates_combat_binding(
+	raid_authority: RaidAuthority,
+	weapon_authority: WeaponAuthority,
+	actor_id: ZEntityId,
+	actor_source: ZRaidIntent.Source,
+	expected_binding_generation: int
+) -> bool:
+	return lifecycle == Lifecycle.BOUND \
+		and expected_binding_generation > 0 \
+		and expected_binding_generation == _binding_generation \
+		and _binding_is_current() \
+		and raid_authority != null \
+		and raid_authority == _raid_authority \
+		and weapon_authority != null \
+		and weapon_authority == _weapon_authority \
+		and actor_id != null \
+		and _admission != null \
+		and _admission.actor_id.is_equal(actor_id) \
+		and int(actor_source) == int(ZRaidIntent.Source.PLAYER)
+
+
 ## Called by the phase-5 fire path. Equipment is re-derived from the complete
 ## current native inventory snapshot; liveness/pose/usability come only from
 ## RaidAuthority. Missing or stale facts fail closed and no fallback exists.

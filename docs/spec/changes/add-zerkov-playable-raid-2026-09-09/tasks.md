@@ -353,7 +353,7 @@ failure after mutation. No UI layout was changed. See
   provide authoritative liveness, equipment, pose and usability context.
 - [x] 5.3 `[SOL]` Implement body hitboxes for head, torso, arms and legs with a
   deterministic overlap/tie-break policy.
-- [ ] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
+- [x] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
   committed shot once and emit one stable hit/miss consequence.
 - [x] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
   health, overall life state, stamina, hydration, heavy bleed, fracture,

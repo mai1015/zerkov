@@ -24,6 +24,76 @@ enum TickPhase {
 	PUBLISH_PROJECTIONS,
 }
 
+class PhaseHandlerRelay:
+	extends RefCounted
+
+	signal invoked(
+		authority: RaidAuthority,
+		phase: TickPhase,
+		tick: int,
+		intents: Array[ZRaidIntent],
+		result_box: Array
+	)
+
+	var callback_identity: String = ""
+	var bridge_connection_identity: String = ""
+
+	func configure(callback: Callable, identity: String) -> bool:
+		if not callback.is_valid() or identity.is_empty() \
+				or not callback_identity.is_empty():
+			return false
+		callback_identity = identity
+		var bridge := func(
+			authority: RaidAuthority,
+			phase: TickPhase,
+			tick: int,
+			intents: Array[ZRaidIntent],
+			result_box: Array
+		) -> void:
+			if not authority.phase_handler_callback_is_safe(callback):
+				result_box.append(false)
+				return
+			result_box.append(callback.call(authority, phase, tick, intents))
+		invoked.connect(bridge)
+		var connections := get_signal_connection_list(&"invoked")
+		if connections.size() != 1:
+			return false
+		var connected_callable := (
+			(connections[0] as Dictionary).get("callable", Callable()) as Callable)
+		bridge_connection_identity = _connection_identity(
+			connected_callable)
+		return not bridge_connection_identity.is_empty()
+
+	func invoke(
+		authority: RaidAuthority,
+		phase: TickPhase,
+		tick: int,
+		intents: Array[ZRaidIntent]
+	) -> Variant:
+		var connections := get_signal_connection_list(&"invoked")
+		if connections.size() != 1 \
+				or _connection_identity(
+					(connections[0] as Dictionary).get("callable", Callable())) \
+					!= bridge_connection_identity:
+			return null
+		var result_box: Array = []
+		invoked.emit(authority, phase, tick, intents, result_box)
+		if result_box.size() != 1:
+			return null
+		return result_box[0]
+
+	func _connection_identity(callback: Callable) -> String:
+		if not callback.is_valid():
+			return ""
+		var owner := callback.get_object()
+		if owner == null or not is_instance_valid(owner):
+			return ""
+		return ZCanonicalValue.sha256({
+			"object_instance_id": owner.get_instance_id(),
+			"method": String(callback.get_method()),
+			"bound_argument_count": callback.get_bound_arguments_count(),
+		})
+
 const LIFECYCLE_NAMES: PackedStringArray = [
 	"preparing",
 	"active",
@@ -48,6 +118,7 @@ const PHASE_NAMES: PackedStringArray = [
 
 const MAX_HANDLERS_PER_PHASE: int = 16
 const MAX_HANDLER_DEPENDENCIES: int = 8
+const MAX_HANDLER_REGISTRATIONS: int = 256
 const MIN_PHASE_HANDLER_PRIORITY: int = -1_024
 const MAX_PHASE_HANDLER_PRIORITY: int = 1_024
 ## This identity is owned by RaidAuthority. Generic handler registration may
@@ -102,8 +173,13 @@ var _is_advancing: bool = false
 var _processing_tick: int = 0
 var _processing_phase: int = -1
 var _processing_handler_id: StringName = &""
+var _processing_handler_registration_id: String = ""
+var _processing_handler_callback_identity: String = ""
+var _tick_handler_roster_commitment: String = ""
+var _named_phase_handlers_only: bool = false
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
+var _issued_handler_registration_ids: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
 var _weapon_actor_states: Dictionary = {}
 var _vision_owner_ref: WeakRef
@@ -284,6 +360,71 @@ func has_authorized_actor_source(
 	return _authorized_actor_sources.has(_actor_source_key(actor_id, source))
 
 
+## Read-only phase authentication for synchronous game-owned adapters.  A
+## signal emitted by a domain façade is admitted only while the exact raid
+## generation is executing the domain's documented phase and tick.
+func is_processing_tick_phase(
+	phase: TickPhase,
+	tick: int,
+	expected_generation: int
+) -> bool:
+	return _is_mutable_generation(expected_generation) \
+		and _is_advancing \
+		and int(phase) >= 0 \
+		and int(phase) < PHASE_NAMES.size() \
+		and _processing_phase == int(phase) \
+		and _processing_tick == tick
+
+
+## Exact, non-reusable registration provenance for security-sensitive phase
+## consumers. Handler names are reusable composition labels and are not an
+## authority proof by themselves.
+func phase_handler_registration_id(
+	handler_id: StringName,
+	expected_generation: int
+) -> String:
+	if not _is_current_generation(expected_generation):
+		return ""
+	var registration := _handler_ids.get(handler_id, {}) as Dictionary
+	return String(registration.get("registration_id", ""))
+
+
+func has_exact_phase_handler(
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable,
+	phase: TickPhase,
+	expected_generation: int
+) -> bool:
+	if not _is_current_generation(expected_generation) \
+			or registration_id.is_empty() or not callback.is_valid():
+		return false
+	var registration := _handler_ids.get(handler_id, {}) as Dictionary
+	var callback_identity := _phase_callback_identity(callback)
+	return not registration.is_empty() \
+		and String(registration.get("registration_id", "")) == registration_id \
+		and int(registration.get("phase", -1)) == int(phase) \
+		and not callback_identity.is_empty() \
+		and String(registration.get("callback_identity", "")) == callback_identity
+
+
+func is_dispatching_phase_registration(
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable,
+	phase: TickPhase,
+	tick: int,
+	expected_generation: int
+) -> bool:
+	return is_processing_tick_phase(phase, tick, expected_generation) \
+		and _processing_handler_id == handler_id \
+		and _processing_handler_registration_id == registration_id \
+		and _processing_handler_callback_identity \
+			== _phase_callback_identity(callback) \
+		and has_exact_phase_handler(
+			handler_id, registration_id, callback, phase, expected_generation)
+
+
 func register_phase_handler(
 	phase: TickPhase,
 	handler_id: StringName,
@@ -303,6 +444,13 @@ func register_phase_handler(
 		return _reject(&"handler_id_reserved")
 	if not ZIdentityRules.is_valid_part(String(handler_id)) or not callback.is_valid():
 		return _reject(&"handler_invalid")
+	if _named_phase_handlers_only and _phase_callback_is_anonymous(callback):
+		return _reject(&"anonymous_phase_handler_forbidden")
+	if not phase_handler_callback_is_safe(callback):
+		return _reject(&"handler_callback_retains_capability")
+	var callback_identity := _phase_callback_identity(callback)
+	if callback_identity.is_empty():
+		return _reject(&"handler_callback_identity_invalid")
 	if priority < MIN_PHASE_HANDLER_PRIORITY or priority > MAX_PHASE_HANDLER_PRIORITY:
 		return _reject(&"handler_priority_invalid")
 	if after_handler_ids.size() > MAX_HANDLER_DEPENDENCIES:
@@ -351,6 +499,29 @@ func register_phase_handler(
 		phase, handler_id, callback, priority, dependencies,
 		registration_attestation,
 	)
+
+
+## A live spatial bearer and an opaque callable closure must never coexist in
+## the retained phase graph. BodyHitboxWorld2D calls this before issuing its
+## capability; later handler registrations must be named Object methods.
+func require_named_phase_handlers(expected_generation: int) -> bool:
+	last_error = &""
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if lifecycle != Lifecycle.PREPARING:
+		return _reject(&"handler_registration_closed")
+	for registration_value in _handler_ids.values():
+		var registration := registration_value as Dictionary
+		if bool(registration.get("anonymous", true)):
+			return _reject(&"anonymous_phase_handler_forbidden")
+		var relay := registration.get("relay") as PhaseHandlerRelay
+		if relay == null or not is_instance_valid(relay):
+			return _reject(&"phase_handler_registration_corrupted")
+		var connections := relay.get_signal_connection_list(&"invoked")
+		if connections.size() != 1:
+			return _reject(&"phase_handler_registration_corrupted")
+	_named_phase_handlers_only = true
+	return true
 
 
 ## Claims the sole game-owned Vision slot. The authority derives the callback
@@ -610,9 +781,8 @@ func unregister_phase_handler(
 	var handlers: Array = _phase_handlers.get(phase_value, [])
 	var retained: Array = []
 	for entry_value in handlers:
-		var entry := entry_value as Dictionary
-		if StringName(entry.get("id", &"")) != handler_id:
-			retained.append(entry)
+		if _phase_entry_handler_id(entry_value) != handler_id:
+			retained.append(entry_value)
 	if retained.is_empty():
 		_phase_handlers.erase(phase_value)
 	else:
@@ -758,6 +928,28 @@ func record_event(
 	if tick != expected_tick:
 		return _reject(&"event_tick_invalid")
 	if not journal.append(kind, event_id, tick, actor_id, payload):
+		last_error = journal.last_error
+		return false
+	return true
+
+
+## Exact journal preflight used immediately before a consequence-owning world
+## query.  No capacity or identity is consumed by this call.
+func can_record_event(
+	kind: ZRaidEvent.EventKind,
+	event_id: ZConsequenceId,
+	tick: int,
+	actor_id: ZEntityId,
+	payload: Dictionary,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_mutable_generation(expected_generation):
+		return _reject(&"stale_or_terminal_generation")
+	var expected_tick := _processing_tick if _is_advancing else last_processed_tick
+	if tick != expected_tick:
+		return _reject(&"event_tick_invalid")
+	if not journal.can_append(kind, event_id, tick, actor_id, payload):
 		last_error = journal.last_error
 		return false
 	return true
@@ -926,6 +1118,7 @@ func teardown(expected_generation: int) -> bool:
 	_intent_queue.clear()
 	_phase_handlers.clear()
 	_handler_ids.clear()
+	_issued_handler_registration_ids.clear()
 	_authorized_actor_sources.clear()
 	_weapon_actor_states.clear()
 	_generation += 1
@@ -968,6 +1161,9 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	if tick != last_processed_tick + 1:
 		return _reject(&"tick_regressed_or_skipped")
 
+	_tick_handler_roster_commitment = _phase_handler_roster_commitment()
+	if _tick_handler_roster_commitment.is_empty():
+		return _reject(&"phase_handler_roster_invalid")
 	var lifecycle_context := _authority_lifecycle_attestation_context()
 	var commit_context := lifecycle_context.duplicate()
 	commit_context["cause"] = &"vision_owner_lost_during_tick"
@@ -994,15 +1190,49 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 		or _handler_ids.has(RESERVED_VISION_HANDLER_ID)
 	var due_intents: Array[ZRaidIntent] = []
 	for phase_value in PHASE_NAMES.size():
+		if _phase_handler_roster_commitment() \
+				!= _tick_handler_roster_commitment:
+			return _fail_current_tick(
+				tick, &"phase_handler_registration_corrupted", lifecycle_attestation)
 		var phase: TickPhase = phase_value
 		_processing_phase = phase_value
 		last_phase_trace.append(PHASE_NAMES[phase_value])
 		if phase == TickPhase.ADMIT_INTENTS:
 			due_intents = _intent_queue.drain_tick(tick)
-		var handlers: Array = _phase_handlers.get(phase_value, [])
-		for entry in handlers:
-			_processing_handler_id = entry["id"]
-			var callback: Callable = entry["callback"]
+		var handler_ids: Array = _phase_handlers.get(phase_value, [])
+		if not _phase_handler_roster_is_coherent(phase_value, handler_ids):
+			return _fail_current_tick(
+				tick, &"phase_handler_registration_corrupted", lifecycle_attestation)
+		for handler_id_value in handler_ids:
+			if typeof(handler_id_value) != TYPE_STRING_NAME \
+					and typeof(handler_id_value) != TYPE_STRING \
+					and typeof(handler_id_value) != TYPE_DICTIONARY:
+				return _fail_current_tick(
+					tick, &"phase_handler_registration_corrupted", lifecycle_attestation)
+			var handler_id := _phase_entry_handler_id(handler_id_value)
+			if handler_id.is_empty():
+				return _fail_current_tick(
+					tick, &"phase_handler_registration_corrupted", lifecycle_attestation)
+			var entry := _handler_ids.get(handler_id, {}) as Dictionary
+			if entry.is_empty() \
+					or StringName(entry.get("id", &"")) != handler_id \
+					or int(entry.get("phase", -1)) != phase_value:
+				return _fail_current_tick(
+					tick, &"phase_handler_registration_corrupted", lifecycle_attestation)
+			var relay := entry.get("relay") as PhaseHandlerRelay
+			var callback_identity := String(entry.get("callback_identity", ""))
+			var bridge_identity := String(
+				entry.get("bridge_connection_identity", ""))
+			if relay == null or not is_instance_valid(relay) \
+					or callback_identity.is_empty() \
+					or bridge_identity.is_empty() \
+					or relay.callback_identity != callback_identity \
+					or relay.bridge_connection_identity != bridge_identity:
+				return _fail_current_tick(
+					tick, &"phase_handler_invalidated", lifecycle_attestation)
+			_processing_handler_id = handler_id
+			_processing_handler_registration_id = String(entry["registration_id"])
+			_processing_handler_callback_identity = callback_identity
 			if _processing_handler_id == RESERVED_VISION_HANDLER_ID \
 					and not _reserved_vision_callback_is_current():
 				var invalid_reason := &"vision_owner_lost_during_tick" \
@@ -1010,10 +1240,6 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 					else &"vision_owner_provenance_invalid"
 				return _fail_current_tick(
 					tick, invalid_reason, lifecycle_attestation
-				)
-			if not callback.is_valid():
-				return _fail_current_tick(
-					tick, &"phase_handler_invalidated", lifecycle_attestation
 				)
 			var handler_intents: Array[ZRaidIntent] = []
 			for intent in due_intents:
@@ -1023,8 +1249,10 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 						tick, &"queued_intent_corrupted", lifecycle_attestation
 					)
 				handler_intents.append(intent_copy)
-			var outcome: Variant = callback.call(self, phase, tick, handler_intents)
+			var outcome: Variant = relay.invoke(self, phase, tick, handler_intents)
 			_processing_handler_id = &""
+			_processing_handler_registration_id = ""
+			_processing_handler_callback_identity = ""
 			# A PREDELETE fail-stop can terminalize and seal the authority from
 			# inside this callback. Finish only the already-consumed tick; do not
 			# dispatch another handler or replace the recorded terminal cause.
@@ -1045,6 +1273,9 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
+	_processing_handler_registration_id = ""
+	_processing_handler_callback_identity = ""
+	_tick_handler_roster_commitment = ""
 	last_error = &""
 	return true
 
@@ -1095,6 +1326,9 @@ func _fail_current_tick(
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
+	_processing_handler_registration_id = ""
+	_processing_handler_callback_identity = ""
+	_tick_handler_roster_commitment = ""
 	lifecycle = Lifecycle.FAILED
 	if not _seal_terminal_runtime(lifecycle_attestation):
 		return _reject(&"raid_terminal_seal_failed")
@@ -1110,6 +1344,9 @@ func _finish_preterminalized_tick(tick: int) -> bool:
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
+	_processing_handler_registration_id = ""
+	_processing_handler_callback_identity = ""
+	_tick_handler_roster_commitment = ""
 	return _reject(code)
 
 
@@ -1125,6 +1362,9 @@ func _seal_terminal_runtime(
 		return false
 	_processing_phase = -1
 	_processing_handler_id = &""
+	_processing_handler_registration_id = ""
+	_processing_handler_callback_identity = ""
+	_tick_handler_roster_commitment = ""
 	clock.pause()
 	clock.clear_pending()
 	clock.seal()
@@ -1162,26 +1402,54 @@ func _register_phase_handler_unchecked(
 		return _reject(&"handler_registration_attestation_invalid")
 	if _handler_ids.has(handler_id):
 		return _reject(&"handler_id_duplicate")
+	if _named_phase_handlers_only and _phase_callback_is_anonymous(callback):
+		return _reject(&"anonymous_phase_handler_forbidden")
+	if not phase_handler_callback_is_safe(callback):
+		return _reject(&"handler_callback_retains_capability")
+	var callback_identity := _phase_callback_identity(callback)
+	if callback_identity.is_empty():
+		return _reject(&"handler_callback_identity_invalid")
+	if _issued_handler_registration_ids.size() >= MAX_HANDLER_REGISTRATIONS:
+		return _reject(&"handler_registration_limit")
+	var registration_id := _new_handler_registration_id()
+	if registration_id.is_empty():
+		return _reject(&"handler_registration_identity_failed")
 	var handlers: Array = _phase_handlers.get(int(phase), [])
 	if handlers.size() >= MAX_HANDLERS_PER_PHASE:
 		return _reject(&"phase_handler_limit")
-	handlers.append({
+	var relay := PhaseHandlerRelay.new()
+	if not relay.configure(callback, callback_identity):
+		return _reject(&"handler_callback_relay_invalid")
+	var registration := {
 		"id": handler_id,
-		"callback": callback,
-		"priority": priority,
-		"after": after_handler_ids,
-	})
-	handlers.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
-		if int(left["priority"]) != int(right["priority"]):
-			return int(left["priority"]) < int(right["priority"])
-		return String(left["id"]) < String(right["id"])
-	)
-	_phase_handlers[int(phase)] = handlers
-	_handler_ids[handler_id] = {
+		"registration_id": registration_id,
+		"callback_identity": callback_identity,
+		"bridge_connection_identity": relay.bridge_connection_identity,
+		"anonymous": _phase_callback_is_anonymous(callback),
+		"relay": relay,
 		"phase": int(phase),
 		"priority": priority,
 		"after": after_handler_ids,
 	}
+	if handler_id == RESERVED_VISION_HANDLER_ID:
+		# The accepted Vision authority contract intentionally exposes this one
+		# authority-derived callback for provenance tamper detection. Generic
+		# handlers remain relay-only and retain no caller Callable in the record.
+		registration["callback"] = callback
+	_handler_ids[handler_id] = registration
+	handlers.append(registration if handler_id == RESERVED_VISION_HANDLER_ID \
+		else handler_id)
+	handlers.sort_custom(func(left_value: Variant, right_value: Variant) -> bool:
+		var left_id := _phase_entry_handler_id(left_value)
+		var right_id := _phase_entry_handler_id(right_value)
+		var left := _handler_ids[left_id] as Dictionary
+		var right := _handler_ids[right_id] as Dictionary
+		if int(left["priority"]) != int(right["priority"]):
+			return int(left["priority"]) < int(right["priority"])
+		return String(left_id) < String(right_id)
+	)
+	_phase_handlers[int(phase)] = handlers
+	_issued_handler_registration_ids[registration_id] = true
 	return true
 
 
@@ -1242,21 +1510,28 @@ func _reserved_vision_callback_is_current() -> bool:
 	):
 		return false
 	var handlers: Array = _phase_handlers.get(int(TickPhase.VISION), [])
+	var has_reserved_entry := false
 	for entry_value in handlers:
-		if not entry_value is Dictionary:
-			continue
-		var entry := entry_value as Dictionary
-		if entry.get("id", &"") != RESERVED_VISION_HANDLER_ID:
-			continue
-		var callback_value: Variant = entry.get("callback", Callable())
-		if not callback_value is Callable:
-			return false
-		var callback := callback_value as Callable
-		return callback.is_valid() \
-			and callback.get_object() == owner \
-			and callback.get_method() == &"_handle_raid_phase" \
-			and callback.get_bound_arguments_count() == 0
-	return false
+		if _phase_entry_handler_id(entry_value) == RESERVED_VISION_HANDLER_ID:
+			has_reserved_entry = true
+			break
+	if not has_reserved_entry:
+		return false
+	var registration := _handler_ids.get(
+		RESERVED_VISION_HANDLER_ID, {}) as Dictionary
+	var callback := Callable(owner, "_handle_raid_phase")
+	var stored_callback := registration.get("callback", Callable()) as Callable
+	var callback_identity := _phase_callback_identity(callback)
+	var relay := registration.get("relay") as PhaseHandlerRelay
+	return not registration.is_empty() \
+		and int(registration.get("phase", -1)) == int(TickPhase.VISION) \
+		and stored_callback == callback \
+		and not callback_identity.is_empty() \
+		and String(registration.get("callback_identity", "")) == callback_identity \
+		and relay != null and is_instance_valid(relay) \
+		and relay.callback_identity == callback_identity \
+		and relay.bridge_connection_identity \
+			== String(registration.get("bridge_connection_identity", ""))
 
 
 ## Commits the one owner-loss transition that can be observed before Godot
@@ -1336,12 +1611,10 @@ func _release_vision_owner_binding(
 	# boundary. No separately callable helper can publish half of this change.
 	var handlers: Array = _phase_handlers.get(int(TickPhase.VISION), [])
 	var retained: Array = []
-	for entry_value in handlers:
-		if entry_value is Dictionary \
-				and (entry_value as Dictionary).get("id", &"") \
-					== RESERVED_VISION_HANDLER_ID:
+	for handler_id_value in handlers:
+		if _phase_entry_handler_id(handler_id_value) == RESERVED_VISION_HANDLER_ID:
 			continue
-		retained.append(entry_value)
+		retained.append(handler_id_value)
 	if retained.is_empty():
 		_phase_handlers.erase(int(TickPhase.VISION))
 	else:
@@ -1504,6 +1777,206 @@ static func _has_exact_keys(value: Dictionary, expected: PackedStringArray) -> b
 		if not value.has(key):
 			return false
 	return true
+
+
+func _new_handler_registration_id() -> String:
+	for _attempt in 4:
+		var bytes := Crypto.new().generate_random_bytes(32)
+		if bytes.size() != 32:
+			continue
+		var candidate := bytes.hex_encode()
+		if not _issued_handler_registration_ids.has(candidate):
+			return candidate
+	return ""
+
+
+func _phase_entry_handler_id(value: Variant) -> StringName:
+	if typeof(value) == TYPE_STRING or typeof(value) == TYPE_STRING_NAME:
+		return StringName(value)
+	if typeof(value) == TYPE_DICTIONARY:
+		return StringName((value as Dictionary).get("id", &""))
+	return &""
+
+
+func _phase_handler_roster_is_coherent(
+	phase_value: int,
+	actual_ids: Array
+) -> bool:
+	var expected_ids: Array = []
+	for handler_id_value in _handler_ids.keys():
+		var handler_id := StringName(handler_id_value)
+		var registration := _handler_ids[handler_id] as Dictionary
+		if int(registration.get("phase", -1)) == phase_value:
+			expected_ids.append(handler_id)
+	expected_ids.sort_custom(func(left_value: Variant, right_value: Variant) -> bool:
+		var left_id := StringName(left_value)
+		var right_id := StringName(right_value)
+		var left := _handler_ids[left_id] as Dictionary
+		var right := _handler_ids[right_id] as Dictionary
+		if int(left.get("priority", 0)) != int(right.get("priority", 0)):
+			return int(left.get("priority", 0)) < int(right.get("priority", 0))
+		return String(left_id) < String(right_id)
+	)
+	var normalized_actual: Array = []
+	for entry_value in actual_ids:
+		var entry_id := _phase_entry_handler_id(entry_value)
+		if entry_id.is_empty():
+			return false
+		if typeof(entry_value) == TYPE_DICTIONARY \
+				and entry_id != RESERVED_VISION_HANDLER_ID:
+			return false
+		normalized_actual.append(entry_id)
+	return normalized_actual == expected_ids
+
+
+func _phase_handler_roster_commitment() -> String:
+	var handler_ids := PackedStringArray(_handler_ids.keys())
+	handler_ids.sort()
+	var encoded := "raid-phase-roster-v1|%d|" % handler_ids.size()
+	for handler_id_value in handler_ids:
+		var handler_id := StringName(handler_id_value)
+		var registration := _handler_ids.get(handler_id, {}) as Dictionary
+		if registration.is_empty():
+			return ""
+		var fields := PackedStringArray([
+			String(handler_id),
+			String(registration.get("registration_id", "")),
+			String(registration.get("callback_identity", "")),
+			String(registration.get("bridge_connection_identity", "")),
+			str(int(registration.get("phase", -1))),
+			str(int(registration.get("priority", 0))),
+			"1" if bool(registration.get("anonymous", true)) else "0",
+		])
+		var dependencies := PackedStringArray(
+			registration.get("after", PackedStringArray()))
+		fields.append(str(dependencies.size()))
+		for dependency in dependencies:
+			fields.append(dependency)
+		for field in fields:
+			encoded += "%d:%s|" % [field.to_utf8_buffer().size(), field]
+	for phase_value in PHASE_NAMES.size():
+		var ordered_ids: Array = _phase_handlers.get(phase_value, [])
+		encoded += "p%d:%d|" % [phase_value, ordered_ids.size()]
+		for entry_value in ordered_ids:
+			var handler_id := _phase_entry_handler_id(entry_value)
+			if handler_id.is_empty():
+				return ""
+			if typeof(entry_value) == TYPE_DICTIONARY \
+					and handler_id != RESERVED_VISION_HANDLER_ID:
+				return ""
+			var encoded_id := String(handler_id)
+			encoded += "%d:%s|" % [
+				encoded_id.to_utf8_buffer().size(), encoded_id]
+	return encoded.sha256_text()
+
+
+func phase_handler_callback_is_safe(callback: Callable) -> bool:
+	return callback.is_valid() \
+		and not _variant_graph_contains_hitbox_bearer(
+			callback, 0, {get_instance_id(): true})
+
+
+func _phase_callback_is_anonymous(callback: Callable) -> bool:
+	return String(callback.get_method()) == "<anonymous lambda>"
+
+
+func _phase_callback_identity(callback: Callable) -> String:
+	if not callback.is_valid():
+		return ""
+	var owner := callback.get_object()
+	if owner == null or not is_instance_valid(owner):
+		return ""
+	var bound_arguments := callback.get_bound_arguments()
+	var encoded_arguments: Array = []
+	for argument in bound_arguments:
+		if argument is Object:
+			var object := argument as Object
+			if object == null or not is_instance_valid(object):
+				return ""
+			var script_path := ""
+			var script_value: Variant = object.get_script()
+			if script_value is Script:
+				script_path = String((script_value as Script).resource_path)
+			encoded_arguments.append({
+				"object_instance_id": object.get_instance_id(),
+				"script_path": script_path,
+			})
+		elif ZCanonicalValue.is_bounded(argument):
+			encoded_arguments.append({"value": argument})
+		else:
+			return ""
+	return ZCanonicalValue.sha256({
+		"object_instance_id": owner.get_instance_id(),
+		"method": String(callback.get_method()),
+		"bound_arguments": encoded_arguments,
+	})
+
+
+func _variant_graph_contains_hitbox_bearer(
+	value: Variant,
+	depth: int,
+	visited: Dictionary
+) -> bool:
+	if depth > 16:
+		# Deep/cyclic collection graphs are rejected rather than accepted without
+		# a complete bearer scan.
+		return true
+	if value is BodyHitboxWorld2D.BindingCapability:
+		return true
+	if typeof(value) == TYPE_CALLABLE:
+		var callable := value as Callable
+		if _variant_graph_contains_hitbox_bearer(
+			callable.get_object(), depth + 1, visited):
+			return true
+		for argument in callable.get_bound_arguments():
+			if _variant_graph_contains_hitbox_bearer(
+				argument, depth + 1, visited):
+				return true
+		return false
+	if typeof(value) == TYPE_OBJECT:
+		var object := value as Object
+		if object == null or not is_instance_valid(object):
+			return false
+		var instance_id := object.get_instance_id()
+		if visited.has(instance_id):
+			return false
+		visited[instance_id] = true
+		for property_value in object.get_property_list():
+			var property_name := StringName(
+				(property_value as Dictionary).get("name", &""))
+			if property_name.is_empty():
+				continue
+			if _variant_graph_contains_hitbox_bearer(
+				object.get(property_name), depth + 1, visited):
+				return true
+		# PhaseHandlerRelay signal connections are an intentional retained edge
+		# and must be scanned. Arbitrary engine-object signals are excluded: their
+		# process-wide graphs are neither owned by this registration nor bounded.
+		if object is PhaseHandlerRelay:
+			for connection_value in object.get_signal_connection_list(&"invoked"):
+				var connection := connection_value as Dictionary
+				if _variant_graph_contains_hitbox_bearer(
+					connection.get("callable", Callable()),
+					depth + 1, visited):
+					return true
+		return false
+	if typeof(value) == TYPE_DICTIONARY:
+		var dictionary := value as Dictionary
+		for key in dictionary.keys():
+			if _variant_graph_contains_hitbox_bearer(
+				key, depth + 1, visited):
+				return true
+			var child: Variant = dictionary[key]
+			if _variant_graph_contains_hitbox_bearer(
+				child, depth + 1, visited):
+				return true
+		return false
+	if typeof(value) == TYPE_ARRAY:
+		for child in value as Array:
+			if _variant_graph_contains_hitbox_bearer(
+				child, depth + 1, visited):
+				return true
+	return false
 
 
 func _actor_source_key(actor_id: ZEntityId, source: ZRaidIntent.Source) -> String:
