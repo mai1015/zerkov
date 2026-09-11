@@ -332,11 +332,15 @@ func _reconcile_current(tick: int) -> Dictionary:
 	var dormant: Array[Dictionary] = []
 	var parked: Array[Dictionary] = []
 	var removed: Array[Dictionary] = []
-	# Retire or park inactive records before admitting a new native instance.
-	# A value-only DROPPED item therefore cannot consume the live stable-id cap
-	# on the tick where a replacement becomes equipped.
+	# Capacity is an admission preflight, not a bookkeeping side effect. Inspect
+	# every inactive record first and prove how many destroyed records will leave
+	# before changing a public record, reload binding, or native instance. A
+	# rejected seventeenth stable identity therefore cannot advance the sixteen
+	# retained records while _last_outcome still describes the preceding tick.
 	var tracked_ids := PackedStringArray(_records.keys())
 	tracked_ids.sort()
+	var inactive_states: Dictionary = {}
+	var destroyed_inactive_count := 0
 	for weapon_id in tracked_ids:
 		if active_firearms.has(weapon_id):
 			continue
@@ -347,6 +351,26 @@ func _reconcile_current(tick: int) -> Dictionary:
 				"record": record,
 				"state": state,
 			})
+		inactive_states[weapon_id] = state.duplicate(true)
+		if bool(state.get("destroyed", false)):
+			destroyed_inactive_count += 1
+	var new_active_count := 0
+	for weapon_id in active_firearms:
+		if not _records.has(weapon_id):
+			new_active_count += 1
+	var projected_record_count := _records.size() \
+		- destroyed_inactive_count + new_active_count
+	if projected_record_count > MAX_TRACKED_FIREARMS:
+		return _reconciliation_rejection(&"weapon_instance_limit")
+
+	# Retire or park inactive records before admitting a new native instance.
+	# A value-only DROPPED item therefore cannot consume the live stable-id cap
+	# on the tick where a replacement becomes equipped.
+	for weapon_id in tracked_ids:
+		if active_firearms.has(weapon_id):
+			continue
+		var record := _records[weapon_id] as Dictionary
+		var state := inactive_states[weapon_id] as Dictionary
 		if bool(state.get("destroyed", false)):
 			var removed_record := record.duplicate(true)
 			if not _remove_instance(weapon_id, &"weapon_invalidation", tick):
@@ -366,8 +390,6 @@ func _reconcile_current(tick: int) -> Dictionary:
 	for weapon_id in active_ids:
 		var mapping := active_firearms[weapon_id] as Dictionary
 		if not _records.has(weapon_id):
-			if _records.size() >= MAX_TRACKED_FIREARMS:
-				return _reconciliation_rejection(&"weapon_instance_limit")
 			var created := _create_instance(mapping, tick)
 			if not bool(created.get("accepted", false)):
 				return created
@@ -507,7 +529,12 @@ func _remove_instance(weapon_id: String, reason: StringName, tick: int) -> bool:
 		record["terminal_reload_quarantine_reservation"] = quarantine_reservation
 		_records[weapon_id] = record
 		reload_lifecycle = _reload_adapter.lifecycle
+	# A successful exact quarantine deliberately leaves the reload adapter in
+	# RECOVERY_REQUIRED until its final binding is retired. That is a settled
+	# state for this one weapon, so continue native retirement instead of
+	# stranding the remaining generation-scoped bindings.
 	if reload_lifecycle != InventoryWeaponAdapter.Lifecycle.BOUND \
+			and reload_lifecycle != InventoryWeaponAdapter.Lifecycle.RECOVERY_REQUIRED \
 			and reload_lifecycle != InventoryWeaponAdapter.Lifecycle.INVALIDATED:
 		_latch_recovery(&"weapon_reload_lifecycle_unsettled", {
 			"record": record,
@@ -574,10 +601,26 @@ func _park_instance(
 func _remove_all_owned_instances(reason: StringName, tick: int) -> bool:
 	var weapon_ids := PackedStringArray(_records.keys())
 	weapon_ids.sort()
+	var first_failure_error: StringName = &""
+	var first_failure_details: Dictionary = {}
 	for weapon_id in weapon_ids:
 		if not _remove_instance(weapon_id, reason, tick):
-			return false
-	return true
+			if first_failure_error.is_empty():
+				first_failure_error = last_error
+				if first_failure_error.is_empty():
+					first_failure_error = StringName(
+						_recovery_details.get("reason", &"weapon_instance_cleanup_failed"))
+				first_failure_details = _recovery_details.duplicate(true)
+	if first_failure_error.is_empty():
+		return true
+	# Teardown is terminal and bounded by MAX_TRACKED_FIREARMS. Continue past a
+	# reachable native failure so every other exact-generation reload binding is
+	# quarantined/retired, then preserve the first deterministic failure and its
+	# retry evidence for the remaining record.
+	lifecycle = Lifecycle.RECOVERY_REQUIRED
+	last_error = first_failure_error
+	_recovery_details = first_failure_details
+	return false
 
 
 func _mapping_is_authoritative_firearm(mapping: Dictionary) -> bool:
