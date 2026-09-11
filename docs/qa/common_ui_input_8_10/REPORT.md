@@ -67,3 +67,23 @@ All screen-producing runner output in this packet is exact `1920x1080`.
 
 No task ledger, truth spec, add-on or inventory surface was changed. This
 report intentionally does not mark Task 8.10 complete.
+
+## Independent Astra acceptance
+
+Accepted on 2026-09-11 at immutable commit
+`cbdb3fc6fe897ae1df1c9e1e8074fb2c30386144` with no remaining P0-P2 findings
+and `human_approval: false`. The reviewer independently confirmed service-owned
+request identity across Controls replacement, honest disabled `N/A` cells for
+unsupported independent secondary bindings, the read-only truthful Move
+vector, and byte-preserving persistence cleanup on normal and early-failure
+paths.
+
+The exact-1920 matrix passed `678/0`: four 51-check input variants, navigation
+`94/0`, and binding contracts `380/0`. Every runner was statically gated at
+1920x1080; no compact, responsive, historical inventory-binding, or
+alternate-size path executed. The accepted Task 8.6 Character tree, capture
+sources, five capture hashes, 74px cells, and `(1304,225) 518x740` Stash pane
+remain unchanged. The original personal binding JSON was restored with SHA-256
+`ff6f972f99cc7e9a66db4852735ead27d344b3d090d246a420aa0136aff6bde5`;
+`.tmp` and `.bak` remained absent. Strict spec, import, diagnostics, and diff
+checks passed. Task 8.10 is accepted and its ledger checkbox is now closed.
