@@ -188,7 +188,8 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   resynchronizing states. Do not introduce a replacement inventory screen;
   bind canonical inventory snapshots/intents into the accepted grid, drag,
   transfer and focus behavior at 1920x1080. Existing compact code may remain
-  but is not part of this task's acceptance gate.
+  but is not part of this task's acceptance gate. Preserve the audited baseline
+  in `docs/qa/astra_visual_audit_2026-09-10/INVENTORY_1080P_BASELINE.md`.
 - [ ] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
   authority replacement invalidate stale UI/adapters safely.
 - [x] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
