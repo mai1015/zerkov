@@ -6,7 +6,7 @@ remains unchecked by design.
 - Recorded: 2026-09-11
 - Branch: codex/weapon-combat-adapter-5-4
 - Original base: c265d3a4efd9b49f840b87e201ceb8f4b661d26b
-- Accepted integrated main: abc9c107d91b7b01819a67da88add254de2e0bcf
+- Accepted integrated main: ebb003ce068d4621a49af9614be136a149580dd8
 - Accepted Task 5.3 merge: 49c0ae0f3d512df441858e61c0881cdbe22c40a4
 - Engine: Godot 4.7.2.stable.official.ed1daf0bf, headless only
 
@@ -114,22 +114,27 @@ Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=368 failures=0
 | Body hitbox capability encapsulation | 14/0 |
 | Authority replay/journal | 81/0 |
 | Session lifecycle | 44/0 |
-| Units/clock | 32/0 |
+| Units/clock | 41/0 |
 | Identity collision | 18442/0 |
 | Combat content | 80/0 |
 | Health/ability content | 392/0 |
 
-Adjacent: 20,017 checks, 0 failures.
+Adjacent: 20,026 checks, 0 failures.
 
-Focused plus adjacent: 20,385 checks, 0 failures.
+Focused plus adjacent: 20,394 checks, 0 failures.
+
+The accepted Task 6.1 Vision contract was additionally run twice after the
+overlapping RaidAuthority merge and passed 305/0 on both runs. Including those
+required compatibility reruns, the final execution total is 21,004/0.
 
 ## Import, diagnostics and spec
 
 - Fresh pinned headless editor import exited 0 with no diagnostic line.
-- All 15 permitted contracts exited 0 with no failure or runtime diagnostic.
+- All 15 weapon/adjacent contracts plus two post-merge Vision runs exited 0
+  with no failure or runtime diagnostic.
 - Git diff checks passed and the task-specific diff has no add-on source.
-- Task 5.3 remains checked; task 5.4 remains unchecked. Accepted task 8.10 and
-  prior accepted tasks remain checked after the exact-main integration.
+- Task 5.3 and Task 6.1 remain checked; task 5.4 remains unchecked. Accepted
+  task 8.11 and prior accepted tasks remain checked after exact-main integration.
 - Strict change validation returned Valid.
 - No UI, viewport, compact, responsive, visual, capture, or screen-size test ran.
 
