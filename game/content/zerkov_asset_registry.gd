@@ -1330,6 +1330,10 @@ func _source_path_for_entry(entry: Dictionary) -> String:
 func _image_dimensions(path: String) -> Vector2i:
 	if path.is_empty():
 		return Vector2i.ZERO
+	if path.get_extension().to_lower() == "svg":
+		var texture := ResourceLoader.load(path, "Texture2D", ResourceLoader.CACHE_MODE_IGNORE) as Texture2D
+		if texture != null:
+			return texture.get_size()
 	var image := Image.new()
 	if image.load(path) != OK:
 		return Vector2i.ZERO

@@ -560,6 +560,7 @@ func _test_tilemap_polygon_bounds(tile_set: TileSet) -> void:
 					var occluder_points := _translated_points(cell_center, occluder.get_polygon())
 					check(_rect_approx(_points_bounds(occluder_points), _cell_rect(cell)),
 						"mapped occluder polygon bounds equal its world cell: " + tile_id)
+	layer.free()
 	check(navigation_count == 11, "TileMapLayer validates all eleven navigation polygons")
 	check(collision_count == 6, "TileMapLayer validates all six collision polygons")
 	check(occluder_count == 4, "TileMapLayer validates all four occluder polygons")

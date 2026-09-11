@@ -65,10 +65,24 @@ Command:
 godot --headless --path . --audio-driver Dummy --script res://tests/raid/sawmill_tileset_contract.gd
 ```
 
+The permanent two-run log gate is:
+
+```text
+python3 tests/tooling/run_sawmill_tileset_headless_gate.py
+```
+
 Observed result after repair:
 
 ```text
 SAWMILL_TILESET_RESULT checks=1319 failures=0 tiles=16 alternatives=2 cache_mode=ignore source_asset=zerkov.asset.world.sawmill.greybox_atlas source_status=available
+```
+
+The gate runs the contract twice in isolated Godot processes and rejects any
+`ERROR:`, `WARNING:`, script error, leak, assertion, or in-use-resource line.
+Observed gate result:
+
+```text
+SAWMILL_TILESET_HEADLESS_GATE runs=2 checks=2638 failures=0 diagnostics=0
 ```
 
 The contract performs two distinct `ResourceLoader.CACHE_MODE_IGNORE` loads and
@@ -77,9 +91,9 @@ fail-before probes for zero native coordinates, missing TileData, navigation,
 collision, terrain, and custom-data surfaces, and confirms the repaired
 resource has no findings. It uses a TileMapLayer and `map_to_local()` to check
 world bounds rather than accepting untransformed resource-local geometry. The
-registry contract was also run headlessly with zero validation failures; Godot
-may print its existing SVG image-dimension warning while checking the imported
-source.
+registry contract was also run headlessly with zero validation failures. SVG
+dimension checks use the imported `Texture2D` resource, so the Sawmill contract
+has no engine diagnostics at shutdown.
 
 No UI, viewport, capture, visual, responsive, compact, or alternate-size test
 was run. The exact 1920x1080 visual path was not necessary for this source-only
