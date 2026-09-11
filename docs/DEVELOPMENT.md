@@ -112,15 +112,20 @@ The game-owned profile boundary is documented in
 [`game/profile/README.md`](../game/profile/README.md). Its promoted contract
 covers canonical bytes, strict malformed/tampered input rejection, primary and
 backup precedence, write-free exact replay, version-1 equal
-generation/revision lineage, monotonic CAS, temp and backup rotation, the full
+generation/revision lineage, monotonic CAS, and a fail-closed migration barrier
+for structurally recognizable unsupported schema/version/codec copies in
+either slot. Unsupported load/save/replay receipts are immutable, preserve both
+copies byte-for-byte, and perform reads only; migration remains an explicit
+future operation. The contract also covers temp and backup rotation, the full
 file-durability/replace-result/directory-sync cross-product, recursively
-read-only public results, real symlink rejection, a restart-like host filesystem
-flow, synchronized concurrent lease acquisition, same-store operation
-admission, and close-during-save lease retention. Thread joins are bounded. A
-named zero-failure result and a clean diagnostics scan are both required:
+read-only public results, normal recovery of malformed supported-version data,
+real symlink rejection, a restart-like host filesystem flow, synchronized
+concurrent lease acquisition, same-store operation admission, and
+close-during-save lease retention. Thread joins are bounded. A named
+zero-failure result and a clean diagnostics scan are both required:
 
 ```text
-PROFILE_STORE_RESULT checks=439 failures=0
+PROFILE_STORE_RESULT checks=527 failures=0
 ```
 
 The production Godot adapter writes and flushes a same-directory temp before

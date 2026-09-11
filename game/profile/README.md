@@ -25,6 +25,18 @@ returns `false` with
 `profile_store_operation_active` or `profile_store_configuration_active` when
 teardown races work that still owns the store.
 
+A canonical dictionary with the required typed format header and matching
+profile identity is structurally recognizable even when its declared envelope
+schema, version, payload schema, codec, or digest algorithm is unsupported. If
+either primary or backup contains such a format, `ProfileStore` returns
+`load_blocked_unsupported_format` or `write_blocked_unsupported_format` with
+`profile_format_unsupported`, `unsupported_format=true`, and
+`migration_required=true`. It still reads both copies for bounded diagnostics,
+but load, ordinary save, and exact replay perform no write, rotation, cleanup,
+or sync and preserve every slot byte-for-byte. A future version-aware migration
+tool or newer game build must transform or explicitly retire those bytes;
+automatic migration is outside task 7.9.
+
 Production callers cannot provide a path. The default adapter maps a validated
 profile identity to a domain-separated SHA-256 filename below the fixed
 `user://zerkov/profile_store/profiles/` root. The separately named
@@ -50,6 +62,12 @@ Version-1 copies with unequal generation/revision counters are invalid before
 selection, even if their checksum and fingerprint were recomputed. Unsafe
 filesystem objects and I/O uncertainty fail closed.
 
+Malformed or corrupt copies that declare the supported version-1 format remain
+eligible for ordinary backup recovery. The unsupported-format barrier is
+reserved for a structurally recognizable header belonging to this profile; it
+does not turn checksum/fingerprint failure, truncation, malformed current-format
+fields, or foreign-profile bytes into a migration request.
+
 Write results distinguish:
 
 - `pre_commit_failed`: the candidate did not replace primary;
@@ -60,6 +78,8 @@ Write results distinguish:
 - `committed_recovery_required`: replacement occurred but read-back could not
   prove the committed candidate;
 - `replayed_exact_write`: the exact candidate was already committed.
+- `write_blocked_unsupported_format`: a recognized unsupported copy requires
+  explicit migration; no storage mutation ran.
 
 All public load/save receipts and capability dictionaries are recursively
 read-only snapshots, including admission failures returned by racing calls.

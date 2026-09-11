@@ -32,6 +32,8 @@ const MAX_COUNTER: int = ProfileCanonicalCodec.MAX_ABS_INTEGER
 const LOAD_PRIMARY: StringName = &"loaded_primary"
 const LOAD_RECOVERED_BACKUP: StringName = &"recovered_backup"
 const LOAD_FAILED: StringName = &"load_failed"
+const LOAD_BLOCKED_UNSUPPORTED_FORMAT: StringName = \
+	&"load_blocked_unsupported_format"
 
 const WRITE_COMMITTED_DURABLE: StringName = &"committed_durable"
 const WRITE_COMMITTED_DURABILITY_UNCERTAIN: StringName = \
@@ -40,6 +42,9 @@ const WRITE_COMMITTED_RECOVERY_REQUIRED: StringName = \
 	&"committed_recovery_required"
 const WRITE_REPLAYED: StringName = &"replayed_exact_write"
 const WRITE_PRE_COMMIT_FAILED: StringName = &"pre_commit_failed"
+const WRITE_BLOCKED_UNSUPPORTED_FORMAT: StringName = \
+	&"write_blocked_unsupported_format"
+const PROFILE_FORMAT_UNSUPPORTED: StringName = &"profile_format_unsupported"
 
 const _ENVELOPE_KEYS: PackedStringArray = [
 	"checksum_algorithm",
@@ -160,7 +165,9 @@ func storage_capabilities() -> Dictionary:
 ## Loads no default. Primary and backup are read and validated independently.
 ## A corrupt or missing primary may fall back to a valid backup, but unsafe
 ## filesystem objects, I/O uncertainty, or divergent equal generations fail
-## closed even if one candidate appears valid.
+## closed even if one candidate appears valid. A structurally recognizable
+## unsupported format in either slot is a migration barrier and cannot fall
+## back to or overwrite an older supported copy.
 func load_profile() -> Dictionary:
 	var admission_reason := _begin_operation()
 	if not admission_reason.is_empty():
@@ -186,6 +193,8 @@ func load_profile() -> Dictionary:
 		"ok": true,
 		"status": LOAD_RECOVERED_BACKUP if recovered else LOAD_PRIMARY,
 		"reason": recovery_reason,
+		"unsupported_format": false,
+		"migration_required": false,
 		"source": selected["slot"],
 		"recovered_backup": recovered,
 		"profile_id": envelope["profile_id"],
@@ -205,7 +214,8 @@ func load_profile() -> Dictionary:
 ## profile revision must match that generation and therefore advance exactly
 ## once. Replaying the exact payload, expected generation, and revision reads
 ## both copies for validation, but performs no write or storage mutation. A
-## divergent candidate at that generation fails closed.
+## divergent candidate at that generation fails closed. An unsupported-format
+## barrier also blocks ordinary saves and exact replay without touching storage.
 func save_profile(
 	payload: Dictionary,
 	expected_generation: int,
@@ -427,6 +437,15 @@ func _read_selection() -> Dictionary:
 	var primary := _read_candidate(ProfileFileOperations.SLOT_PRIMARY)
 	var backup := _read_candidate(ProfileFileOperations.SLOT_BACKUP)
 	for candidate in [primary, backup]:
+		if (candidate as Dictionary).get("state", &"") == &"unsupported":
+			return {
+				"ok": false,
+				"reason": PROFILE_FORMAT_UNSUPPORTED,
+				"unsupported_format": true,
+				"primary": primary,
+				"backup": backup,
+			}
+	for candidate in [primary, backup]:
 		var state := StringName((candidate as Dictionary).get("state", &"io_error"))
 		if state == &"unsafe" or state == &"io_error":
 			return {
@@ -500,6 +519,14 @@ func _read_candidate(slot: StringName) -> Dictionary:
 	var bytes := read.get("bytes", PackedByteArray()) as PackedByteArray
 	var decoded := _decode_envelope(bytes)
 	if not bool(decoded.get("ok", false)):
+		if bool(decoded.get("unsupported_format", false)):
+			return {
+				"slot": slot,
+				"state": &"unsupported",
+				"reason": StringName(decoded.get(
+					"reason", &"envelope_format_unsupported")),
+				"format": decoded.get("format", {}),
+			}
 		return {
 			"slot": slot,
 			"state": &"invalid",
@@ -574,6 +601,9 @@ func _decode_envelope(bytes: PackedByteArray) -> Dictionary:
 	if typeof(decoded.get("value")) != TYPE_DICTIONARY:
 		return {"ok": false, "reason": &"envelope_type_invalid"}
 	var envelope := decoded["value"] as Dictionary
+	var format_probe := _probe_envelope_format(envelope)
+	if bool(format_probe.get("unsupported_format", false)):
+		return format_probe
 	if not _has_exact_keys(envelope, _ENVELOPE_KEYS):
 		return {"ok": false, "reason": &"envelope_fields_invalid"}
 	for string_field in [
@@ -587,16 +617,11 @@ func _decode_envelope(bytes: PackedByteArray) -> Dictionary:
 			or typeof(envelope["revision"]) != TYPE_INT \
 			or typeof(envelope["payload"]) != TYPE_DICTIONARY:
 		return {"ok": false, "reason": &"envelope_field_type_invalid"}
-	if envelope["schema"] != ENVELOPE_SCHEMA \
-			or envelope["version"] != ENVELOPE_VERSION \
-			or envelope["payload_schema"] != PAYLOAD_SCHEMA \
-			or envelope["codec"] != ProfileCanonicalCodec.FORMAT:
-		return {"ok": false, "reason": &"envelope_version_unsupported"}
 	if envelope["profile_id"] != _profile_id:
 		return {"ok": false, "reason": &"profile_identity_mismatch"}
-	if envelope["checksum_algorithm"] != CHECKSUM_ALGORITHM \
-			or envelope["fingerprint_algorithm"] != FINGERPRINT_ALGORITHM:
-		return {"ok": false, "reason": &"digest_algorithm_unsupported"}
+	var unsupported_reason := _unsupported_format_reason(envelope)
+	if not unsupported_reason.is_empty():
+		return _unsupported_format_result(envelope, unsupported_reason)
 	var generation := envelope["generation"] as int
 	var revision := envelope["revision"] as int
 	if generation <= 0 or generation > MAX_COUNTER \
@@ -630,6 +655,61 @@ func _decode_envelope(bytes: PackedByteArray) -> Dictionary:
 	if not _digest_equal(envelope["fingerprint"] as String, expected_fingerprint):
 		return {"ok": false, "reason": &"envelope_fingerprint_mismatch"}
 	return {"ok": true, "reason": &"", "envelope": envelope}
+
+
+func _probe_envelope_format(envelope: Dictionary) -> Dictionary:
+	for string_field in [
+		"checksum_algorithm", "codec", "fingerprint_algorithm",
+		"payload_schema", "profile_id", "schema",
+	]:
+		if not envelope.has(string_field) \
+				or typeof(envelope[string_field]) != TYPE_STRING:
+			return {"unsupported_format": false}
+	if not envelope.has("version") or typeof(envelope["version"]) != TYPE_INT:
+		return {"unsupported_format": false}
+	# A foreign profile is misplaced/corrupt data, not a migration barrier for
+	# this profile. A recognizable header for this profile is a barrier when any
+	# declared format component is unsupported, even if a valid older copy exists.
+	if envelope["profile_id"] != _profile_id:
+		return {"unsupported_format": false}
+	var reason := _unsupported_format_reason(envelope)
+	if reason.is_empty():
+		return {"unsupported_format": false}
+	return _unsupported_format_result(envelope, reason)
+
+
+static func _unsupported_format_reason(envelope: Dictionary) -> StringName:
+	if envelope["schema"] != ENVELOPE_SCHEMA:
+		return &"envelope_schema_unsupported"
+	if envelope["version"] != ENVELOPE_VERSION:
+		return &"envelope_version_unsupported"
+	if envelope["payload_schema"] != PAYLOAD_SCHEMA:
+		return &"payload_schema_unsupported"
+	if envelope["codec"] != ProfileCanonicalCodec.FORMAT:
+		return &"envelope_codec_unsupported"
+	if envelope["checksum_algorithm"] != CHECKSUM_ALGORITHM \
+			or envelope["fingerprint_algorithm"] != FINGERPRINT_ALGORITHM:
+		return &"digest_algorithm_unsupported"
+	return &""
+
+
+static func _unsupported_format_result(
+	envelope: Dictionary,
+	reason: StringName
+) -> Dictionary:
+	return {
+		"ok": false,
+		"unsupported_format": true,
+		"reason": reason,
+		"format": {
+			"schema": envelope.get("schema", ""),
+			"version": envelope.get("version", 0),
+			"payload_schema": envelope.get("payload_schema", ""),
+			"codec": envelope.get("codec", ""),
+			"checksum_algorithm": envelope.get("checksum_algorithm", ""),
+			"fingerprint_algorithm": envelope.get("fingerprint_algorithm", ""),
+		},
+	}
 
 
 func _validate_payload(payload: Dictionary) -> Dictionary:
@@ -895,10 +975,14 @@ static func _write_failure(
 	cleanup: Dictionary = {},
 	backup_rotation: Dictionary = {}
 ) -> Dictionary:
+	var unsupported_format := reason == PROFILE_FORMAT_UNSUPPORTED
 	return _freeze({
 		"ok": false,
-		"status": WRITE_PRE_COMMIT_FAILED,
+		"status": WRITE_BLOCKED_UNSUPPORTED_FORMAT \
+			if unsupported_format else WRITE_PRE_COMMIT_FAILED,
 		"reason": reason,
+		"unsupported_format": unsupported_format,
+		"migration_required": unsupported_format,
 		"committed": false,
 		"write_performed": false,
 		"durable": false,
@@ -929,6 +1013,8 @@ static func _write_success(
 		"ok": status != WRITE_COMMITTED_RECOVERY_REQUIRED,
 		"status": status,
 		"reason": reason,
+		"unsupported_format": false,
+		"migration_required": false,
 		"committed": committed,
 		"write_performed": committed and not replayed,
 		"durable": status == WRITE_COMMITTED_DURABLE,
@@ -951,10 +1037,14 @@ static func _write_success(
 
 
 static func _load_failure(reason: StringName, details: Dictionary = {}) -> Dictionary:
+	var unsupported_format := reason == PROFILE_FORMAT_UNSUPPORTED
 	return _freeze({
 		"ok": false,
-		"status": LOAD_FAILED,
+		"status": LOAD_BLOCKED_UNSUPPORTED_FORMAT \
+			if unsupported_format else LOAD_FAILED,
 		"reason": reason,
+		"unsupported_format": unsupported_format,
+		"migration_required": unsupported_format,
 		"recovered_backup": false,
 		"details": details,
 	}) as Dictionary

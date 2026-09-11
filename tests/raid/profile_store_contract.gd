@@ -294,6 +294,7 @@ func run() -> void:
 	_test_canonical_codec()
 	_test_identity_and_writer_boundary()
 	_test_public_result_immutability()
+	_test_unsupported_format_blocks_downgrade()
 	_test_concurrent_lease_and_operation_admission()
 	_test_initial_save_load_replay_and_rotation()
 	_test_validation_and_recovery_precedence()
@@ -453,6 +454,154 @@ func _test_public_result_immutability() -> void:
 	check(_is_recursively_read_only(configured_capabilities),
 		"configured storage capabilities are recursively read-only")
 	check(store.close(), "immutability probe releases its lease")
+
+
+func _test_unsupported_format_blocks_downgrade() -> void:
+	var fixture := _two_generation_fixture("unsupported_format_source")
+	var fixture_ops := fixture["ops"] as FakeFileOperations
+	var supported_two := (fixture_ops.slots[FileOps.SLOT_PRIMARY] as PackedByteArray) \
+		.duplicate()
+	var supported_one := (fixture_ops.slots[FileOps.SLOT_BACKUP] as PackedByteArray) \
+		.duplicate()
+	(fixture["store"] as ProfileStore).close()
+
+	var cases: Array[Dictionary] = [
+		{
+			"label": "version",
+			"reason": &"envelope_version_unsupported",
+			"mutation": func(envelope: Dictionary) -> void:
+				envelope["version"] = Store.ENVELOPE_VERSION + 1
+				envelope["future_header_extension"] = "preserve-me",
+		},
+		{
+			"label": "schema",
+			"reason": &"envelope_schema_unsupported",
+			"mutation": func(envelope: Dictionary) -> void:
+				envelope["schema"] = "zerkov.profile.envelope.future",
+		},
+		{
+			"label": "codec",
+			"reason": &"envelope_codec_unsupported",
+			"mutation": func(envelope: Dictionary) -> void:
+				envelope["codec"] = "zerkov.profile.canonical-value.v2",
+		},
+	]
+	for case in cases:
+		var mutation: Callable = case["mutation"]
+		var unsupported_bytes := _mutate_envelope_and_recompute_fingerprint(
+			supported_two, mutation)
+		for unsupported_slot in [FileOps.SLOT_PRIMARY, FileOps.SLOT_BACKUP]:
+			var label := "unsupported_%s_%s" % [case["label"], unsupported_slot]
+			var primary_bytes := unsupported_bytes \
+				if unsupported_slot == FileOps.SLOT_PRIMARY else supported_one
+			var backup_bytes := unsupported_bytes \
+				if unsupported_slot == FileOps.SLOT_BACKUP else supported_one
+			var ops := _ops_with(label, primary_bytes, backup_bytes)
+			var store := _open_store(ops)
+			ops.slots[FileOps.SLOT_WRITE_TEMP] = PackedByteArray([0xa1, 0x01])
+			ops.slots[FileOps.SLOT_BACKUP_TEMP] = PackedByteArray([0xb2, 0x02])
+			var original_primary := (ops.slots[FileOps.SLOT_PRIMARY] as PackedByteArray) \
+				.duplicate()
+			var original_backup := (ops.slots[FileOps.SLOT_BACKUP] as PackedByteArray) \
+				.duplicate()
+			var original_write_temp := (ops.slots[FileOps.SLOT_WRITE_TEMP] as PackedByteArray) \
+				.duplicate()
+			var original_backup_temp := (ops.slots[FileOps.SLOT_BACKUP_TEMP] as PackedByteArray) \
+				.duplicate()
+			ops.calls.clear()
+
+			var load_result := store.load_profile()
+			check(not bool(load_result.get("ok", true)) \
+				and load_result.get("status", &"") \
+					== Store.LOAD_BLOCKED_UNSUPPORTED_FORMAT \
+				and load_result.get("reason", &"") == Store.PROFILE_FORMAT_UNSUPPORTED \
+				and bool(load_result.get("unsupported_format", false)) \
+				and bool(load_result.get("migration_required", false)) \
+				and not bool(load_result.get("recovered_backup", true)),
+				"recognized unsupported %s in %s blocks load instead of fallback" \
+				% [case["label"], unsupported_slot])
+			var details := load_result.get("details", {}) as Dictionary
+			var candidate_key := "primary" \
+				if unsupported_slot == FileOps.SLOT_PRIMARY else "backup"
+			var unsupported_candidate := details.get(candidate_key, {}) as Dictionary
+			check(unsupported_candidate.get("state", &"") == &"unsupported" \
+				and unsupported_candidate.get("reason", &"") == case["reason"],
+				"blocked load identifies the unsupported %s header in %s" \
+				% [case["label"], unsupported_slot])
+			check(_is_recursively_read_only(load_result),
+				"blocked unsupported load receipt is recursively read-only: " + label)
+
+			var save_result := store.save_profile(
+				_payload(222, PackedByteArray([2, 2, 2])), 1, 2)
+			check(_is_unsupported_write_result(save_result),
+				"unsupported %s in %s blocks a next-generation save" \
+				% [case["label"], unsupported_slot])
+			check(_is_recursively_read_only(save_result),
+				"blocked unsupported save receipt is recursively read-only: " + label)
+
+			var replay_result := store.save_profile(
+				_payload(100, PackedByteArray([1])), 0, 1)
+			check(_is_unsupported_write_result(replay_result),
+				"unsupported %s in %s blocks replay of the older valid copy" \
+				% [case["label"], unsupported_slot])
+			check(_is_recursively_read_only(replay_result),
+				"blocked unsupported replay receipt is recursively read-only: " + label)
+
+			check((ops.slots[FileOps.SLOT_PRIMARY] as PackedByteArray) == original_primary \
+				and (ops.slots[FileOps.SLOT_BACKUP] as PackedByteArray) == original_backup \
+				and (ops.slots[FileOps.SLOT_WRITE_TEMP] as PackedByteArray) \
+					== original_write_temp \
+				and (ops.slots[FileOps.SLOT_BACKUP_TEMP] as PackedByteArray) \
+					== original_backup_temp,
+				"blocked unsupported operations preserve all four slots byte-for-byte: " \
+				+ label)
+			check(ops.calls.size() == 6 and ops.calls.all(func(call: String) -> bool:
+				return call.begins_with("read:")),
+				"blocked unsupported load/save/replay perform only six independent reads: " \
+				+ label)
+			check(store.close(), "unsupported-format store releases its lease: " + label)
+
+	# The barrier has no hidden latch. Once an external future migration replaces
+	# the unsupported bytes with a malformed current-format copy, ordinary
+	# supported-version backup recovery and saving work exactly as before.
+	var migrated_ops := _ops_with(
+		"unsupported_then_migrated",
+		_mutate_envelope_and_recompute_fingerprint(
+			supported_two, func(envelope: Dictionary) -> void:
+				envelope["version"] = Store.ENVELOPE_VERSION + 1),
+		supported_one)
+	var migrated_store := _open_store(migrated_ops)
+	var initially_blocked := migrated_store.load_profile()
+	check(initially_blocked.get("status", &"") \
+		== Store.LOAD_BLOCKED_UNSUPPORTED_FORMAT,
+		"future-format copy initially blocks the migration fixture")
+	migrated_ops.slots[FileOps.SLOT_PRIMARY] = _mutate_envelope(
+		supported_two, func(envelope: Dictionary) -> void:
+			envelope["unexpected_current_field"] = true)
+	var recovered := migrated_store.load_profile()
+	check(bool(recovered.get("ok", false)) \
+		and recovered.get("status", &"") == Store.LOAD_RECOVERED_BACKUP \
+		and int(recovered.get("generation", 0)) == 1 \
+		and (recovered.get("primary_validation", {}) as Dictionary) \
+			.get("reason", &"") == &"envelope_fields_invalid",
+		"externally migrated current-format corruption still recovers the valid backup")
+	var resumed_save := migrated_store.save_profile(
+		_payload(130, PackedByteArray([7, 8])), 1, 2)
+	check(bool(resumed_save.get("committed", false)) \
+		and int(resumed_save.get("generation", 0)) == 2,
+		"normal supported-version saving resumes after external migration")
+	check(migrated_store.close(), "post-migration recovery store releases its lease")
+
+
+func _is_unsupported_write_result(result: Dictionary) -> bool:
+	return not bool(result.get("ok", true)) \
+		and result.get("status", &"") == Store.WRITE_BLOCKED_UNSUPPORTED_FORMAT \
+		and result.get("reason", &"") == Store.PROFILE_FORMAT_UNSUPPORTED \
+		and bool(result.get("unsupported_format", false)) \
+		and bool(result.get("migration_required", false)) \
+		and not bool(result.get("committed", true)) \
+		and not bool(result.get("write_performed", true)) \
+		and not bool(result.get("replayed", true))
 
 
 func _test_concurrent_lease_and_operation_admission() -> void:
