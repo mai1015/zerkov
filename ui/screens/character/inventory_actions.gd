@@ -16,6 +16,7 @@ var _compatibility_key: String = "7.62x39"
 var _current_filter: String = "all"
 var _search_query: String = ""
 var _loot_mode: bool = false
+var _loot_container_open: bool = false
 var _selected_container: String = "backpack"
 var _tip_source: String = "stash"
 var _compact_section: String = "loadout"
@@ -366,15 +367,47 @@ func _set_filter(filter_name: String) -> void:
 
 
 func _set_loot_mode(show_loot: bool) -> void:
-    _loot_mode = show_loot
+    if show_loot:
+        _open_loot_container()
+    else:
+        _close_loot_container(false)
     if not _live_inventory_binding:
         _current_filter = "all"
         _search_query = ""
-        _state()["inventory_loot_mode"] = show_loot
-        _state()["inventory_filter"] = "all"
-        _state()["inventory_search"] = ""
+        _state()["inventory_loot_mode"] = _loot_mode
+        _state()["inventory_filter"] = _current_filter
+        _state()["inventory_search"] = _search_query
     _refresh_body()
-    _notify("Showing " + ("loot container" if show_loot else "stash"))
+    _notify("Showing " + ("loot container" if _loot_mode else "stash"))
+
+
+func _open_loot_container() -> void:
+    _loot_mode = true
+    _loot_container_open = true
+    if _live_inventory_binding:
+        _binding_token_serial += 1
+        _active_binding_token = _binding_token_serial
+        if _inventory_controller != null:
+            _inventory_controller.open_loot_container()
+    _cancel_split_quantity()
+    _close_tip()
+
+
+func _close_loot_container(refresh: bool = true) -> void:
+    if _live_inventory_binding and _inventory_controller != null:
+        _inventory_controller.close_loot_container()
+    _loot_container_open = false
+    _loot_mode = false
+    if _live_inventory_binding:
+        _binding_token_serial += 1
+        _active_binding_token = _binding_token_serial
+    _cancel_split_quantity()
+    _close_tip()
+    if refresh:
+        _refresh_body()
+        var stash_tab: Button = call("_node", "StashTab") as Button if has_method("_node") else null
+        if stash_tab != null:
+            stash_tab.call_deferred("grab_focus")
 
 
 func _on_grid_hovered(item: Dictionary, hovering: bool, _grid: Control) -> void:
@@ -929,6 +962,8 @@ func bind_inventory_runtime(owner, bridge, adapter, admission) -> bool:
     _interaction_restore_serial += 1
     _active_binding_token = 0
     _live_inventory_binding = true
+    _loot_mode = false
+    _loot_container_open = false
     _selected_live_item = {}
     _selected_live_source = ""
     _close_tip()
@@ -982,6 +1017,7 @@ func unbind_inventory_runtime() -> void:
             _inventory_controller.disconnect(signal_name, callback)
     _inventory_controller.unbind()
     _live_inventory_binding = false
+    _loot_container_open = false
     _selected_live_item = {}
     _selected_live_source = ""
     _close_tip()
@@ -1056,6 +1092,9 @@ func _on_live_binding_invalidated(reason: StringName) -> void:
     # generation change. Falling back to app.state here would expose fixture
     # identity and re-enable mutations while the authority is disconnected.
     _active_binding_token = 0
+    # Keep an already-open loot tab visible as DISCONNECTED so the retained
+    # workspace does not silently fall back to fixture identity.  New gestures
+    # remain fail-closed through the controller's binding checks.
     _cancel_split_quantity()
     _notify("Inventory disconnected · " + str(reason))
     _refresh_body()
