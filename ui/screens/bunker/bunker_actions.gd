@@ -309,11 +309,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				for entry in _craft_queue().duplicate():
 					if int(entry.get("finish_at", 0)) <= Time.get_ticks_msec(): _on_collect_queue(str(entry["id"]))
 			else: handled = false
-		KEY_TAB:
-			go("bunker" if _route == "session" else "inventory")
-		KEY_ESCAPE:
-			go("bunker" if _route in ["crafting", "build_mode"] else "pause")
-		KEY_M: go("maps")
 		_: handled = false
 	if handled: viewport.set_input_as_handled()
 
