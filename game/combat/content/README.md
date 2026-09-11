@@ -43,9 +43,14 @@ Before native activation it also rejects stale per-grant command sequences,
 runs the public side-effect-free effect preflight, and holds a per-component
 guard so a synchronous native change notification cannot reenter the seam and
 enqueue a second helper-owned mutation. If a notification from another native
-operation causes the add-on to queue a request, the seam reserves projected
-attribute headroom and command sequence before another request can be admitted.
-Its receipt reports zero applied work until public activation-lifecycle signals
+operation is delivering notifications, the seam probes the native mutation
+queue through its public task-transition API at the already-admitted tick. A
+full queue is rejected synchronously without exposing the request's future tick
+or reserving headroom. Otherwise the seam reserves projected attribute
+headroom, command sequence and tick, then dispatches the real ability activation
+from its bounded game-owned queue after native notification delivery. Calls
+arriving behind a reservation join that queue instead of overtaking it. Each
+receipt reports zero applied work until public activation-lifecycle signals
 settle it, and `bounded_application_receipt()` exposes that terminal result.
 The bounded receipt ID is process-local admission bookkeeping, not the stable
 combat-consequence identity which remains task 5.6-owned.

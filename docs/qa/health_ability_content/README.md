@@ -14,9 +14,11 @@ eligibility policy, post-gameplay initialization replay, catalog provenance,
 60 Hz rejection, stale/future command fail-atomicity across both canonical
 bytes and the wrapper tick watermark, reentrant-notification rejection before
 native queue admission, bounded reservations and terminal receipts for foreign
-native notification queues, deterministic snapshots, adjacent equipment/combat
-regressions, combined add-on loading, strict spec validation and an error-free
-editor import.
+native notification queues, public-API capacity probing that preserves the
+native tick/sequence watermark at all 64 saturated mutation slots, game-owned
+deferred activation ordering, an 80-attempt reservation stress case,
+deterministic snapshots, adjacent equipment/combat regressions, combined add-on
+loading, strict spec validation and an error-free editor import.
 
 Run the implementation validation from the repository root:
 
