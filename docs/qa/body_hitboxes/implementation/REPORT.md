@@ -81,6 +81,26 @@ Exact commands and result lines are retained in sibling log files. Source
 hashes are in `frozen_sources.sha256`; `packet.sha256` seals this evidence
 directory after the report is finalized.
 
+## Mainline task 5.2 integration verification
+
+Recorded: `2026-09-11T03:44:19Z`
+
+Mainline commit `f94222068ec398e4480e049563c496cedb13ff41` was merged by
+`adbcfe7b06b342e13334ea7bd0e9fb8cd46ec1d8`. The automatic merge retained
+task 5.2's phase-ordered weapon actor context and added only task 5.3's
+side-effect-free authorization port relative to mainline `RaidAuthority`.
+Relative to the repaired task 5.3 parent, the merge added task 5.2's weapon
+context implementation without changing body-hitbox sources or contracts.
+
+Fresh post-merge verification ran the headless editor import first, then only
+the three focused task 5.2 domain contracts and three focused task 5.3 domain
+contracts. Task 5.2 passed `398/0`; task 5.3 passed `337/0`; strict change
+validation returned `Valid`; diagnostic and diff checks were clean. See
+`integration_f942220.log` for the exact commands and result lines. No UI,
+viewport, visual, composition, inventory UI, or screen-size suite was run.
+The `RaidAuthority` source seal was refreshed to bind the accepted merged
+5.2/5.3 authority surface.
+
 ## Deliberate limits / follow-up boundaries
 
 - This remains the offline deterministic spatial-fact boundary. Task 5.4 must

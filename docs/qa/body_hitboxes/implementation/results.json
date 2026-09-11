@@ -35,5 +35,24 @@
     "runtime_capture",
     "screen_size"
   ],
+  "integration": {
+    "recorded_at": "2026-09-11T03:44:19Z",
+    "merged_main": "f94222068ec398e4480e049563c496cedb13ff41",
+    "merge_commit": "adbcfe7b06b342e13334ea7bd0e9fb8cd46ec1d8",
+    "task_5_2_focused": {
+      "weapon_instance_context": {"checks": 306, "failures": 0},
+      "weapon_instance_context_adversarial": {"checks": 49, "failures": 0},
+      "weapon_persistence_integration": {"checks": 43, "failures": 0}
+    },
+    "task_5_3_focused": {
+      "body_hitbox_contract": {"checks": 111, "failures": 0},
+      "body_hitbox_adversarial_contract": {"checks": 173, "failures": 0},
+      "body_hitbox_review_regression_contract": {"checks": 53, "failures": 0}
+    },
+    "raw_checks": 735,
+    "failures": 0,
+    "diagnostic_matches": 0,
+    "ui_or_viewport_tests_run": false
+  },
   "strict_spec_validation": "Valid"
 }
