@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-11T01:02:19Z
+updated_at: 2026-09-11T01:38:17Z
 completed_at:
 ---
 
@@ -461,7 +461,7 @@ tests; real-data screenshot matrix; zero production mock-state references.
 
 ## 9. Art, animation, VFX and audio
 
-- [ ] 9.1 `[LUNA]` Create a curated asset registry with source provenance,
+- [x] 9.1 `[LUNA]` Create a curated asset registry with source provenance,
   runtime aliases, frame/atlas metadata, filtering and license fields.
 - [ ] 9.2 `[LUNA]` Add import presets/tests that keep pixel sprites nearest,
   backgrounds appropriately filtered and every `DO NOT USE` path excluded.
@@ -487,6 +487,18 @@ tests; real-data screenshot matrix; zero production mock-state references.
 
 Evidence: asset-registry validation; no forbidden imports; approved animation
 sheet; pooled-effects stress run; labeled visual/audio review evidence.
+
+Completed task evidence (9.1, 2026-09-10): the accepted registry contains 74
+stable entries and aliases, 62 verified runtime hashes, 22 verified local-source
+hashes, 12 explicitly pending entries and seven dimension-checked atlas
+declarations. The focused contract passed `1425/0`; the original independent
+adversarial probe passed `26/0`, loader probe `13/0` and integer matrix `20/0`.
+A deliberate restoration of the approximate-integer bug made ten permanent
+tests fail. Six 1920x1080 UI background sources resolve with matching bytes;
+the Sawmill source is honestly registered as a nearest-filtered prop sheet.
+Three distribution-license blockers and pre-existing Level Task source drift
+remain disclosed. This completes registry metadata only; import policy and
+slicing remain tasks 9.2 and 9.3. See `docs/qa/asset_registry/README.md`.
 
 ## 10. Multiplayer, security and release readiness
 
