@@ -144,8 +144,11 @@ conditional replacement paths, and function headers are parsed with balanced
 parentheses so nested defaults cannot hide an Image/Variant sibling. An image
 obtained through a property, index, or non-fresh call retains its owner as
 tainted; retained owner-derived sibling aliases and callables are also tainted
-before the save. Direct typed, untyped, and cast aliases remain valid when that
-alias is itself proven and saved.
+before the save. Before the proof, that owner may initialize only the protected
+direct image local/alias: publishing it through a qualified member, index,
+container, global/member, callable, or unrelated local fails closed. Direct
+typed, untyped, and cast aliases remain valid when that alias is itself proven
+and saved.
 
 Four active sources had an already-present root predicate separated from their
 selected image proof: `ui/main.gd`, `tests/ui_component_states.gd`,
@@ -163,7 +166,7 @@ to be exactly `raise SystemExit(<one constant str marker>)`: one unstarred
 positional string, no keywords, and no cause. Extra expressions, f-strings,
 comprehensions, calls, byte markers, and `from` clauses fail the static gate.
 
-Permanent controls now include 30 exact-write negatives, 33 pre-proof/reverse
+Permanent controls now include 30 exact-write negatives, 39 pre-proof/reverse
 origin negatives, six fresh-helper escape negatives, and 23 Python-retirement
 negatives. The source-policy checks remain 12 static tests and 15
 complete-tooling tests. Discovery remains 25 active GDScript runners, 35

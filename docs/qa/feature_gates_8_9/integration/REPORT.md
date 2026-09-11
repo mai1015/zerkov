@@ -176,7 +176,10 @@ Reverse provenance unions conditional initializers, parses nested parameter
 defaults structurally, and carries property/index/non-fresh-call owners through
 retained sibling aliases and callables. Every later owner access before the
 save fails closed unless it is a direct sibling-image read in the narrow
-allowlist. The proof itself permits only the selected image readback, inert
+allowlist. Before the proof, a tainted owner may only initialize the protected
+direct image local/alias; qualified properties, global members, indexes,
+containers, callables, and unrelated locals are rejected as retained owner
+channels. The proof itself permits only the selected image readback, inert
 exact constants, and approved helpers; typed properties and raw visible-rect
 expressions are not proof operands. Direct typed, untyped, and cast aliases
 remain covered positive controls when that alias is the proven/saved receiver.
@@ -195,7 +198,7 @@ keywords, calls, comprehensions, f-strings, byte markers, and any `from`
 clause are rejected before an entry point can be classified as retired.
 
 The source-policy suite remains 12 tests and complete tooling remains 15.
-Its permanent controls total 30 exact-write negatives, 33 pre-proof/reverse
+Its permanent controls total 30 exact-write negatives, 39 pre-proof/reverse
 origin negatives, six fresh-helper escape negatives, and 23 Python-retirement
 negatives. Discovery remains 25 active GDScript runners, 35 retired GDScript
 runners, 12 retired Python entry points, and 9 active PNG writers. The direct

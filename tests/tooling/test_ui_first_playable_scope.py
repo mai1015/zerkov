@@ -640,6 +640,87 @@ def has_preproof_image_escape(
     return False
 
 
+def has_preproof_tainted_owner_escape(
+    source: str, bases: frozenset[str], protected_image_aliases: frozenset[str],
+    direct_image_bases: frozenset[str], helpers: frozenset[str],
+) -> bool:
+    """Reject retaining a shared Image owner before its selected proof.
+
+    A property/index/callable may retain the owner of a property/index-derived
+    Image even when it never mentions the Image local.  Local provenance alone
+    cannot recover a later `self.retained_owner` or `self.later` access, so the
+    owner may appear before the proof only while directly initializing the
+    proven Image or one of its declared direct aliases.  Any other occurrence
+    is an escape and must fail closed before a later save.
+    """
+    owner_names = frozenset(name for name in bases if name != "*")
+    if not owner_names:
+        return False
+    logical_source = re.sub(
+        r"\\[ \t]*\r?\n[ \t]*", " ", gdscript_code(source)
+    )
+    local_assignment = re.compile(
+        r"^\s*(?P<declaration>var\s+)?(?P<target>[A-Za-z_]\w*)"
+        r"(?:\s*:\s*(?![=])[^=]+?)?\s*(?::=|=(?!=))\s*"
+        r"(?P<value>.*?)\s*$"
+    )
+    top_level_function = re.compile(r"^(?:static\s+)?func\b")
+    for raw in logical_source.splitlines():
+        code = strip_gdscript_comment(raw).strip()
+        if not code or (line_indent(raw) == 0 and top_level_function.match(code)):
+            continue
+        for statement in code.split(";"):
+            statement = statement.strip()
+            if not statement:
+                continue
+            assignment = local_assignment.fullmatch(statement)
+            target = assignment.group("target") if assignment else ""
+            value_start = assignment.start("value") if assignment else -1
+            target_start = assignment.start("target") if assignment else -1
+            for owner in owner_names:
+                for occurrence in re.finditer(
+                    rf"(?<![\w.]){re.escape(owner)}\b", statement,
+                ):
+                    if target == owner and occurrence.start() == target_start:
+                        # Replacing the local owner name cannot retain it.
+                        continue
+                    if target in protected_image_aliases \
+                            and occurrence.start() >= value_start:
+                        # This is the direct origin of the saved Image (or a
+                        # direct alias of it), not a retained owner channel.
+                        continue
+                    if owner in direct_image_bases:
+                        before = statement[:occurrence.start()]
+                        tail = statement[occurrence.end():]
+                        if re.match(r"\s*(?:==|!=)\s*null\b", tail) \
+                                or re.search(r"\bnull\s*(?:==|!=)\s*$", before):
+                            continue
+                        method = re.match(
+                            r"\s*\.\s*(?P<name>[A-Za-z_]\w*)\s*\(", tail
+                        )
+                        allowed_methods = PREPROOF_READONLY_IMAGE_METHODS \
+                            | FRESH_PROOF_IMAGE_MUTATOR_METHODS
+                        open_parenthesis = occurrence.end() + method.end() - 1 \
+                            if method else -1
+                        if method and method.group("name") in allowed_methods \
+                                and gdscript_call_arguments_are_inert(
+                                    statement, open_parenthesis
+                                ):
+                            continue
+                        if any(
+                            match.start("argument") == occurrence.start()
+                            for helper in helpers
+                            for match in re.finditer(
+                                rf"(?<![\w.]){re.escape(helper)}\s*\(\s*"
+                                rf"(?P<argument>{re.escape(owner)})\s*\)",
+                                statement,
+                            )
+                        ):
+                            continue
+                    return True
+    return False
+
+
 def gdscript_local_assignment_values(
     source: str, declared_only: bool = False,
 ) -> dict[str, tuple[str, ...]]:
@@ -1202,6 +1283,14 @@ def assert_exact_guard_before(
     testcase.assertNotIn(
         "*", tainted_bases,
         "saved Image has an unknown potentially shared initializer",
+    )
+    testcase.assertFalse(
+        has_preproof_tainted_owner_escape(
+            preproof_source, tainted_bases, aliases, direct_image_bases,
+            helpers,
+        ),
+        "a shared Image owner escapes into a property, container, callable "
+        "or unrelated local before the exact-frame proof",
     )
     testcase.assertTrue(
         is_readonly_exact_proof(proof_expression, aliases, helpers),
@@ -2179,6 +2268,58 @@ func capture(path):
     if image.get_size() != FIRST_PLAYABLE_SIZE:
         return
     sibling.clear()
+    image.save_png(path)
+""",
+            "owner_property_retained_sibling": """func capture(holder, path):
+    self.retained_owner = holder
+    var image := holder.frame
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    var sibling := self.retained_owner.frame
+    sibling.clear()
+    image.save_png(path)
+""",
+            "owner_property_retained_callable": """func capture(holder, path):
+    self.retained_owner = holder
+    var image := holder.frame
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    var later := Callable(self.retained_owner, "mutate")
+    later.call()
+    image.save_png(path)
+""",
+            "owner_property_callable_direct": """func capture(holder, path):
+    self.later = Callable(holder, "mutate")
+    var image := holder.frame
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    self.later.call()
+    image.save_png(path)
+""",
+            "owner_property_sibling_direct": """func capture(holder, path):
+    self.sibling = holder.frame
+    var image := holder.frame
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    self.sibling.clear()
+    image.save_png(path)
+""",
+            "owner_global_member_retained_sibling": """func capture(holder, path):
+    Global.retained_owner = holder
+    var image := holder.frame
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    var sibling := Global.retained_owner.frame
+    sibling.clear()
+    image.save_png(path)
+""",
+            "owner_index_retained_callable": """func capture(holder, registry, path):
+    registry[0] = holder
+    var image := holder.frame
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    var later := Callable(registry[0], "mutate")
+    later.call()
     image.save_png(path)
 """,
         }
