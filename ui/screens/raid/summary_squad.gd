@@ -46,11 +46,13 @@ func _bind_summary_state() -> void:
 		share.text = "LOOT SHARED" if shared else "SHARE LOOT"
 		share.tooltip_text = share.text
 		share.disabled = shared
+		mark_feature_action(share, FEATURE_FRIENDS)
 
 	var ready: Button = find_child("ReadyButton", true, false) as Button
 	if ready != null:
 		ready.text = "READY · BACK TO BUNKER" if _ready_squad else "ENTER   READY · BACK TO BUNKER"
 		ready.tooltip_text = ready.text
+		mark_feature_action(ready, FEATURE_FRIENDS)
 
 func _wire_summary_actions() -> void:
 	var my_details: Button = find_child("MyDetailsButton", true, false) as Button

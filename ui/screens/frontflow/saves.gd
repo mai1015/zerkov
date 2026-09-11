@@ -117,8 +117,12 @@ func _set_segment_state(button: Button, active: bool, accent: Color = U.TEXT) ->
 func _wire_actions() -> void:
 	_wire_button(get_node("Header/Back") as Button, Callable(self, "_back_to_menu"))
 	_wire_button(get_node("MyWorldsTab") as Button, Callable(self, "_open_saves"))
-	_wire_button(get_node("JoinFriendTab") as Button, Callable(self, "_open_join_friend"))
-	_wire_button(get_node("JoinCodeTab") as Button, Callable(self, "_open_join_code"))
+	var join_friend := get_node("JoinFriendTab") as Button
+	var join_code := get_node("JoinCodeTab") as Button
+	_wire_button(join_friend, Callable(self, "_open_join_friend"))
+	_wire_button(join_code, Callable(self, "_open_join_code"))
+	mark_feature_action(join_friend, FEATURE_FRIENDS)
+	mark_feature_action(join_code, FEATURE_FRIENDS)
 
 	for index in range(WORLD_ROW_COUNT):
 		var row: ZWorldRow = get_node("WorldList/Content/WorldRow%d" % (index + 1))
@@ -134,10 +138,17 @@ func _wire_actions() -> void:
 	_wire_button(form.get_node("ClosedJoin") as Button, Callable(self, "_set_world_choice").bind("join_mode", "CLOSED"))
 	_wire_button(form.get_node("InviteJoin") as Button, Callable(self, "_set_world_choice").bind("join_mode", "INVITE ONLY"))
 	_wire_button(form.get_node("FriendsJoin") as Button, Callable(self, "_set_world_choice").bind("join_mode", "FRIENDS"))
+	mark_feature_action(form.get_node("ClosedJoin") as Button, FEATURE_BUNKER)
+	mark_feature_action(form.get_node("InviteJoin") as Button, FEATURE_BUNKER)
+	mark_feature_action(form.get_node("FriendsJoin") as Button, FEATURE_FRIENDS)
 	for index in range(4):
 		_wire_button(form.get_node("MaxPlayers%d" % (index + 1)) as Button, Callable(self, "_set_world_choice").bind("max_players", str(index + 1)))
+		mark_feature_action(form.get_node("MaxPlayers%d" % (index + 1)) as Button, FEATURE_FRIENDS)
 	_wire_button(form.get_node("CreateAndEnter") as Button, Callable(self, "_create_world_pressed"))
 	_wire_button(form.get_node("Cancel") as Button, Callable(self, "_back_to_menu"))
+	mark_feature_action(form.get_node("WorldName") as LineEdit, FEATURE_BUNKER)
+	mark_feature_action(form.get_node("WorldSeed") as LineEdit, FEATURE_BUNKER)
+	mark_feature_action(form.get_node("CreateAndEnter") as Button, FEATURE_BUNKER)
 
 	var name_field: LineEdit = form.get_node("WorldName") as LineEdit
 	var seed_field: LineEdit = form.get_node("WorldSeed") as LineEdit
@@ -150,6 +161,15 @@ func _wire_actions() -> void:
 	_wire_button(get_node("RenameWorld") as Button, Callable(self, "_rename_world"))
 	_wire_button(get_node("DuplicateWorld") as Button, Callable(self, "_duplicate_world"))
 	_wire_button(get_node("DeleteWorld") as Button, Callable(self, "_delete_world"))
+	mark_feature_action(get_node("LoadSelected") as Button, FEATURE_BUNKER)
+	mark_feature_action(get_node("RenameWorld") as Button, FEATURE_BUNKER)
+	mark_feature_action(get_node("DuplicateWorld") as Button, FEATURE_BUNKER)
+	mark_feature_action(get_node("DeleteWorld") as Button, FEATURE_BUNKER)
+	for index in range(WORLD_ROW_COUNT):
+		mark_feature_action(get_node("WorldList/Content/WorldRow%d" % (index + 1)).get_focus_target() as Control,
+			FEATURE_BUNKER)
+	mark_feature_action(get_node("WorldList/Content/NewWorldRow").get_focus_target() as Control,
+		FEATURE_BUNKER)
 
 
 func _wire_button(button: Button, callback: Callable) -> void:

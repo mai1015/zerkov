@@ -165,6 +165,8 @@ func _bind_header() -> void:
 		chrome.insurance_requested.connect(insurance)
 	if not chrome.back_requested.is_connected(back):
 		chrome.back_requested.connect(back)
+	mark_feature_action(chrome.get_node_or_null("Insurance") as Control,
+		FEATURE_INSURANCE)
 
 
 func _bind_post_raid() -> void:
@@ -198,6 +200,8 @@ func _bind_post_raid() -> void:
 		details.text = "POST-RAID ACTIONS UNAVAILABLE" if _live_inventory_binding else "Rail bridge · 24:10 · 2 kills · loot"
 	if loot_value != null:
 		loot_value.text = "—" if _live_inventory_binding else "$ 8,420"
+	mark_feature_action(reinsure, FEATURE_INSURANCE)
+	mark_feature_action(sell_junk, FEATURE_MARKETPLACE)
 
 
 func _bind_tabs() -> void:
@@ -636,7 +640,7 @@ func _open_route(route: String) -> void:
 
 
 func _insurance_hint() -> void:
-	_notify("Insurance claims are outside the approved design set.")
+	notify_feature_action(FEATURE_INSURANCE)
 
 
 func _close_screen() -> void:

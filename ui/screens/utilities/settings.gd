@@ -131,6 +131,8 @@ func _bind_chrome() -> void:
         var insurance_callback := Callable(self, "_settings_insurance_notice")
         if not chrome.insurance_requested.is_connected(insurance_callback):
             chrome.insurance_requested.connect(insurance_callback)
+        mark_feature_action(chrome.get_node_or_null("Insurance") as Control,
+            FEATURE_INSURANCE)
         var back_callback := Callable(self, "_settings_back")
         if not chrome.back_requested.is_connected(back_callback):
             chrome.back_requested.connect(back_callback)
@@ -143,7 +145,7 @@ func _configure_chrome_visibility(view: Vector2) -> void:
         chrome.layout_for(view)
 
 func _settings_insurance_notice() -> void:
-    _toast("Insurance claims are outside the approved design set.")
+    notify_feature_action(FEATURE_INSURANCE)
 
 
 func _settings_back() -> void:

@@ -50,6 +50,8 @@ DEFERRED_PYTHON_GENERATORS = (
     "docs/qa/inventory_weapon_reload/astra_gate/run_gate.py",
 )
 ACTIVE_CAPTURE_SOURCES = (
+    "tests/presentation/feature_gates_8_9_contract.gd",
+    "tests/presentation/feature_gates_8_9_visual_evidence.gd",
     "tests/presentation/ui_production_unavailable_8_11_contract.gd",
     "tests/ui_component_states.gd",
     "tests/visual/inventory_loot_ui_4_11/capture.gd",

@@ -144,8 +144,15 @@ func run() -> void:
 	continue_button = app.screen.get_node_or_null("MenuContinue/Hit") as Control
 	check(root.gui_get_focus_owner() == continue_button,
 		"keyboard title activation also focuses Continue")
+	var before_continue := JSON.stringify(app.fixture_state_for_test())
 	await key(KEY_ENTER)
-	check(app.current_route == "session", "second advertised Enter activates Continue")
+	check(app.current_route == "main_menu" and app.toast_label.visible
+			and app.toast_label.text.contains("PROTOTYPE ONLY")
+			and app.toast_label.text.contains("Bunker"),
+		"second advertised Enter activates Continue's explicit bunker gate")
+	check(root.gui_get_focus_owner() == continue_button
+			and JSON.stringify(app.fixture_state_for_test()) == before_continue,
+		"prototype Continue preserves focus and fixture state")
 	check(not str(app.toast_label.text).contains("ACCOUNT SWITCHING"),
 		"advertised Continue path does not activate the account-switch toast")
 

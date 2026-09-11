@@ -103,16 +103,26 @@ func _set_outlined_button(button: Button, primary: bool) -> void:
 
 
 func _wire_actions() -> void:
-	_wire_button(get_node("PlacementPanel/Place") as Button, Callable(self, "_on_place_building"))
-	_wire_button(get_node("PlacementPanel/Rotate") as Button, Callable(self, "_on_rotate_building"))
-	_wire_button(get_node("Preview/Hit") as Button, Callable(self, "_on_toggle_preview"))
+	var place := get_node("PlacementPanel/Place") as Button
+	var rotate := get_node("PlacementPanel/Rotate") as Button
+	var preview := get_node("Preview/Hit") as Button
+	_wire_button(place, Callable(self, "_on_place_building"))
+	_wire_button(rotate, Callable(self, "_on_rotate_building"))
+	_wire_button(preview, Callable(self, "_on_toggle_preview"))
+	mark_feature_action(place, FEATURE_BUNKER)
+	mark_feature_action(rotate, FEATURE_BUNKER)
+	mark_feature_action(preview, FEATURE_BUNKER)
 	for category in ["All", "Stations", "Power", "Storage", "Comfort", "Decor"]:
-		_wire_button(get_node("Category" + category + "/Hit") as Button, Callable(self, "_on_build_category").bind((get_node("Category" + category + "/Label") as Label).text))
+		var category_hit := get_node("Category" + category + "/Hit") as Button
+		_wire_button(category_hit, Callable(self, "_on_build_category").bind((get_node("Category" + category + "/Label") as Label).text))
+		mark_feature_action(category_hit, FEATURE_BUNKER)
 	for item in [
 		["Workbench", "WORKBENCH"], ["Generator", "GENERATOR"], ["Watercollector", "WATER COLLECTOR"], ["Shelves", "SHELVES"],
 		["Bunk", "BUNK"], ["Radio", "RADIO"], ["Armoryrack", "ARMORY RACK"], ["Greenhouse", "GREENHOUSE"]
 	]:
-		_wire_button(get_node("Card%s/Hit" % item[0]) as Button, Callable(self, "_on_build_item").bind(item[1]))
+		var card_hit := get_node("Card%s/Hit" % item[0]) as Button
+		_wire_button(card_hit, Callable(self, "_on_build_item").bind(item[1]))
+		mark_feature_action(card_hit, FEATURE_BUNKER)
 
 
 func _wire_button(button: Button, callback: Callable) -> void:

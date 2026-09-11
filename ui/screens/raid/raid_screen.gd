@@ -385,6 +385,8 @@ func _on_task() -> void:
 
 
 func _on_reinsure() -> void:
+	if not require_feature_action(FEATURE_INSURANCE):
+		return
 	var main = _main()
 	main.confirm("Re-insure loadout", "Re-insure this sample loadout for $ 340?", func():
 		_state_set("raid_loadout_insured", true)
@@ -401,6 +403,8 @@ func _on_my_details() -> void:
 
 
 func _on_share_loot() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	var main = _main()
 	main.confirm("Share loot with OYO_TRPLE", "Send the sample bandage and 30 rounds from your take to OYO_TRPLE?", func():
 		_state_set("raid_loot_shared", true)
@@ -409,6 +413,8 @@ func _on_share_loot() -> void:
 
 
 func _on_squad_ready() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	_ready_squad = not _ready_squad
 	_ready_elapsed = 0.0
 	_state_set("squad_ready", _ready_squad)

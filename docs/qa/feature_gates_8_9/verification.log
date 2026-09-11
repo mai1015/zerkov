@@ -1,0 +1,236 @@
+Task 8.9 final verification after merging main 7acc971b7622f1a6580e51bcca27793f32e50d56.
+Executable SHA-256: c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf
+Output reproduced from the final run; terminal ANSI colors and trailing whitespace removed.
+
+[import]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --editor --quit
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+[   0% ] update_scripts_classes | Started Registering global classes... (7 steps)
+[   0% ] update_scripts_classes |
+[  12% ] update_scripts_classes |
+[  25% ] update_scripts_classes |
+[  37% ] update_scripts_classes |
+[  50% ] update_scripts_classes |
+[  62% ] update_scripts_classes |
+[  75% ] update_scripts_classes |
+[ DONE ] update_scripts_classes
+
+[   0% ] loading_editor_layout | Started Loading editor (5 steps)
+[   0% ] loading_editor_layout | Loading editor layout...
+[  16% ] loading_editor_layout | Loading docks...
+[ DONE ] loading_editor_layout
+
+
+[feature_gates_contract_headless]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/presentation/feature_gates_8_9_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FEATURE_GATES_8_9_RESULT checks=74 failures=0 size=1920x1080
+
+[feature_gates_visual_headless]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FEATURE_GATE_VISIBLE action=bunker status=PROTOTYPE ONLY input=keyboard_enter route=bunker control=Stations/Row1/Hit pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Bunker · fixture-only preview; no authoritative persistence
+FEATURE_GATE_VISIBLE action=crafting status=PROTOTYPE ONLY input=mouse_primary route=crafting control=DetailPanel/CraftNow pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Crafting · fixture-only preview; no authoritative persistence
+FEATURE_GATE_VISIBLE action=friends status=PROTOTYPE ONLY input=keyboard_enter route=join_friend control=FilterAll pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Friends · fixture-only preview; no authoritative persistence
+FEATURE_GATE_VISIBLE action=insurance status=PROTOTYPE ONLY input=keyboard_enter route=summary_solo control=Reinsure pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Insurance · fixture-only preview; no authoritative persistence
+FEATURE_GATE_VISIBLE action=marketplace status=PROTOTYPE ONLY input=mouse_primary route=inventory control=InventoryContent/PostRaidBar/SellJunk pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Marketplace · fixture-only preview; no authoritative persistence
+HEADLESS_EVIDENCE_CAPTURE_SKIPPED dummy renderer has no native framebuffer
+FEATURE_GATES_8_9_VISUAL_RESULT checks=124 failures=0 size=1920x1080 frames=0
+
+[feature_gates_contract_native]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd -- --capture-path=res://docs/qa/feature_gates_8_9/feature_gates_1920x1080.png
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+EXACT_1920_PNG_VERIFIED action=production_unavailable cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080 image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true
+FEATURE_GATES_8_9_RESULT checks=156 failures=0 size=1920x1080
+
+[feature_gates_visual_native]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd -- --capture-dir=res://docs/qa/feature_gates_8_9
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+FEATURE_GATE_VISIBLE action=bunker status=PROTOTYPE ONLY input=keyboard_enter route=bunker control=Stations/Row1/Hit pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Bunker · fixture-only preview; no authoritative persistence
+EXACT_1920_PNG_VERIFIED action=bunker cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080 image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true
+FEATURE_GATE_VISIBLE action=crafting status=PROTOTYPE ONLY input=mouse_primary route=crafting control=DetailPanel/CraftNow pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Crafting · fixture-only preview; no authoritative persistence
+EXACT_1920_PNG_VERIFIED action=crafting cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080 image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true
+FEATURE_GATE_VISIBLE action=friends status=PROTOTYPE ONLY input=keyboard_enter route=join_friend control=FilterAll pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Friends · fixture-only preview; no authoritative persistence
+EXACT_1920_PNG_VERIFIED action=friends cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080 image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true
+FEATURE_GATE_VISIBLE action=insurance status=PROTOTYPE ONLY input=keyboard_enter route=summary_solo control=Reinsure pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Insurance · fixture-only preview; no authoritative persistence
+EXACT_1920_PNG_VERIFIED action=insurance cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080 image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true
+FEATURE_GATE_VISIBLE action=marketplace status=PROTOTYPE ONLY input=mouse_primary route=inventory control=InventoryContent/PostRaidBar/SellJunk pressed=1 state_unchanged=true modal_unchanged=true toast=PROTOTYPE ONLY · Marketplace · fixture-only preview; no authoritative persistence
+EXACT_1920_PNG_VERIFIED action=marketplace cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080 image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true
+EXACT_1920_PNG_VERIFIED action=contact sheet cli=1920x1080 root=1920x1080 ui=1920x1080 target=1920x1080 image=1920x1080 decoded_png=1920x1080 raw_pixels_preserved=true
+FEATURE_GATES_8_9_VISUAL_RESULT checks=663 failures=0 size=1920x1080 frames=5
+
+[common_ui_input_1080]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/common_ui_input_regression_1080.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+COMMON_UI_INPUT_1080_RESULT checks=51 failures=0 viewport=(1920, 1080)
+
+[common_ui_navigation]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/common_ui_navigation_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+COMMON_UI_NAVIGATION_RESULT checks=80 failures=0 routes=28
+
+[common_ui_navigation_1080]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/common_ui_navigation_1080_regression.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+COMMON_UI_NAVIGATION_1080_RESULT checks=99 failures=0 maximum_menu_depth=2 final_menu_depth=1 final_modal_depth=0 final_popup_depth=0
+
+[common_ui_integration]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/common_ui_integration_smoke.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+COMMON_UI_INTEGRATION_RESULT checks=76 failures=0
+
+[ui_smoke]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/ui_smoke.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI_TEST_SCREEN title nodes=16
+UI_TEST_SCREEN main_menu nodes=96
+UI_TEST_SCREEN saves nodes=132
+UI_TEST_SCREEN join_friend nodes=112
+UI_TEST_SCREEN session nodes=176
+UI_TEST_SCREEN bunker nodes=319
+UI_TEST_SCREEN build_mode nodes=324
+UI_TEST_SCREEN crafting nodes=241
+UI_TEST_SCREEN deploying nodes=27
+UI_TEST_SCREEN hud nodes=85
+UI_TEST_SCREEN hud_coop nodes=119
+UI_TEST_SCREEN hud_detail nodes=61
+UI_TEST_SCREEN inventory nodes=569
+UI_TEST_SCREEN health nodes=569
+UI_TEST_SCREEN stats nodes=569
+UI_TEST_SCREEN maps nodes=279
+UI_TEST_SCREEN tasks nodes=171
+UI_TEST_SCREEN settings nodes=349
+UI_TEST_SCREEN controls nodes=208
+UI_TEST_SCREEN pause nodes=70
+UI_TEST_SCREEN summary_solo nodes=168
+UI_TEST_SCREEN summary_squad nodes=189
+UI_TEST_SCREEN crosshairs nodes=265
+UI_TEST_SCREEN status_icons nodes=57
+UI_TEST_SCREEN squad_list nodes=27
+UI_TEST_SCREEN reload nodes=11
+UI_TEST_SCREEN mag_empty nodes=13
+UI_TEST_SCREEN showcase nodes=72
+UI_TEST_COMPLETE checks=948 failures=0
+
+[ui_composition]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/ui_composition_smoke.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI_COMPOSITION_COMPLETE checks=103 failures=0
+
+[ui_state_8_11]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/presentation/ui_state_8_11_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI_STATE_8_11_CONTRACT_RESULT checks=57 failures=0
+
+[view_contracts]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/presentation/view_contracts_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+VIEW_CONTRACTS_CONTRACT_RESULT checks=115 failures=0
+
+[lifecycle]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/zerkov_screen_lifecycle_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ZERKOV_SCREEN_LIFECYCLE_RESULT checks=116 failures=0 routes=28 geometry_controls=97 geometry_sha256=4eb724f07fb51fdfccaa5b0659bd07fe33dcb8ba23afea03bb8f1666582c8a4a geometry_by_resolution=1920x1080:794e84f101b28dea717a58416b4593af290b79a8cafccf414a8fc93f8b9ddccb
+
+[bunker_smoke]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/bunker_smoke.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS Station activation discloses the gate without changing its mock selection
+PASS Gated station Use preserves the bunker route
+PASS Prototype recipe action preserves detail data
+PASS Prototype collection preserves the queue
+PASS Prototype collection creates no stash receipt
+PASS Prototype craft preserves queue size
+PASS Prototype craft preserves queue contents
+PASS Repeated prototype craft creates no duplicate output
+PASS Timer completion updates ready state
+PASS Ready fixture craft remains read-only behind the gate
+PASS Prototype rotate preserves the authored build preview
+PASS Blocked placement does not open confirmation
+PASS Prototype placement preserves placed count
+PASS Escape exits build mode to bunker
+PASS B discloses the prototype build gate
+PASS Prototype session privacy stays unchanged
+PASS Prototype new-code action preserves the world code
+PASS Prototype invite adds no mock social state
+PASS Prototype kick preserves world occupancy
+PASS Session reads selected world settings
+PASS Prototype privacy action preserves selected world metadata
+BUNKER_TEST_COMPLETE failures=0
+
+[raid_smoke]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/raid_smoke.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RAID_TEST_COMPLETE checks=29 failures=0
+
+[character_composition]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/presentation/character_presentation_composition_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CHARACTER_PRESENTATION_COMPOSITION_RESULT checks=22 failures=0
+
+[character_ui_binding]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/presentation/character_ui_binding_8_6_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CHARACTER_UI_BINDING_8_6_RESULT checks=65 failures=0 size=1920x1080
+
+[inventory_loot_ui]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/raid/inventory_loot_ui_4_11_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+INVENTORY_LOOT_UI_4_11_COMPLETE checks=88 failures=0 captures=docs/qa/inventory_loot_ui_4_11/captures
+
+[inventory_smoke]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/inventory_smoke.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+INVENTORY_TEST_COMPLETE checks=21 failures=0
+
+[utility_smoke]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 --resolution 1920x1080 --headless --script res://tests/utility_smoke.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UTILITY_TEST_COMPLETE checks=24 failures=0
+
+[scope]
+$ python3 -m unittest tests/tooling/test_ui_first_playable_scope.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.008s
+
+OK
+
+[spec]
+$ python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py --path /Volumes/Data/codes/codex-workspace/zerkov-8-9 validate add-zerkov-playable-raid-2026-09-09 --strict
+Valid
+
+BINDINGS_RESTORED sha256=ff6f972f99cc7e9a66db4852735ead27d344b3d090d246a420aa0136aff6bde5 tmp=absent bak=absent
+Lease released after independent post-run SHA and existence checks.

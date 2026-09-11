@@ -188,6 +188,26 @@ func summary_view() -> SummaryView:
 				&"ui_presentation_provider_missing")
 
 
+## Feature gates are typed presentation metadata, never a mutation surface.
+## Explicit fixture contexts expose a visibly marked prototype status; every
+## production context asks the generation-scoped provider for locked truth.
+func feature_gate(action_id: StringName) -> ZUIFeatureGateView:
+	if not ZUIFeatureGateView.supports_action(action_id):
+		return null
+	if has_fixture_provider():
+		return ZUIFeatureGateView.prototype(action_id, &"ui_feature_fixture_only",
+			_fixture_generation)
+	var provider := _presentation_service()
+	return provider.feature_gate(action_id, _presentation_generation) \
+			if provider != null else ZUIFeatureGateView.locked(
+				action_id, &"ui_presentation_provider_missing",
+				_presentation_generation if _presentation_generation > 0 else 0)
+
+
+func feature_gate_ids() -> PackedStringArray:
+	return ZUIFeatureGateView.ACTION_IDS.duplicate()
+
+
 func presentation_diagnostic() -> StringName:
 	var view := presentation_view()
 	if view != null:

@@ -97,8 +97,12 @@ func _configure_shared_styles() -> void:
 func _bind_header_and_tabs(mode: String) -> void:
 	_wire_button(get_node("Header/Back") as Button, Callable(self, "_back_to_menu"))
 	_wire_button(get_node("WorldsTab") as Button, Callable(self, "_open_saves"))
-	_wire_button(get_node("FriendTab") as Button, Callable(self, "_open_join_friend"))
-	_wire_button(get_node("CodeTab") as Button, Callable(self, "_open_join_code"))
+	var friend_tab := get_node("FriendTab") as Button
+	var code_tab := get_node("CodeTab") as Button
+	_wire_button(friend_tab, Callable(self, "_open_join_friend"))
+	_wire_button(code_tab, Callable(self, "_open_join_code"))
+	mark_feature_action(friend_tab, FEATURE_FRIENDS)
+	mark_feature_action(code_tab, FEATURE_FRIENDS)
 	_wire_button(get_node("ChangeAccount") as Button, Callable(self, "_switch_account"))
 
 	_apply_tab_state(get_node("WorldsTab") as Button, false)
@@ -108,13 +112,16 @@ func _bind_header_and_tabs(mode: String) -> void:
 
 func _bind_friend_code() -> void:
 	friend_code_field = get_node("FriendCodeField") as LineEdit
+	mark_feature_action(friend_code_field, FEATURE_FRIENDS)
 	friend_code_field.text = ""
 	friend_code_field.placeholder_text = "Search friends or paste a world code…"
 	if not friend_code_field.text_submitted.is_connected(Callable(self, "_submit_friend_code")):
 		friend_code_field.text_submitted.connect(Callable(self, "_submit_friend_code"))
 	friend_code_error = get_node("FriendCodeError") as Label
 	friend_code_error.text = ""
-	_wire_button(get_node("CodeButton") as Button, Callable(self, "_submit_friend_code_from_field"))
+	var code_button := get_node("CodeButton") as Button
+	_wire_button(code_button, Callable(self, "_submit_friend_code_from_field"))
+	mark_feature_action(code_button, FEATURE_FRIENDS)
 
 
 func _bind_filters() -> void:
@@ -128,24 +135,40 @@ func _bind_filters() -> void:
 	for index in range(filters.size()):
 		filters[index].set_meta("front_filter", keys[index])
 		_wire_button(filters[index], Callable(self, "_friend_filter"))
+		mark_feature_action(filters[index], FEATURE_FRIENDS)
 
 
 func _bind_friend_rows() -> void:
-	_wire_button(get_node("FriendKevin/Action") as Button, Callable(self, "_join_kevin"))
-	_wire_button(get_node("FriendDenz/Action") as Button, Callable(self, "_request_denz"))
-	_wire_button(get_node("FriendMara/Action") as Button, Callable(self, "_open_join_friend"))
-	_wire_button(get_node("FriendSoot/Action") as Button, Callable(self, "_open_join_friend"))
-	_wire_button(get_node("FriendPilgrim/Action") as Button, Callable(self, "_open_join_friend"))
+	var kevin := get_node("FriendKevin/Action") as Button
+	var denz := get_node("FriendDenz/Action") as Button
+	var mara := get_node("FriendMara/Action") as Button
+	var soot := get_node("FriendSoot/Action") as Button
+	var pilgrim := get_node("FriendPilgrim/Action") as Button
+	_wire_button(kevin, Callable(self, "_join_kevin"))
+	_wire_button(denz, Callable(self, "_request_denz"))
+	_wire_button(mara, Callable(self, "_open_join_friend"))
+	_wire_button(soot, Callable(self, "_open_join_friend"))
+	_wire_button(pilgrim, Callable(self, "_open_join_friend"))
+	for action in [kevin, denz, mara, soot, pilgrim]:
+		mark_feature_action(action, FEATURE_FRIENDS)
 
 
 func _bind_invite_actions() -> void:
-	_wire_button(get_node("InviteBar/Accept") as Button, Callable(self, "_join_denz"))
-	_wire_button(get_node("InviteBar/Decline") as Button, Callable(self, "_decline_invite"))
+	var accept := get_node("InviteBar/Accept") as Button
+	var decline := get_node("InviteBar/Decline") as Button
+	_wire_button(accept, Callable(self, "_join_denz"))
+	_wire_button(decline, Callable(self, "_decline_invite"))
+	mark_feature_action(accept, FEATURE_FRIENDS)
+	mark_feature_action(decline, FEATURE_FRIENDS)
 
 
 func _bind_detail_actions() -> void:
-	_wire_button(get_node("FriendDetail/Join") as Button, Callable(self, "_join_kevin"))
-	_wire_button(get_node("FriendDetail/Message") as Button, Callable(self, "_message_friend"))
+	var join := get_node("FriendDetail/Join") as Button
+	var message := get_node("FriendDetail/Message") as Button
+	_wire_button(join, Callable(self, "_join_kevin"))
+	_wire_button(message, Callable(self, "_message_friend"))
+	mark_feature_action(join, FEATURE_FRIENDS)
+	mark_feature_action(message, FEATURE_FRIENDS)
 
 
 func _apply_validation_state() -> void:

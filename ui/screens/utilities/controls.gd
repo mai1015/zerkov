@@ -409,6 +409,8 @@ func _wire_actions() -> void:
 		var insurance_callback := Callable(self, "_insurance_notice")
 		if not chrome.insurance_requested.is_connected(insurance_callback):
 			chrome.insurance_requested.connect(insurance_callback)
+		mark_feature_action(chrome.get_node_or_null("Insurance") as Control,
+			FEATURE_INSURANCE)
 		var back_callback := Callable(self, "_go_back")
 		if not chrome.back_requested.is_connected(back_callback):
 			chrome.back_requested.connect(back_callback)
@@ -530,7 +532,7 @@ func _set_panel_style(panel: Panel, fill: Color, border: Color, width: int = 1) 
 
 
 func _insurance_notice() -> void:
-	_toast("Insurance claims are outside the approved design set.")
+	notify_feature_action(FEATURE_INSURANCE)
 
 
 func _go_back() -> void:

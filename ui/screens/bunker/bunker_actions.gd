@@ -106,6 +106,8 @@ func _rebuild_route() -> void:
 
 
 func _on_station(station_id: int) -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if station_id == 6:
 		toast("Equipment unlocks at Bunker LVL 4.")
 		return
@@ -118,10 +120,14 @@ func _on_station(station_id: int) -> void:
 
 
 func _on_upgrade_station() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	toast("Upgrade needs Car battery ×1 and Coal ×2.")
 
 
 func _on_use_station() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if _selected_station == 2:
 		go("crafting")
 	elif _selected_station == 1:
@@ -136,12 +142,16 @@ func _on_use_station() -> void:
 ## ---------- Shared build mode actions ----------
 
 func _on_build_category(category: String) -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	_build_category = category
 	toast("Build category: %s" % category)
 	_rebuild_route()
 
 
 func _on_build_item(selection: String) -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if selection in ["ARMORY RACK", "GREENHOUSE"]:
 		toast("Unlock a higher bunker level to build this module.")
 		return
@@ -152,12 +162,16 @@ func _on_build_item(selection: String) -> void:
 
 
 func _on_toggle_preview() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	_preview_valid = not _preview_valid
 	toast("Placement %s." % ("valid" if _preview_valid else "blocked by wall"))
 	_rebuild_route()
 
 
 func _on_place_building() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if not _preview_valid:
 		toast("Cannot place here: blocked by wall.")
 		return
@@ -165,18 +179,24 @@ func _on_place_building() -> void:
 
 
 func _confirm_place_building() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	app.fixture_set("bunker_placed", int(app.fixture_get("bunker_placed", 7)) + 1)
 	toast("%s placed (mock)." % _build_selection)
 	_rebuild_route()
 
 
 func _on_rotate_building() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	_build_rotation = (_build_rotation + 1) % 4
 	toast("Rotated %s°." % str(_build_rotation * 90))
 	_rebuild_route()
 
 
 func _on_exit_build() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	go("bunker")
 
 
@@ -209,18 +229,24 @@ func _progress_style(color: Color) -> StyleBoxFlat:
 
 
 func _on_recipe_filter(filter_name: String) -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	_recipe_filter = filter_name
 	toast("Recipe filter: %s" % filter_name)
 	_rebuild_route()
 
 
 func _on_recipe_selected(index: int) -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	_selected_recipe = index
 	toast("Recipe selected.")
 	_rebuild_route()
 
 
 func _on_quantity(delta: int) -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	_craft_quantity = clampi(_craft_quantity + delta, 1, 3)
 	_rebuild_route()
 
@@ -237,6 +263,8 @@ func _recipe_data() -> Array:
 
 
 func _on_craft_now() -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	if _selected_recipe in [3, 4]:
 		toast("This recipe requires missing materials or a station upgrade.")
 		return
@@ -254,6 +282,8 @@ func _on_craft_now() -> void:
 
 
 func _on_craft_water() -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	var queue: Array = _craft_queue()
 	if queue.size() >= 2:
 		toast("Crafting queue is full.")
@@ -265,6 +295,8 @@ func _on_craft_water() -> void:
 
 
 func _on_collect_queue(id: String) -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	var queue: Array = _craft_queue()
 	for i in range(queue.size() - 1, -1, -1):
 		var data: Dictionary = queue[i]
@@ -283,6 +315,8 @@ func _on_collect_queue(id: String) -> void:
 
 
 func _on_stash_click() -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	go("inventory")
 
 
@@ -294,7 +328,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	var handled = true
 	match event.keycode:
 		KEY_B:
-			go("bunker" if _route == "build_mode" else "build_mode")
+			if require_feature_action(FEATURE_BUNKER):
+				go("bunker" if _route == "build_mode" else "build_mode")
+			else:
+				handled = false
 		KEY_E:
 			if _route in ["bunker", "session"]: _on_use_station()
 			else: handled = false
@@ -314,12 +351,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_upgrade_recipe() -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	toast("Medical station upgrade needs 2 more parts.")
 
 
 ## ---------- Shared session actions ----------
 
 func _on_privacy(option: String) -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	app.fixture_set("bunker_privacy", option)
 	var worlds: Array = app.fixture_get("frontflow_worlds", [])
 	var selected: int = int(app.fixture_get("frontflow_selected_world", 0))
@@ -329,17 +370,23 @@ func _on_privacy(option: String) -> void:
 
 
 func _on_copy_code() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	DisplayServer.clipboard_set(str(app.fixture_get("bunker_code", "ZK-7F2Q")))
 	toast("World code copied.")
 
 
 func _on_new_code() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.fixture_set("bunker_code", _format_code())
 	toast("New world code generated.")
 	_rebuild_route()
 
 
 func _on_invite(friend: String) -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	var invited: Array = app.fixture_get("bunker_invited", [])
 	if not invited.has(friend): invited.append(friend)
 	app.fixture_set("bunker_invited", invited)
@@ -348,20 +395,28 @@ func _on_invite(friend: String) -> void:
 
 
 func _on_empty_slot() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	toast("Invite a friend from the list to fill this slot.")
 
 
 func _on_kick_guest() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.confirm("KICK KEVIN_J?", "This removes the guest from your mock world.", Callable(self, "_confirm_kick_guest"))
 
 
 func _confirm_kick_guest() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.fixture_set("bunker_guest_present", false)
 	toast("KEVIN_J was kicked from the world.")
 	_rebuild_route()
 
 
 func _on_deploy() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	app.fixture_set("deploy_source", "session")
 	toast("Deploying squad…")
 	go("deploying")
@@ -371,10 +426,14 @@ func layout_compact(view: Vector2) -> void:
 	preload("res://ui/screens/bunker/components/bunker_layout.gd").apply(self, view)
 
 func _compact_select_tab(tab: String) -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	_compact_craft_tab = tab
 	_rebuild_route()
 
 
 func _compact_collect_all() -> void:
+	if not require_feature_action(FEATURE_CRAFTING):
+		return
 	for entry in _craft_queue().duplicate():
 		if int(entry.get("finish_at", 0)) <= Time.get_ticks_msec(): _on_collect_queue(str(entry["id"]))

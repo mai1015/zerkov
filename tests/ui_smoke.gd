@@ -52,7 +52,12 @@ func run() -> void:
 	await click_at(Vector2(FIRST_PLAYABLE_SIZE) / 2.0)
 	check(app.current_route == "main_menu", "Click anywhere on title enters main menu")
 	await click_at(Vector2(160, 274))
-	check(app.current_route == "session", "Main menu Continue button enters bunker session")
+	check(app.current_route == "main_menu" and app.toast_label.text.contains("PROTOTYPE ONLY"),
+		"Main menu Continue button discloses the bunker prototype gate")
+	# The route/focus regression still mounts the existing session explicitly;
+	# a gated action no longer enters a mock world to set up unrelated checks.
+	app.navigate("session", false)
+	await settle()
 	await press_key(KEY_ESCAPE)
 	check(app.current_route == "pause", "Escape pauses bunker session")
 	await press_key(KEY_ESCAPE)
@@ -61,19 +66,21 @@ func run() -> void:
 	await press_key(KEY_ENTER)
 	check(app.current_route == "session", "Enter activates focused Resume in pause")
 	await press_key(KEY_ESCAPE)
+	var privacy_before := JSON.stringify(app.fixture_state_for_test())
 	app.screen._privacy_friends()
 	await settle()
-	check(app.fixture_state_for_test().get("bunker_privacy") == "FRIENDS",
-		"Pause privacy updates session preview state")
-	check(app.fixture_state_for_test().get("frontflow_worlds", [])[0].get(
-		"privacy") == "FRIENDS", "Pause privacy updates selected world")
+	check(JSON.stringify(app.fixture_state_for_test()) == privacy_before,
+		"Pause privacy gate preserves session and selected world fixture state")
+	check(app.toast_label.visible and app.toast_label.text.contains("PROTOTYPE ONLY"),
+		"Pause privacy shows its prototype gate")
 	await press_key(KEY_ESCAPE)
 	check(app.current_route == "session", "Privacy changes preserve pause return context")
 	app.navigate("main_menu", false)
 	await settle()
 	await press_key(KEY_DOWN)
 	await press_key(KEY_ENTER)
-	check(app.current_route == "saves", "Arrow and Enter select Play from the main menu")
+	check(app.current_route == "main_menu" and app.toast_label.text.contains("PROTOTYPE ONLY"),
+		"Arrow and Enter select Play and disclose its prototype gate")
 	for route in app.ROUTES:
 		check(ResourceLoader.exists(ZRouteCatalog.path_for(route)), "Missing route scene: " + route)
 		app.navigate(route, false)
@@ -141,30 +148,28 @@ func run() -> void:
 	app.navigate("saves")
 	await settle()
 	var world_count: int = app.fixture_state_for_test().frontflow_worlds.size()
+	var worlds_before := JSON.stringify(app.fixture_state_for_test().frontflow_worlds)
 	app.screen._duplicate_world()
 	await settle()
-	check(app.fixture_state_for_test().frontflow_worlds.size() == world_count + 1,
-		"Duplicate world creates another local card")
+	check(app.fixture_state_for_test().frontflow_worlds.size() == world_count,
+		"Prototype duplicate preserves world count")
 	app.screen._rename_world()
 	await settle()
-	var rename_fields: Array[Node] = app.modal.find_children("*", "LineEdit", true, false)
-	rename_fields[0].text = "QA WORLD"
-	rename_fields[0].text_submitted.emit("QA WORLD")
-	await settle()
-	check(app.fixture_state_for_test().frontflow_worlds[
-		app.fixture_state_for_test().frontflow_selected_world].name == "QA WORLD",
-		"Rename updates selected world")
+	check(app.modal == null and JSON.stringify(app.fixture_state_for_test().frontflow_worlds) == worlds_before,
+		"Prototype rename opens no modal and preserves world data")
 	app.screen._delete_world_confirmed()
 	await settle()
 	check(app.fixture_state_for_test().frontflow_worlds.size() == world_count,
-		"Deleting a duplicate removes only that local world")
+		"Prototype delete preserves world data")
 	app.navigate("join_friend")
 	await settle()
 	app.screen._submit_friend_code("bad code")
 	check(app.current_route == "join_friend", "Invalid invitation stays on join screen")
 	app.screen._submit_friend_code("ZK-4A91-KX")
 	await settle()
-	check(app.current_route == "session", "Valid mock invitation enters session")
+	check(app.current_route == "join_friend" and app.toast_label.visible
+			and app.toast_label.text.contains("PROTOTYPE ONLY"),
+		"Valid invitation remains on the explicitly gated friends screen")
 	app.fixture_state_for_test()["frontflow_worlds"] = []
 	app.navigate("saves")
 	await settle()
@@ -172,9 +177,9 @@ func run() -> void:
 		"An empty world list must not recreate deleted defaults")
 	app.screen._create_world_confirmed("FRESH START")
 	await settle()
-	check(app.fixture_state_for_test().frontflow_worlds.size() == 1 \
-			and app.fixture_state_for_test().frontflow_worlds[0].name == "FRESH START",
-		"Create world works from the empty state")
+	check(app.fixture_state_for_test().frontflow_worlds.is_empty()
+			and app.toast_label.text.contains("PROTOTYPE ONLY"),
+		"Prototype create keeps the empty state and discloses its gate")
 	print("UI_TEST_COMPLETE checks=", checks, " failures=", failures)
 	app.queue_free()
 	await settle()

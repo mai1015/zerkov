@@ -72,6 +72,14 @@ func _ready() -> void:
 	_connect_button(_insurance_button, Callable(self, "_on_insurance_triggered"))
 	_connect_button(_settings_button, Callable(self, "_on_settings_triggered"))
 	_connect_button(_close_button, Callable(self, "_on_close_triggered"))
+	# The owning ZScreen refines this metadata with the generation-scoped gate.
+	# Keep a truthful default on the shared CommonUI control for the brief period
+	# before its screen context binds, without disabling or bypassing navigation.
+	if _insurance_button != null:
+		_insurance_button.set_meta("z_feature_action", &"insurance")
+		_insurance_button.set_meta("z_feature_status", &"locked")
+		_insurance_button.set_meta("z_feature_status_label", "LOCKED")
+		_insurance_button.tooltip_text = "LOCKED · Insurance · Unavailable until the owning service is connected."
 	_refresh_state()
 
 
