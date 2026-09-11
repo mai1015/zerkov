@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Run and freeze the task 5.5 implementation evidence packet."""
-
-from __future__ import annotations
+"""Retained historical task 5.5 evidence packet generator; never regenerate."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical health-content packet generator is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
 
 import hashlib
 import json

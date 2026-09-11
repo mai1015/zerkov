@@ -1,8 +1,8 @@
 # Inventory weapon reload evidence
 
-This is a retained historical task 4.9 evidence packet. Its visible native
-validation command and smaller-output capture are not part of the current
-first-playable UI matrix; current agents/tests MUST NOT invoke or regenerate
+This is a retained historical task 4.9 evidence packet. All packet launchers,
+independent capacity/magazine probes and generators are retired and fail closed
+before setup or writes. Current agents/tests MUST NOT invoke or regenerate
 them until task 11.8 or a later approved display-support proposal. The
 immutable packet remains audit history, not a current aggregate check.
 
@@ -43,22 +43,19 @@ not the original reproduced blocker. Stash/world-crate/corpse profiles remain
 the unchecked `4.12a` follow-up. The final packet re-ran the real add-on flow
 and proved the actual magazine child list and capacity behavior.
 
-## Reproduction
+## Current promoted contract
 
 From the repository root, with `ZERKOV_GODOT` set to the pinned executable:
 
 ```sh
 export ZERKOV_GODOT=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot
-$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+$ZERKOV_GODOT --headless --resolution 1920x1080 --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_weapon_reload_contract.gd
-python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py capacity
-python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py flow
-python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py suites
 ```
 
-The visible `native` mode remains an immutable historical packet reproduction;
-it is intentionally omitted from the current matrix and must not be invoked
-until task 11.8 or a later approved display-support proposal.
+The historical wrapper's `capacity`, `flow`, `suites`, and `native` modes are
+all retired. The direct contract above checks current source without
+regenerating or resealing this packet.
 
 The native image is explicitly labeled as an automated validation harness, not
 production UI or human playtest. The accepted boundary is offline,

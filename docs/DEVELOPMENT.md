@@ -174,21 +174,16 @@ packet in [`docs/qa/inventory_weapon_reload/astra_final/REPORT.md`](qa/inventory
 The pinned reload contract can be run directly:
 
 ```sh
-$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+$ZERKOV_GODOT --headless --resolution 1920x1080 --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_weapon_reload_contract.gd
 ```
 
-The current-safe headless subset of the retained packet is:
-
-```sh
-python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py capacity
-python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py flow
-python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py suites
-```
-
-The visible `native` packet mode is retained historical evidence and is
-intentionally omitted from current commands; do not invoke it until task 11.8
-or a later approved display-support proposal.
+Every retained weapon/reload packet launcher and generator is retired,
+including the headless `capacity`, `flow`, and `suites` wrapper modes and the
+independent capacity/magazine probes. They fail closed before setup or writes.
+Use the promoted contract above for current checks; do not invoke or regenerate
+the historical packet until task 11.8 or a later approved display-support
+proposal.
 
 The accepted totals are catalog `537/0`, reload `159/0`, capacity `33/0`,
 headless flow `208/0`, native flow `213/0` (the same 208 core assertions plus
@@ -207,22 +202,15 @@ packet in
 Run the promoted contract directly with the pinned executable:
 
 ```sh
-$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+$ZERKOV_GODOT --headless --resolution 1920x1080 --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_ability_reconciliation_contract.gd
 ```
 
-The current-safe headless subset of the retained packet can be run from the
-repository root:
-
-```sh
-python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py suites
-python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py flow
-python3 -B docs/qa/inventory_ability_equipment/astra_final/finalize_packet.py
-```
-
-The visible `native` packet mode is retained historical evidence and is
-intentionally omitted from current commands; do not invoke it until task 11.8
-or a later approved display-support proposal.
+Every retained ability/equipment packet launcher and generator is retired,
+including the headless `suites` and `flow` wrapper modes and finalization.
+They fail closed before imports, setup, subprocesses, or writes. Use the
+promoted contract above for current checks; do not invoke or regenerate the
+historical packet until task 11.8 or a later approved display-support proposal.
 
 The accepted totals are promoted reconciliation `546/0`, independent headless
 flow `451/0`, independent native flow `463/0`, and `21756/0` raw assertion
@@ -252,6 +240,10 @@ them before task 11.8 or a later approved display-support proposal.
 Current visual work must use a genuine exact 1920×1080 render target. The only
 permitted low-resolution world surface is the selected fixed 640×360 surface,
 nearest-mapped exactly 3× into that output; it is not a separate screen target.
+An explicit `--resolution 1920x1080` request does not prove the actual output:
+native harnesses must avoid decorated-window clamping and verify their actual
+root/output and renderer readback before mounting UI, creating paths, or saving.
+They must terminate on a mismatch. Headless checks supply no visual evidence.
 Current enforcement is recorded in
 [`docs/qa/1080-only-scope.md`](qa/1080-only-scope.md).
 
