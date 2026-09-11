@@ -247,6 +247,42 @@ class FakeReloadAdapter:
 		return result
 
 
+class FailOnceReleasePort:
+	extends MedicalInventoryParticipantPort
+
+	var actor_key: String = ""
+	var failures_remaining: int = 1
+	var clear_calls: int = 0
+
+	func is_ready() -> bool:
+		return true
+
+	func identity_token() -> String:
+		return "health-release-signal-port"
+
+	func actor_id() -> String:
+		return actor_key
+
+	func owner_generation() -> int:
+		return 1
+
+	func inventory_id() -> int:
+		return 99
+
+	func current_revision() -> int:
+		return 0
+
+	func clear() -> bool:
+		clear_calls += 1
+		if failures_remaining > 0:
+			failures_remaining -= 1
+			return false
+		return true
+
+	func recovery_details() -> Dictionary:
+		return {"clear_calls": clear_calls}
+
+
 var checks: int = 0
 var failures: int = 0
 var _fixtures: Array[Dictionary] = []
@@ -283,6 +319,8 @@ func run() -> void:
 	_test_registration_reentrant_release()
 	_test_registration_context_revalidation_cleanup()
 	_test_release_from_native_cancellation()
+	_test_binding_invalidation_signal_reentry_preserves_outer_error()
+	_test_recovery_signal_reentry_preserves_outer_error_and_retry()
 	_test_unproven_owner_unload_cannot_clear_hold()
 	for fixture in _fixtures.duplicate():
 		_cleanup_fixture(fixture)
@@ -1114,6 +1152,111 @@ func _test_release_from_native_cancellation() -> void:
 		and adapter.binding_generation() == release_generation + 1,
 		"completed teardown cannot replay actor cleanup or advance generation")
 	second_component.queue_free()
+
+
+func _test_binding_invalidation_signal_reentry_preserves_outer_error() -> void:
+	var fixture := _new_fixture("binding_invalidated_reentry")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var component := fixture["component"] as GameplayAbilityComponent
+	var request := _treatment_request(
+		fixture, "pending_release", 100, 1,
+		ZerkovHealthAbilityContent.ZONE_LEFT_ARM,
+		ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE, 0, 0)
+	var queued := adapter.queue_treatment(request)
+	var history_before := authority.journal.records()
+	var generation := adapter.binding_generation()
+	var observed: Array[Dictionary] = []
+	adapter.binding_invalidated.connect(func(reason: StringName) -> void:
+		observed.append({
+			"signal_reason": reason,
+			"nested_release": adapter.release_binding(&"nested_binding_invalidated"),
+			"nested_error": adapter.last_error,
+		}))
+	var released := adapter.release_binding(&"outer_binding_invalidated")
+	var receipt := adapter.treatment_receipt(String(request["request_id"]))
+	var history_after := authority.journal.records()
+	check(bool(queued.get("accepted", false)) and bool(queued.get("queued", false)),
+		"binding-invalidated reentry fixture keeps an accepted pending treatment")
+	check(released
+		and observed.size() == 1
+		and observed[0].get("signal_reason") == &"outer_binding_invalidated"
+		and not bool(observed[0].get("nested_release", true))
+		and observed[0].get("nested_error") == &"health_binding_change_reentrant",
+		"binding-invalidated callback rejects nested release without changing outer success")
+	check(bool(receipt.get("terminal", false))
+		and not bool(receipt.get("queued", true))
+		and receipt.get("reason") == &"health_adapter_released"
+		and history_after == history_before
+		and adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.RELEASED
+		and adapter.binding_generation() == generation + 1
+		and adapter.actor_count() == 0
+		and component.is_torn_down(),
+		"binding-invalidated callback preserves terminal receipt, history, and cleanup")
+	check(adapter.last_error == &"outer_binding_invalidated",
+		"binding-invalidated callback cannot overwrite the emitted outer reason")
+
+
+func _test_recovery_signal_reentry_preserves_outer_error_and_retry() -> void:
+	var fixture := _new_fixture("recovery_latched_reentry")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var target := fixture["target"] as ZEntityId
+	var port := FailOnceReleasePort.new()
+	port.actor_key = target.canonical_key()
+	check(adapter.attach_medical_inventory(target, port),
+		"recovery-latched reentry fixture attaches the fail-once participant")
+	var request := _treatment_request(
+		fixture, "pending_recovery", 100, 1,
+		ZerkovHealthAbilityContent.ZONE_LEFT_ARM,
+		ZerkovHealthConsequencePolicy.TREATMENT_BANDAGE, 0, 0)
+	var queued := adapter.queue_treatment(request)
+	var history_before := authority.journal.records()
+	var generation := adapter.binding_generation()
+	var observed: Array[Dictionary] = []
+	adapter.recovery_latched.connect(func(reason: StringName, details: Dictionary) -> void:
+		observed.append({
+			"signal_reason": reason,
+			"details_reason": details.get("reason", &""),
+			"nested_release": adapter.release_binding(&"nested_recovery_latched"),
+			"nested_error": adapter.last_error,
+		}))
+	var released := adapter.release_binding(&"outer_recovery_latched")
+	var receipt_during_failure := adapter.treatment_receipt(String(request["request_id"]))
+	var recovery := adapter.recovery_details()
+	var history_during_failure := authority.journal.records()
+	check(bool(queued.get("accepted", false)) and bool(queued.get("queued", false)),
+		"recovery-latched reentry fixture keeps an accepted pending treatment")
+	check(not released
+		and observed.size() == 1
+		and observed[0].get("signal_reason") == &"medical_inventory_release_failed"
+		and observed[0].get("details_reason") == &"medical_inventory_release_failed"
+		and not bool(observed[0].get("nested_release", true))
+		and observed[0].get("nested_error") == &"health_binding_change_reentrant"
+		and recovery.get("reason") == &"medical_inventory_release_failed",
+		"recovery callback rejects nested release without changing the latched failure")
+	check(bool(receipt_during_failure.get("queued", false))
+		and not bool(receipt_during_failure.get("terminal", true))
+		and history_during_failure == history_before
+		and adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.RECOVERY_REQUIRED
+		and adapter.binding_generation() == generation
+		and adapter.actor_count() == 1
+		and port.clear_calls == 1,
+		"recovery callback preserves pending treatment, history, and retryable binding")
+	check(adapter.last_error == &"medical_inventory_release_failed",
+		"recovery callback cannot overwrite the emitted outer failure reason")
+	var recovered := adapter.recover_by_teardown()
+	var receipt_after_recovery := adapter.treatment_receipt(String(request["request_id"]))
+	check(recovered
+		and bool(receipt_after_recovery.get("terminal", false))
+		and not bool(receipt_after_recovery.get("queued", true))
+		and receipt_after_recovery.get("reason") == &"health_adapter_released"
+		and authority.journal.records() == history_before
+		and adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.RELEASED
+		and adapter.binding_generation() == generation + 1
+		and adapter.actor_count() == 0
+		and port.clear_calls == 2,
+		"recovery retry terminalizes the preserved receipt without changing history")
 
 
 func _test_unproven_owner_unload_cannot_clear_hold() -> void:

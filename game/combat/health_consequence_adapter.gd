@@ -552,6 +552,8 @@ func _release_binding_mutation(
 	lifecycle = Lifecycle.RELEASED
 	last_error = reason
 	_emit_binding_invalidated(reason)
+	# A listener can make a rejected nested public call during synchronous delivery.
+	last_error = reason
 	_disconnect_public_signal_callbacks()
 	return true
 
@@ -2170,6 +2172,8 @@ func _latch_recovery(reason: StringName, details: Dictionary) -> bool:
 			"requires_authoritative_teardown": true,
 		}
 		_emit_recovery(reason, _recovery)
+		# Preserve the failure that this outer recovery publication latched.
+		last_error = reason
 	return false
 
 
