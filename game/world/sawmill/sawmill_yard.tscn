@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://game/world/sawmill/sawmill_yard.gd" id="1_yard"]
+[ext_resource type="Resource" path="res://game/world/sawmill/sawmill_yard_layout.tres" id="2_layout"]
+[ext_resource type="TileSet" path="res://game/world/sawmill/sawmill_tileset.tres" id="3_tiles"]
+
+[node name="SawmillYard" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1_yard")
+layout = ExtResource("2_layout")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+tile_set = ExtResource("3_tiles")
+navigation_enabled = false
+
+[node name="Detail" type="TileMapLayer" parent="."]
+tile_set = ExtResource("3_tiles")
+navigation_enabled = false
+collision_enabled = false
+
+[node name="Obstacles" type="TileMapLayer" parent="."]
+tile_set = ExtResource("3_tiles")
+navigation_enabled = false
+
+[node name="Canopy" type="TileMapLayer" parent="."]
+tile_set = ExtResource("3_tiles")
+navigation_enabled = false
+
+[node name="Markers" type="TileMapLayer" parent="."]
+tile_set = ExtResource("3_tiles")
+navigation_enabled = false
+collision_enabled = false
+
+[node name="Anchors" type="Node2D" parent="."]
+metadata/role = "authored_points_only_no_runtime_behavior"
+
+[node name="Routes" type="Node2D" parent="."]
+metadata/role = "authoring_reachability_metadata_not_runtime_navigation"
+
+[node name="OccluderSources" type="Node2D" parent="."]
+metadata/role = "explicit_authored_regions_pending_task_3_10_bake"
+
+[node name="Bounds" type="Node2D" parent="."]
+metadata/role = "source_pixel_bounds"
