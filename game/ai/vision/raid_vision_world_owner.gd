@@ -319,6 +319,22 @@ func is_release_claim_current(
 		and _binding_values_match(raid_authority, owner_generation, raid_generation)
 
 
+## PREDELETE-only proof for RaidAuthority's unavoidable-destruction fallback.
+## Explicit teardown never sets this bit and therefore remains fail-atomic.
+func is_predelete_claim_current(
+	raid_authority: RaidAuthority,
+	owner_generation: int,
+	raid_generation: int
+) -> bool:
+	return _predelete_started \
+		and _binding_registered \
+		and not _binding_claim_pending \
+		and not _binding_release_pending \
+		and _binding_values_match(raid_authority, owner_generation, raid_generation) \
+		and (lifecycle == Lifecycle.ACTIVE \
+			or lifecycle == Lifecycle.QUARANTINED)
+
+
 ## Authority-owned release callback. An owner that has already participated in
 ## simulation is quarantined and loses the runtime synchronously; a PREPARING
 ## replacement release only clears the binding.
@@ -576,7 +592,8 @@ func _notification(what: int) -> void:
 	if what != NOTIFICATION_PREDELETE or _predelete_started:
 		return
 	_predelete_started = true
-	_release_authority_for_teardown()
+	if not _release_authority_for_teardown():
+		_fail_authority_for_predelete()
 	_dispose_native_runtime()
 	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
 		lifecycle = Lifecycle.TORN_DOWN
@@ -631,6 +648,17 @@ func _release_authority_for_teardown() -> bool:
 	if _binding_registered:
 		return _reject(&"vision_authority_release_incomplete")
 	return true
+
+
+func _fail_authority_for_predelete() -> void:
+	if not _binding_registered or _raid_authority_ref == null:
+		return
+	var raid_value: Variant = _raid_authority_ref.get_ref()
+	if not raid_value is RaidAuthority or not is_instance_valid(raid_value):
+		return
+	(raid_value as RaidAuthority).fail_vision_world_owner_predelete(
+		self, _generation, _raid_authority_generation
+	)
 
 
 func _clear_authority_binding() -> void:

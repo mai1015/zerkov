@@ -73,6 +73,7 @@ var _is_advancing: bool = false
 var _processing_tick: int = 0
 var _processing_phase: int = -1
 var _processing_handler_id: StringName = &""
+var _preterminalized_current_tick: bool = false
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
@@ -306,6 +307,40 @@ func release_vision_world_owner(
 		_seal_terminal_runtime()
 		return true
 	return _reject(&"vision_owner_release_closed")
+
+
+## Handles the one release case that cannot be made fail-atomic: the bound
+## owner is already inside NOTIFICATION_PREDELETE and must cease to exist. A
+## PREPARING owner with no dependents still uses the ordinary release path;
+## this fallback terminalizes every other live composition and clears the
+## owner slot and complete dependency graph synchronously. The current tick
+## remains marked as advancing until its callback unwinds.
+func fail_vision_world_owner_predelete(
+	owner: RaidVisionWorldOwner,
+	owner_generation: int,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if not _vision_owner_matches(owner, owner_generation, expected_generation):
+		return _reject(&"vision_owner_binding_invalid")
+	if not owner.is_predelete_claim_current(
+		self, owner_generation, expected_generation
+	):
+		return _reject(&"vision_owner_predelete_claim_invalid")
+	if lifecycle != Lifecycle.PREPARING \
+			and lifecycle != Lifecycle.ACTIVE \
+			and lifecycle != Lifecycle.EXTRACTING \
+			and lifecycle != Lifecycle.SETTLING:
+		return _reject(&"vision_owner_predelete_closed")
+	var failure_reason := &"vision_owner_lost_during_tick" \
+		if _is_advancing else &"vision_owner_destroyed"
+	_preterminalized_current_tick = _is_advancing
+	lifecycle = Lifecycle.FAILED
+	_seal_terminal_runtime()
+	last_error = failure_reason
+	return true
 
 
 ## Read-only phase attestation for game-owned handlers that must reject direct,
@@ -720,6 +755,7 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 		return _reject(&"tick_regressed_or_skipped")
 
 	_is_advancing = true
+	_preterminalized_current_tick = false
 	_processing_tick = tick
 	last_phase_trace = PackedStringArray()
 	# Once a tick starts with the reserved Vision owner, no later callback may
@@ -751,6 +787,11 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 				handler_intents.append(intent_copy)
 			var outcome: Variant = callback.call(self, phase, tick, handler_intents)
 			_processing_handler_id = &""
+			# A PREDELETE fail-stop can terminalize and seal the authority from
+			# inside this callback. Finish only the already-consumed tick; do not
+			# dispatch another handler or replace the recorded terminal cause.
+			if _preterminalized_current_tick:
+				return _finish_preterminalized_tick(tick)
 			if typeof(outcome) != TYPE_BOOL or not outcome:
 				return _fail_current_tick(tick, &"phase_handler_failed")
 			if vision_owner_required_for_tick \
@@ -759,6 +800,7 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 		_processing_phase = -1
 	last_processed_tick = tick
 	_is_advancing = false
+	_preterminalized_current_tick = false
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
@@ -802,11 +844,24 @@ func _fail_current_tick(tick: int, code: StringName) -> bool:
 	# retain any committed audit prefix and keep the canonical tick invariant.
 	last_processed_tick = tick
 	_is_advancing = false
+	_preterminalized_current_tick = false
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
 	lifecycle = Lifecycle.FAILED
 	_seal_terminal_runtime()
+	return _reject(code)
+
+
+func _finish_preterminalized_tick(tick: int) -> bool:
+	var code := last_error if not last_error.is_empty() \
+		else &"raid_terminalized_during_tick"
+	last_processed_tick = tick
+	_is_advancing = false
+	_preterminalized_current_tick = false
+	_processing_tick = 0
+	_processing_phase = -1
+	_processing_handler_id = &""
 	return _reject(code)
 
 

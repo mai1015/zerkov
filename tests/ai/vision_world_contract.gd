@@ -170,8 +170,11 @@ func run() -> void:
 	_test_native_budget_defer_and_determinism()
 	await _test_owner_opaque_runtime_and_off_tree_free()
 	_test_reserved_slot_spoofing_and_replacement()
+	_test_preparing_predelete_without_dependents()
 	_test_bound_teardown_is_fail_atomic()
 	_test_preparing_release_respects_dependencies()
+	_test_preparing_predelete_with_dependents()
+	_test_active_predelete_fail_stop()
 	_test_forced_owner_loss_fails_current_tick()
 	_test_reserved_callback_provenance()
 	_test_authority_cadence_and_callback_attestation()
@@ -846,6 +849,12 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 		and owner.is_registered_binding_current(
 			raid, owner.generation(), raid.generation()
 		), "direct authority release is inert without the owner's release claim")
+	check(not raid.fail_vision_world_owner_predelete(
+		owner, owner.generation(), raid.generation()
+	) and raid.last_error == &"vision_owner_predelete_claim_invalid"
+		and owner.is_registered_binding_current(
+			raid, owner.generation(), raid.generation()
+		), "direct PREDELETE fail-stop is inert without owner destruction proof")
 	var second := VisionOwner.new()
 	check(second.configure(50_107), "second legitimate owner configures")
 	check(not second.register_with_raid_authority(raid)
@@ -857,7 +866,9 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 	owner.free()
 	second.free()
 
-	var replacement_raid := _new_raid(50_108, "slot_replace")
+
+func _test_preparing_predelete_without_dependents() -> void:
+	var replacement_raid := _new_raid(50_108, "predelete_replace")
 	if replacement_raid == null:
 		return
 	var released := VisionOwner.new()
@@ -865,21 +876,49 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 	check(released.configure(50_108)
 		and released.register_with_raid_authority(replacement_raid),
 		"first PREPARING owner claims replacement fixture slot")
+	var raid_generation := replacement_raid.generation()
+	var owner_generation := released.generation()
+	var released_ref: WeakRef = weakref(released)
 	var released_runtime := released.get("_runtime_dispatch") as Callable
+	check(replacement_raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
+		and raid_generation > 0
+		and owner_generation == 1
+		and replacement_raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "PREPARING replacement fixture starts with exact live generations and slot")
 	released.free()
-	check(not bool((released_runtime.call(&"status", {}) as Dictionary).get(
-		"alive", true
-	)), "off-tree PREDELETE invalidates runtime and releases PREPARING slot")
+	released = null
+	check(released_ref.get_ref() == null
+		and not bool((released_runtime.call(&"status", {}) as Dictionary).get(
+			"alive", true
+		)), "off-tree PREDELETE destroys the owner and invalidates retained runtime")
+	check(replacement_raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
+		and replacement_raid.generation() == raid_generation
+		and replacement_raid.last_processed_tick == 0
+		and int(replacement_raid.get("_vision_owner_instance_id")) == 0
+		and replacement_raid.get("_vision_owner_ref") == null
+		and not replacement_raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "dependency-free PREDELETE releases only the slot and preserves PREPARING generation")
 	check(replacement.configure(50_109)
-		and replacement.register_with_raid_authority(replacement_raid),
-		"new configured owner can claim the safely released slot")
+		and replacement.generation() == 1
+		and replacement.register_with_raid_authority(replacement_raid)
+		and replacement_raid.generation() == raid_generation
+		and int(replacement_raid.get("_vision_owner_instance_id")) \
+			== replacement.get_instance_id()
+		and replacement_raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "new generation-one owner claims the safely released slot exactly once")
 	check(replacement_raid.transition(
-		RaidAuthority.Lifecycle.ACTIVE, replacement_raid.generation()
-	) and replacement_raid.advance_one(replacement_raid.generation()),
-		"replacement callback provenance remains valid at tick 1")
-	check(replacement_raid.teardown(replacement_raid.generation()),
-		"replacement raid tears down")
-	check(replacement.teardown(replacement.generation()),
+		RaidAuthority.Lifecycle.ACTIVE, raid_generation
+	) and replacement_raid.advance_one(raid_generation)
+		and replacement_raid.last_processed_tick == 1,
+		"replacement callback provenance remains valid for exact tick 1")
+	check(replacement_raid.teardown(raid_generation)
+		and replacement_raid.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN
+		and replacement_raid.generation() == raid_generation + 1,
+		"replacement raid teardown advances its generation exactly once")
+	check(replacement.teardown(1),
 		"replacement owner tears down after authority release")
 	replacement.free()
 
@@ -970,6 +1009,133 @@ func _test_preparing_release_respects_dependencies() -> void:
 	owner.free()
 
 
+func _test_preparing_predelete_with_dependents() -> void:
+	var fixture := _new_bound_fixture(50_117, "dependent_predelete")
+	check(not fixture.is_empty(),
+		"dependent PREDELETE fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	var owner := fixture["owner"] as RaidVisionWorldOwner
+	var raid_generation := raid.generation()
+	var owner_generation := owner.generation()
+	var owner_ref: WeakRef = weakref(owner)
+	var retained := owner.get("_runtime_dispatch") as Callable
+	var consumer_id: StringName = &"vision_predelete_consumer"
+	check(raid.register_phase_handler(
+		RaidAuthority.TickPhase.VISION,
+		consumer_id,
+		Callable(self, "_noop_phase_handler"),
+		raid_generation,
+		1,
+		PackedStringArray([String(RaidAuthority.RESERVED_VISION_HANDLER_ID)]),
+	), "PREPARING PREDELETE fixture has a declared Vision dependent")
+	check(owner_generation == 1
+		and raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		)
+		and raid.has_phase_handler(consumer_id, raid_generation),
+		"dependent fixture records exact generations and both handler slots")
+	owner.free()
+	owner = null
+	check(owner_ref.get_ref() == null
+		and not bool((retained.call(&"status", {}) as Dictionary).get(
+			"alive", true
+		)), "dependent PREDELETE destroys the owner without a retained live runtime")
+	check(raid.lifecycle == RaidAuthority.Lifecycle.FAILED
+		and raid.last_error == &"vision_owner_destroyed"
+		and raid.generation() == raid_generation
+		and raid.last_processed_tick == 0,
+		"unavoidable PREPARING destruction enters one exact fail-stop generation")
+	check(not raid.has_phase_handler(
+		RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+	) and not raid.has_phase_handler(consumer_id, raid_generation)
+		and int(raid.get("_vision_owner_instance_id")) == 0
+		and raid.get("_vision_owner_ref") == null
+		and (raid.get("_handler_ids") as Dictionary).is_empty(),
+		"PREPARING fail-stop clears the reserved slot and dependent graph together")
+	var replacement := VisionOwner.new()
+	check(replacement.configure(50_118) and replacement.generation() == 1,
+		"replacement candidate configures at its first generation")
+	check(not replacement.register_with_raid_authority(raid)
+		and replacement.last_error == &"handler_registration_closed"
+		and not raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "terminalized PREPARING authority cannot ambiguously replace its owner")
+	check(not raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid_generation)
+		and raid.last_error == &"lifecycle_transition_invalid",
+		"PREPARING fail-stop cannot later transition ACTIVE")
+	check(not raid.advance_one(raid_generation)
+		and raid.last_error == &"raid_not_advancing"
+		and raid.last_processed_tick == 0,
+		"PREPARING fail-stop cannot process a later tick")
+	check(raid.teardown(raid_generation)
+		and raid.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN
+		and raid.generation() == raid_generation + 1,
+		"PREPARING fail-stop teardown advances the authority generation exactly once")
+	check(replacement.teardown(1),
+		"rejected PREPARING replacement tears down independently")
+	replacement.free()
+
+
+func _test_active_predelete_fail_stop() -> void:
+	var fixture := _new_bound_fixture(50_119, "active_predelete")
+	check(not fixture.is_empty(), "active PREDELETE fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	var owner := fixture["owner"] as RaidVisionWorldOwner
+	var raid_generation := raid.generation()
+	var owner_generation := owner.generation()
+	var owner_ref: WeakRef = weakref(owner)
+	var retained := owner.get("_runtime_dispatch") as Callable
+	var consumer_id: StringName = &"vision_active_consumer"
+	check(raid.register_phase_handler(
+		RaidAuthority.TickPhase.VISION,
+		consumer_id,
+		Callable(self, "_noop_phase_handler"),
+		raid_generation,
+		1,
+		PackedStringArray([String(RaidAuthority.RESERVED_VISION_HANDLER_ID)]),
+	) and raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid_generation),
+		"active PREDELETE fixture transitions with a declared dependent")
+	owner.free()
+	owner = null
+	check(owner_generation == 1
+		and owner_ref.get_ref() == null
+		and not bool((retained.call(&"status", {}) as Dictionary).get(
+			"alive", true
+		)), "active PREDELETE destroys exactly one owner generation and runtime")
+	check(raid.lifecycle == RaidAuthority.Lifecycle.FAILED
+		and raid.generation() == raid_generation
+		and raid.last_processed_tick == 0
+		and not raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		)
+		and not raid.has_phase_handler(consumer_id, raid_generation)
+		and int(raid.get("_vision_owner_instance_id")) == 0
+		and raid.get("_vision_owner_ref") == null
+		and (raid.get("_handler_ids") as Dictionary).is_empty(),
+		"active destruction fail-stops and clears the complete handler graph")
+	var replacement := VisionOwner.new()
+	check(replacement.configure(50_120) and replacement.generation() == 1,
+		"active-loss replacement candidate configures independently")
+	check(not replacement.register_with_raid_authority(raid)
+		and replacement.last_error == &"handler_registration_closed",
+		"active fail-stop rejects a replacement owner without slot ambiguity")
+	check(not raid.advance_one(raid_generation)
+		and raid.last_error == &"raid_not_advancing"
+		and raid.last_processed_tick == 0,
+		"active fail-stop cannot advance a first tick")
+	check(raid.teardown(raid_generation)
+		and raid.generation() == raid_generation + 1,
+		"active fail-stop teardown advances the authority generation once")
+	check(replacement.teardown(1),
+		"active-loss replacement candidate tears down independently")
+	replacement.free()
+
+
 func _test_forced_owner_loss_fails_current_tick() -> void:
 	var fixture := _new_bound_fixture(50_116, "forced_owner_loss")
 	check(not fixture.is_empty(),
@@ -978,23 +1144,56 @@ func _test_forced_owner_loss_fails_current_tick() -> void:
 		return
 	var raid := fixture["raid"] as RaidAuthority
 	later_free_owner = fixture["owner"] as RaidVisionWorldOwner
+	var raid_generation := raid.generation()
+	var owner_generation := later_free_owner.generation()
+	var owner_ref: WeakRef = weakref(later_free_owner)
 	var retained := later_free_owner.get("_runtime_dispatch") as Callable
+	var later_id: StringName = &"vision_later_free_probe"
 	check(raid.register_phase_handler(
 		RaidAuthority.TickPhase.AI_DECISIONS,
-		&"vision_later_free_probe",
+		later_id,
 		Callable(self, "_free_owner_in_later_phase"),
-		raid.generation(),
+		raid_generation,
 	), "later phase forced-free probe registers")
 	check(raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid.generation())
 		and not raid.advance_one(raid.generation())
 		and raid.lifecycle == RaidAuthority.Lifecycle.FAILED
-		and raid.last_error == &"vision_owner_lost_during_tick",
-		"unavoidable owner destruction terminalizes the current authority tick")
-	check(not bool((retained.call(&"status", {}) as Dictionary).get("alive", true)),
-		"forced owner destruction invalidates every retained runtime capability")
+		and raid.last_error == &"vision_owner_lost_during_tick"
+		and raid.last_processed_tick == 1
+		and raid.generation() == raid_generation,
+		"later-callback destruction terminalizes the exact consumed tick and generation")
 	later_free_owner = null
-	check(raid.teardown(raid.generation()),
-		"forced owner-loss authority tears down")
+	check(owner_generation == 1
+		and owner_ref.get_ref() == null
+		and not bool((retained.call(&"status", {}) as Dictionary).get("alive", true)),
+		"later-callback destruction leaves no freed owner or live runtime capability")
+	check(not raid.has_phase_handler(
+		RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+	) and not raid.has_phase_handler(later_id, raid_generation)
+		and int(raid.get("_vision_owner_instance_id")) == 0
+		and raid.get("_vision_owner_ref") == null
+		and (raid.get("_handler_ids") as Dictionary).is_empty(),
+		"later-callback fail-stop clears the reserved and remaining handler slots")
+	var replacement := VisionOwner.new()
+	check(replacement.configure(50_121) and replacement.generation() == 1,
+		"later-callback replacement candidate configures independently")
+	check(not replacement.register_with_raid_authority(raid)
+		and replacement.last_error == &"handler_registration_closed",
+		"later-callback fail-stop rejects replacement binding")
+	check(not raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid_generation)
+		and raid.last_error == &"lifecycle_transition_invalid",
+		"later-callback fail-stop cannot transition ACTIVE")
+	check(not raid.advance_one(raid_generation)
+		and raid.last_error == &"raid_not_advancing"
+		and raid.last_processed_tick == 1,
+		"later-callback fail-stop cannot process tick 2")
+	check(raid.teardown(raid_generation)
+		and raid.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN
+		and raid.generation() == raid_generation + 1,
+		"forced owner-loss authority tears down with one generation advance")
+	check(replacement.teardown(1),
+		"later-callback replacement candidate tears down independently")
+	replacement.free()
 
 
 func _test_reserved_callback_provenance() -> void:

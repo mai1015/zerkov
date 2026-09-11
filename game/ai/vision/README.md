@@ -18,6 +18,16 @@ Direct, forged, and replayed callbacks—including calls through a reflectively
 retained opaque Callable—are inert. The owner has no `_process()`, delta-time
 API, or public direct-tick driver.
 
+Owner release has two deliberately different contracts. Explicit teardown is
+fail-atomic: while a PREPARING consumer depends on the reserved slot, rejection
+leaves the owner, native runtime, slot, and dependency graph unchanged. Object
+destruction cannot obey that contract because `NOTIFICATION_PREDELETE` must
+finish. A dependency-free PREPARING destruction releases the slot for a fresh
+owner; otherwise an exact predelete-only proof makes `RaidAuthority` enter
+`FAILED`, synchronously seal the native runtime, and clear the reserved slot
+and every dependent handler together. If destruction occurs inside a tick,
+the already-consumed tick is finalized as failed and no later callback runs.
+
 `ZerkovVisionConfig` seals the complete configuration as SHA-256
 `3ead6e826bfd2552aa1396a4d266de3603524355c56620033cb1bd84b6df58f3`.
 Startup fails closed if the record, project add-on lock, installed artifact

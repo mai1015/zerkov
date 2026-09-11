@@ -1,9 +1,9 @@
 # Task 6.1 authoritative Vision world evidence
 
-This packet records the implementation-level evidence for approved task 6.1
+This packet records the implementation-level evidence for the approved change's task 6.1
 on branch `codex/vision-world-6-1`, originally based on `d947b40`. It
-incorporates all independent-review repairs and the integration of accepted
-main commit `c265d3a4efd9b49f840b87e201ceb8f4b661d26b` on 2026-09-11. Human
+incorporates all independent-review repairs and the integration of current
+main commit `4accbd8a92e9ad66900b3398fe97ab5b8fa47bb6` on 2026-09-11. Human
 approval, encounter tuning, tasks 6.2 and 6.3, and whole-game acceptance are
 not claimed.
 
@@ -18,25 +18,35 @@ never returns the native value and advances only while the exact reserved
 authority callback is synchronously attested. `NOTIFICATION_PREDELETE`
 synchronously frees the native state even for an owner configured off-tree;
 every retained copy of the Callable observes `alive == false` afterward.
+When that owner is bound, dependency-free PREPARING destruction releases only
+the owner slot, while destruction that cannot safely release uses an exact
+predelete-only proof to fail-stop and seal the complete authority composition
+before the object disappears.
 
 The production owner has no observer, target, occluder, transform, query, or
 projection port. Those belong to tasks 6.2/6.3. Native memory/budget behavior is
 tested through an explicitly test-only fixture that cannot be obtained from a
 normally configured owner.
 
-The final review regressions were captured before the production repair. With
-the new adversarial assertions in place, the prior owner/authority behavior
-reported `VISION_WORLD_CONTRACT_RESULT checks=211 failures=6`: a later-phase
-teardown could discard native state after release rejection, PREPARING release
-could strand a declared consumer, and unavoidable destruction was not detected
-before tick commit. The inherited units behavior reported
+The first review regressions were captured before the earlier production
+repair. With those adversarial assertions in place, the original
+owner/authority behavior reported `VISION_WORLD_CONTRACT_RESULT checks=211
+failures=6`: a later-phase explicit teardown could discard native state after
+release rejection, PREPARING release could strand a declared consumer, and
+unavoidable destruction was not detected before tick commit. The inherited units behavior reported
 `UNITS_CLOCK_CONTRACT_RESULT checks=40 failures=4` for the restored shared
-limit and 100,000-pixel weapon/tile conversions. Those same permanent contracts
-now report 211/0 and 41/0 respectively.
+limit and 100,000-pixel weapon/tile conversions. A subsequent independent
+PREDELETE probe then found one remaining destruction-only hole: when a
+PREPARING dependent made ordinary release reject, the owner still died while
+the reserved slot and dependent graph remained live, and the raid could later
+transition ACTIVE. The final permanent contract now covers PREPARING free both
+with and without dependents, active free, and later-callback free, and reports
+241/0; the units contract remains 41/0.
 
-## Accepted-main integration
+## Current-main integration
 
-The accepted main integration through `c265d3a` touched the shared
+The current main integration through `4accbd8a` includes the earlier accepted
+integration through `c265d3a` and touched the shared
 `RaidAuthority` without a textual conflict. Its resolved record preserves
 main's bounded handler priorities/dependencies, unregister lifecycle, weapon
 actor pose/status state,
@@ -45,7 +55,8 @@ and teardown. The reserved Vision registration now writes the same
 priority/dependency metadata shape as generic handlers, while generic
 registration and the newly merged generic unregister/preflight APIs all reject
 `raid_vision_world`. The specialized two-sided owner release remains the sole
-way to replace that slot.
+way to replace that slot. Main's 5.3 ledger checkbox is intentionally reopened
+at `4accbd8a` and remains untouched by this repair.
 
 `ZWorldUnits` keeps both accepted contracts: shared weapon, tile, and inventory
 scalar conversions retain the +/-1,048,576-pixel domain, while Vision point
@@ -63,9 +74,14 @@ release claim plus synchronous authority attestation permits safe PREPARING
 replacement, but only after the same dependent-handler preflight used by
 generic unregister. Direct/replayed release calls are inert. Explicit teardown
 during any authority callback fails atomically and retains the live owner,
-binding, and native state. If unavoidable object destruction occurs during a
-later callback, the authority detects the lost sole Vision owner after that
-callback and terminalizes the current raid tick. Direct callbacks,
+binding, and native state; PREPARING explicit teardown likewise preserves the
+complete composition while a dependent exists. Unavoidable PREDELETE is a
+separate, owner-attested path: a dependency-free PREPARING owner releases
+cleanly for replacement, while a dependent PREPARING, active, extracting, or
+settling owner synchronously fails and seals the raid, clears the owner slot and
+complete handler graph, and blocks replacement or later ACTIVE work. During a
+callback the authority stays in its advancing guard until the callback unwinds,
+then finalizes the consumed tick without dispatching another handler. Direct callbacks,
 callbacks forged by an earlier handler in the same VISION phase, replayed
 callbacks, and reflected runtime calls outside dispatch cannot advance.
 
@@ -156,15 +172,17 @@ capture, or viewport-setting test was invoked, so this integration run created
 no alternate-resolution artifact; the project's exact 1920x1080 UI boundary
 was not exercised. Historical UI evidence files arrived unchanged through the
 requested main merge and are not evidence for this run. In particular,
-`inventory_loot_ui_4_11_contract.gd` was excluded because it instantiates the
-screen even in headless mode; 4.11 was covered through its resolution-independent
-authority, adapter, projection, routing, catalog, and multi-controller tests.
+`inventory_loot_ui_4_11_contract.gd` and
+`inventory_multi_controller_contract.gd` were excluded because their fixture
+constructs the inventory screen even in headless mode. Adjacent 4.11 behavior
+was covered only through its domain authority, adapter, projection, routing,
+and catalog contracts.
 
 | Validation | Result |
 | --- | ---: |
 | Final editor import / script registration | exit 0; diagnostics 0 |
-| Vision world focused contract | 211 / 0 |
-| Deterministic focused repeat | 211 / 0; identical seal/failure metrics |
+| Vision world focused contract | 241 / 0 |
+| Deterministic focused repeat | 241 / 0; identical seal/failure metrics |
 | Combined six-add-on smoke | 155 / 0 |
 | Units and clock contract | 41 / 0; shared 100,000px round trips pass |
 | Session lifecycle domain contract | 44 / 0 |
@@ -177,19 +195,18 @@ authority, adapter, projection, routing, catalog, and multi-controller tests.
 | Inventory intent adapter contract (4.11 adjacent) | 162 / 0 |
 | Inventory projection contract (4.11 adjacent) | 99 / 0 |
 | Inventory mutation routing contract (4.11 adjacent) | 146 / 0 |
-| Inventory multi-controller contract (4.11 adjacent) | 23 / 0 |
 | Inventory authority contract (4.11 adjacent) | 79 / 0 |
 | Inventory catalog contract (4.11 adjacent) | 543 / 0 |
-| Body hitbox contract (5.3) | 111 / 0 |
-| Body hitbox adversarial contract (5.3) | 173 / 0 |
-| Body hitbox reviewer regression contract (5.3) | 72 / 0 |
+| Body hitbox domain contract (5.3 ledger open) | 111 / 0 |
+| Body hitbox adversarial contract (5.3 ledger open) | 173 / 0 |
+| Body hitbox reviewer regression contract (5.3 ledger open) | 72 / 0 |
 | Toolchain lock | 7 / 0 |
 | Locked destination packages | 6 passed; 0 failed |
 | Vendor tooling unit tests | 4 passed; 0 failed |
 | Reviewed source/dependency hashes | 44 / 44 verified |
 | Strict approved-change validation | `Valid` |
 | `git diff --check` | exit 0 |
-| Accepted Godot assertion executions | **3,287 / 0** |
+| Accepted Godot assertion executions | **3,324 / 0** |
 
 ## Reproduction
 
@@ -225,8 +242,6 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_mutation_routing_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
-  --script res://tests/raid/inventory_multi_controller_contract.gd
-$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_authority_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_catalog_contract.gd
@@ -260,11 +275,11 @@ git diff --cached --check
 - Exact source paths intentionally make the accepted local macOS provenance
   non-portable. A relocated SDK, Windows/Linux artifacts, or a changed package
   must be explicitly re-attested and resealed rather than silently accepted.
-- The requested main merge through `c265d3a` brings accepted `project.godot`,
-  UI, inventory, weapon context, body hitboxes, documentation, and task-ledger
-  history into this branch. The 6.1 integration repair itself changed only its
-  Vision owner/configuration/docs/tests, shared `RaidAuthority` and
-  `ZWorldUnits`, the combined units contract, and this QA packet. It did not
+- The requested main merge through `4accbd8a` brings `project.godot`, UI,
+  inventory, weapon context, body-hitbox code and its reopened 5.3 ledger note,
+  documentation, and task history into this branch. The current PREDELETE
+  repair changed only the Vision owner/README/tests, shared `RaidAuthority`, and
+  this QA packet. It did not
   independently edit `project.godot`, bootstrap, central identity,
   add-on/vendor source, truth specs, the approved task ledger, UI, inventory,
   combat, or a world scene.
