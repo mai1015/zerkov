@@ -1,10 +1,11 @@
 # Task 7.9 integration review request
 
-Review correctness repair commit
-`f20d8b9b33b1cb428f45d87dbeec917de7a36e01` after accepted `main`
-`c265d3a4efd9b49f840b87e201ceb8f4b661d26b` was integrated by merge
-`9c9201fa67f4f5b54d71bd897370531f5e9e1790`. The repair preserves the
-previous mutex-backed lease and operation-admission correction.
+Review future-envelope repair commit
+`a63921cad04247a38221d833ad15798684b6fb9a` after current `main`
+`4accbd8a92e9ad66900b3398fe97ab5b8fa47bb6` was integrated by merge
+`99226f7a4c5df23f5488aa19e157e83100bab9fc`. The repair preserves the
+previous durability, lineage, recursive-immutability, mutex-backed lease, and
+operation-admission corrections.
 
 Review the exact files sealed by `frozen_sources.sha256` against task 7.9 and
 the raid-progression/runtime-foundation deltas. Confirm that:
@@ -48,3 +49,18 @@ the raid-progression/runtime-foundation deltas. Confirm that:
 20. bounded synchronized thread probes prove one eight-way configure winner,
     one same-store save winner, explicit loser receipts, no deadlock, and lease
     reacquisition only after successful teardown.
+21. a canonical matching-profile envelope with an unsupported schema, version,
+    payload schema, codec, or digest algorithm is classified separately from
+    malformed/corrupt supported-version data before copy selection;
+22. an unsupported copy in either primary or backup blocks load, ordinary save,
+    and exact replay even when the other copy is a valid older v1 generation;
+23. blocked receipts use the explicit immutable load/write unsupported statuses,
+    report migration required, and expose only a bounded format diagnostic;
+24. blocked load/save/replay read both copies but perform no temp cleanup, write,
+    rotation, replace, or sync, preserving primary, backup, and both temp slots
+    byte-for-byte;
+25. after an external future migration supplies supported-format bytes, normal
+    malformed-v1 backup recovery and subsequent saving resume without a hidden
+    latch; ProfileStore itself performs no migration in task 7.9;
+26. the required current-main merge's reopened 5.3 ledger note remains unchanged
+    and task 7.9 remains unchecked.

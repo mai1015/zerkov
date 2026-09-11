@@ -1,6 +1,6 @@
-PASS: no matches in the clean post-merge editor import, 17 final headless domain contracts, concurrency-repeat, toolchain, vendor, or strict-spec logs.
+PASS: no matches in the clean final post-merge editor import, 17 final headless domain contracts, concurrency-repeat, toolchain, vendor, or strict-spec logs.
 
-Post-merge base: c265d3a4efd9b49f840b87e201ceb8f4b661d26b (merged as 9c9201fa67f4f5b54d71bd897370531f5e9e1790)
+Post-merge base: 4accbd8a92e9ad66900b3398fe97ab5b8fa47bb6 (merged as 99226f7a4c5df23f5488aa19e157e83100bab9fc)
 Excluded by instruction: all UI, viewport, and visual-capture contracts
 
 Scanned patterns:

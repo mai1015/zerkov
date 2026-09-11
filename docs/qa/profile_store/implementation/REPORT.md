@@ -1,6 +1,6 @@
 # Task 7.9 — ProfileStore implementation evidence
 
-Status: **independent-review repairs complete; post-merge verification passed**
+Status: **future-envelope rollback repair complete; final verification passed**
 
 Task: `7.9` from `add-zerkov-playable-raid-2026-09-09`
 
@@ -8,9 +8,17 @@ Rejected candidate reviewed: `d6d8603d1df2ede88a409a089b6c2f674660146b`
 
 Correctness repair commit: `f20d8b9b33b1cb428f45d87dbeec917de7a36e01`
 
+Future-envelope rejection reviewed: `1b4d8b5fc1f8285d3dab9abe8c83f29afece720d`
+
+Future-envelope repair commit: `a63921cad04247a38221d833ad15798684b6fb9a`
+
 Post-repair integration base: accepted `main`
 `c265d3a4efd9b49f840b87e201ceb8f4b661d26b`, merged as
 `9c9201fa67f4f5b54d71bd897370531f5e9e1790`
+
+Final integration base: current `main`
+`4accbd8a92e9ad66900b3398fe97ab5b8fa47bb6`, merged as
+`99226f7a4c5df23f5488aa19e157e83100bab9fc`
 
 Engine: Godot `4.7.2.stable.official.ed1daf0bf`
 
@@ -59,6 +67,34 @@ of a concurrent same-store save. Finally, the replay documentation now states
 the implemented guarantee precisely: an exact replay independently reads and
 validates both copies, but performs no writes, rotation, or other mutation.
 
+## Future-envelope rollback repair
+
+Independent review of `1b4d8b5` demonstrated that an old build classified a
+canonical future-version primary as ordinary invalid data, loaded the older v1
+backup, and then overwrote the future primary with v1 bytes. The repaired
+reader separates structurally recognizable unsupported format headers from
+malformed or corrupt supported-version data. Recognition requires a canonical
+dictionary with the required typed schema/version/codec/digest/profile header
+and this store's exact profile identity; future extra fields remain visible to
+the header probe before the v1 exact-field check.
+
+An unsupported envelope schema, version, payload schema, codec, or digest
+algorithm in either primary or backup now blocks selection. Load returns
+`load_blocked_unsupported_format`; ordinary save and exact replay return
+`write_blocked_unsupported_format`. Each frozen receipt reports
+`profile_format_unsupported`, `unsupported_format=true`, and
+`migration_required=true` with a bounded format diagnostic. The store reads
+both copies but performs no temp cleanup, write, rotation, replace, or directory
+sync, preserving all four slots byte-for-byte. Migration must be implemented by
+a future version-aware service or newer game build outside task 7.9.
+
+The promoted matrix covers schema/version/codec across both slot permutations,
+mixed with an older valid v1 copy, and invokes load, next-generation save, and
+exact replay for every case. A same-instance fixture then externally replaces
+the future bytes with malformed v1 bytes and proves ordinary backup recovery
+and a subsequent supported v1 save still work; the guard adds no hidden latch
+and does not disable corruption recovery for the supported format.
+
 ## Delivered boundary
 
 `game/profile/` adds a game-owned persistence boundary that is independent of
@@ -97,7 +133,9 @@ equal that candidate generation. An exact candidate already present at that
 generation returns `replayed_exact_write` with `committed=true` and
 `write_performed=false`; it still reads and independently validates primary and
 backup. A divergent replay, stale generation, or impossible lineage fails
-before file mutation.
+before file mutation. If either copy has a recognizable unsupported format,
+load/save/replay instead return the explicit migration-required status and
+preserve primary, backup, and both temp slots exactly.
 
 The save order is:
 
@@ -124,13 +162,16 @@ Write status is explicit:
 | `committed_durability_uncertain` | Candidate replaced primary and read-back verified, but power-loss durability is not proven or the operation reported failure after replacement. |
 | `committed_recovery_required` | Replacement occurred, but candidate read-back could not be verified. The receipt never misreports this as an atomic rejection. |
 | `replayed_exact_write` | Exact bytes were already committed; no write or rotation ran. |
+| `write_blocked_unsupported_format` | A recognized unsupported copy requires an explicit future migration; no storage mutation ran. |
 
 Reads never create defaults and never repair files as a side effect. Primary
 and backup are validated independently. The valid higher generation wins;
 byte-identical equal generations prefer primary; divergent equal generations
 fail closed. A valid backup is returned with `recovered_backup=true` when
 primary is corrupt/missing or when backup is newer. Unsafe filesystem objects
-or uncertain I/O fail the entire read rather than trusting the other copy.
+or uncertain I/O fail the entire read rather than trusting the other copy. A
+recognized unsupported copy is never treated as corruption: it blocks the
+entire operation even when the other copy is a valid older v1 envelope.
 
 ## Filesystem guarantee on this host
 
@@ -164,12 +205,12 @@ Godot API references used for the guarantee boundary:
 
 ## Automated results
 
-The final post-merge headless domain matrix executed **21,259 checks with zero
+The final post-merge headless domain matrix executed **21,347 checks with zero
 failures**:
 
 | Contract | Checks | Failures |
 | --- | ---: | ---: |
-| ProfileStore promoted contract | 439 | 0 |
+| ProfileStore promoted contract | 527 | 0 |
 | Inventory persistence/replacement adjacency | 97 | 0 |
 | Inventory authority adjacency | 79 | 0 |
 | Offline session lifecycle adjacency | 44 | 0 |
@@ -199,24 +240,27 @@ before/after candidate write, backup replacement, and primary replacement;
 post-commit verification corruption; the complete 32-case durability result
 cross-product; a seam-proven durable result; re-fingerprinted unequal-counter
 lineage attacks; recursively immutable public success, failure, capability, and
-admission results; fresh-instance host reload and host backup recovery;
+admission results; recognized future schema/version/codec barriers in both
+slots; blocked load/save/replay; byte-identical four-slot preservation; normal
+supported-version recovery after external migration; fresh-instance host reload
+and host backup recovery;
 eight-way synchronized lease acquisition; synchronized same-store save
 admission; bounded thread joins; close during blocked storage I/O;
 validation-error admission cleanup; and lease reacquisition after both ordinary
 and raced teardown.
 
 The ProfileStore contract was also repeated 25 times in one bounded headless
-run (`10,975` assertions, zero failures, zero join timeouts, and zero deadlocks)
+run (`13,175` assertions, zero failures, zero join timeouts, and zero deadlocks)
 to check scheduling behavior. These repetitions are supplementary and are not
 double-counted in the matrix.
 
 All tests in the final matrix are headless domain contracts. No UI scene or
 viewport/visual-capture contract was run.
 
-The clean post-merge editor import exited `0`, registering 309 global script
-classes and importing 547 assets. Every accepted log was scanned for
-`SCRIPT ERROR`, `ERROR:`, warnings, extension-load failures, assertion failure
-markers, ObjectDB/RID/resource leaks, and nonzero exits; there were no matches.
+The clean final post-merge editor import exited `0`. Every accepted log was
+scanned for `SCRIPT ERROR`, `ERROR:`, warnings, extension-load failures,
+assertion failure markers, ObjectDB/RID/resource leaks, and nonzero exits; there
+were no matches.
 Strict change validation returned `Valid`. Toolchain and vendored-destination
 checks passed. `git diff --check` passed.
 
@@ -229,8 +273,10 @@ documentation. `packet.sha256` seals the evidence packet excluding itself.
 
 This task does not create a raid loadout (7.2), define death/secure-container
 loss policy (7.8), apply settlement semantics (7.10), claim the full crash-point
-suite (7.11), build a summary (7.12), bind UI, or modify an add-on. No task
-checkbox or truth spec was edited. Later settlement code must provide the exact
-project/domain payload, expected generation, and next revision; it must treat
-`committed_durability_uncertain` and `committed_recovery_required` as committed
-states rather than retrying blindly.
+suite (7.11), build a summary (7.12), bind UI, or modify an add-on. Neither the
+7.9 checkbox nor a truth spec was edited. Later settlement code must provide the
+exact project/domain payload, expected generation, and next revision; it must
+treat `committed_durability_uncertain` and `committed_recovery_required` as
+committed states rather than retrying blindly. The required current-main merge
+contributes only the reopened 5.3 ledger note and its report; this 7.9 repair
+preserves that note unchanged and leaves 7.9 unchecked.
