@@ -15,15 +15,26 @@ Binding captures the exact `RaidAuthority`, raid, session, epoch, authorized
 owner actor/source, and concrete world instance. Every publication, complete-
 snapshot removal, query, replay, release, and metadata read requires the exact
 opaque capability object minted and returned once by that bind. There is no
-active-capability lookup for stale callers. Generation/token values
-remain deterministic audit provenance but are never treated as credentials;
-foreign or revoked capabilities fail even when every public ID and counter is
-identical. Release revokes the capability before clearing state, and authority
-teardown invalidates it before query parsing or replay lookup.
+active-capability lookup for stale callers. The world retains only a SHA-256
+commitment over a cryptographically random 32-byte lease, the candidate object
+identity, and the exact world/authority/generation/token context. It retains no
+live capability, weak reference, bound callable, raw lease, or capability
+instance ID. A copied lease in another object therefore cannot authenticate.
+Generation/token values remain deterministic audit provenance but are never
+treated as credentials; foreign or revoked capabilities fail even when every
+public ID and counter is identical. Release clears the commitment and erases
+the returned object's lease before clearing state; authority teardown
+invalidates it before query parsing or replay lookup.
 The only public binding/snapshot metadata readers are
 `binding_provenance(capability)` and `snapshot_metadata(capability)`; redundant
 scalar getters are intentionally absent, so retaining a reused world reference
 cannot expose or reacquire replacement-binding metadata.
+
+Consumers receive the bearer only from `bind_raid_authority` and pass it as a
+transient argument to guarded operations. Runtime `Object` adapters must not
+cache the bearer, its raw lease, or an equivalent callable in reflectively
+discoverable members. No authorization material is included in snapshot
+metadata, query-result/replay records, or their canonical digests.
 
 The binding owner and snapshot publisher, every body entity/source, and every
 query actor/source are checked through `RaidAuthority`'s explicit read-only
@@ -42,5 +53,6 @@ Snapshot bodies use the exact fields `entity_id`, `actor_source`,
 actor/source, query actor/source, `tick`, `world_revision`, `origin_raw`,
 `target_raw`, `body_mask`, `obstruction_mask`, and `excluded_entity_ids`.
 Positions are `Vector2i` canonical micro-world-units; no float or presentation
-transform is admitted. Runtime object identities authenticate the capability
-but are deliberately excluded from canonical snapshot and resolution hashes.
+transform is admitted. Runtime object identities participate only inside the
+unpublished one-way commitment and are deliberately excluded from binding
+provenance, canonical snapshots, query results, and resolution hashes.

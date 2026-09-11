@@ -59,9 +59,9 @@ func _test_cross_instance_capability_aba() -> void:
 		!= second_provenance.get("world_instance_id")
 		and first_provenance.get("authority_instance_id")
 		!= second_provenance.get("authority_instance_id")
-		and first_provenance.get("capability_instance_id")
-		!= second_provenance.get("capability_instance_id"),
-		"capability provenance records concrete world/authority/bearer instances")
+		and not first_provenance.has("capability_instance_id")
+		and not second_provenance.has("capability_instance_id"),
+		"provenance distinguishes world/authority without publishing bearer IDs")
 
 	var first_body := _body(target, 1, Vector2i(5_000_000, 0))
 	var second_body := _body(target, 1, Vector2i.ZERO)

@@ -15,10 +15,28 @@ enum Lifecycle {
 class BindingCapability:
 	extends RefCounted
 
+	# The lease material exists only in the object returned by bind. The world
+	# retains a one-way commitment, never this byte sequence or this object.
+	var _lease_secret: PackedByteArray = PackedByteArray()
 
-const BINDING_SCHEMA: String = "zerkov.combat.body_hitbox_binding.v1"
+
+	func _init(secret: PackedByteArray = PackedByteArray()) -> void:
+		_lease_secret = secret.duplicate()
+
+
+	func _revoke() -> void:
+		# Best-effort local erasure complements synchronous world-side revocation.
+		for index in _lease_secret.size():
+			_lease_secret[index] = 0
+		_lease_secret = PackedByteArray()
+
+
+const BINDING_SCHEMA: String = "zerkov.combat.body_hitbox_binding.v2"
 const SNAPSHOT_SCHEMA: String = "zerkov.combat.body_hitbox_snapshot.v2"
 const RAY_QUERY_SCHEMA: String = "zerkov.combat.body_hitbox_ray_query.v2"
+const BINDING_COMMITMENT_SCHEMA: String = \
+	"zerkov.combat.body_hitbox_binding_commitment.v1"
+const BINDING_LEASE_BYTES: int = 32
 
 # Cross products in exact ray-fraction comparison remain below int64 max:
 # (2 * 1_500_000_000)^2 = 9_000_000_000_000_000_000.
@@ -85,7 +103,10 @@ var _owner_actor_id: ZEntityId
 var _owner_actor_source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER
 var _binding_counter: int = 0
 var _active_binding_token: int = 0
-var _active_binding_capability: BindingCapability
+# This digest is not a bearer: it is a one-way verifier over a random lease,
+# the candidate object's runtime identity and the exact binding context. It is
+# intentionally absent from every published/canonical/replay record.
+var _active_binding_commitment: PackedByteArray = PackedByteArray()
 var _binding_provenance: Dictionary = {}
 
 var _snapshot_tick: int = -1
@@ -136,9 +157,26 @@ func bind_raid_authority(
 		return _reject_capability(&"binding_owner_not_authorized")
 	if _binding_counter >= MAX_BINDING_TOKEN:
 		return _reject_capability(&"binding_token_exhausted")
+	var next_token := _binding_counter + 1
+	var lease_secret := Crypto.new().generate_random_bytes(BINDING_LEASE_BYTES)
+	if not _binding_lease_secret_is_valid(lease_secret):
+		return _reject_capability(&"binding_capability_generation_failed")
+	var capability := BindingCapability.new(lease_secret)
+	var commitment := _binding_capability_commitment(
+		capability, lease_secret, authority.get_instance_id(),
+		expected_generation, next_token)
+	# The local copy is no longer needed after capability construction. Clearing
+	# it before canonical mutation prevents a partial bind from retaining raw
+	# lease material in the world stack/state on a failed hash operation.
+	for index in lease_secret.size():
+		lease_secret[index] = 0
+	lease_secret = PackedByteArray()
+	if commitment.size() != BINDING_LEASE_BYTES:
+		capability._revoke()
+		return _reject_capability(&"binding_capability_generation_failed")
 
 	_clear_snapshot_state()
-	_binding_counter += 1
+	_binding_counter = next_token
 	_active_binding_token = _binding_counter
 	_authority = authority
 	_authority_instance_id = authority.get_instance_id()
@@ -148,7 +186,7 @@ func bind_raid_authority(
 	_authority_epoch = admission.authority_epoch
 	_owner_actor_id = ZEntityId.parse(owner_actor.canonical_key())
 	_owner_actor_source = owner_source
-	_active_binding_capability = BindingCapability.new()
+	_active_binding_commitment = commitment.duplicate()
 	_binding_provenance = {
 		"schema": BINDING_SCHEMA,
 		"raid_id": _raid_id.canonical_key(),
@@ -160,11 +198,10 @@ func bind_raid_authority(
 		"owner_actor_source": int(_owner_actor_source),
 		"world_instance_id": get_instance_id(),
 		"authority_instance_id": _authority_instance_id,
-		"capability_instance_id": _active_binding_capability.get_instance_id(),
 	}
 	_make_deep_read_only(_binding_provenance)
 	lifecycle = Lifecycle.BOUND
-	return _active_binding_capability
+	return capability
 
 
 func binding_provenance(capability: Variant) -> Dictionary:
@@ -190,8 +227,10 @@ func release_binding(
 		return false
 	if reason.is_empty() or not ZIdentityRules.is_valid_part(String(reason)):
 		return _reject_bool(&"release_reason_invalid")
-	# Revoke the bearer before any other lifecycle state changes.
-	_active_binding_capability = null
+	# Revoke authorization before any other lifecycle state changes. No retained
+	# world reference can recover the capability object or reuse this digest.
+	_active_binding_commitment = PackedByteArray()
+	(capability as BindingCapability)._revoke()
 	_clear_snapshot_state()
 	_authority = null
 	_authority_instance_id = 0
@@ -1039,10 +1078,71 @@ func _guard_binding(
 func _guard_binding_capability(capability: Variant) -> bool:
 	if lifecycle != Lifecycle.BOUND:
 		return _reject_bool(&"hitbox_world_not_bound")
-	if capability == null or not capability is BindingCapability \
-			or capability != _active_binding_capability:
+	if capability == null or not capability is BindingCapability:
+		return _reject_bool(&"binding_capability_mismatch")
+	var candidate := capability as BindingCapability
+	if not _binding_lease_secret_is_valid(candidate._lease_secret) \
+			or _active_binding_commitment.size() != BINDING_LEASE_BYTES:
+		return _reject_bool(&"binding_capability_mismatch")
+	var candidate_commitment := _binding_capability_commitment(
+		candidate, candidate._lease_secret, _authority_instance_id,
+		_authority_generation, _active_binding_token)
+	if not _constant_time_bytes_equal(
+		candidate_commitment, _active_binding_commitment):
 		return _reject_bool(&"binding_capability_mismatch")
 	return true
+
+
+func _binding_capability_commitment(
+	capability: BindingCapability,
+	secret: PackedByteArray,
+	authority_instance_id: int,
+	authority_generation: int,
+	binding_token: int
+) -> PackedByteArray:
+	if capability == null or not is_instance_valid(capability) \
+			or secret.size() != BINDING_LEASE_BYTES \
+			or authority_instance_id == 0 or authority_generation <= 0 \
+			or binding_token <= 0:
+		return PackedByteArray()
+	var header := ZCanonicalValue.encode({
+		"schema": BINDING_COMMITMENT_SCHEMA,
+		"world_instance_id": get_instance_id(),
+		"authority_instance_id": authority_instance_id,
+		"authority_generation": authority_generation,
+		"binding_token": binding_token,
+		"capability_instance_id": capability.get_instance_id(),
+	})
+	if header.is_empty():
+		return PackedByteArray()
+	var context := HashingContext.new()
+	if context.start(HashingContext.HASH_SHA256) != OK \
+			or context.update(header.to_utf8_buffer()) != OK \
+			or context.update(secret) != OK:
+		return PackedByteArray()
+	var digest := context.finish()
+	return digest if digest.size() == BINDING_LEASE_BYTES else PackedByteArray()
+
+
+func _constant_time_bytes_equal(
+	left: PackedByteArray,
+	right: PackedByteArray
+) -> bool:
+	if left.size() != right.size() or left.is_empty():
+		return false
+	var difference := 0
+	for index in left.size():
+		difference |= int(left[index]) ^ int(right[index])
+	return difference == 0
+
+
+func _binding_lease_secret_is_valid(secret: PackedByteArray) -> bool:
+	if secret.size() != BINDING_LEASE_BYTES:
+		return false
+	var combined := 0
+	for value in secret:
+		combined |= int(value)
+	return combined != 0
 
 
 func _guard_publisher(actor_value: Variant, source_value: Variant) -> bool:
