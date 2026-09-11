@@ -67,6 +67,7 @@ var _configured: bool = false
 var _is_advancing: bool = false
 var _processing_tick: int = 0
 var _processing_phase: int = -1
+var _processing_handler_id: StringName = &""
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
@@ -185,6 +186,24 @@ func is_processing_tick_phase(
 		and int(phase) < PHASE_NAMES.size() \
 		and _processing_phase == int(phase) \
 		and _processing_tick == tick
+
+
+## Stronger dispatch proof for handlers that own irreversible cross-domain
+## work. Merely calling a registered callback-shaped method during the same
+## tick/phase is insufficient: the exact handler registration must currently
+## be the authority's active dispatch frame.
+func is_dispatching_phase_handler(
+	handler_id: StringName,
+	phase: TickPhase,
+	tick: int,
+	expected_generation: int
+) -> bool:
+	if not is_processing_tick_phase(phase, tick, expected_generation) \
+			or _processing_handler_id != handler_id:
+		return false
+	var registration := _handler_ids.get(handler_id, {}) as Dictionary
+	return not registration.is_empty() \
+		and int(registration.get("phase", -1)) == int(phase)
 
 
 func register_phase_handler(
@@ -640,6 +659,7 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 			var callback: Callable = entry["callback"]
 			if not callback.is_valid():
 				return _fail_current_tick(tick, &"phase_handler_invalidated")
+			_processing_handler_id = StringName(entry["id"])
 			var handler_intents: Array[ZRaidIntent] = []
 			for intent in due_intents:
 				var intent_copy := intent.snapshot()
@@ -647,12 +667,14 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 					return _fail_current_tick(tick, &"queued_intent_corrupted")
 				handler_intents.append(intent_copy)
 			var outcome: Variant = callback.call(self, phase, tick, handler_intents)
+			_processing_handler_id = &""
 			if typeof(outcome) != TYPE_BOOL or not outcome:
 				return _fail_current_tick(tick, &"phase_handler_failed")
 	last_processed_tick = tick
 	_is_advancing = false
 	_processing_tick = 0
 	_processing_phase = -1
+	_processing_handler_id = &""
 	last_error = &""
 	return true
 
@@ -695,6 +717,7 @@ func _fail_current_tick(tick: int, code: StringName) -> bool:
 	_is_advancing = false
 	_processing_tick = 0
 	_processing_phase = -1
+	_processing_handler_id = &""
 	lifecycle = Lifecycle.FAILED
 	_seal_terminal_runtime()
 	return _reject(code)

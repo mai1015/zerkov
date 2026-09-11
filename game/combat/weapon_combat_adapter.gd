@@ -2,19 +2,16 @@ class_name WeaponCombatAdapter
 extends Node
 ## Game-owned committed-shot -> authoritative hit/miss adapter.
 ##
-## Weapon System owns the mechanical commit, BodyHitboxWorld2D owns spatial
-## facts, and this adapter owns the one stable consequence joining them.  It
-## deliberately does not apply damage, injury, death, noise, or presentation.
+## This object owns the WeaponAuthority.fire() operation that can create a
+## consequence. Public WeaponAuthority signals are deliberately not consumed:
+## their Dictionary payloads are notifications, never transaction authority.
+## The BodyHitboxWorld2D bearer is accepted only as a transient call argument
+## and is never retained in this Object's discoverable property storage.
 
 signal consequence_committed(consequence: Dictionary)
 signal binding_invalidated(reason: StringName)
 
-enum Lifecycle {
-	UNBOUND,
-	BOUND,
-	INVALIDATED,
-	RELEASED,
-}
+enum Lifecycle { UNBOUND, BOUND, INVALIDATED, RELEASED }
 
 const PHASE_HANDLER_ID: StringName = &"weapon_combat_adapter"
 const PHASE_HANDLER_PRIORITY: int = 100
@@ -25,6 +22,9 @@ const MAX_IDENTIFIER_BYTES: int = 128
 const MAX_DAMAGE_MILLIUNITS: int = 1_000_000_000
 const MAX_RANGE_MILLIUNITS: int = 1_000_000_000
 const MAX_NOISE_MILLIUNITS: int = 1_000_000_000
+const MAX_COMMAND_COUNTER: int = 9_000_000_000_000_000_000
+const RAW_UNITS_PER_WEAPON_UNIT: int = 1000
+const MAX_DIRECTION_RANGE_PRODUCT: int = 1_000_000_000_000_000
 
 const OUTCOME_KEYS: PackedStringArray = [
 	"accepted", "replayed", "rejection", "status", "revision",
@@ -52,7 +52,6 @@ var _weapon_context_instance_id: int = 0
 var _weapon_context_binding_generation: int = 0
 var _hitbox_world: BodyHitboxWorld2D
 var _hitbox_world_instance_id: int = 0
-var _hitbox_capability: Variant
 var _hitbox_binding_token: int = 0
 var _body_mask: int = 0
 var _obstruction_mask: int = 0
@@ -60,34 +59,35 @@ var _obstruction_mask: int = 0
 var _generation_counter: int = 0
 var _binding_generation: int = 0
 var _phase_registered: bool = false
-var _shot_callback: Callable
 var _context_invalidated_callback: Callable
 var _pending_order: Array[String] = []
 var _pending_by_identity: Dictionary = {}
 var _resolved_by_identity: Dictionary = {}
+var _operations_by_command_id: Dictionary = {}
 var _reserved_event_ids: Dictionary = {}
 var _reserved_request_ids: Dictionary = {}
 var _last_result: Dictionary = {}
 var _fatal_error: StringName = &""
 var _public_signal_active: bool = false
+var _world_resolution_active: bool = false
 
 
-## Binding is mutation-free and permitted only during raid preparation.  All
-## owner/session/actor facts are derived from the authority and authenticated
-## against both accepted dependency bindings.
+## Capability and callback are transient. The trusted composition root retains
+## the bearer outside this Object and supplies it from the registered callback.
 func bind_context(
 	authority: RaidAuthority,
 	weapon_authority: WeaponAuthority,
 	weapon_context: WeaponInstanceContextAdapter,
 	hitbox_world: BodyHitboxWorld2D,
 	hitbox_capability: Variant,
+	world_phase_callback: Callable,
 	expected_raid_generation: int,
 	expected_weapon_context_binding_generation: int,
 	body_mask: int,
 	obstruction_mask: int
 ) -> bool:
 	last_error = &""
-	if _public_signal_active:
+	if _public_signal_active or _world_resolution_active:
 		return _reject(&"reentrant_binding_change")
 	if lifecycle == Lifecycle.BOUND or lifecycle == Lifecycle.INVALIDATED:
 		return _reject(&"combat_adapter_already_bound")
@@ -111,27 +111,12 @@ func bind_context(
 				ZRaidIntent.Source.PLAYER,
 				expected_weapon_context_binding_generation):
 		return _reject(&"weapon_context_binding_invalid")
-	if hitbox_world == null or not is_instance_valid(hitbox_world):
+	if hitbox_world == null or not is_instance_valid(hitbox_world) \
+			or not world_phase_callback.is_valid():
 		return _reject(&"hitbox_world_invalid")
 	var provenance := hitbox_world.binding_provenance(hitbox_capability)
-	if provenance.is_empty() \
-			or String(provenance.get("raid_id", "")) \
-				!= admission.raid_id.canonical_key() \
-			or String(provenance.get("session_id", "")) \
-				!= admission.session_id.canonical_key() \
-			or int(provenance.get("authority_epoch", 0)) \
-				!= admission.authority_epoch \
-			or int(provenance.get("authority_generation", 0)) \
-				!= expected_raid_generation \
-			or String(provenance.get("owner_actor_id", "")) \
-				!= admission.actor_id.canonical_key() \
-			or int(provenance.get("owner_actor_source", -1)) \
-				!= int(ZRaidIntent.Source.PLAYER) \
-			or int(provenance.get("world_instance_id", 0)) \
-				!= hitbox_world.get_instance_id() \
-			or int(provenance.get("authority_instance_id", 0)) \
-				!= authority.get_instance_id() \
-			or int(provenance.get("binding_token", 0)) <= 0:
+	if not _provenance_matches(
+		provenance, authority, hitbox_world, admission, expected_raid_generation):
 		return _reject(&"hitbox_binding_invalid")
 	if body_mask < 0 or body_mask > BodyHitboxWorld2D.MAX_COLLISION_MASK \
 			or obstruction_mask < 0 \
@@ -152,17 +137,13 @@ func bind_context(
 	_weapon_context_binding_generation = expected_weapon_context_binding_generation
 	_hitbox_world = hitbox_world
 	_hitbox_world_instance_id = hitbox_world.get_instance_id()
-	_hitbox_capability = hitbox_capability
 	_hitbox_binding_token = int(provenance["binding_token"])
 	_body_mask = body_mask
 	_obstruction_mask = obstruction_mask
 	if not authority.register_phase_handler(
 		RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
-		PHASE_HANDLER_ID,
-		Callable(self, "_on_world_consequence_phase").bind(next_generation),
-		expected_raid_generation,
-		PHASE_HANDLER_PRIORITY
-	):
+		PHASE_HANDLER_ID, world_phase_callback, expected_raid_generation,
+		PHASE_HANDLER_PRIORITY):
 		var registration_error := authority.last_error
 		_reset_runtime_state()
 		last_error = registration_error
@@ -171,11 +152,8 @@ func bind_context(
 	_generation_counter = next_generation
 	_binding_generation = next_generation
 	lifecycle = Lifecycle.BOUND
-	_shot_callback = Callable(self, "_on_shot_committed").bind(
-		_weapon_authority_instance_id, _binding_generation)
-	_weapon_authority.shot_committed.connect(_shot_callback)
-	_context_invalidated_callback = Callable(self, "_on_weapon_context_invalidated").bind(
-		_binding_generation)
+	_context_invalidated_callback = Callable(
+		self, "_on_weapon_context_invalidated").bind(_binding_generation)
 	_weapon_context.binding_invalidated.connect(_context_invalidated_callback)
 	return true
 
@@ -216,36 +194,170 @@ func resolved_consequences() -> Array[Dictionary]:
 	return results
 
 
-## A WeaponAuthority replay never performs world work.  The exact original
-## immutable result is returned only when its full committed-shot fingerprint
-## matches the retained binding-generation ledger.
-func replay_committed_shot(outcome_value: Variant) -> Dictionary:
+## The only committed-shot intake. Pose/context and native state are derived
+## inside this direct operation; public signal DTOs cannot enter the ledger.
+func commit_fire(
+	command_id: String,
+	sequence: int,
+	weapon_instance_id: String,
+	expected_revision: int,
+	tick: int,
+	spread_seed: int
+) -> Dictionary:
 	last_error = &""
-	if lifecycle != Lifecycle.BOUND or not _binding_is_current():
+	if _public_signal_active or _world_resolution_active:
+		return _rejection(&"reentrant_weapon_commit")
+	if lifecycle != Lifecycle.BOUND or not _fatal_error.is_empty():
+		return _rejection(_fatal_error if not _fatal_error.is_empty() \
+			else &"combat_binding_invalidated")
+	if not _binding_is_current():
 		return _rejection(&"combat_binding_stale")
-	var normalized := _normalize_outcome(outcome_value)
+	if command_id.is_empty() \
+			or command_id.to_utf8_buffer().size() > MAX_IDENTIFIER_BYTES \
+			or weapon_instance_id.is_empty() \
+			or weapon_instance_id.to_utf8_buffer().size() > MAX_IDENTIFIER_BYTES \
+			or sequence <= 0 or sequence > MAX_COMMAND_COUNTER \
+			or expected_revision < 0 or expected_revision > MAX_COMMAND_COUNTER \
+			or tick <= 0 or tick > MAX_COMMAND_COUNTER \
+			or spread_seed < 0 or spread_seed > MAX_COMMAND_COUNTER:
+		return _rejection(&"weapon_commit_request_invalid")
+	var operation_fingerprint := ZCanonicalValue.sha256({
+		"command_id": command_id,
+		"sequence": sequence,
+		"weapon_instance_id": weapon_instance_id,
+		"expected_revision": expected_revision,
+		"tick": tick,
+		"spread_seed": spread_seed,
+	})
+	if operation_fingerprint.is_empty():
+		return _rejection(&"weapon_commit_request_invalid")
+	if _operations_by_command_id.has(command_id):
+		return _replay_operation(command_id, operation_fingerprint)
+	if not _authority.is_processing_tick_phase(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		tick, _raid_generation):
+		return _rejection(&"weapon_commit_phase_invalid")
+	# Fail before the mechanical operation when no consequence slot exists.
+	if _pending_order.size() >= MAX_PENDING_SHOTS:
+		return _latch_fatal(&"pending_shot_capacity_exceeded")
+	if _resolved_by_identity.size() + _pending_by_identity.size() \
+			>= MAX_RESOLVED_SHOTS:
+		return _latch_fatal(&"shot_ledger_capacity_exceeded")
+	var record := _current_weapon_record(weapon_instance_id)
+	if not _weapon_record_is_current(record):
+		return _rejection(&"committed_weapon_binding_invalid")
+	var context_result := _weapon_context.authority_context(weapon_instance_id, tick)
+	if not bool(context_result.get("ok", false)) \
+			or typeof(context_result.get("context")) != TYPE_DICTIONARY:
+		return _rejection(StringName(
+			context_result.get("reason", &"weapon_context_invalid")))
+	var context := (context_result["context"] as Dictionary).duplicate(true)
+	var origin := _normalize_vector(
+		context.get("authoritative_origin", {}) as Dictionary)
+	var aim := _normalize_vector(context.get("authoritative_aim", {}) as Dictionary)
+	if origin.is_empty() or aim.is_empty() or aim == {"x": 0, "y": 0}:
+		return _rejection(&"weapon_context_geometry_invalid")
+	if not _weapon_origin_is_scalable(origin):
+		return _latch_fatal(&"committed_shot_geometry_out_of_range")
+	var before := _weapon_authority.snapshot(weapon_instance_id)
+	if before.is_empty() or not _snapshot_matches_weapon(before, record):
+		return _rejection(&"committed_weapon_snapshot_mismatch")
+	var command := {
+		"command_id": command_id,
+		"sequence": sequence,
+		"instance_id": weapon_instance_id,
+		"expected_revision": expected_revision,
+		"tick": tick,
+		"authority_scope": _admission.raid_id.canonical_key(),
+		"authority_epoch": _admission.authority_epoch,
+		"claimed_origin": origin.duplicate(true),
+		"claimed_aim": aim.duplicate(true),
+		"spread_seed": spread_seed,
+	}
+	var outcome := _weapon_authority.fire(command, context)
+	var normalized := _normalize_outcome(outcome)
 	if normalized.is_empty():
-		return _rejection(last_error)
-	if not bool(normalized["replayed"]):
-		return _rejection(&"committed_shot_not_replay")
+		return _latch_fatal(last_error)
+	var shot := normalized["shot"] as Dictionary
+	if String(shot["instance_id"]) != weapon_instance_id \
+			or int(shot["tick"]) != tick \
+			or (shot["origin"] as Dictionary) != origin:
+		return _latch_fatal(&"weapon_commit_attestation_mismatch")
+	if bool(normalized["replayed"]):
+		return _replay_attested_outcome(normalized)
+	if int(before.get("revision", -1)) != expected_revision:
+		return _latch_fatal(&"weapon_commit_revision_mismatch")
+	var after := _weapon_authority.snapshot(weapon_instance_id)
+	if after.is_empty() or not _snapshot_matches_outcome(after, normalized, record):
+		return _latch_fatal(&"committed_weapon_snapshot_mismatch")
+	# Admission stays in this operation body: there is no callback-shaped or
+	# separately callable DTO intake that can manufacture a committed shot.
 	var identity := String(normalized["shot_identity"])
 	var fingerprint := String(normalized["fingerprint"])
-	if _resolved_by_identity.has(identity):
-		var resolved := _resolved_by_identity[identity] as Dictionary
-		if String(resolved.get("fingerprint", "")) != fingerprint:
-			return _rejection(&"shot_identity_collision", identity)
-		return _read_only_copy(resolved["result"] as Dictionary)
-	if _pending_by_identity.has(identity):
-		var pending := _pending_by_identity[identity] as Dictionary
-		if String(pending.get("fingerprint", "")) != fingerprint:
-			return _rejection(&"shot_identity_collision", identity)
-		return _read_only_copy(pending["receipt"] as Dictionary)
-	return _rejection(&"shot_replay_unknown", identity)
+	if _resolved_by_identity.has(identity) or _pending_by_identity.has(identity):
+		return _latch_fatal(&"shot_identity_collision")
+	var ids := _stable_ids_for_shot(identity)
+	if ids.is_empty():
+		return _latch_fatal(&"stable_consequence_identity_invalid")
+	var collision := _reserve_stable_ids(identity, fingerprint, ids)
+	if not collision.is_empty():
+		return _latch_fatal(collision)
+	var receipt := {
+		"accepted": true,
+		"queued": true,
+		"replayed": false,
+		"shot_identity": identity,
+		"tick": int(normalized["tick"]),
+		"binding_generation": _binding_generation,
+	}
+	var entry := normalized.duplicate(true)
+	entry["ids"] = ids.duplicate(true)
+	entry["weapon_binding_generation"] = int(record["weapon_binding_generation"])
+	entry["weapon_entity_id"] = String(record["entity_id"])
+	entry["receipt"] = receipt.duplicate(true)
+	_pending_by_identity[identity] = entry
+	_pending_order.append(identity)
+	_operations_by_command_id[command_id] = {
+		"fingerprint": operation_fingerprint,
+		"shot_identity": identity,
+	}
+	return _read_only_copy(receipt)
+
+
+## The capability is stack-local and reauthenticated before any irreversible
+## work. The authority must be dispatching this exact registered handler.
+func resolve_world_consequences(
+	hitbox_capability: Variant,
+	authority: RaidAuthority,
+	phase: RaidAuthority.TickPhase,
+	tick: int,
+	expected_binding_generation: int
+) -> bool:
+	last_error = &""
+	if _world_resolution_active or _public_signal_active:
+		return _reject(&"world_resolution_reentrant")
+	if expected_binding_generation != _binding_generation \
+			or lifecycle != Lifecycle.BOUND \
+			or not _fatal_error.is_empty():
+		return _reject(_fatal_error if not _fatal_error.is_empty() \
+			else &"combat_binding_invalidated")
+	if authority != _authority \
+			or phase != RaidAuthority.TickPhase.WORLD_CONSEQUENCES \
+			or not authority.is_dispatching_phase_handler(
+				PHASE_HANDLER_ID, phase, tick, _raid_generation):
+		return _reject(&"combat_phase_dispatch_invalid")
+	if not _binding_is_current() \
+			or not _transient_hitbox_binding_is_current(hitbox_capability):
+		return _reject(&"combat_binding_stale")
+	_world_resolution_active = true
+	var resolved := _resolve_pending_batch(hitbox_capability, tick)
+	_world_resolution_active = false
+	return resolved
 
 
 func release_binding(reason: StringName = &"weapon_combat_adapter_released") -> bool:
 	last_error = &""
-	if _public_signal_active:
+	if _public_signal_active or _world_resolution_active:
 		return _reject(&"reentrant_binding_change")
 	if lifecycle != Lifecycle.BOUND and lifecycle != Lifecycle.INVALIDATED:
 		return _reject(&"combat_adapter_not_bound")
@@ -275,39 +387,7 @@ func teardown() -> bool:
 	return release_binding(&"teardown")
 
 
-func _on_shot_committed(
-	outcome: Dictionary,
-	expected_weapon_authority_instance_id: int,
-	expected_binding_generation: int
-) -> void:
-	if expected_binding_generation != _binding_generation \
-			or lifecycle != Lifecycle.BOUND:
-		return
-	if _public_signal_active:
-		var replay_probe := _normalize_outcome(outcome)
-		if not replay_probe.is_empty() and bool(replay_probe.get("replayed", false)):
-			replay_committed_shot(outcome)
-			return
-		_latch_fatal(&"reentrant_shot_callback")
-		return
-	if _weapon_authority == null or not is_instance_valid(_weapon_authority) \
-			or _weapon_authority.get_instance_id() \
-				!= expected_weapon_authority_instance_id:
-		_latch_fatal(&"weapon_authority_replaced")
-		return
-	var normalized := _normalize_outcome(outcome)
-	if normalized.is_empty():
-		_latch_fatal(last_error)
-		return
-	if bool(normalized["replayed"]):
-		var replay := replay_committed_shot(outcome)
-		if not bool(replay.get("accepted", false)):
-			_latch_fatal(StringName(replay.get("reason", &"shot_replay_invalid")))
-		return
-	_enqueue_committed_shot(normalized)
-
-
-func _enqueue_committed_shot(normalized: Dictionary) -> Dictionary:
+func _replay_attested_outcome(normalized: Dictionary) -> Dictionary:
 	var identity := String(normalized["shot_identity"])
 	var fingerprint := String(normalized["fingerprint"])
 	if _resolved_by_identity.has(identity):
@@ -320,85 +400,30 @@ func _enqueue_committed_shot(normalized: Dictionary) -> Dictionary:
 		if String(pending.get("fingerprint", "")) != fingerprint:
 			return _latch_fatal(&"shot_identity_collision")
 		return _read_only_copy(pending["receipt"] as Dictionary)
-	if _pending_order.size() >= MAX_PENDING_SHOTS:
-		return _latch_fatal(&"pending_shot_capacity_exceeded")
-	if _resolved_by_identity.size() + _pending_by_identity.size() \
-			>= MAX_RESOLVED_SHOTS:
-		return _latch_fatal(&"shot_ledger_capacity_exceeded")
-	if not _binding_is_current():
-		return _latch_fatal(&"combat_binding_stale")
-	var tick := int(normalized["tick"])
-	if not _authority.is_processing_tick_phase(
-		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
-		tick, _raid_generation):
-		return _latch_fatal(&"committed_shot_phase_invalid")
-	var shot := normalized["shot"] as Dictionary
-	var record := _current_weapon_record(String(shot["instance_id"]))
-	if record.is_empty() or not bool(record.get("equipped", false)) \
-			or bool(record.get("parked", true)) \
-			or int(record.get("weapon_binding_generation", 0)) <= 0 \
-			or ZEntityId.parse(String(record.get("entity_id", ""))) == null:
-		return _latch_fatal(&"committed_weapon_binding_invalid")
-	var native_snapshot := _weapon_authority.snapshot(String(shot["instance_id"]))
-	if native_snapshot.is_empty() \
-			or String(native_snapshot.get("instance_id", "")) \
-				!= String(shot["instance_id"]) \
-			or StringName(native_snapshot.get("definition_id", &"")) \
-				!= StringName(shot["weapon_id"]) \
-			or int(native_snapshot.get("definition_version", 0)) \
-				!= int(shot["weapon_version"]) \
-			or int(native_snapshot.get("revision", -1)) \
-				!= int(normalized["revision"]) \
-			or int(native_snapshot.get("loaded_rounds", -1)) \
-				!= int(normalized["loaded_rounds"]):
-		return _latch_fatal(&"committed_weapon_snapshot_mismatch")
-	var ids := _stable_ids_for_shot(identity)
-	if ids.is_empty():
-		return _latch_fatal(&"stable_consequence_identity_invalid")
-	var collision := _reserve_stable_ids(identity, fingerprint, ids)
-	if not collision.is_empty():
-		return _latch_fatal(collision)
-	var receipt := {
-		"accepted": true,
-		"queued": true,
-		"replayed": false,
-		"shot_identity": identity,
-		"tick": tick,
-		"binding_generation": _binding_generation,
-	}
-	var entry := normalized.duplicate(true)
-	entry["ids"] = ids.duplicate(true)
-	entry["weapon_binding_generation"] = int(record["weapon_binding_generation"])
-	entry["weapon_entity_id"] = String(record["entity_id"])
-	entry["receipt"] = receipt.duplicate(true)
-	_pending_by_identity[identity] = entry
-	_pending_order.append(identity)
-	return _read_only_copy(receipt)
+	return _latch_fatal(&"unattested_weapon_replay")
 
 
-func _on_world_consequence_phase(
-	authority: RaidAuthority,
-	phase: RaidAuthority.TickPhase,
-	tick: int,
-	_intents: Array[ZRaidIntent],
-	expected_binding_generation: int
-) -> bool:
-	if expected_binding_generation != _binding_generation:
-		return true
-	if authority != _authority \
-			or phase != RaidAuthority.TickPhase.WORLD_CONSEQUENCES:
-		return _reject(&"combat_phase_context_invalid")
-	if lifecycle != Lifecycle.BOUND or not _fatal_error.is_empty():
-		return _reject(_fatal_error if not _fatal_error.is_empty() \
-			else &"combat_binding_invalidated")
-	if not _binding_is_current():
-		return _reject(&"combat_binding_stale")
+func _replay_operation(command_id: String, operation_fingerprint: String) -> Dictionary:
+	var operation := _operations_by_command_id[command_id] as Dictionary
+	if String(operation.get("fingerprint", "")) != operation_fingerprint:
+		return _latch_fatal(&"weapon_command_identity_collision")
+	var identity := String(operation.get("shot_identity", ""))
+	if _resolved_by_identity.has(identity):
+		return _read_only_copy(
+			(_resolved_by_identity[identity] as Dictionary)["result"] as Dictionary)
+	if _pending_by_identity.has(identity):
+		return _read_only_copy(
+			(_pending_by_identity[identity] as Dictionary)["receipt"] as Dictionary)
+	return _latch_fatal(&"weapon_operation_ledger_corrupted")
+
+
+func _resolve_pending_batch(hitbox_capability: Variant, tick: int) -> bool:
 	while not _pending_order.is_empty():
 		var identity := _pending_order[0]
 		var entry := _pending_by_identity.get(identity, {}) as Dictionary
 		if entry.is_empty() or int(entry.get("tick", -1)) != tick:
 			return _reject(&"pending_shot_tick_invalid")
-		if not _resolve_pending(entry):
+		if not _resolve_pending(entry, hitbox_capability):
 			return false
 		_pending_by_identity.erase(identity)
 		_pending_order.remove_at(0)
@@ -407,7 +432,7 @@ func _on_world_consequence_phase(
 	return true
 
 
-func _resolve_pending(entry: Dictionary) -> bool:
+func _resolve_pending(entry: Dictionary, hitbox_capability: Variant) -> bool:
 	var identity := String(entry["shot_identity"])
 	var fingerprint := String(entry["fingerprint"])
 	var shot := entry["shot"] as Dictionary
@@ -417,12 +442,18 @@ func _resolve_pending(entry: Dictionary) -> bool:
 	if event_id == null or request_id == null:
 		return _reject(&"stable_consequence_identity_invalid")
 	var tick := int(entry["tick"])
+	if not _world_resolution_active \
+			or not _authority.is_dispatching_phase_handler(
+				PHASE_HANDLER_ID,
+				RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
+				tick, _raid_generation):
+		return _reject(&"combat_phase_dispatch_invalid")
 	var preflight_payload := {"schema": CONSEQUENCE_SCHEMA, "shot_identity": identity}
 	if not _authority.can_record_event(
 		ZRaidEvent.EventKind.HIT, event_id, tick, _admission.actor_id,
 		preflight_payload, _raid_generation):
 		return _reject(_authority.last_error)
-	var metadata := _hitbox_world.snapshot_metadata(_hitbox_capability)
+	var metadata := _hitbox_world.snapshot_metadata(hitbox_capability)
 	if metadata.is_empty() \
 			or int(metadata.get("binding_token", 0)) != _hitbox_binding_token \
 			or int(metadata.get("tick", -1)) != tick \
@@ -453,13 +484,12 @@ func _resolve_pending(entry: Dictionary) -> bool:
 		"obstruction_mask": _obstruction_mask,
 		"excluded_entity_ids": [_admission.actor_id.canonical_key()],
 	}
-	var world_result := _hitbox_world.raycast(query, _hitbox_capability)
+	var world_result := _hitbox_world.raycast(query, hitbox_capability)
 	if not bool(world_result.get("accepted", false)):
 		return _reject(StringName(world_result.get("reason", &"world_query_failed")))
 	if bool(world_result.get("duplicate", false)):
 		return _reject(&"world_query_identity_collision")
-	var consequence := _build_consequence(
-		entry, event_id.canonical_key(), world_result)
+	var consequence := _build_consequence(entry, event_id.canonical_key(), world_result)
 	if consequence.is_empty():
 		return false
 	if not _authority.record_event(
@@ -467,9 +497,7 @@ func _resolve_pending(entry: Dictionary) -> bool:
 		consequence, _raid_generation):
 		return _reject(_authority.last_error)
 	_resolved_by_identity[identity] = {
-		"fingerprint": fingerprint,
-		"result": consequence.duplicate(true),
-	}
+		"fingerprint": fingerprint, "result": consequence.duplicate(true)}
 	_last_result = consequence.duplicate(true)
 	var publication := _read_only_copy(consequence)
 	_public_signal_active = true
@@ -478,11 +506,7 @@ func _resolve_pending(entry: Dictionary) -> bool:
 	return true
 
 
-func _build_consequence(
-	entry: Dictionary,
-	event_id: String,
-	world_result: Dictionary
-) -> Dictionary:
+func _build_consequence(entry: Dictionary, event_id: String, world_result: Dictionary) -> Dictionary:
 	var shot := entry["shot"] as Dictionary
 	var is_hit := bool(world_result.get("hit", false))
 	var is_blocked := bool(world_result.get("blocked", false))
@@ -557,7 +581,7 @@ func _normalize_outcome(value: Variant) -> Dictionary:
 			or int(outcome["revision"]) <= 0 \
 			or int(outcome["loaded_rounds"]) < 0 \
 			or not String(outcome["reservation_to_release"]).is_empty():
-		last_error = &"committed_outcome_not_accepted_fire"
+		last_error = &"weapon_fire_not_committed"
 		return {}
 	var shot_source := outcome["shot"] as Dictionary
 	if not _has_exact_keys(shot_source, SHOT_KEYS):
@@ -597,8 +621,10 @@ func _normalize_outcome(value: Variant) -> Dictionary:
 	var direction := _normalize_vector(shot_source["direction"] as Dictionary)
 	if origin.is_empty() or direction.is_empty() \
 			or direction == {"x": 0, "y": 0} \
-			or absi(int(direction["x"])) > ZWorldUnits.WEAPON_DIRECTION_SCALE \
-			or absi(int(direction["y"])) > ZWorldUnits.WEAPON_DIRECTION_SCALE:
+			or int(direction["x"]) < -ZWorldUnits.WEAPON_DIRECTION_SCALE \
+			or int(direction["x"]) > ZWorldUnits.WEAPON_DIRECTION_SCALE \
+			or int(direction["y"]) < -ZWorldUnits.WEAPON_DIRECTION_SCALE \
+			or int(direction["y"]) > ZWorldUnits.WEAPON_DIRECTION_SCALE:
 		last_error = &"committed_shot_vector_invalid"
 		return {}
 	var profile_source := shot_source["consumed_profile"] as Dictionary
@@ -625,14 +651,11 @@ func _normalize_outcome(value: Variant) -> Dictionary:
 		last_error = &"committed_shot_fingerprint_invalid"
 		return {}
 	return {
-		"accepted": true,
-		"replayed": bool(outcome["replayed"]),
+		"accepted": true, "replayed": bool(outcome["replayed"]),
 		"revision": int(outcome["revision"]),
 		"loaded_rounds": int(outcome["loaded_rounds"]),
-		"tick": int(shot["tick"]),
-		"shot_identity": identity,
-		"fingerprint": fingerprint,
-		"shot": shot,
+		"tick": int(shot["tick"]), "shot_identity": identity,
+		"fingerprint": fingerprint, "shot": shot,
 	}
 
 
@@ -644,44 +667,103 @@ func _normalize_vector(value: Dictionary) -> Dictionary:
 	return {"x": int(value["x"]), "y": int(value["y"])}
 
 
+## Validate every operand before multiplication/addition and avoid
+## abs(INT64_MIN), which itself can overflow.
 func _shot_geometry(shot: Dictionary) -> Dictionary:
 	var origin := shot["origin"] as Dictionary
 	var direction := shot["direction"] as Dictionary
 	var range_milliunits := int(shot["range_milliunits"])
+	var origin_x := int(origin["x"])
+	var origin_y := int(origin["y"])
+	var checked_origin_x := _checked_product_for_absolute_bound(
+		origin_x, RAW_UNITS_PER_WEAPON_UNIT,
+		BodyHitboxWorld2D.MAX_COORDINATE_RAW)
+	var checked_origin_y := _checked_product_for_absolute_bound(
+		origin_y, RAW_UNITS_PER_WEAPON_UNIT,
+		BodyHitboxWorld2D.MAX_COORDINATE_RAW)
+	if checked_origin_x.is_empty() or checked_origin_y.is_empty():
+		return _geometry_rejection()
 	var origin_raw := Vector2i(
-		int(origin["x"]) * 1000,
-		int(origin["y"]) * 1000)
+		int(checked_origin_x["value"]), int(checked_origin_y["value"]))
+	var direction_x := int(direction["x"])
+	var direction_y := int(direction["y"])
+	var checked_scaled_x := _checked_product_for_absolute_bound(
+		direction_x, range_milliunits, MAX_DIRECTION_RANGE_PRODUCT)
+	var checked_scaled_y := _checked_product_for_absolute_bound(
+		direction_y, range_milliunits, MAX_DIRECTION_RANGE_PRODUCT)
+	if checked_scaled_x.is_empty() or checked_scaled_y.is_empty():
+		return _geometry_rejection()
+	var delta_x := _divide_round_half_away(
+		int(checked_scaled_x["value"]), RAW_UNITS_PER_WEAPON_UNIT)
+	var delta_y := _divide_round_half_away(
+		int(checked_scaled_y["value"]), RAW_UNITS_PER_WEAPON_UNIT)
+	var max_raw := BodyHitboxWorld2D.MAX_COORDINATE_RAW
+	var checked_target_x := _checked_sum_for_absolute_bound(
+		origin_raw.x, delta_x, max_raw)
+	var checked_target_y := _checked_sum_for_absolute_bound(
+		origin_raw.y, delta_y, max_raw)
+	if checked_target_x.is_empty() or checked_target_y.is_empty():
+		return _geometry_rejection()
 	var target_raw := Vector2i(
-		origin_raw.x + _divide_round_half_away(
-			int(direction["x"]) * range_milliunits, 1000),
-		origin_raw.y + _divide_round_half_away(
-			int(direction["y"]) * range_milliunits, 1000))
-	if not _point_is_hitbox_bounded(origin_raw) \
-			or not _point_is_hitbox_bounded(target_raw) \
-			or origin_raw == target_raw:
-		last_error = &"committed_shot_geometry_out_of_range"
-		return {}
+		int(checked_target_x["value"]), int(checked_target_y["value"]))
+	if origin_raw == target_raw:
+		return _geometry_rejection()
 	return {"origin_raw": origin_raw, "target_raw": target_raw}
+
+
+func _weapon_origin_is_scalable(origin: Dictionary) -> bool:
+	return not _checked_product_for_absolute_bound(
+		int(origin.get("x", MAX_COMMAND_COUNTER)), RAW_UNITS_PER_WEAPON_UNIT,
+		BodyHitboxWorld2D.MAX_COORDINATE_RAW).is_empty() \
+		and not _checked_product_for_absolute_bound(
+			int(origin.get("y", MAX_COMMAND_COUNTER)), RAW_UNITS_PER_WEAPON_UNIT,
+			BodyHitboxWorld2D.MAX_COORDINATE_RAW).is_empty()
+
+
+func _checked_product_for_absolute_bound(
+	value: int,
+	positive_multiplier: int,
+	absolute_bound: int
+) -> Dictionary:
+	if positive_multiplier <= 0 or absolute_bound < 0:
+		return {}
+	var operand_bound := absolute_bound / positive_multiplier
+	if value < -operand_bound or value > operand_bound:
+		return {}
+	return {"value": value * positive_multiplier}
+
+
+func _checked_sum_for_absolute_bound(
+	left: int,
+	right: int,
+	absolute_bound: int
+) -> Dictionary:
+	if absolute_bound < 0 \
+			or left < -absolute_bound or left > absolute_bound \
+			or right < -absolute_bound - left \
+			or right > absolute_bound - left:
+		return {}
+	return {"value": left + right}
+
+
+func _geometry_rejection() -> Dictionary:
+	last_error = &"committed_shot_geometry_out_of_range"
+	return {}
 
 
 func _stable_ids_for_shot(shot_identity: String) -> Dictionary:
 	var digest := ZCanonicalValue.sha256({
-		"domain": "weapon_shot",
-		"weapon_consequence_id": shot_identity,
-	})
+		"domain": "weapon_shot", "weapon_consequence_id": shot_identity})
 	if digest.length() != 64:
 		return {}
 	var parts := PackedStringArray([
-		"weapon_shot", digest.substr(0, 32), digest.substr(32, 32),
-	])
+		"weapon_shot", digest.substr(0, 32), digest.substr(32, 32)])
 	var event_id := ZConsequenceId.from_parts(parts)
 	var request_id := ZRequestId.from_parts(parts)
 	if event_id == null or request_id == null:
 		return {}
-	return {
-		"event_id": event_id.canonical_key(),
-		"request_id": request_id.canonical_key(),
-	}
+	return {"event_id": event_id.canonical_key(),
+		"request_id": request_id.canonical_key()}
 
 
 func _reserve_stable_ids(
@@ -691,10 +773,11 @@ func _reserve_stable_ids(
 ) -> StringName:
 	var event_id := String(ids.get("event_id", ""))
 	var request_id := String(ids.get("request_id", ""))
-	for row in [
+	var rows := [
 		[_reserved_event_ids, event_id, &"consequence_id_collision"],
 		[_reserved_request_ids, request_id, &"query_id_collision"],
-	]:
+	]
+	for row in rows:
 		var ledger := row[0] as Dictionary
 		var key := String(row[1])
 		if ledger.has(key):
@@ -702,6 +785,7 @@ func _reserve_stable_ids(
 			if String(previous.get("shot_identity", "")) != shot_identity \
 					or String(previous.get("fingerprint", "")) != fingerprint:
 				return StringName(row[2])
+	# Publish neither reservation until both collision checks pass.
 	_reserved_event_ids[event_id] = {
 		"shot_identity": shot_identity, "fingerprint": fingerprint}
 	_reserved_request_ids[request_id] = {
@@ -715,6 +799,35 @@ func _current_weapon_record(weapon_id: String) -> Dictionary:
 		if String(record.get("weapon_id", "")) == weapon_id:
 			return record.duplicate(true)
 	return {}
+
+
+func _weapon_record_is_current(record: Dictionary) -> bool:
+	return not record.is_empty() \
+		and bool(record.get("equipped", false)) \
+		and not bool(record.get("parked", true)) \
+		and int(record.get("weapon_binding_generation", 0)) > 0 \
+		and ZEntityId.parse(String(record.get("entity_id", ""))) != null
+
+
+func _snapshot_matches_weapon(snapshot: Dictionary, record: Dictionary) -> bool:
+	return StringName(snapshot.get("definition_id", &"")) \
+			== ZerkovCombatContent.WEAPON_AKM \
+		and int(snapshot.get("definition_version", 0)) \
+			== ZerkovCombatContent.CONTENT_VERSION \
+		and String(snapshot.get("instance_id", "")) \
+			== String(record.get("weapon_id", ""))
+
+
+func _snapshot_matches_outcome(
+	snapshot: Dictionary,
+	normalized: Dictionary,
+	record: Dictionary
+) -> bool:
+	var shot := normalized["shot"] as Dictionary
+	return _snapshot_matches_weapon(snapshot, record) \
+		and String(snapshot.get("instance_id", "")) == String(shot["instance_id"]) \
+		and int(snapshot.get("revision", -1)) == int(normalized["revision"]) \
+		and int(snapshot.get("loaded_rounds", -1)) == int(normalized["loaded_rounds"])
 
 
 func _binding_is_current() -> bool:
@@ -735,24 +848,45 @@ func _binding_is_current() -> bool:
 		ZRaidIntent.Source.PLAYER, _weapon_context_binding_generation):
 		return false
 	var current_admission := _authority.admission()
-	if current_admission == null \
-			or not current_admission.raid_id.is_equal(_admission.raid_id) \
-			or not current_admission.session_id.is_equal(_admission.session_id) \
-			or not current_admission.actor_id.is_equal(_admission.actor_id) \
-			or current_admission.authority_epoch != _admission.authority_epoch \
-			or current_admission.generation != _admission.generation:
-		return false
-	var provenance := _hitbox_world.binding_provenance(_hitbox_capability)
+	return current_admission != null \
+		and current_admission.raid_id.is_equal(_admission.raid_id) \
+		and current_admission.session_id.is_equal(_admission.session_id) \
+		and current_admission.actor_id.is_equal(_admission.actor_id) \
+		and current_admission.authority_epoch == _admission.authority_epoch \
+		and current_admission.generation == _admission.generation
+
+
+func _transient_hitbox_binding_is_current(hitbox_capability: Variant) -> bool:
+	var provenance := _hitbox_world.binding_provenance(hitbox_capability)
+	return _provenance_matches(
+		provenance, _authority, _hitbox_world, _admission, _raid_generation) \
+		and int(provenance.get("binding_token", 0)) == _hitbox_binding_token
+
+
+func _provenance_matches(
+	provenance: Dictionary,
+	authority: RaidAuthority,
+	hitbox_world: BodyHitboxWorld2D,
+	admission: ZSessionAdmission,
+	expected_raid_generation: int
+) -> bool:
 	return not provenance.is_empty() \
-		and int(provenance.get("binding_token", 0)) == _hitbox_binding_token \
-		and int(provenance.get("authority_generation", 0)) == _raid_generation \
-		and String(provenance.get("raid_id", "")) == _admission.raid_id.canonical_key() \
+		and String(provenance.get("raid_id", "")) \
+			== admission.raid_id.canonical_key() \
 		and String(provenance.get("session_id", "")) \
-			== _admission.session_id.canonical_key() \
+			== admission.session_id.canonical_key() \
+		and int(provenance.get("authority_epoch", 0)) == admission.authority_epoch \
+		and int(provenance.get("authority_generation", 0)) \
+			== expected_raid_generation \
 		and String(provenance.get("owner_actor_id", "")) \
-			== _admission.actor_id.canonical_key() \
+			== admission.actor_id.canonical_key() \
 		and int(provenance.get("owner_actor_source", -1)) \
-			== int(ZRaidIntent.Source.PLAYER)
+			== int(ZRaidIntent.Source.PLAYER) \
+		and int(provenance.get("world_instance_id", 0)) \
+			== hitbox_world.get_instance_id() \
+		and int(provenance.get("authority_instance_id", 0)) \
+			== authority.get_instance_id() \
+		and int(provenance.get("binding_token", 0)) > 0
 
 
 func _on_weapon_context_invalidated(
@@ -762,7 +896,6 @@ func _on_weapon_context_invalidated(
 	if lifecycle != Lifecycle.BOUND \
 			or expected_binding_generation != _binding_generation:
 		return
-	_disconnect_shot_signal()
 	lifecycle = Lifecycle.INVALIDATED
 	_fatal_error = reason if not reason.is_empty() else &"weapon_context_invalidated"
 	last_error = _fatal_error
@@ -782,28 +915,16 @@ func _latch_fatal(reason: StringName) -> Dictionary:
 func _rejection(reason: StringName, shot_identity: String = "") -> Dictionary:
 	last_error = reason
 	return _read_only_copy({
-		"accepted": false,
-		"reason": reason,
-		"shot_identity": shot_identity,
-	})
+		"accepted": false, "reason": reason, "shot_identity": shot_identity})
 
 
 func _disconnect_dependencies() -> void:
-	_disconnect_shot_signal()
 	if _weapon_context != null and is_instance_valid(_weapon_context) \
 			and _context_invalidated_callback.is_valid() \
 			and _weapon_context.binding_invalidated.is_connected(
 				_context_invalidated_callback):
 		_weapon_context.binding_invalidated.disconnect(_context_invalidated_callback)
 	_context_invalidated_callback = Callable()
-
-
-func _disconnect_shot_signal() -> void:
-	if _weapon_authority != null and is_instance_valid(_weapon_authority) \
-			and _shot_callback.is_valid() \
-			and _weapon_authority.shot_committed.is_connected(_shot_callback):
-		_weapon_authority.shot_committed.disconnect(_shot_callback)
-	_shot_callback = Callable()
 
 
 func _reset_runtime_state() -> void:
@@ -819,7 +940,6 @@ func _reset_runtime_state() -> void:
 	_weapon_context_binding_generation = 0
 	_hitbox_world = null
 	_hitbox_world_instance_id = 0
-	_hitbox_capability = null
 	_hitbox_binding_token = 0
 	_body_mask = 0
 	_obstruction_mask = 0
@@ -827,11 +947,13 @@ func _reset_runtime_state() -> void:
 	_pending_order.clear()
 	_pending_by_identity.clear()
 	_resolved_by_identity.clear()
+	_operations_by_command_id.clear()
 	_reserved_event_ids.clear()
 	_reserved_request_ids.clear()
 	_last_result.clear()
 	_fatal_error = &""
 	_public_signal_active = false
+	_world_resolution_active = false
 
 
 func _has_exact_keys(value: Dictionary, expected: PackedStringArray) -> bool:
@@ -852,14 +974,9 @@ func _is_text(value: Variant) -> bool:
 	return typeof(value) == TYPE_STRING or typeof(value) == TYPE_STRING_NAME
 
 
-func _point_is_hitbox_bounded(value: Vector2i) -> bool:
-	return absi(value.x) <= BodyHitboxWorld2D.MAX_COORDINATE_RAW \
-		and absi(value.y) <= BodyHitboxWorld2D.MAX_COORDINATE_RAW
-
-
 func _divide_round_half_away(numerator: int, denominator: int) -> int:
 	var sign_value := -1 if numerator < 0 else 1
-	var magnitude := absi(numerator)
+	var magnitude := -numerator if numerator < 0 else numerator
 	var quotient := magnitude / denominator
 	if (magnitude % denominator) * 2 >= denominator:
 		quotient += 1
@@ -892,7 +1009,7 @@ func _reject(reason: StringName) -> bool:
 
 func _exit_tree() -> void:
 	if lifecycle == Lifecycle.BOUND or lifecycle == Lifecycle.INVALIDATED:
-		if not _public_signal_active:
+		if not _public_signal_active and not _world_resolution_active:
 			release_binding(&"teardown")
 		else:
 			_disconnect_dependencies()

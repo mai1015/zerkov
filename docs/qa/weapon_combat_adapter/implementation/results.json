@@ -2,11 +2,14 @@
   "task": "5.4",
   "status": "implementation_ready_for_independent_acceptance",
   "base": "c265d3a4efd9b49f840b87e201ceb8f4b661d26b",
+  "integrated_main": "6fc090ebe63b0bb86979e004f3295897d0302950",
+  "accepted_5_3_merge": "49c0ae0f3d512df441858e61c0881cdbe22c40a4",
+  "repaired_from": "6296e6668813f70d5c358cbd6ed84bd27a816bc4",
   "engine": "4.7.2.stable.official.ed1daf0bf",
   "headless_only": true,
-  "focused": {"checks": 197, "failures": 0},
-  "adjacent": {"checks": 20003, "failures": 0},
-  "total": {"checks": 20200, "failures": 0},
+  "focused": {"checks": 244, "failures": 0},
+  "adjacent": {"checks": 20017, "failures": 0},
+  "total": {"checks": 20261, "failures": 0},
   "limits": {
     "pending_shots": 64,
     "resolved_shots": 4096,
@@ -17,5 +20,7 @@
   "diagnostics_clean": true,
   "strict_spec": "Valid",
   "addon_diff": false,
-  "task_checkbox_modified": false
+  "task_5_3_checked": true,
+  "task_5_4_checked": false,
+  "task_checkbox_modified_by_5_4": false
 }
