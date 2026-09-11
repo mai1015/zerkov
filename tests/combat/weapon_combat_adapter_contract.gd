@@ -93,6 +93,20 @@ class FullHitboxWorld:
 				"fingerprint": "seed", "result": {"accepted": true}}
 
 
+class BearerOwningHandler:
+	extends RefCounted
+
+	var capability: Variant
+
+	func handle(
+		_authority: RaidAuthority,
+		_phase: RaidAuthority.TickPhase,
+		_tick: int,
+		_intents: Array[ZRaidIntent]
+	) -> bool:
+		return true
+
+
 var checks: int = 0
 var failures: int = 0
 var _fixtures: Dictionary = {}
@@ -114,6 +128,7 @@ func run() -> void:
 	_test_hit_replay_and_reentry()
 	_test_miss_and_occlusion()
 	_test_binding_and_lifecycle_guards()
+	_test_exact_registration_and_unresolved_obligation_guards()
 	_test_malformed_collision_and_capacity_fail_atomicity()
 	print("WEAPON_COMBAT_ADAPTER_RESULT checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
@@ -122,10 +137,9 @@ func run() -> void:
 func _test_hit_replay_and_reentry() -> void:
 	var fixture := _new_fixture("hit", &"hit")
 	var adapter := fixture["adapter"] as WeaponCombatAdapter
-	var publications: Array[Dictionary] = []
+	var publications := fixture["publications"] as Array
 	var reentry_rejected := [false]
 	adapter.consequence_committed.connect(func(value: Dictionary) -> void:
-		publications.append(value)
 		reentry_rejected[0] = not adapter.release_binding(&"reentrant_release") \
 			and adapter.last_error == &"reentrant_binding_change"
 	)
@@ -166,7 +180,7 @@ func _test_hit_replay_and_reentry() -> void:
 	var first_copy := result.duplicate(true)
 	first_copy["body_zone"] = &"forged"
 	first_copy["resolution_digest"] = String("0").repeat(64)
-	var args := fixture["fire_args"] as Array
+	var args := (_runtime_fixture(fixture)["fire_args"] as Array)
 	var replay_result := adapter.commit_fire(
 		String(args[0]), int(args[1]), String(args[2]), int(args[3]),
 		int(args[4]), int(args[5]))
@@ -239,14 +253,15 @@ func _test_miss_and_occlusion() -> void:
 func _test_binding_and_lifecycle_guards() -> void:
 	var direct := _new_fixture("direct_phase", &"miss", null, &"direct_phase")
 	var direct_adapter := direct["adapter"] as WeaponCombatAdapter
-	check(not _object_exposes_reference(direct_adapter, direct["capability"]),
-		"adapter property discovery exposes no raw hitbox bearer or wrapper")
+	check(not _object_graph_exposes_reference(
+		direct_adapter, direct["capability"]),
+		"adapter/authority/callback Object graph exposes no raw bearer or wrapper")
 	check((direct["authority"] as RaidAuthority).transition(
 		RaidAuthority.Lifecycle.ACTIVE, int(direct["generation"])) \
 		and (direct["authority"] as RaidAuthority).advance_one(
 			int(direct["generation"])),
 		"direct-call guard fixture advances through the registered phase 6")
-	check(not bool(direct.get("direct_phase_result", true)) \
+	check(not bool(_runtime_fixture(direct).get("direct_phase_result", true)) \
 		and direct_adapter.ledger_size() == 1 \
 		and _publication_counts(direct) == Vector2i(1, 1),
 		"phase-5 direct resolver call fails before the one registered dispatch")
@@ -254,6 +269,27 @@ func _test_binding_and_lifecycle_guards() -> void:
 
 	var fixture := _new_fixture("binding", &"miss")
 	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as WeaponCombatAdapter
+	var world := fixture["world"] as BodyHitboxWorld2D
+	var bearer_owner := BearerOwningHandler.new()
+	bearer_owner.capability = fixture["capability"]
+	check(not authority.register_phase_handler(
+		RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
+		&"bearer_owning_handler", Callable(bearer_owner, "handle"),
+		int(fixture["generation"])) \
+		and authority.last_error == &"handler_callback_retains_capability",
+		"authority rejects a callback whose nested owner graph retains the bearer")
+	var phase_callback := adapter._phase_callback(adapter.binding_generation())
+	var registration_id := authority.phase_handler_registration_id(
+		WeaponCombatAdapter.PHASE_HANDLER_ID, int(fixture["generation"]))
+	check(world.phase_consumer_snapshot_metadata(
+		WeaponCombatAdapter.PHASE_HANDLER_ID, registration_id,
+		phase_callback, 0).is_empty() \
+		and not bool(world.phase_consumer_raycast(
+			{}, WeaponCombatAdapter.PHASE_HANDLER_ID, registration_id,
+			phase_callback).get("accepted", true)),
+		"delegated metadata/query surfaces expose no bearer and fail outside phase")
+	bearer_owner.capability = null
 	var foreign_actor := ZEntityId.from_parts(PackedStringArray(["weapon_combat", "foreign_owner"] ))
 	check(authority.authorize_actor(
 		foreign_actor, ZRaidIntent.Source.AI, int(fixture["generation"])),
@@ -266,14 +302,14 @@ func _test_binding_and_lifecycle_guards() -> void:
 	check(foreign_capability != null \
 		and not rejected.bind_context(
 			authority, fixture["weapon_authority"], fixture["weapon_context"],
-			foreign_world, foreign_capability, Callable(self, "_unused_world_phase"),
+			foreign_world, foreign_capability,
 			int(fixture["generation"]), 1,
 			BODY_LAYER, OBSTRUCTION_LAYER) \
 		and rejected.last_error == &"hitbox_binding_invalid",
 		"wrong actor/source hitbox binding fails authentication")
 	check(not rejected.bind_context(
 		authority, fixture["weapon_authority"], fixture["weapon_context"],
-		fixture["world"], fixture["capability"], Callable(self, "_unused_world_phase"),
+		fixture["world"], fixture["capability"],
 		int(fixture["generation"]) + 1,
 		1, BODY_LAYER, OBSTRUCTION_LAYER) \
 		and rejected.last_error == &"raid_authority_invalid",
@@ -281,7 +317,6 @@ func _test_binding_and_lifecycle_guards() -> void:
 	foreign_world.release_binding(foreign_capability, &"test_release")
 	rejected.queue_free()
 
-	var adapter := fixture["adapter"] as WeaponCombatAdapter
 	var old_generation := adapter.binding_generation()
 	check(adapter.release_binding(&"test_release") \
 		and adapter.lifecycle == WeaponCombatAdapter.Lifecycle.RELEASED \
@@ -305,7 +340,99 @@ func _test_binding_and_lifecycle_guards() -> void:
 	_cleanup_fixture(replacement)
 
 
+func _test_exact_registration_and_unresolved_obligation_guards() -> void:
+	var replaced := _new_fixture("registration_replaced", &"miss")
+	var replaced_authority := replaced["authority"] as RaidAuthority
+	var replaced_adapter := replaced["adapter"] as WeaponCombatAdapter
+	var old_registration := replaced_authority.phase_handler_registration_id(
+		WeaponCombatAdapter.PHASE_HANDLER_ID, int(replaced["generation"]))
+	check(replaced_authority.unregister_phase_handler(
+		WeaponCombatAdapter.PHASE_HANDLER_ID, int(replaced["generation"])) \
+		and replaced_authority.register_phase_handler(
+			RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
+			WeaponCombatAdapter.PHASE_HANDLER_ID,
+			Callable(self, "_replacement_world_phase").bind(
+				"registration_replaced"),
+			int(replaced["generation"]),
+			WeaponCombatAdapter.PHASE_HANDLER_PRIORITY),
+		"same handler label can be composition-replaced while preparing")
+	var new_registration := replaced_authority.phase_handler_registration_id(
+		WeaponCombatAdapter.PHASE_HANDLER_ID, int(replaced["generation"]))
+	check(not old_registration.is_empty() and not new_registration.is_empty() \
+		and old_registration != new_registration,
+		"same handler label receives a non-reusable exact registration identity")
+	_runtime_fixture(replaced)["skip_fire_until"] = 2
+	check(replaced_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE, int(replaced["generation"])) \
+		and replaced_authority.advance_one(int(replaced["generation"])),
+		"replacement callback tick completes without a committed shot")
+	check(not bool(_runtime_fixture(replaced).get(
+		"replacement_direct_result", true)) \
+		and replaced_adapter.last_error == &"combat_phase_dispatch_invalid" \
+		and replaced_adapter.ledger_size() == 0,
+		"different callback under reused handler ID cannot impersonate registration")
+	_cleanup_fixture(replaced)
+
+	var removed := _new_fixture(
+		"handler_removed", &"miss", null, &"remove_handler")
+	var removed_authority := removed["authority"] as RaidAuthority
+	var initial := removed["initial_weapon_snapshot"] as Dictionary
+	check(removed_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE, int(removed["generation"])) \
+		and not removed_authority.advance_one(int(removed["generation"])),
+		"removed phase-6 handler cannot leave a successful tick")
+	var after := (removed["weapon_authority"] as WeaponAuthority).snapshot(
+		String(removed["weapon_id"]))
+	check(removed_authority.lifecycle == RaidAuthority.Lifecycle.FAILED \
+		and removed_authority.last_error == &"phase_handler_obligation_unresolved" \
+		and (removed["adapter"] as WeaponCombatAdapter).pending_count() == 1 \
+		and int(after.get("loaded_rounds", -1)) \
+			== int(initial.get("loaded_rounds", -1)) - 1 \
+		and _publication_counts(removed) == Vector2i(0, 0),
+		"committed shot obligation terminalizes instead of stranding success")
+	_cleanup_fixture(removed)
+
+
 func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
+	var long_id := _new_fixture(
+		"derived_id_boundary", &"miss", null, &"long_command_id")
+	var long_before := long_id["initial_weapon_snapshot"] as Dictionary
+	check((long_id["authority"] as RaidAuthority).transition(
+		RaidAuthority.Lifecycle.ACTIVE, int(long_id["generation"])) \
+		and not (long_id["authority"] as RaidAuthority).advance_one(
+			int(long_id["generation"])),
+		"124-byte command fails before deriving an oversized native shot ID")
+	var long_after := (long_id["weapon_authority"] as WeaponAuthority).snapshot(
+		String(long_id["weapon_id"]))
+	check((long_id["adapter"] as WeaponCombatAdapter).last_error \
+		== &"stable_consequence_identity_invalid" \
+		and int(long_after.get("revision", -1)) == int(long_before["revision"]) \
+		and int(long_after.get("loaded_rounds", -1)) \
+			== int(long_before["loaded_rounds"]) \
+		and _publication_counts(long_id) == Vector2i(0, 0),
+		"derived stable identity is preflighted before ammo or revision commit")
+	_cleanup_fixture(long_id)
+
+	var target_boundary := _new_fixture(
+		"target_boundary", &"miss", null, &"target_boundary")
+	var boundary_before := target_boundary["initial_weapon_snapshot"] as Dictionary
+	check((target_boundary["authority"] as RaidAuthority).transition(
+		RaidAuthority.Lifecycle.ACTIVE, int(target_boundary["generation"])) \
+		and not (target_boundary["authority"] as RaidAuthority).advance_one(
+			int(target_boundary["generation"])),
+		"scalable boundary origin fails before a possible out-of-range target")
+	var boundary_after := (target_boundary["weapon_authority"] as WeaponAuthority).snapshot(
+		String(target_boundary["weapon_id"]))
+	check((target_boundary["adapter"] as WeaponCombatAdapter).last_error \
+		== &"committed_shot_geometry_out_of_range" \
+		and int(boundary_after.get("revision", -1)) \
+			== int(boundary_before["revision"]) \
+		and int(boundary_after.get("loaded_rounds", -1)) \
+			== int(boundary_before["loaded_rounds"]) \
+		and _publication_counts(target_boundary) == Vector2i(0, 0),
+		"target-coordinate envelope is checked before irreversible fire")
+	_cleanup_fixture(target_boundary)
+
 	var overflow := _new_fixture(
 		"overflow_origin", &"miss", null, &"overflow_origin")
 	check((overflow["authority"] as RaidAuthority).transition(
@@ -339,7 +466,8 @@ func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
 		and (external["authority"] as RaidAuthority).advance_one(
 			int(external["generation"])),
 		"unowned direct native commit does not enter the combat adapter")
-	check(bool((external["external_outcome"] as Dictionary).get("accepted", false)) \
+	check(bool((_runtime_fixture(external)["external_outcome"] as Dictionary).get(
+		"accepted", false)) \
 		and (external["adapter"] as WeaponCombatAdapter).ledger_size() == 0 \
 		and _publication_counts(external) == Vector2i(0, 0),
 		"native signal is notification-only without adapter-owned operation")
@@ -363,8 +491,9 @@ func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
 		and (stale["authority"] as RaidAuthority).advance_one(
 			int(stale["generation"])),
 		"stale second operation is rejected without harming the valid commit")
-	check(not bool((stale["injected_receipt"] as Dictionary).get("accepted", true)) \
-		and (stale["injected_receipt"] as Dictionary).get("reason") \
+	check(not bool((_runtime_fixture(stale)["injected_receipt"] as Dictionary).get(
+		"accepted", true)) \
+		and (_runtime_fixture(stale)["injected_receipt"] as Dictionary).get("reason") \
 			== &"weapon_commit_phase_invalid" \
 		and _publication_counts(stale) == Vector2i(1, 1),
 		"stale operation fails before native mutation or extra consequence")
@@ -378,7 +507,7 @@ func _test_malformed_collision_and_capacity_fail_atomicity() -> void:
 		and (id_collision["authority"] as RaidAuthority).advance_one(
 			int(id_collision["generation"])),
 		"first forced-ID shot resolves normally")
-	id_collision["skip_fire_until"] = 10
+	_runtime_fixture(id_collision)["skip_fire_until"] = 10
 	for _index in 8:
 		check((id_collision["authority"] as RaidAuthority).advance_one(
 			int(id_collision["generation"])),
@@ -533,6 +662,12 @@ func _new_fixture(
 	if injection == &"overflow_origin":
 		weapon_context.authoritative_origin = {
 			"x": WeaponCombatAdapter.MAX_COMMAND_COUNTER, "y": 0}
+	elif injection == &"target_boundary":
+		weapon_context.authoritative_origin = {
+			"x": BodyHitboxWorld2D.MAX_COORDINATE_RAW \
+				/ WeaponCombatAdapter.RAW_UNITS_PER_WEAPON_UNIT,
+			"y": 0,
+		}
 	root.add_child(weapon_context)
 
 	var world := world_value if world_value != null else BodyHitboxWorld2D.new()
@@ -552,6 +687,7 @@ func _new_fixture(
 		"weapon_authority": weapon_authority,
 		"weapon_context": weapon_context,
 		"weapon_id": weapon_id,
+		"initial_weapon_snapshot": weapon_authority.snapshot(weapon_id),
 		"world": world,
 		"capability": capability,
 		"token": int(provenance.get("binding_token", 0)),
@@ -562,32 +698,42 @@ func _new_fixture(
 		"external_outcome": {},
 		"skip_fire_until": 0,
 	}
-	_fixtures[label] = fixture
 	check(_publish_world_snapshot(fixture, 0, 1),
 		"%s initial hitbox snapshot publishes" % label)
 	var adapter := adapter_value if adapter_value != null else WeaponCombatAdapter.new()
 	if adapter.get_parent() == null:
 		root.add_child(adapter)
 	fixture["adapter"] = adapter
+	var fixture_publications := fixture["publications"] as Array
 	adapter.consequence_committed.connect(func(value: Dictionary) -> void:
-		(fixture["publications"] as Array).append(value)
+		fixture_publications.append(value)
 	)
 	check(adapter.bind_context(
 		authority, weapon_authority, weapon_context, world, capability,
-		Callable(self, "_resolve_world_phase").bind(label),
 		generation, weapon_context.expected_generation,
 		BODY_LAYER, OBSTRUCTION_LAYER), "%s combat adapter binds" % label)
+	var publisher_id := StringName("world_" + label)
+	var publisher_callback := Callable(self, "_publish_world_phase").bind(label)
 	check(authority.register_phase_handler(
 		RaidAuthority.TickPhase.MOVEMENT,
-		StringName("world_" + label),
-		Callable(self, "_publish_world_phase").bind(label), generation),
+		publisher_id, publisher_callback, generation),
 		"%s world publisher registers" % label)
+	var publisher_registration := authority.phase_handler_registration_id(
+		publisher_id, generation)
+	check(world.authorize_phase_publisher(
+		capability, publisher_id, publisher_registration, publisher_callback),
+		"%s world publisher receives a bearer-free phase grant" % label)
 	check(authority.register_phase_handler(
 		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
 		StringName("fire_" + label),
 		Callable(self, "_fire_phase").bind(label), generation,
 		WeaponInstanceContextAdapter.CONSUMER_PHASE_PRIORITY),
 		"%s fire producer registers" % label)
+	fixture["publisher_id"] = publisher_id
+	fixture["publisher_registration"] = publisher_registration
+	var runtime_fixture := fixture.duplicate(false)
+	runtime_fixture.erase("capability")
+	_fixtures[label] = runtime_fixture
 	return fixture
 
 
@@ -598,10 +744,11 @@ func _publish_world_phase(
 	_intents: Array[ZRaidIntent],
 	label: String
 ) -> bool:
-	return _publish_world_snapshot(_fixtures[label] as Dictionary, tick, tick + 1)
+	return _publish_world_snapshot(
+		_fixtures[label] as Dictionary, tick, tick + 1, true)
 
 
-func _resolve_world_phase(
+func _replacement_world_phase(
 	authority: RaidAuthority,
 	phase: RaidAuthority.TickPhase,
 	tick: int,
@@ -609,9 +756,11 @@ func _resolve_world_phase(
 	label: String
 ) -> bool:
 	var fixture := _fixtures[label] as Dictionary
-	return (fixture["adapter"] as WeaponCombatAdapter).resolve_world_consequences(
-		fixture["capability"], authority, phase, tick,
-		(fixture["adapter"] as WeaponCombatAdapter).binding_generation())
+	fixture["replacement_direct_result"] = (
+		fixture["adapter"] as WeaponCombatAdapter)._on_world_consequence_phase(
+			authority, phase, tick, [],
+			(fixture["adapter"] as WeaponCombatAdapter).binding_generation())
+	return true
 
 
 func _unused_world_phase(
@@ -623,7 +772,12 @@ func _unused_world_phase(
 	return true
 
 
-func _publish_world_snapshot(fixture: Dictionary, tick: int, revision: int) -> bool:
+func _publish_world_snapshot(
+	fixture: Dictionary,
+	tick: int,
+	revision: int,
+	delegated: bool = false
+) -> bool:
 	var bodies: Array = []
 	var obstructions: Array = []
 	if fixture["mode"] == &"hit" or fixture["mode"] == &"occluded":
@@ -650,6 +804,14 @@ func _publish_world_snapshot(fixture: Dictionary, tick: int, revision: int) -> b
 			"enabled": true,
 		})
 	var admission := fixture["admission"] as ZSessionAdmission
+	if delegated:
+		var publisher_callback := Callable(self, "_publish_world_phase").bind(
+			String(fixture["label"]))
+		return (fixture["world"] as BodyHitboxWorld2D).phase_publisher_publish_snapshot(
+			tick, revision, bodies, obstructions,
+			admission.actor_id, ZRaidIntent.Source.PLAYER,
+			StringName(fixture["publisher_id"]),
+			String(fixture["publisher_registration"]), publisher_callback)
 	return (fixture["world"] as BodyHitboxWorld2D).publish_snapshot(
 		tick, revision, bodies, obstructions,
 		int(fixture["generation"]), int(fixture["token"]),
@@ -671,6 +833,8 @@ func _fire_phase(
 	var weapon_id := String(fixture["weapon_id"])
 	var native_state := weapon_authority.snapshot(weapon_id)
 	var command_id := "weapon-combat-%s-%d" % [label, tick]
+	if fixture["injection"] == &"long_command_id":
+		command_id = "c".repeat(124)
 	var sequence := maxi(
 		int(native_state.get("admitted_sequence_high_watermark", 0)),
 		int(native_state.get("last_command_sequence", 0))) + 1
@@ -705,10 +869,21 @@ func _fire_phase(
 			fixture["early_replay"] = adapter.commit_fire(
 				command_id, sequence, weapon_id, expected_revision, tick, 11)
 		&"direct_phase":
-			fixture["direct_phase_result"] = adapter.resolve_world_consequences(
-				fixture["capability"], _authority,
-				RaidAuthority.TickPhase.WORLD_CONSEQUENCES, tick,
-				adapter.binding_generation())
+			fixture["direct_phase_result"] = adapter._on_world_consequence_phase(
+				_authority, RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
+				tick, [], adapter.binding_generation())
+		&"remove_handler":
+			var handlers_by_phase := _authority.get("_phase_handlers") as Dictionary
+			var world_handlers := handlers_by_phase.get(
+				int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES), []) as Array
+			var retained: Array = []
+			for entry_value in world_handlers:
+				var entry := entry_value as Dictionary
+				if StringName(entry.get("id", &"")) \
+						!= WeaponCombatAdapter.PHASE_HANDLER_ID:
+					retained.append(entry)
+			handlers_by_phase[int(
+				RaidAuthority.TickPhase.WORLD_CONSEQUENCES)] = retained
 	return true
 
 
@@ -740,34 +915,59 @@ func _publication_counts(fixture: Dictionary) -> Vector2i:
 		(fixture["authority"] as RaidAuthority).journal.size())
 
 
-func _object_exposes_reference(subject: Object, needle: Variant) -> bool:
-	for property in subject.get_property_list():
-		var property_name := StringName((property as Dictionary).get("name", &""))
-		if property_name.is_empty():
-			continue
-		if _variant_contains_reference(subject.get(property_name), needle, 0):
-			return true
-	return false
+func _runtime_fixture(fixture: Dictionary) -> Dictionary:
+	return _fixtures[String(fixture["label"])] as Dictionary
 
 
-func _variant_contains_reference(value: Variant, needle: Variant, depth: int) -> bool:
-	if depth > 8:
-		return false
+func _object_graph_exposes_reference(subject: Object, needle: Variant) -> bool:
+	return _variant_contains_reference(subject, needle, 0, {})
+
+
+func _variant_contains_reference(
+	value: Variant,
+	needle: Variant,
+	depth: int,
+	visited: Dictionary
+) -> bool:
+	if depth > 16:
+		return true
 	if typeof(value) == TYPE_OBJECT:
-		return value == needle
+		if value == needle:
+			return true
+		var object := value as Object
+		if object == null or not is_instance_valid(object):
+			return false
+		var instance_id := object.get_instance_id()
+		if visited.has(instance_id):
+			return false
+		visited[instance_id] = true
+		for property in object.get_property_list():
+			var property_name := StringName(
+				(property as Dictionary).get("name", &""))
+			if property_name.is_empty():
+				continue
+			if _variant_contains_reference(
+				object.get(property_name), needle, depth + 1, visited):
+				return true
+		return false
 	if typeof(value) == TYPE_CALLABLE:
-		for argument in (value as Callable).get_bound_arguments():
-			if _variant_contains_reference(argument, needle, depth + 1):
+		var callable := value as Callable
+		if _variant_contains_reference(
+			callable.get_object(), needle, depth + 1, visited):
+			return true
+		for argument in callable.get_bound_arguments():
+			if _variant_contains_reference(
+				argument, needle, depth + 1, visited):
 				return true
 		return false
 	if typeof(value) == TYPE_DICTIONARY:
 		for child in (value as Dictionary).values():
-			if _variant_contains_reference(child, needle, depth + 1):
+			if _variant_contains_reference(child, needle, depth + 1, visited):
 				return true
 		return false
 	if typeof(value) == TYPE_ARRAY:
 		for child in value as Array:
-			if _variant_contains_reference(child, needle, depth + 1):
+			if _variant_contains_reference(child, needle, depth + 1, visited):
 				return true
 	return false
 

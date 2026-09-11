@@ -6,7 +6,7 @@ remains unchecked by design.
 - Recorded: 2026-09-11
 - Branch: codex/weapon-combat-adapter-5-4
 - Original base: c265d3a4efd9b49f840b87e201ceb8f4b661d26b
-- Accepted integrated main: 6fc090ebe63b0bb86979e004f3295897d0302950
+- Accepted integrated main: 64e01051e6676c9582ce5409b683d542dddc8686
 - Accepted Task 5.3 merge: 49c0ae0f3d512df441858e61c0881cdbe22c40a4
 - Engine: Godot 4.7.2.stable.official.ed1daf0bf, headless only
 
@@ -23,21 +23,26 @@ remains unchecked by design.
 - Exact command requests share the bounded shot ledger. Exact replay returns a
   detached recursively read-only original before another native call, query,
   event, or publication. Divergent facts under one command ID fail closed.
-- RaidAuthority records the exact phase handler currently being dispatched.
-  Resolution checks the handler ID, phase, tick, authority generation, adapter
-  generation, and reentry state before spatial or journal work. A phase-5
-  direct resolver call is rejected even with otherwise correct arguments.
-- The accepted Task 5.3 v2 bearer is only a transient bind or resolution
-  argument. No raw bearer, lease secret, or wrapping callable is assigned to an
-  adapter property. Every phase-6 use reauthenticates exact raid, session,
-  epoch, generation, actor, source, and world provenance. Only the non-secret
-  binding token is retained.
-- Origin scaling, direction/range multiplication, and target addition validate
-  operands before arithmetic and avoid INT64_MIN-unsafe absolute value. Extreme
-  authoritative origins fail before native fire or multiplication.
-- Journal, adapter queue/ledger, and hitbox-query capacities are checked before
-  irreversible work. Stable event/query IDs use two-pass collision checking
-  before either reservation is published.
+- RaidAuthority issues a random, bounded, non-reusable registration identity
+  and authenticates the exact callback/phase/tick/generation dispatch frame.
+  Reusing the handler label after unregister cannot impersonate the prior
+  registration. Registered callback graphs are recursively screened for a
+  retained Task 5.3 bearer.
+- The accepted Task 5.3 v2 bearer is used only transiently at bind to authorize
+  narrow BodyHitboxWorld2D phase grants. Neither the adapter, authority,
+  handler, callback owner, provenance, nor result graph retains the bearer,
+  lease, or a bearer-returning callable. Metadata and raycast grants also
+  verify exact raid/session/epoch/generation/actor/source/world provenance.
+- Each native commit opens a bounded RaidAuthority phase-6 obligation. Only
+  the exact registered handler dispatch closes it; any removed/bypassed
+  handler leaves an obligation and terminally fails the tick.
+- The native `command_id + ":shot"`, typed event/query IDs, journal slot,
+  hitbox-query slot, exact handler grant, and full target-coordinate envelope
+  are preflighted before WeaponAuthority.fire can consume ammo or revision.
+  Checked multiplication/addition avoids INT64_MIN-unsafe absolute value.
+- Journal, adapter queue/ledger, hitbox-query, phase-grant, obligation, and
+  lifetime registration storage are bounded and collision checked before
+  publication.
 - One first-seen operation produces at most one authoritative raycast, one
   immutable hit/miss result, one journal input, and one consequence signal.
 
@@ -47,26 +52,31 @@ truth-spec, or task-ledger change. Accepted-main history is reported separately.
 
 ## Rejection regressions
 
-The permanent contract closes every finding against earlier candidate
-6296e6668813f70d5c358cbd6ed84bd27a816bc4:
+The permanent contract retains the earlier candidate regressions and closes
+every finding against rejected repair
+2db22b1bae222702f4f51eb388550f321b172507:
 
-1. A forged phase-5 shot_committed DTO adds no extra pending shot, query, event,
-   result, or publication.
-2. Direct native fire outside commit_fire remains native truth but is not
-   consumed as a game-owned consequence.
-3. A phase-5 direct resolver call fails before the one registered phase-6
-   dispatch resolves exactly once.
-4. Recursive property inspection, callable arguments, and nested collections
-   expose no retained hitbox bearer in the adapter.
-5. Origin 9,000,000,000,000,000,000 fails before multiply, native mutation,
-   query, journal append, or publication.
+1. Recursive property inspection follows nested Objects and Callable owners;
+   adapter/authority/handler graphs expose no retained hitbox bearer. A
+   bearer-owning callback is rejected before registration.
+2. Unregister plus a different callback under the same handler ID receives a
+   different identity and cannot call the private resolver as the old handler.
+3. Reflectively removing the active phase-6 handler after native commit leaves
+   a durable obligation, terminally fails the tick, and cannot strand success.
+4. A boundary-valid 124-byte command is rejected because the derived `:shot`
+   identity would exceed the bound; ammo and revision remain unchanged.
+5. A scalable but boundary-adjacent origin is rejected by the complete target
+   envelope before native ammo/revision mutation.
+
+Earlier forged signal DTO, direct native fire, phase-5 resolver, extreme-origin
+checked-arithmetic, replay, collision, and capacity regressions remain covered.
 
 The contract also covers hit, clear miss, obstruction/body boundary tie,
 immutable replay, duplicate operation, synchronous callback reentry,
 release/rebind, wrong actor/source, stale generation/tick, malformed requests,
 identity collisions, and all capacity preflights.
 
-Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=244 failures=0
+Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=318 failures=0
 
 ## Adjacent headless contracts
 
@@ -89,7 +99,7 @@ Focused result: WEAPON_COMBAT_ADAPTER_RESULT checks=244 failures=0
 
 Adjacent: 20,017 checks, 0 failures.
 
-Focused plus adjacent: 20,261 checks, 0 failures.
+Focused plus adjacent: 20,335 checks, 0 failures.
 
 ## Import, diagnostics and spec
 
@@ -103,12 +113,13 @@ Focused plus adjacent: 20,261 checks, 0 failures.
 
 ## Limits and remaining risks
 
-- Limits are 64 pending shots, 4,096 resolved operations, 4,096 task-5.3 query
-  results, and at most 8,192 configured journal events. Capacity is fail-stop,
-  not eviction, because replay must retain the original result.
-- Trusted production composition must keep the Task 5.3 bearer outside
-  discoverable Object state and pass it transiently from the registered phase-6
-  callback. This implementation supplies and verifies that consumer contract.
+- Limits are 64 pending shots/phase obligations, 4,096 resolved operations,
+  4,096 task-5.3 query results, 8,192 journal events, 16 delegated phase grants,
+  and 256 lifetime handler registrations. Capacity is fail-stop, not eviction,
+  because replay and non-reuse proofs must remain stable.
+- Trusted composition presents the Task 5.3 bearer only at initial phase-grant
+  authorization. Runtime callbacks publish/query through exact-registration
+  grants and never receive or retain the bearer.
 - The boundary is offline, synchronous, in-memory and single-writer/no-yield.
   Durable/network replay and replica egress remain later work.
 - Typed event/query IDs are deterministic hashes of the complete legacy native

@@ -48,6 +48,7 @@ const MAX_BODY_HISTORY: int = 256
 const MAX_OBSTRUCTION_HISTORY: int = 1024
 const MAX_EXCLUDED_ENTITIES: int = 16
 const MAX_QUERY_RESULTS: int = 4096
+const MAX_PHASE_CONSUMERS: int = 16
 const MAX_BINDING_TOKEN: int = 2_147_483_647
 
 const BODY_RECORD_KEYS: PackedStringArray = [
@@ -117,6 +118,7 @@ var _obstructions_by_id: Dictionary = {}
 var _body_history: Dictionary = {}
 var _obstruction_history: Dictionary = {}
 var _query_ledger: Dictionary = {}
+var _phase_consumers: Dictionary = {}
 
 
 ## Binding is allowed only while RaidAuthority is preparing. Numeric tokens
@@ -258,6 +260,138 @@ func snapshot_metadata(capability: Variant) -> Dictionary:
 		if last_error.is_empty():
 			last_error = &"binding_generation_invalidated"
 		return _read_only_dictionary({})
+	return _snapshot_metadata_record()
+
+
+## Converts a raw binding capability into a narrow phase-registration grant.
+## The raw bearer is authenticated here and never retained. The resulting
+## grant can only inspect metadata in phase 5 and raycast in the exact phase-6
+## dispatch registered with RaidAuthority.
+func authorize_phase_consumer(
+	capability: Variant,
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable
+) -> bool:
+	last_error = &""
+	if not _guard_binding_capability(capability) or not _binding_identity_is_current():
+		return false
+	if _authority.lifecycle != RaidAuthority.Lifecycle.PREPARING \
+			or not ZIdentityRules.is_valid_part(String(handler_id)) \
+			or registration_id.is_empty() or not callback.is_valid():
+		return _reject_bool(&"phase_consumer_invalid")
+	if not _authority.has_exact_phase_handler(
+		handler_id, registration_id, callback,
+		RaidAuthority.TickPhase.WORLD_CONSEQUENCES, _authority_generation):
+		return _reject_bool(&"phase_consumer_registration_invalid")
+	if _phase_consumers.has(registration_id):
+		var prior := _phase_consumers[registration_id] as Dictionary
+		return StringName(prior.get("handler_id", &"")) == handler_id \
+			and prior.get("callback", Callable()) == callback
+	for grant_value in _phase_consumers.values():
+		var grant := grant_value as Dictionary
+		if StringName(grant.get("permission", &"")) == &"raycast":
+			return _reject_bool(&"phase_raycast_consumer_already_authorized")
+	if _phase_consumers.size() >= MAX_PHASE_CONSUMERS:
+		return _reject_bool(&"phase_consumer_capacity_exceeded")
+	_phase_consumers[registration_id] = {
+		"handler_id": handler_id,
+		"callback": callback,
+		"binding_token": _active_binding_token,
+		"phase": int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES),
+		"permission": &"raycast",
+	}
+	return true
+
+
+func authorize_phase_publisher(
+	capability: Variant,
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable
+) -> bool:
+	last_error = &""
+	if not _guard_binding_capability(capability) or not _binding_identity_is_current():
+		return false
+	if _authority.lifecycle != RaidAuthority.Lifecycle.PREPARING \
+			or not ZIdentityRules.is_valid_part(String(handler_id)) \
+			or registration_id.is_empty() or not callback.is_valid():
+		return _reject_bool(&"phase_publisher_invalid")
+	if not _authority.has_exact_phase_handler(
+		handler_id, registration_id, callback,
+		RaidAuthority.TickPhase.MOVEMENT, _authority_generation):
+		return _reject_bool(&"phase_publisher_registration_invalid")
+	if _phase_consumers.has(registration_id):
+		return _reject_bool(&"phase_consumer_registration_duplicate")
+	if _phase_consumers.size() >= MAX_PHASE_CONSUMERS:
+		return _reject_bool(&"phase_consumer_capacity_exceeded")
+	_phase_consumers[registration_id] = {
+		"handler_id": handler_id,
+		"callback": callback,
+		"binding_token": _active_binding_token,
+		"phase": int(RaidAuthority.TickPhase.MOVEMENT),
+		"permission": &"publish",
+	}
+	return true
+
+
+func revoke_phase_consumer(
+	handler_id: StringName,
+	registration_id: String
+) -> bool:
+	last_error = &""
+	var consumer := _phase_consumers.get(registration_id, {}) as Dictionary
+	if consumer.is_empty():
+		return true
+	if StringName(consumer.get("handler_id", &"")) != handler_id:
+		return _reject_bool(&"phase_consumer_invalid")
+	# A live exact registration cannot be stripped out from underneath a bound
+	# adapter. Composition unregisters it first; hostile removal only fails shut.
+	if _authority != null and is_instance_valid(_authority) \
+			and _authority.phase_handler_registration_id(
+				handler_id, _authority_generation) == registration_id:
+		return _reject_bool(&"phase_consumer_registration_active")
+	_phase_consumers.erase(registration_id)
+	return true
+
+
+func phase_consumer_snapshot_metadata(
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable,
+	tick: int
+) -> Dictionary:
+	last_error = &""
+	if not _guard_phase_consumer(
+		handler_id, registration_id, callback, tick, false):
+		return _read_only_dictionary({})
+	return _snapshot_metadata_record()
+
+
+func phase_consumer_can_admit_request(
+	request_id: String,
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable,
+	tick: int
+) -> bool:
+	last_error = &""
+	if not _guard_phase_consumer(
+		handler_id, registration_id, callback, tick, false):
+		return false
+	if ZRequestId.parse(request_id) == null:
+		return _reject_bool(&"request_id_invalid")
+	if _query_ledger.has(request_id):
+		return _reject_bool(&"request_id_already_resolved")
+	if _query_ledger.size() >= MAX_QUERY_RESULTS:
+		return _reject_bool(&"query_result_capacity_exceeded")
+	if _snapshot_tick != tick or _snapshot_revision <= 0 \
+			or _snapshot_digest.is_empty():
+		return _reject_bool(&"world_snapshot_missing_or_stale")
+	return true
+
+
+func _snapshot_metadata_record() -> Dictionary:
 	return _read_only_dictionary({
 		"schema": SNAPSHOT_SCHEMA,
 		"raid_id": _raid_id.canonical_key() if _raid_id != null else "",
@@ -279,6 +413,22 @@ func snapshot_metadata(capability: Variant) -> Dictionary:
 	})
 
 
+func phase_consumer_raycast(
+	query_value: Variant,
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable
+) -> Dictionary:
+	last_error = &""
+	last_query_duplicate = false
+	var tick := int((query_value as Dictionary).get("tick", -1)) \
+		if typeof(query_value) == TYPE_DICTIONARY else -1
+	if not _guard_phase_consumer(
+		handler_id, registration_id, callback, tick, true):
+		return _rejection(last_error)
+	return _raycast_after_binding(query_value)
+
+
 ## Replaces the entire spatial snapshot fail-atomically. Input order does not
 ## affect storage, digest, or query order. Repeating the identical tick/revision
 ## is an idempotent no-op; an equal-revision divergence fails closed.
@@ -298,6 +448,41 @@ func publish_snapshot(
 	if not _guard_binding(
 		capability, expected_authority_generation, expected_binding_token):
 		return false
+	return _publish_snapshot_after_binding(
+		tick, world_revision, bodies_value, obstructions_value,
+		publisher_actor_value, publisher_source_value)
+
+
+func phase_publisher_publish_snapshot(
+	tick: int,
+	world_revision: int,
+	bodies_value: Variant,
+	obstructions_value: Variant,
+	publisher_actor_value: Variant,
+	publisher_source_value: Variant,
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable
+) -> bool:
+	last_error = &""
+	last_publication_duplicate = false
+	if not _guard_exact_phase_grant(
+		handler_id, registration_id, callback, tick,
+		RaidAuthority.TickPhase.MOVEMENT, &"publish"):
+		return false
+	return _publish_snapshot_after_binding(
+		tick, world_revision, bodies_value, obstructions_value,
+		publisher_actor_value, publisher_source_value)
+
+
+func _publish_snapshot_after_binding(
+	tick: int,
+	world_revision: int,
+	bodies_value: Variant,
+	obstructions_value: Variant,
+	publisher_actor_value: Variant,
+	publisher_source_value: Variant
+) -> bool:
 	if not _guard_publisher(publisher_actor_value, publisher_source_value):
 		return false
 	if not _authority_allows_publication():
@@ -353,14 +538,25 @@ func raycast(query_value: Variant, capability: Variant) -> Dictionary:
 		return _rejection(last_error)
 	if not _binding_identity_is_current():
 		return _rejection(&"binding_generation_invalidated")
+	return _raycast_after_binding(query_value, capability)
+
+
+func _raycast_after_binding(
+	query_value: Variant,
+	capability: Variant = null
+) -> Dictionary:
 	var normalized := _normalize_ray_query(query_value)
 	if not bool(normalized.get("ok", false)):
 		return _rejection(last_error)
 	var query := normalized["record"] as Dictionary
 	var request_key := String(query["request_id"])
-	if not _guard_binding(
-		capability, int(query["authority_generation"]), int(query["binding_token"])):
-		return _rejection(last_error, request_key)
+	if capability != null:
+		if not _guard_binding(
+			capability, int(query["authority_generation"]), int(query["binding_token"])):
+			return _rejection(last_error, request_key)
+	elif int(query["authority_generation"]) != _authority_generation \
+			or int(query["binding_token"]) != _active_binding_token:
+		return _rejection(&"binding_context_mismatch", request_key)
 	if not _authority_allows_query():
 		return _rejection(&"authority_not_accepting_world_query", request_key)
 
@@ -1093,6 +1289,67 @@ func _guard_binding_capability(capability: Variant) -> bool:
 	return true
 
 
+func _guard_phase_consumer(
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable,
+	tick: int,
+	require_world_dispatch: bool
+) -> bool:
+	if not _binding_identity_is_current():
+		return _reject_bool(&"binding_generation_invalidated")
+	var consumer := _phase_consumers.get(registration_id, {}) as Dictionary
+	if consumer.is_empty() \
+			or StringName(consumer.get("handler_id", &"")) != handler_id \
+			or consumer.get("callback", Callable()) != callback \
+			or int(consumer.get("binding_token", 0)) != _active_binding_token:
+		return _reject_bool(&"phase_consumer_invalid")
+	if int(consumer.get("phase", -1)) \
+			!= int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES) \
+			or StringName(consumer.get("permission", &"")) != &"raycast":
+		return _reject_bool(&"phase_consumer_invalid")
+	if require_world_dispatch:
+		if not _authority.is_dispatching_phase_registration(
+			handler_id, registration_id, callback,
+			RaidAuthority.TickPhase.WORLD_CONSEQUENCES, tick,
+			_authority_generation):
+			return _reject_bool(&"phase_consumer_dispatch_invalid")
+	elif not _authority.is_processing_tick_phase(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		tick, _authority_generation) \
+			and not _authority.is_dispatching_phase_registration(
+				handler_id, registration_id, callback,
+				RaidAuthority.TickPhase.WORLD_CONSEQUENCES, tick,
+				_authority_generation):
+		return _reject_bool(&"phase_consumer_phase_invalid")
+	return true
+
+
+func _guard_exact_phase_grant(
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable,
+	tick: int,
+	phase: RaidAuthority.TickPhase,
+	permission: StringName
+) -> bool:
+	if not _binding_identity_is_current():
+		return _reject_bool(&"binding_generation_invalidated")
+	var consumer := _phase_consumers.get(registration_id, {}) as Dictionary
+	if consumer.is_empty() \
+			or StringName(consumer.get("handler_id", &"")) != handler_id \
+			or consumer.get("callback", Callable()) != callback \
+			or int(consumer.get("binding_token", 0)) != _active_binding_token \
+			or int(consumer.get("phase", -1)) != int(phase) \
+			or StringName(consumer.get("permission", &"")) != permission:
+		return _reject_bool(&"phase_consumer_invalid")
+	if not _authority.is_dispatching_phase_registration(
+		handler_id, registration_id, callback, phase, tick,
+		_authority_generation):
+		return _reject_bool(&"phase_consumer_dispatch_invalid")
+	return true
+
+
 func _binding_capability_commitment(
 	capability: BindingCapability,
 	secret: PackedByteArray,
@@ -1281,6 +1538,7 @@ func _clear_snapshot_state() -> void:
 	_body_history.clear()
 	_obstruction_history.clear()
 	_query_ledger.clear()
+	_phase_consumers.clear()
 	last_publication_duplicate = false
 	last_query_duplicate = false
 
