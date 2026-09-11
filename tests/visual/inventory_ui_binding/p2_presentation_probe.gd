@@ -1,8 +1,14 @@
 extends "res://tests/visual/inventory_ui_binding/capture.gd"
+## HISTORICAL / DEFERRED presentation packet across smaller outputs; current
+## first-playable verification MUST NOT invoke or regenerate this source.
 
 ## Bounded repair evidence for the remaining Astra P2 findings.  This probe
 ## writes only to the repair evidence directory; the rejected Astra gate
 ## report/captures remain untouched.
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: p2_presentation_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 const REPAIR_OUTPUT := "res://docs/qa/inventory_ui_binding/repair_p2"
 var repair_records: Array[Dictionary] = []

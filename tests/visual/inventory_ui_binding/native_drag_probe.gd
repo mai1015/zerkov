@@ -1,9 +1,15 @@
 extends "res://tests/visual/inventory_ui_binding/capture.gd"
+## HISTORICAL / DEFERRED native probe; current acceptance is exact 1920x1080
+## only and does not invoke this retained smaller-resolution source.
 ## One coherent graphical playthrough of the production 4.7b binding. Every
 ## inventory gesture below goes through Viewport input/Godot's native Controls;
 ## the only direct calls are fixture admission, explicit bridge lifecycle
 ## transitions, and a documented concurrent-authority
 ## injection used to force a real adapter rejection.
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: native_drag_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 const FLOW_OUTPUT := "res://docs/qa/inventory_ui_binding/repair_final"
 

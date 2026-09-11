@@ -1,4 +1,7 @@
 extends SceneTree
+## DEFERRED / HISTORICAL SUITE: native compact bunker regression.
+## Do not invoke or regenerate smaller-window evidence until task 11.8 or a
+## later approved display-support proposal explicitly reopens this suite.
 
 var failures: int = 0
 var checks: int = 0
@@ -6,7 +9,8 @@ var app
 var capture_dir: String = "/tmp/zerkov-compact-bunker"
 
 func _initialize() -> void:
-	call_deferred("run")
+	push_error("DEFERRED_DISPLAY_SUITE: compact_bunker_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 func check(value: bool, message: String) -> void:
 	checks += 1

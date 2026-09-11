@@ -3,6 +3,8 @@ extends SceneTree
 ## Run with: godot --headless --path . --audio-driver Dummy \
 ##   --script res://tests/common_ui_navigation_contract.gd
 
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var app: Control
 var checks := 0
 var failures := 0
@@ -80,8 +82,10 @@ func reject_record(route: String, reason: String) -> void:
 
 
 func run() -> void:
-	# This is the resolution from the reported advertised-Continue focus defect.
-	root.size = Vector2i(1600, 900)
+	# Keep the current first-playable contract exact and deterministic.
+	root.size = FIRST_PLAYABLE_SIZE
+	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		"navigation contract runs at the exact first-playable canvas")
 	app = load("res://ui/main.tscn").instantiate() as Control
 	app.name = "CommonUINavigationHost"
 	root.add_child(app)

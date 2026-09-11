@@ -47,6 +47,9 @@ const PHASE_NAMES: PackedStringArray = [
 ]
 
 const MAX_HANDLERS_PER_PHASE: int = 16
+const MAX_HANDLER_DEPENDENCIES: int = 8
+const MIN_PHASE_HANDLER_PRIORITY: int = -1_024
+const MAX_PHASE_HANDLER_PRIORITY: int = 1_024
 
 var lifecycle: Lifecycle = Lifecycle.PREPARING
 var last_error: StringName = &""
@@ -63,9 +66,11 @@ var _generation: int = 0
 var _configured: bool = false
 var _is_advancing: bool = false
 var _processing_tick: int = 0
+var _processing_phase: int = -1
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
+var _weapon_actor_states: Dictionary = {}
 
 
 func configure(raid_id: ZRaidId, admission: ZSessionAdmission, seed: int) -> bool:
@@ -153,7 +158,9 @@ func register_phase_handler(
 	phase: TickPhase,
 	handler_id: StringName,
 	callback: Callable,
-	expected_generation: int
+	expected_generation: int,
+	priority: int = 0,
+	after_handler_ids: PackedStringArray = PackedStringArray()
 ) -> bool:
 	last_error = &""
 	if not _is_current_generation(expected_generation):
@@ -164,18 +171,109 @@ func register_phase_handler(
 		return _reject(&"phase_invalid")
 	if not ZIdentityRules.is_valid_part(String(handler_id)) or not callback.is_valid():
 		return _reject(&"handler_invalid")
+	if priority < MIN_PHASE_HANDLER_PRIORITY or priority > MAX_PHASE_HANDLER_PRIORITY:
+		return _reject(&"handler_priority_invalid")
+	if after_handler_ids.size() > MAX_HANDLER_DEPENDENCIES:
+		return _reject(&"handler_dependency_limit")
 	if _handler_ids.has(handler_id):
 		return _reject(&"handler_id_duplicate")
+	var dependencies := PackedStringArray()
+	for dependency_value in after_handler_ids:
+		var dependency_id := StringName(dependency_value)
+		if not ZIdentityRules.is_valid_part(String(dependency_id)) \
+				or dependency_id == handler_id \
+				or dependencies.has(String(dependency_id)):
+			return _reject(&"handler_dependency_invalid")
+		var dependency := _handler_ids.get(dependency_id, {}) as Dictionary
+		if dependency.is_empty() or int(dependency.get("phase", -1)) != int(phase):
+			return _reject(&"handler_dependency_missing")
+		var dependency_priority := int(dependency.get("priority", 0))
+		if dependency_priority > priority \
+				or (dependency_priority == priority \
+					and String(dependency_id) >= String(handler_id)):
+			return _reject(&"handler_dependency_order_invalid")
+		dependencies.append(String(dependency_id))
 	var handlers: Array = _phase_handlers.get(int(phase), [])
 	if handlers.size() >= MAX_HANDLERS_PER_PHASE:
 		return _reject(&"phase_handler_limit")
-	handlers.append({"id": handler_id, "callback": callback})
+	handlers.append({
+		"id": handler_id,
+		"callback": callback,
+		"priority": priority,
+		"after": dependencies,
+	})
 	handlers.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
+		if int(left["priority"]) != int(right["priority"]):
+			return int(left["priority"]) < int(right["priority"])
 		return String(left["id"]) < String(right["id"])
 	)
 	_phase_handlers[int(phase)] = handlers
-	_handler_ids[handler_id] = true
+	_handler_ids[handler_id] = {
+		"phase": int(phase),
+		"priority": priority,
+		"after": dependencies,
+	}
 	return true
+
+
+## Phase-handler lifetimes are explicit and generation-scoped. A provider
+## cannot be removed while a registered consumer still declares that provider
+## as an ordering dependency; composition tears consumers down first.
+func can_unregister_phase_handler(
+	handler_id: StringName,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	return _phase_handler_removal_is_valid(handler_id, expected_generation)
+
+
+func unregister_phase_handler(
+	handler_id: StringName,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _phase_handler_removal_is_valid(handler_id, expected_generation):
+		return false
+	if not _handler_ids.has(handler_id):
+		return true
+	var registration := _handler_ids[handler_id] as Dictionary
+	var phase_value := int(registration.get("phase", -1))
+	var handlers: Array = _phase_handlers.get(phase_value, [])
+	var retained: Array = []
+	for entry_value in handlers:
+		var entry := entry_value as Dictionary
+		if StringName(entry.get("id", &"")) != handler_id:
+			retained.append(entry)
+	if retained.is_empty():
+		_phase_handlers.erase(phase_value)
+	else:
+		_phase_handlers[phase_value] = retained
+	_handler_ids.erase(handler_id)
+	return true
+
+
+func _phase_handler_removal_is_valid(
+	handler_id: StringName,
+	expected_generation: int
+) -> bool:
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if _is_advancing:
+		return _reject(&"handler_change_during_tick")
+	if not ZIdentityRules.is_valid_part(String(handler_id)):
+		return _reject(&"handler_invalid")
+	if not _handler_ids.has(handler_id):
+		return true
+	for registered_value in _handler_ids.values():
+		var registered := registered_value as Dictionary
+		var dependencies := registered.get("after", PackedStringArray()) as PackedStringArray
+		if dependencies.has(String(handler_id)):
+			return _reject(&"handler_has_dependents")
+	return true
+
+
+func has_phase_handler(handler_id: StringName, expected_generation: int) -> bool:
+	return _is_current_generation(expected_generation) and _handler_ids.has(handler_id)
 
 
 func enqueue_intent(intent: ZRaidIntent, expected_generation: int) -> bool:
@@ -291,6 +389,128 @@ func apply_if_current(expected_generation: int, mutation: Callable) -> bool:
 	return true
 
 
+## Movement is the only phase allowed to publish the current firing pose. The
+## conversion happens here because RaidAuthority owns the Godot/fixed-unit
+## boundary; Weapon System consumers never receive an untrusted transform.
+func publish_weapon_actor_pose(
+	actor_id: ZEntityId,
+	origin_px: Vector2,
+	aim_direction: Vector2,
+	tick: int,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_mutable_generation(expected_generation):
+		return _reject(&"stale_or_terminal_generation")
+	if not _is_advancing or _processing_phase != int(TickPhase.MOVEMENT) \
+			or tick != _processing_tick:
+		return _reject(&"weapon_pose_phase_invalid")
+	var actor_key := _authorized_actor_key(actor_id)
+	if actor_key.is_empty():
+		return _reject(&"weapon_actor_not_authorized")
+	var origin := ZWorldUnits.godot_to_weapon(origin_px)
+	var aim := ZWorldUnits.godot_direction_to_weapon(aim_direction)
+	if not origin.ok:
+		return _reject(&"weapon_origin_invalid")
+	if not aim.ok:
+		return _reject(&"weapon_aim_invalid")
+	var state := (_weapon_actor_states.get(actor_key, {}) as Dictionary).duplicate(true)
+	var next_pose := {
+		"authoritative_origin": origin.vector2i_value,
+		"authoritative_aim": aim.vector2i_value,
+		"pose_tick": tick,
+	}
+	if int(state.get("pose_tick", -1)) == tick:
+		if state.get("authoritative_origin", Vector2i.ZERO) != origin.vector2i_value \
+				or state.get("authoritative_aim", Vector2i.ZERO) != aim.vector2i_value:
+			return _reject(&"weapon_pose_tick_conflict")
+		return true
+	if int(state.get("pose_tick", -1)) > tick:
+		return _reject(&"weapon_pose_tick_regressed")
+	state.merge(next_pose, true)
+	state["actor_id"] = actor_key
+	_weapon_actor_states[actor_key] = state
+	return true
+
+
+## Liveness/usability are durable authority facts. They may be initialized
+## during PREPARING and then changed only by phase-7 health/due-work owners,
+## after the current tick's weapon phase and before the next one.
+func publish_weapon_actor_status(
+	actor_id: ZEntityId,
+	actor_live: bool,
+	weapon_usable: bool,
+	tick: int,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_mutable_generation(expected_generation):
+		return _reject(&"stale_or_terminal_generation")
+	var preparing_publication := lifecycle == Lifecycle.PREPARING \
+		and not _is_advancing and tick == 0
+	var due_work_publication := _is_advancing \
+		and _processing_phase == int(TickPhase.ABILITIES_AND_DUE_WORK) \
+		and tick == _processing_tick
+	if not preparing_publication and not due_work_publication:
+		return _reject(&"weapon_status_phase_invalid")
+	var actor_key := _authorized_actor_key(actor_id)
+	if actor_key.is_empty():
+		return _reject(&"weapon_actor_not_authorized")
+	var state := (_weapon_actor_states.get(actor_key, {}) as Dictionary).duplicate(true)
+	var previous_tick := int(state.get("status_tick", -1))
+	if previous_tick == tick:
+		if bool(state.get("actor_live", false)) != actor_live \
+				or bool(state.get("weapon_usable", false)) != weapon_usable:
+			return _reject(&"weapon_status_tick_conflict")
+		return true
+	if previous_tick > tick:
+		return _reject(&"weapon_status_tick_regressed")
+	state["actor_id"] = actor_key
+	state["actor_live"] = actor_live
+	state["weapon_usable"] = weapon_usable
+	state["status_tick"] = tick
+	_weapon_actor_states[actor_key] = state
+	return true
+
+
+## Read-only trusted facts for Weapon System fire validation. A current pose is
+## mandatory and this provider is intentionally available only during phase 5;
+## stale callbacks and out-of-band callers fail closed instead of reusing pose.
+func authoritative_weapon_actor_context(
+	actor_id: ZEntityId,
+	tick: int,
+	expected_generation: int
+) -> Dictionary:
+	if not _is_mutable_generation(expected_generation):
+		return {"ok": false, "reason": &"stale_or_terminal_generation"}
+	if not _is_advancing \
+			or _processing_phase != int(TickPhase.INTERACTIONS_AND_WEAPONS) \
+			or tick != _processing_tick:
+		return {"ok": false, "reason": &"weapon_context_phase_invalid"}
+	var actor_key := _authorized_actor_key(actor_id)
+	if actor_key.is_empty():
+		return {"ok": false, "reason": &"weapon_actor_not_authorized"}
+	var state := _weapon_actor_states.get(actor_key, {}) as Dictionary
+	if int(state.get("pose_tick", -1)) != tick:
+		return {"ok": false, "reason": &"weapon_pose_stale"}
+	if int(state.get("status_tick", -1)) < 0:
+		return {"ok": false, "reason": &"weapon_status_missing"}
+	var origin := state.get("authoritative_origin", Vector2i.ZERO) as Vector2i
+	var aim := state.get("authoritative_aim", Vector2i.ZERO) as Vector2i
+	if aim == Vector2i.ZERO:
+		return {"ok": false, "reason": &"weapon_aim_invalid"}
+	return {
+		"ok": true,
+		"actor_id": actor_key,
+		"tick": tick,
+		"status_tick": int(state["status_tick"]),
+		"actor_live": bool(state["actor_live"]),
+		"weapon_usable": bool(state["weapon_usable"]),
+		"authoritative_origin": {"x": origin.x, "y": origin.y},
+		"authoritative_aim": {"x": aim.x, "y": aim.y},
+	}
+
+
 func teardown(expected_generation: int) -> bool:
 	last_error = &""
 	if not _configured or expected_generation != _generation:
@@ -309,6 +529,7 @@ func teardown(expected_generation: int) -> bool:
 	_phase_handlers.clear()
 	_handler_ids.clear()
 	_authorized_actor_sources.clear()
+	_weapon_actor_states.clear()
 	_generation += 1
 	return true
 
@@ -325,6 +546,7 @@ func state_digest() -> String:
 		"raid_id": _raid_id.canonical_key(),
 		"rng_state": rng.state,
 		"session_id": _admission.session_id.canonical_key(),
+		"weapon_actor_states": _canonical_weapon_actor_states(),
 	}
 	var direct := ZCanonicalValue.sha256(state)
 	if not direct.is_empty():
@@ -354,6 +576,7 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	var due_intents: Array[ZRaidIntent] = []
 	for phase_value in PHASE_NAMES.size():
 		var phase: TickPhase = phase_value
+		_processing_phase = phase_value
 		last_phase_trace.append(PHASE_NAMES[phase_value])
 		if phase == TickPhase.ADMIT_INTENTS:
 			due_intents = _intent_queue.drain_tick(tick)
@@ -374,6 +597,7 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	last_processed_tick = tick
 	_is_advancing = false
 	_processing_tick = 0
+	_processing_phase = -1
 	last_error = &""
 	return true
 
@@ -415,6 +639,7 @@ func _fail_current_tick(tick: int, code: StringName) -> bool:
 	last_processed_tick = tick
 	_is_advancing = false
 	_processing_tick = 0
+	_processing_phase = -1
 	lifecycle = Lifecycle.FAILED
 	_seal_terminal_runtime()
 	return _reject(code)
@@ -433,6 +658,32 @@ func _seal_terminal_runtime() -> void:
 
 func _actor_source_key(actor_id: ZEntityId, source: ZRaidIntent.Source) -> String:
 	return "%s|%d" % [actor_id.canonical_key(), int(source)]
+
+
+func _authorized_actor_key(actor_id: ZEntityId) -> String:
+	if actor_id == null:
+		return ""
+	var parsed := ZEntityId.parse(actor_id.canonical_key())
+	if parsed == null:
+		return ""
+	for source in range(int(ZRaidIntent.Source.PLAYER), int(ZRaidIntent.Source.SYSTEM) + 1):
+		if _authorized_actor_sources.has(_actor_source_key(parsed, source)):
+			return parsed.canonical_key()
+	return ""
+
+
+func _canonical_weapon_actor_states() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var actor_keys := PackedStringArray(_weapon_actor_states.keys())
+	actor_keys.sort()
+	for actor_key in actor_keys:
+		var state := (_weapon_actor_states[actor_key] as Dictionary).duplicate(true)
+		var origin := state.get("authoritative_origin", Vector2i.ZERO) as Vector2i
+		var aim := state.get("authoritative_aim", Vector2i.ZERO) as Vector2i
+		state["authoritative_origin"] = {"x": origin.x, "y": origin.y}
+		state["authoritative_aim"] = {"x": aim.x, "y": aim.y}
+		result.append(state)
+	return result
 
 
 func _reject(code: StringName) -> bool:

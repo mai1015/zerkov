@@ -1,12 +1,15 @@
 extends SceneTree
-## Native compact inventory interaction and rendered viewport regression.
+## DEFERRED / HISTORICAL SUITE: native compact inventory regression.
+## Do not invoke or regenerate smaller-window evidence until task 11.8 or a
+## later approved display-support proposal explicitly reopens this suite.
 
 var failures: int = 0
 var checks: int = 0
 var app: Control
 
 func _initialize() -> void:
-    run.call_deferred()
+    push_error("DEFERRED_DISPLAY_SUITE: compact_inventory_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
+    quit(2)
 
 func check(condition: bool, message: String) -> void:
     checks += 1

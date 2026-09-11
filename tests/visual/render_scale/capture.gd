@@ -1,13 +1,17 @@
 extends SceneTree
-## Native GPU evidence and regression harness. Run without --headless.
+## Native GPU evidence and regression harness for the exact first-playable output.
+## Run without --headless.
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 const Policy = preload("res://game/presentation/render_scale_spike/surface_policy.gd")
 const Probe = preload("res://game/presentation/render_scale_spike/world_probe.gd")
 const Tokens = preload("res://ui/theme/tokens.gd")
-const OUTPUT := "res://docs/qa/render_scale"
+const CURRENT_OUTPUT := "res://docs/qa/render_scale/current_1080"
 
 var checks := 0
 var failures := 0
 var records: Array[Dictionary] = []
+var output := CURRENT_OUTPUT
 var app: Control
 var surface: SubViewport
 var presenter: TextureRect
@@ -15,6 +19,9 @@ var camera: Camera2D
 var caption: Label
 
 func _initialize() -> void:
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--capture-dir="):
+			output = argument.trim_prefix("--capture-dir=")
 	run.call_deferred()
 
 func check(ok: bool, message: String) -> void:
@@ -30,7 +37,7 @@ func frame() -> Image:
 	return root.get_texture().get_image()
 
 func save_image(value: Image, name: String) -> void:
-	check(value.save_png(OUTPUT + "/" + name + ".png") == OK, "Save " + name)
+	check(value.save_png(output + "/" + name + ".png") == OK, "Save " + name)
 
 func configure(policy: Dictionary) -> void:
 	surface.size = policy.surface
@@ -63,7 +70,7 @@ func run() -> void:
 		push_error("Native graphical renderer required; headless captures are not evidence.")
 		quit(1)
 		return
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	surface = SubViewport.new()
 	surface.disable_3d = true
 	surface.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -101,11 +108,9 @@ func run() -> void:
 	caption.add_theme_color_override("font_shadow_color", Tokens.BG)
 	caption.add_theme_constant_override("shadow_outline_size", 2)
 	root.add_child(caption)
-	for dimensions in [Vector2i(1920, 1080), Vector2i(1600, 900), Vector2i(1280, 720)]:
-		# The desktop work area may be smaller than 1080p. Render an exact-size
-		# native GPU framebuffer, independently of the preview window's size.
-		# This never resizes PNGs after capture. Controls render into this full
-		# resolution target; only the world passes through the small SubViewport.
+	for dimensions in [FIRST_PLAYABLE_SIZE]:
+		# Render an exact-size native GPU framebuffer. This never resizes PNGs
+		# after capture; only the world passes through the small SubViewport.
 		root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
 		root.content_scale_size = dimensions
 		app.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
@@ -131,8 +136,6 @@ func run() -> void:
 			unique.sort()
 			if candidate in ["640_integer", "adaptive_integer"]:
 				check(widths.size() == 64 and unique.size() == 1 and unique[0] == int(policy.factor), key + " uniform source pixel widths")
-			if candidate == "640_fractional" and dimensions.x == 1600:
-				check(unique == [2, 3], "900p fractional negative control has 2/3px alternating columns")
 			if candidate == "320_fixed":
 				check(widths.size() < 64, "320 negative control demonstrates source detail loss")
 			# Render the actual existing UI alone against a constant backdrop and
@@ -191,7 +194,7 @@ func run() -> void:
 				caption.show()
 			records.append({"key": key, "surface": [policy.surface.x, policy.surface.y], "zoom": policy.zoom, "scale": policy.factor, "display_rect": [policy.rect.position.x, policy.rect.position.y, policy.rect.size.x, policy.rect.size.y], "stripe_runs": widths.size(), "stripe_widths": unique, "max_camera_error_raster_px": camera_error, "max_pointer_error_world_px": pointer_error})
 	var report := {"engine": Engine.get_version_info(), "display": DisplayServer.get_name(), "checks": checks, "failures": failures, "records": records, "human_approval": false}
-	var file := FileAccess.open(OUTPUT + "/metrics.json", FileAccess.WRITE)
+	var file := FileAccess.open(output + "/metrics.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "\t") + "\n")
 	file.close()
 	print("RENDER_SCALE_COMPLETE checks=", checks, " failures=", failures)

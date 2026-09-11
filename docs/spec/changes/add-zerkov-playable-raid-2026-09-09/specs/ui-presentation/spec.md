@@ -27,7 +27,7 @@ Production interface code SHALL render immutable view models derived from author
 - **AND** it cannot commit production profile state
 
 ### Requirement: Preserve the Established Visual Contract
-Migration SHALL preserve the implemented utilitarian post-Soviet visual language, dense information hierarchy, existing route coverage, and pixel-world versus crisp-interface separation unless an approved visual task changes that contract. The current first-playable target is 1920x1080 only. Existing adaptive behavior MAY remain, but smaller-output support is deferred and MUST NOT gate this change. Visual changes MUST be reviewed from native 1920x1080 captures.
+Migration SHALL preserve the implemented utilitarian post-Soviet visual language, dense information hierarchy, existing route coverage, and pixel-world versus crisp-interface separation unless an approved visual task changes that contract. The current first-playable target is exact 1920x1080 only. Existing adaptive/compact production behavior, historical captures and dedicated test sources MAY remain as compatibility artifacts, but current agents, tasks and tests MUST NOT execute smaller-output layouts or regenerate smaller captures. Task 11.8 or a later approved display-support proposal is the only reopening point. Visual changes MUST be reviewed from native 1920x1080 captures.
 
 #### Scenario: A screen is migrated to live data
 - **WHEN** production bindings replace prototype state on an existing route
@@ -37,7 +37,8 @@ Migration SHALL preserve the implemented utilitarian post-Soviet visual language
 #### Scenario: The interface runs at the first-playable target
 - **WHEN** the game window is 1920x1080
 - **THEN** critical actions, status, text, and inventory interaction remain reachable without overlap or clipping
-- **AND** no smaller-output capture or adaptive-layout result is required for acceptance
+- **AND** the current acceptance run uses only the exact 1920x1080 path
+- **AND** no smaller-output capture or adaptive-layout suite is executed or regenerated before task 11.8 or a later approved display-support proposal
 
 ### Requirement: Feature-gated Meta Screens
 Hideout, marketplace, advanced traders, skill trees, clan, online social, and other post-slice routes SHALL be disabled, fixture-only, or clearly marked unavailable until their owning systems meet production requirements. They MUST NOT imply that unsaved or unauthoritative changes are durable.

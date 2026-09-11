@@ -1,4 +1,16 @@
-"""Build labeled native QA contact sheets and preserve concise diagnostics."""
+"""Historical/deferred inventory contact-sheet generator.
+
+The source and existing packet remain useful audit history, but this generator
+must not write a smaller-resolution packet from the current first-playable
+matrix. Remove this guard only through task 11.8 or a later approved
+display-support proposal.
+"""
+
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: inventory_ui_binding summarize.py is historical; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 from pathlib import Path
 import json
 import gzip

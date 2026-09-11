@@ -1,5 +1,7 @@
 extends SceneTree
 ## Native event and rendered-node assertions; run with --headless --script res://tests/raid_smoke.gd.
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var app: Control
 var checks = 0
 var failures = 0
@@ -33,7 +35,7 @@ func texts() -> Array[String]:
     return values
 
 func run() -> void:
-    root.size = Vector2i(1920, 1080)
+    root.size = FIRST_PLAYABLE_SIZE
     app = load("res://ui/main.tscn").instantiate()
     root.add_child(app)
     app.qa_mode = true
@@ -55,7 +57,7 @@ func run() -> void:
     check(app.state.raid_ammo == 30 and texts().has("30"), "Reload refills mock magazine")
     var shot = InputEventMouseButton.new()
     shot.button_index = MOUSE_BUTTON_LEFT
-    shot.position = Vector2(960, 540)
+    shot.position = Vector2(FIRST_PLAYABLE_SIZE) / 2.0
     shot.pressed = true
     root.push_input(shot)
     shot = shot.duplicate()
