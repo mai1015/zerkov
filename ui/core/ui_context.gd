@@ -26,6 +26,14 @@ var modal: Control:
 var picker: Control:
 	get: return _service().picker if _service() != null else null
 
+## The one game-owned input facade available to production screens.  Screens
+## never receive CommonUI's native registry or an InputMap mirror; controls and
+## other presentation surfaces ask this facade to resolve or mutate logical
+## bindings through its bounded request API.
+func input_service() -> ZerkovInputService:
+	var host := _service()
+	return host.input_service as ZerkovInputService if host != null else null
+
 func _init(
 	host: Node,
 	route: String,
