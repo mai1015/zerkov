@@ -24,6 +24,20 @@ FORBIDDEN_OUTPUTS = (
 )
 DEFERRED_MARKER = "DEFERRED_DISPLAY_SUITE"
 DEFERRED_QA_PREFIX = "docs/qa/"
+PREPROOF_READONLY_IMAGE_METHODS = frozenset({
+    "get_size", "get_width", "get_height", "get_data", "get_pixel",
+    "get_pixelv", "is_empty",
+})
+FRESH_PROOF_IMAGE_MUTATOR_METHODS = frozenset({
+    "blend_rect", "blend_rect_mask", "blit_rect", "blit_rect_mask",
+    "clear", "clear_mipmaps", "compress", "convert", "crop", "decompress",
+    "fill", "fill_rect", "fix_alpha_edges", "generate_mipmaps",
+    "normal_map_to_xy", "premultiply_alpha", "resize", "set_pixel",
+    "set_pixelv", "shrink_x2", "sRGB_to_linear", "linear_to_sRGB",
+})
+POST_PROOF_READONLY_IMAGE_METHODS = PREPROOF_READONLY_IMAGE_METHODS | {
+    "save_png",
+}
 DEFERRED_PYTHON_GENERATORS = (
     "tests/visual/inventory_ui_binding/summarize.py",
     "tests/visual/render_scale/verify.py",
@@ -269,6 +283,65 @@ def exact_receivers_when(expression: str, truth: bool) -> set[str]:
     return prove(parsed, truth)
 
 
+def is_readonly_exact_proof(
+    expression: str, image_receivers: frozenset[str],
+    helpers: frozenset[str],
+) -> bool:
+    """Accept only inert reads while establishing a frame-size proof."""
+    try:
+        parsed = ast.parse(expression.replace("\\", " "), mode="eval").body
+    except SyntaxError:
+        return False
+
+    def pure(node: ast.AST) -> bool:
+        if isinstance(node, (ast.Name, ast.Constant)):
+            return True
+        if isinstance(node, ast.BoolOp):
+            return all(pure(value) for value in node.values)
+        if isinstance(node, ast.UnaryOp):
+            return isinstance(node.op, (ast.Not, ast.UAdd, ast.USub)) \
+                and pure(node.operand)
+        if isinstance(node, ast.BinOp):
+            return pure(node.left) and pure(node.right)
+        if isinstance(node, ast.Compare):
+            return pure(node.left) and all(
+                pure(comparator) for comparator in node.comparators
+            )
+        if isinstance(node, ast.IfExp):
+            return pure(node.test) and pure(node.body) and pure(node.orelse)
+        if isinstance(node, ast.Attribute):
+            # An Image member without an immediate allowlisted call is a
+            # callable/property capture, not a read-only image observation.
+            return not (
+                isinstance(node.value, ast.Name)
+                and node.value.id in image_receivers
+            ) and pure(node.value)
+        if not isinstance(node, ast.Call):
+            return False
+        if node.keywords:
+            return False
+        function = node.func
+        if isinstance(function, ast.Name):
+            if function.id in {"Vector2", "Vector2i"}:
+                return all(pure(argument) for argument in node.args)
+            if function.id == "get_viewport":
+                return not node.args
+            return function.id in helpers and len(node.args) == 1 \
+                and isinstance(node.args[0], ast.Name) \
+                and node.args[0].id in image_receivers
+        if not isinstance(function, ast.Attribute):
+            return False
+        if function.attr in PREPROOF_READONLY_IMAGE_METHODS \
+                and isinstance(function.value, ast.Name) \
+                and function.value.id in image_receivers:
+            return all(pure(argument) for argument in node.args)
+        if function.attr == "get_visible_rect" and not node.args:
+            return pure(function.value)
+        return False
+
+    return pure(parsed)
+
+
 def assignment_expression_before(
     lines: list[str], guard_index: int, indent: int, variable: str
 ) -> tuple[str, int, int]:
@@ -365,15 +438,420 @@ def image_aliases_before(source: str, receiver: str) -> frozenset[str]:
         r"(?:[ \t]*:[ \t]*(?![=])[^=\n;]+)?[ \t]*(?::=|=(?!=))[ \t]*"
         r"(?P<value>[^;\n]+?)[ \t]*(?=;|$)"
     )
+    direct_assignments = [
+        (match.group("target"), direct_image_alias_name(match.group("value")))
+        for match in assignment.finditer(logical_source)
+    ]
+    changed = True
+    while changed:
+        changed = False
+        for target, value in direct_assignments:
+            if not value:
+                continue
+            # The proof can name an alias rather than the original local. A
+            # direct assignment connects the two in either direction: an
+            # earlier escape of the source local is just as dangerous as an
+            # escape of the later proven alias.
+            if value in aliases and target not in aliases:
+                aliases.add(target)
+                changed = True
+            if target in aliases and value not in aliases:
+                aliases.add(value)
+                changed = True
+    return frozenset(aliases)
+
+
+def direct_image_alias_name(expression: str) -> str:
+    """Return a bare local image alias, never a computed expression."""
     direct_alias = re.compile(
         r"\(*[ \t]*(?P<name>[A-Za-z_]\w*)"
         r"(?:[ \t]+as[ \t]+[A-Za-z_]\w*)?[ \t]*\)*"
     )
-    for match in assignment.finditer(logical_source):
-        value = direct_alias.fullmatch(match.group("value"))
-        if value and value.group("name") in aliases:
-            aliases.add(match.group("target"))
+    match = direct_alias.fullmatch(expression)
+    return match.group("name") if match else ""
+
+
+def has_preproof_image_escape(
+    source: str, aliases: frozenset[str], helpers: frozenset[str],
+) -> bool:
+    """Reject retained pre-proof references outside a direct local alias.
+
+    The only safe use before an exact-size proof is another direct local alias,
+    an explicitly recognized read, or a known direct Image mutation that the
+    following proof refreshes. Once the image reaches a container, property,
+    index, callable, lambda, computed expression, or unknown method, lexical
+    inspection can no longer prove it cannot be invoked or mutated after the
+    proof. Treat that escape as permanent for the later write.
+    """
+    logical_source = re.sub(
+        r"\\[ \t]*\r?\n[ \t]*", " ", gdscript_code(source)
+    )
+    lines = logical_source.splitlines()
+
+    # Local lambdas retain their outer locals even though their bodies can run
+    # after the textual proof.  Their use must therefore fail closed.
+    for index, raw in enumerate(lines):
+        code = strip_gdscript_comment(raw).strip()
+        if not code or line_indent(raw) == 0 or not re.search(r"\bfunc\b", code):
+            continue
+        indent = line_indent(raw)
+        lambda_region = [code]
+        for nested in lines[index + 1:]:
+            nested_code = strip_gdscript_comment(nested).strip()
+            if nested_code and line_indent(nested) <= indent:
+                break
+            lambda_region.append(nested_code)
+        lambda_source = "\n".join(lambda_region)
+        if any(re.search(
+            rf"(?<![\w.]){re.escape(alias)}\b", lambda_source
+        ) for alias in aliases):
+            return True
+
+    local_assignment = re.compile(
+        r"^\s*(?:var\s+)?(?P<target>[A-Za-z_]\w*)"
+        r"(?:\s*:\s*(?![=])[^=]+?)?\s*(?::=|=(?!=))\s*"
+        r"(?P<value>.*?)\s*$"
+    )
+    local_declaration = re.compile(
+        r"^\s*(?:var\s+)?(?P<target>[A-Za-z_]\w*)"
+        r"(?:\s*:\s*[^=]+)?\s*$"
+    )
+    top_level_function = re.compile(r"^(?:static\s+)?func\b")
+
+    for raw in lines:
+        code = strip_gdscript_comment(raw).strip()
+        if not code or (line_indent(raw) == 0 and top_level_function.match(code)):
+            continue
+        for statement in code.split(";"):
+            statement = statement.strip()
+            if not statement:
+                continue
+            assignment = local_assignment.fullmatch(statement)
+            declaration = local_declaration.fullmatch(statement)
+            if assignment and direct_image_alias_name(
+                assignment.group("value")
+            ) in aliases:
+                # The only pre-proof flow we can prove is a direct local name.
+                continue
+            ignored_target = ""
+            ignored_start = -1
+            if assignment:
+                ignored_target = assignment.group("target")
+                ignored_start = assignment.start("target")
+            elif declaration:
+                ignored_target = declaration.group("target")
+                ignored_start = declaration.start("target")
+
+            for alias in aliases:
+                for occurrence in re.finditer(
+                    rf"(?<![\w.]){re.escape(alias)}\b", statement
+                ):
+                    if alias == ignored_target and occurrence.start() == ignored_start:
+                        # Declaring or replacing the direct local name does not
+                        # itself retain the pre-proof image elsewhere.
+                        continue
+                    before = statement[:occurrence.start()]
+                    tail = statement[occurrence.end():]
+                    if re.match(r"\s*(?:==|!=)\s*null\b", tail) \
+                            or re.search(r"\bnull\s*(?:==|!=)\s*$", before):
+                        continue
+                    method = re.match(
+                        r"\s*\.\s*(?P<name>[A-Za-z_]\w*)\s*\(", tail
+                    )
+                    if method and method.group("name") in (
+                        PREPROOF_READONLY_IMAGE_METHODS
+                        | FRESH_PROOF_IMAGE_MUTATOR_METHODS
+                    ):
+                        continue
+                    helper = re.search(r"\b(\w+)\(\s*$", before)
+                    if helper and helper.group(1) in helpers \
+                            and re.match(r"\s*\)", tail):
+                        continue
+                    return True
+    return False
+
+
+def gdscript_local_assignments(source: str) -> dict[str, str]:
+    """Return the last simple-local initializer for each lexical name."""
+    assignment = re.compile(
+        r"^\s*(?:var\s+)?(?P<target>[A-Za-z_]\w*)"
+        r"(?:\s*:\s*(?![=])[^=]+?)?\s*(?::=|=(?!=))\s*"
+        r"(?P<value>.*?)\s*$"
+    )
+    logical_source = re.sub(
+        r"\\[ \t]*\r?\n[ \t]*", " ", gdscript_code(source)
+    )
+    result: dict[str, str] = {}
+    for raw in logical_source.splitlines():
+        code = strip_gdscript_comment(raw).strip()
+        if not code or (line_indent(raw) == 0 and re.match(
+            r"^(?:static\s+)?func\b", code
+        )):
+            continue
+        for statement in code.split(";"):
+            match = assignment.fullmatch(statement.strip())
+            if match:
+                result[match.group("target")] = match.group("value")
+    return result
+
+
+def gdscript_function_parameters(source: str) -> dict[str, str]:
+    """Return the first enclosing function's parameter names and annotations."""
+    match = re.search(
+        r"(?m)^(?:static\s+)?func\s+\w+\((?P<parameters>[^)]*)\)",
+        gdscript_code(source),
+    )
+    if not match:
+        return {}
+    parameters: dict[str, str] = {}
+    for raw_parameter in match.group("parameters").split(","):
+        parameter = raw_parameter.strip()
+        name = re.match(
+            r"(?P<name>[A-Za-z_]\w*)(?:\s*:\s*(?P<type>[A-Za-z_]\w*))?",
+            parameter,
+        )
+        if name:
+            parameters[name.group("name")] = name.group("type") or ""
+    return parameters
+
+
+def is_fresh_image_expression(
+    expression: str, fresh_helpers: frozenset[str],
+    fresh_textures: frozenset[str],
+) -> bool:
+    """Recognize direct readback/allocation forms that create a fresh Image."""
+    value = normalized_image_expression(expression)
+    if re.fullmatch(
+        r"Image\.(?:new|load_from_file|create_from_data)\s*\([^)]*\)", value
+    ):
+        return True
+    if re.search(
+        r"\.get_texture\s*\(\s*\)\s*\.get_image\s*\(\s*\)\s*$", value
+    ):
+        return True
+    texture_readback = re.fullmatch(
+        r"(?P<texture>[A-Za-z_]\w*)\.get_image\s*\(\s*\)", value
+    )
+    if texture_readback and texture_readback.group("texture") in fresh_textures:
+        return True
+    helper = re.fullmatch(r"(?P<helper>[A-Za-z_]\w*)\s*\(\s*\)", value)
+    return bool(helper and helper.group("helper") in fresh_helpers)
+
+
+def normalized_image_expression(expression: str) -> str:
+    """Remove inert outer syntax before classifying an Image initializer."""
+    value = re.sub(r"^\s*await\s+", "", expression.strip())
+
+    def outer_parentheses(text: str) -> bool:
+        if not (text.startswith("(") and text.endswith(")")):
+            return False
+        depth = 0
+        for index, character in enumerate(text):
+            if character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+            if depth == 0 and index != len(text) - 1:
+                return False
+            if depth < 0:
+                return False
+        return depth == 0
+
+    while outer_parentheses(value):
+        value = value[1:-1].strip()
+    cast = re.fullmatch(
+        r"(?P<value>.+?)\s+as\s+[A-Za-z_]\w*", value,
+    )
+    if cast:
+        value = cast.group("value").strip()
+        while outer_parentheses(value):
+            value = value[1:-1].strip()
+    return value
+
+
+def fresh_image_helper_names(source: str) -> frozenset[str]:
+    """Find no-argument helpers that return a directly fresh Image readback."""
+    helpers: set[str] = set()
+    for match in re.finditer(
+        r"(?m)^(?:static\s+)?func\s+(?P<name>\w+)\(\s*\)\s*"
+        r"->\s*Image\s*:",
+        gdscript_code(source),
+    ):
+        body, _ = gdscript_function_region(source, match.start())
+        returns = re.findall(r"(?m)^\s*return\s+(.+?)\s*$", gdscript_code(body))
+        if len(returns) != 1:
+            continue
+        assignments = gdscript_local_assignments(body)
+        value = returns[0]
+        direct = direct_image_alias_name(value)
+        if direct in assignments:
+            value = assignments[direct]
+        fresh_textures = frozenset(
+            target for target, initializer in assignments.items()
+            if re.search(r"\.get_texture\s*\(\s*\)\s*$", initializer)
+        )
+        if is_fresh_image_expression(value, frozenset(), fresh_textures):
+            helpers.add(match.group("name"))
+    return frozenset(helpers)
+
+
+def tainted_image_origin_bases(
+    source: str, receiver: str, fresh_helpers: frozenset[str],
+) -> frozenset[str]:
+    """Track owners that may still share a receiver acquired before proof."""
+    assignments = gdscript_local_assignments(source)
+    parameters = gdscript_function_parameters(source)
+    fresh_textures = frozenset(
+        target for target, initializer in assignments.items()
+        if re.search(r"\.get_texture\s*\(\s*\)\s*$", initializer)
+    )
+    potential_parameters = {
+        name for name, annotation in parameters.items()
+        if annotation in {"", "Variant", "Image"}
+    }
+    resolving: set[str] = set()
+
+    def expression_bases(expression: str) -> frozenset[str]:
+        value = normalized_image_expression(expression)
+        # An unqualified call has no inspectable owner and is potentially
+        # shared unless it was recognized as a fresh helper above. Search the
+        # complete normalized expression so parentheses/casts cannot conceal
+        # a shared-returning call.
+        if re.search(r"(?<![\w.])[A-Za-z_]\w*\s*\(", value):
+            return frozenset({"*"})
+        names = {
+            name.group("name") for name in re.finditer(
+                r"(?<![\w.])(?P<name>[A-Za-z_]\w*)\b", value
+            ) if name.group("name") not in {
+                "Image", "Vector2", "Vector2i", "null", "true", "false",
+                "await", "as",
+            }
+        }
+        return frozenset(names or {"*"})
+
+    def resolve(name: str) -> frozenset[str]:
+        if name in resolving:
+            return frozenset({"*"})
+        initializer = assignments.get(name)
+        if initializer is None:
+            if name in parameters:
+                # A parameter can be aliased by another Image/Variant or
+                # untyped parameter. The saved receiver itself is checked by
+                # the ordinary post-proof receiver guard.
+                return frozenset(potential_parameters - {receiver}) \
+                    if name == receiver else frozenset({name})
+            return frozenset({"*"})
+        direct = direct_image_alias_name(initializer)
+        if direct:
+            resolving.add(name)
+            result = resolve(direct)
+            resolving.remove(name)
+            return result
+        if is_fresh_image_expression(initializer, fresh_helpers, fresh_textures):
+            return frozenset()
+        return expression_bases(initializer)
+
+    return resolve(receiver)
+
+
+def tainted_image_parameter_bases(
+    source: str, receiver: str,
+) -> frozenset[str]:
+    """Return sibling parameters that can be the same direct Image object.
+
+    A direct parameter (or a direct local alias of one) has no external
+    container owner.  Its potentially shared sibling Image/Variant parameters
+    may still be read through the narrow post-proof Image-method allowlist.
+    Property, index and arbitrary-call origins intentionally return no safe
+    bases: their owner is not known to be an Image and all later owner access
+    must fail closed.
+    """
+    assignments = gdscript_local_assignments(source)
+    parameters = gdscript_function_parameters(source)
+    potential_parameters = {
+        name for name, annotation in parameters.items()
+        if annotation in {"", "Variant", "Image"}
+    }
+    resolving: set[str] = set()
+
+    def resolve(name: str) -> frozenset[str]:
+        if name in resolving:
+            return frozenset()
+        initializer = assignments.get(name)
+        if initializer is None:
+            return frozenset(potential_parameters - {receiver}) \
+                if name in parameters else frozenset()
+        direct = direct_image_alias_name(initializer)
+        if not direct:
+            return frozenset()
+        resolving.add(name)
+        result = resolve(direct)
+        resolving.remove(name)
+        return result
+
+    return resolve(receiver)
+
+
+def tainted_base_aliases(source: str, bases: frozenset[str]) -> frozenset[str]:
+    """Follow direct locals so a shared base cannot be renamed after proof."""
+    aliases = set(bases)
+    assignments = gdscript_local_assignments(source)
+    changed = True
+    while changed:
+        changed = False
+        for target, initializer in assignments.items():
+            direct = direct_image_alias_name(initializer)
+            if direct in aliases and target not in aliases:
+                aliases.add(target)
+                changed = True
     return frozenset(aliases)
+
+
+def has_postproof_tainted_base_use(
+    prefix_source: str, postproof_source: str, bases: frozenset[str],
+    direct_image_bases: frozenset[str],
+) -> bool:
+    """Reject post-proof access to an owner that can still mutate the image."""
+    aliases = tainted_base_aliases(prefix_source, bases)
+    logical_source = re.sub(
+        r"\\[ \t]*\r?\n[ \t]*", " ", gdscript_code(postproof_source)
+    )
+    readonly = POST_PROOF_READONLY_IMAGE_METHODS
+    for raw in logical_source.splitlines():
+        code = strip_gdscript_comment(raw).strip()
+        for statement in code.split(";"):
+            statement = statement.strip()
+            if not statement:
+                continue
+            # A complete direct non-mutating Image call is safe only for a
+            # sibling direct-parameter Image. An owner of a property/index/
+            # arbitrary-call result is not known to be an Image, so even a
+            # similarly named method must remain forbidden.
+            safe_call = re.fullmatch(
+                r"(?:[A-Za-z_]\w*\.)?(?P<receiver>[A-Za-z_]\w*)\."
+                r"(?P<method>\w+)\s*\(.*\)", statement
+            )
+            if safe_call and safe_call.group("receiver") in aliases \
+                    and safe_call.group("receiver") in direct_image_bases \
+                    and safe_call.group("method") in readonly:
+                continue
+            for alias in aliases:
+                for occurrence in re.finditer(
+                    rf"(?<![\w.]){re.escape(alias)}\b", statement
+                ):
+                    before = statement[:occurrence.start()]
+                    tail = statement[occurrence.end():]
+                    if re.match(r"\s*(?:==|!=)\s*null\b", tail) \
+                            or re.search(r"\bnull\s*(?:==|!=)\s*$", before):
+                        continue
+                    method = re.match(
+                        r"\s*\.\s*(?P<name>[A-Za-z_]\w*)\s*\(", tail
+                    )
+                    if method and alias in direct_image_bases \
+                            and method.group("name") in readonly:
+                        continue
+                    return True
+    return False
 
 
 def assert_image_not_changed(
@@ -384,10 +862,7 @@ def assert_image_not_changed(
     # Strings cannot manufacture a method/alias occurrence, and comments cannot
     # hide one. This range contains only the proof and following write prefix.
     code = gdscript_code(source)
-    readonly = {
-        "get_size", "get_width", "get_height", "get_data", "get_pixel",
-        "get_pixelv", "is_empty", "save_png",
-    }
+    readonly = POST_PROOF_READONLY_IMAGE_METHODS
     testcase.assertIsNone(re.search(r"\bawait\b", code),
                           "frame proof cannot cross an asynchronous boundary")
     for receiver in sorted(receivers):
@@ -442,6 +917,7 @@ def assert_exact_guard_before(
     body: str,
     write_position: int,
     helpers: frozenset[str] = frozenset(),
+    fresh_helpers: frozenset[str] = frozenset(),
 ) -> None:
     """Require a same-scope, receiver-specific, terminating exact-frame guard."""
     testcase.assertGreaterEqual(write_position, 0, "write token is missing")
@@ -472,6 +948,7 @@ def assert_exact_guard_before(
     selected_guard = -1
     proof_start = -1
     proven_receiver = ""
+    proof_expression = ""
     for index in range(len(prefix_lines) - 1, -1, -1):
         raw = prefix_lines[index]
         code = strip_gdscript_comment(raw).strip()
@@ -490,6 +967,7 @@ def assert_exact_guard_before(
             selected_guard = index
             proof_start = index
             proven_receiver = receiver or sorted(proved)[0]
+            proof_expression = condition
             break
         exact_name = re.fullmatch(r"not\s+\(?([A-Za-z_]\w*)\)?", condition)
         if not exact_name:
@@ -502,6 +980,7 @@ def assert_exact_guard_before(
             selected_guard = index
             proof_start = assignment_start
             proven_receiver = receiver or sorted(proved)[0]
+            proof_expression = expression
             break
 
     testcase.assertGreaterEqual(
@@ -510,7 +989,42 @@ def assert_exact_guard_before(
         "write lacks a same-scope receiver-specific exact-frame rejection with return",
     )
     proof_offset = sum(len(chunk) for chunk in prefix_chunks[:proof_start])
-    aliases = image_aliases_before(body[:proof_offset], proven_receiver)
+    function_starts = [
+        match.start() for match in re.finditer(
+            r"(?m)^(?:static\s+)?func\s+", body
+        ) if match.start() <= proof_offset
+    ]
+    preproof_source = body[max(function_starts, default=0):proof_offset]
+    aliases = image_aliases_before(preproof_source, proven_receiver)
+    tainted_bases = tainted_image_origin_bases(
+        preproof_source, proven_receiver, fresh_helpers
+    )
+    direct_image_bases = tainted_image_parameter_bases(
+        preproof_source, proven_receiver
+    )
+    testcase.assertNotIn(
+        "*", tainted_bases,
+        "saved Image has an unknown potentially shared initializer",
+    )
+    testcase.assertTrue(
+        is_readonly_exact_proof(proof_expression, aliases, helpers),
+        "exact-frame proof invokes a non-readonly call, callable, property "
+        "or complex expression",
+    )
+    testcase.assertFalse(
+        has_preproof_image_escape(preproof_source, aliases, helpers),
+        "saved framebuffer or a pre-proof alias escapes into a container, "
+        "property, index, callable, lambda or complex expression before "
+        "the exact-frame proof",
+    )
+    postproof_before_write = body[proof_offset:write_match.start()]
+    testcase.assertFalse(
+        has_postproof_tainted_base_use(
+            body[:write_match.start()], postproof_before_write, tainted_bases,
+            direct_image_bases,
+        ),
+        "a shared Image origin is accessed after its proof and before the write",
+    )
     intervening = body[proof_offset:write_end]
     assert_image_not_changed(testcase, intervening, aliases, helpers)
 
@@ -538,12 +1052,32 @@ def assert_unconditional_python_retirement(
     testcase.assertEqual(
         function.id if isinstance(function, ast.Name) else "", "SystemExit"
     )
-    marker_text = " ".join(
-        str(argument.value)
-        for argument in exception.args
-        if isinstance(argument, ast.Constant)
-    ) if isinstance(exception, ast.Call) else ""
-    testcase.assertIn(DEFERRED_MARKER, marker_text)
+    testcase.assertIsNone(
+        guard.cause if isinstance(guard, ast.Raise) else None,
+        "retirement raise must not evaluate a cause",
+    )
+    testcase.assertEqual(
+        len(exception.args) if isinstance(exception, ast.Call) else 0, 1,
+        "retirement SystemExit must have exactly one inert marker argument",
+    )
+    testcase.assertFalse(
+        exception.keywords if isinstance(exception, ast.Call) else (),
+        "retirement SystemExit must not evaluate keyword arguments",
+    )
+    marker = exception.args[0] if isinstance(exception, ast.Call) \
+        and len(exception.args) == 1 else None
+    testcase.assertIsInstance(
+        marker, ast.Constant,
+        "retirement SystemExit marker must be a constant string",
+    )
+    marker_value = marker.value if isinstance(marker, ast.Constant) else None
+    testcase.assertIs(
+        type(marker_value), str,
+        "retirement SystemExit marker must be an inert string literal",
+    )
+    testcase.assertIn(
+        DEFERRED_MARKER, marker_value if type(marker_value) is str else "",
+    )
 
 
 def has_exact_output_gate(source: str) -> bool:
@@ -709,6 +1243,7 @@ func run() -> void:
             relative_path = relative(path)
             source = path.read_text(encoding="utf-8")
             helpers = readonly_image_helpers(source)
+            fresh_helpers = fresh_image_helper_names(source)
             code = gdscript_code(source)
             with self.subTest(capture=relative_path):
                 self.assertIn("save_png", source)
@@ -716,12 +1251,16 @@ func run() -> void:
                     body, body_start = gdscript_function_region(source, save.start())
                     self.assertTrue(body, "save_png is outside a top-level function")
                     local_save = save.start() - body_start
-                    assert_exact_guard_before(self, body, local_save, helpers)
+                    assert_exact_guard_before(
+                        self, body, local_save, helpers, fresh_helpers
+                    )
                 for mkdir in re.finditer(r"make_dir_recursive_absolute\s*\(", code):
                     body, body_start = gdscript_function_region(source, mkdir.start())
                     self.assertTrue(body, "directory creation is outside a top-level function")
                     local_mkdir = mkdir.start() - body_start
-                    assert_exact_guard_before(self, body, local_mkdir, helpers)
+                    assert_exact_guard_before(
+                        self, body, local_mkdir, helpers, fresh_helpers
+                    )
 
         main_source = (PROJECT_ROOT / "ui/main.gd").read_text(encoding="utf-8")
         resize_body = re.search(
@@ -910,6 +1449,30 @@ func run() -> void:
     await process_frame
     image.save_png(path)
 """,
+            "side_effectful_guard_expression": """func capture(image, box, path):
+    if image.get_size() != FIRST_PLAYABLE_SIZE or mutate(box):
+        return
+    image.save_png(path)
+""",
+            "side_effectful_assigned_proof": """func capture(image, box, path):
+    var exact_frame := image.get_size() == FIRST_PLAYABLE_SIZE and mutate(box)
+    if not exact_frame:
+        return
+    image.save_png(path)
+""",
+            "mutating_guard_expression": """func capture(image, path):
+    if image.get_size() != FIRST_PLAYABLE_SIZE or image.clear():
+        return
+    image.save_png(path)
+""",
+            "directory_prewrite_list_escape": """func run(image, path):
+    var aliases := [image]
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    var extracted := aliases[0]
+    extracted.resize(1920, 1080)
+    DirAccess.make_dir_recursive_absolute(path)
+""",
         }
         for name, source in fixtures.items():
             token = "make_dir_recursive_absolute" if "directory" in name \
@@ -951,7 +1514,32 @@ static func capture(image, path):
             self, safe_readback, safe_readback.find("save_png")
         )
 
-        mutation_before_proof = """func capture(image, path):
+        safe_direct_alias_chain = """func capture(image, path):
+    var first: Image = image
+    var second := (first as Image)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    check(second.get_size() == FIRST_PLAYABLE_SIZE, "direct alias stays readable")
+    image.save_png(path)
+"""
+        assert_exact_guard_before(
+            self, safe_direct_alias_chain,
+            safe_direct_alias_chain.find("save_png"),
+        )
+
+        safe_preproof_readback = """func capture(image, path):
+    var alias := image
+    var observed_size := alias.get_size()
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    check(observed_size == FIRST_PLAYABLE_SIZE, "direct alias read is inert")
+    image.save_png(path)
+"""
+        assert_exact_guard_before(
+            self, safe_preproof_readback, safe_preproof_readback.find("save_png")
+        )
+
+        mutation_before_fresh_proof = """func capture(image, path):
     var alias := image
     alias.clear()
     if image.get_size() != FIRST_PLAYABLE_SIZE:
@@ -959,11 +1547,12 @@ static func capture(image, path):
     image.save_png(path)
 """
         assert_exact_guard_before(
-            self, mutation_before_proof, mutation_before_proof.find("save_png")
+            self, mutation_before_fresh_proof,
+            mutation_before_fresh_proof.find("save_png"),
         )
 
-        unrelated = """func capture(image, metadata, path):
-    var details = metadata
+        unrelated = """func capture(image, metadata: Dictionary, path):
+    var details: Dictionary = metadata
     if image.get_size() != FIRST_PLAYABLE_SIZE:
         return
     details.clear()
@@ -1010,6 +1599,174 @@ static func capture(image, path):
     if image.get_size() != FIRST_PLAYABLE_SIZE:
         return
     change_image(alias)
+    image.save_png(path)
+""",
+            "list_capture_and_invocation": """func capture(image, path):
+    var aliases := [image]
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    aliases[0].resize(1920, 1080)
+    image.save_png(path)
+""",
+            "transitive_alias_list_extraction": """func capture(image, path):
+    var direct := image
+    var aliases := [direct]
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    var extracted := aliases[0]
+    extracted.resize(1920, 1080)
+    image.save_png(path)
+""",
+            "reverse_direct_alias_escape": """func capture(image, path):
+    var saved := image
+    var aliases := [image]
+    if saved.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    aliases[0].clear()
+    saved.save_png(path)
+""",
+            "dictionary_capture_and_invocation": """func capture(image, path):
+    var aliases := {"frame": image}
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    aliases["frame"].resize(1920, 1080)
+    image.save_png(path)
+""",
+            "nested_capture_and_invocation": """func capture(image, path):
+    var aliases := [{"frames": [image]}]
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    aliases[0]["frames"][0].resize(1920, 1080)
+    image.save_png(path)
+""",
+            "property_escape_and_invocation": """func capture(image, path):
+    var holder := {}
+    holder.frame = image
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    holder.frame.resize(1920, 1080)
+    image.save_png(path)
+""",
+            "index_escape_and_invocation": """func capture(image, path):
+    var holder := []
+    holder.append(null)
+    holder[0] = image
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    holder[0].resize(1920, 1080)
+    image.save_png(path)
+""",
+            "callable_capture_and_invocation": """func capture(image, path):
+    var mutate_later := Callable(self, "_mutate_image").bind(image)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    mutate_later.call()
+    image.save_png(path)
+""",
+            "callable_receiver_capture_and_invocation": """func capture(image, path):
+    var mutate_later := Callable(image, "clear")
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    mutate_later.call()
+    image.save_png(path)
+""",
+            "bound_method_capture_and_invocation": """func capture(image, path):
+    var mutate_later := image.clear
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    mutate_later.call()
+    image.save_png(path)
+""",
+            "bound_callable_capture_and_invocation": """func capture(image, path):
+    var mutate_later := mutate.bind(image)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    mutate_later.call()
+    image.save_png(path)
+""",
+            "constructor_capture_and_invocation": """func capture(image, path):
+    var holder := Holder.new(image)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    holder.frame.resize(1920, 1080)
+    image.save_png(path)
+""",
+            "lambda_capture_and_invocation": """func capture(image, path):
+    var mutate_later := func() -> void:
+        image.resize(1920, 1080)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    mutate_later.call()
+    image.save_png(path)
+""",
+            "nested_lambda_capture_and_invocation": """func capture(image, path):
+    var outer := func() -> Callable:
+        return func() -> void:
+            image.resize(1920, 1080)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    outer.call().call()
+    image.save_png(path)
+""",
+            "return_escape": """func capture(image, path, stop):
+    if stop:
+        return image
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    image.save_png(path)
+""",
+            "index_initializer_shared_origin": """func capture(box, path):
+    var image := box[0]
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    box[0].clear()
+    image.save_png(path)
+""",
+            "property_initializer_shared_origin": """func capture(holder, path):
+    var image := holder.frame
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    holder.mutate()
+    image.save_png(path)
+""",
+            "shared_return_initializer": """func capture(holder, path):
+    var image := holder.get_image()
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    holder.mutate()
+    image.save_png(path)
+""",
+            "shared_return_owner_readback_name": """func capture(holder, path):
+    var image := holder.get_image()
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    holder.get_size()
+    image.save_png(path)
+""",
+            "unqualified_shared_return_initializer": """func capture(path):
+    var image := shared_image()
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    image.save_png(path)
+""",
+            "parenthesized_shared_return_initializer": """func capture(path):
+    var image := (shared_image() as Image)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    image.save_png(path)
+""",
+            "transitive_reverse_origin": """func capture(holder, path):
+    var source := holder.frame
+    var image := source
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    holder.mutate()
+    image.save_png(path)
+""",
+            "parameter_shared_origin": """func capture(image: Image, other: Image, path):
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    other.clear()
     image.save_png(path)
 """,
         }
@@ -1129,6 +1886,12 @@ func mutating(image: Image) -> bool:
         self.assertEqual(readonly_image_helpers(helper_source), {"valid"})
 
     def test_python_retirement_guard_negative_controls(self) -> None:
+        assert_unconditional_python_retirement(
+            self, 'raise SystemExit("DEFERRED_DISPLAY_SUITE")\n'
+        )
+        assert_unconditional_python_retirement(
+            self, 'raise SystemExit("DEFERRED_" "DISPLAY_SUITE")\n'
+        )
         fixtures = {
             "conditional": """if False:
     raise SystemExit("DEFERRED_DISPLAY_SUITE")
@@ -1144,6 +1907,78 @@ raise SystemExit("DEFERRED_DISPLAY_SUITE")
             "directory_first": """from pathlib import Path
 Path(path).mkdir()
 raise SystemExit("DEFERRED_DISPLAY_SUITE")
+""",
+            "extra_constant_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", "unexpected second argument"
+)
+""",
+            "starred_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", *[open(path)]
+)
+""",
+            "open_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", open(path).read()
+)
+""",
+            "write_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", Path(path).write_text("unexpected")
+)
+""",
+            "path_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", Path(path)
+)
+""",
+            "subprocess_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", subprocess.run(command)
+)
+""",
+            "comprehension_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", [open(path) for path in paths]
+)
+""",
+            "set_comprehension_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", {open(path) for path in paths}
+)
+""",
+            "dict_comprehension_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", {path: open(path) for path in paths}
+)
+""",
+            "generator_comprehension_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", (open(path) for path in paths)
+)
+""",
+            "f_string_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", f"unexpected {marker}"
+)
+""",
+            "lambda_call_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", (lambda: open(path))()
+)
+""",
+            "keyword_argument": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", code=open(path)
+)
+""",
+            "double_star_keyword": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE", **{"code": open(path)}
+)
+""",
+            "from_cause": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE"
+) from open(path)
+""",
+            "from_none": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE"
+) from None
+""",
+            "bytes_marker": """raise SystemExit(
+    b"DEFERRED_DISPLAY_SUITE"
+)
+""",
+            "computed_marker": """raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE" + suffix
+)
 """,
         }
         for name, source in fixtures.items():

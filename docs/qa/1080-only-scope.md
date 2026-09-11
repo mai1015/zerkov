@@ -124,3 +124,32 @@ The requirement remains a genuine exact 1920×1080 renderer output. A
 must avoid decorated-window clamping and reject a nonexact actual root/output
 or renderer readback before mounting UI, creating paths, or saving. Headless
 checks are source/state evidence only and cannot establish visual acceptance.
+
+## Source-policy escape hardening — 2026-09-11
+
+This source-only follow-up closes remaining lexical escape paths in the
+exact-frame writer policy. Before a proof, only a direct local image alias,
+an explicitly recognized read, or a direct known image mutation followed by a
+fresh proof is permitted. Lists/maps, nested values, properties, indices,
+callables, bound methods, lambdas, constructors, returns, unknown calls, and
+computed expressions permanently taint a later save. The proof expression
+itself is limited to inert reads, so an unrelated call cannot be smuggled into
+the boolean condition.
+
+The policy now follows provenance in the reverse direction as well. An image
+obtained through a property, index, or non-fresh call retains its owner as
+tainted; any later owner access before the save fails closed. Direct sibling
+image parameters retain only the narrow read-only method allowance needed for
+independently guarded writes. Permanent controls cover list/map/nested and
+lambda retention, callable and method references, transitive aliases, wrapped
+unknown origins, owner mutation, and a side effect inside a proof expression.
+
+Historical Python entry points now require the first executable AST statement
+to be exactly `raise SystemExit(<one constant str marker>)`: one unstarred
+positional string, no keywords, and no cause. Extra expressions, f-strings,
+comprehensions, calls, byte markers, and `from` clauses fail the static gate.
+
+The source-policy checks remain 12 static tests and 15 complete-tooling tests.
+Discovery remains 25 active GDScript runners, 35 retired GDScript runners, 12
+retired Python entry points, and 9 active PNG writers. No runtime or artifact
+writer was invoked for this follow-up.
