@@ -1,6 +1,6 @@
 # Task 5.3 authoritative body-hitbox repair evidence
 
-Result: **PASS at the scoped implementation/contract level**.
+Result: **REPAIR CANDIDATE PASS; independent re-acceptance pending**.
 
 Recorded: `2026-09-11T03:35:12Z`
 
@@ -160,3 +160,84 @@ raid, and no token-reacquisition getter remains. Task 5.3 passed `356/0` and
 the accepted task 5.2 compatibility matrix passed `398/0`, for `754/0`
 combined. Import diagnostics, source/packet seals and diff checks were clean.
 No UI, viewport, visual, responsive, compact or screen-size suite ran.
+
+## Acceptance reopened
+
+Reopened on 2026-09-11 after a fresh audit against main
+`c265d3a4efd9b49f840b87e201ceb8f4b661d26b`. Godot's standard
+`Object.get()` and property-list reflection can still recover the live
+`_active_binding_capability` from a retained world after a replacement bind.
+The reacquired exact object authorized replacement metadata reads, snapshot
+publication, a ray query and release. The prior acceptance therefore did not
+prove its stated stale-holder isolation claim. Task 5.3 remains open until a
+new immutable repair passes focused independent review. The reproducer was a
+headless domain probe; no UI, viewport, visual, responsive, compact or
+screen-size suite ran.
+
+## Opaque-binding repair candidate
+
+Recorded: `2026-09-11T05:21:08Z`
+
+The current repair is implemented at immutable commit
+`c0fbaad2575796c8729ee360a9eca51f62c52bc6`. Exact current main
+`d4b407fcba49bb2e97b7db1300b597ecf1c5df75` was merged by
+`f942e689ef0ae0e90f8bb296f52eebe160c3b875`; task 5.3 remains open while
+the independently accepted 7.9 and 8.3 ledger entries remain checked.
+
+`BodyHitboxWorld2D` no longer retains the exact capability object, a weak
+reference, a bound callable, the raw lease, or the capability instance ID.
+Each bind generates a fixed 32-byte CSPRNG lease and returns it only inside the
+new bearer. The world stores a SHA-256 commitment over that lease, the
+candidate object's identity, and exact world/authority/generation/token
+context. Guard checks recompute and compare the commitment without publishing
+it. Copying the valid lease into a different same-class object therefore does
+not authorize it. Release first clears the commitment and erases the returned
+object's lease, then clears geometry/replay/lifecycle state.
+
+Binding schema v2 removes `capability_instance_id`. Binding token and other
+stable provenance remain available but are not credentials. No bearer, raw
+lease, commitment, callable, or capability instance ID appears in binding
+provenance, snapshot metadata, ray results, the query replay ledger, or
+canonical digests. Task 5.4's active repair was coordinated against the
+unchanged method signatures: its adapter receives the bearer only as a
+transient bind/phase-operation argument and retains no bearer, secret, or
+equivalent callable member.
+
+The new permanent regression was first run against the current-main vulnerable
+source and failed `8` of `14` security assertions. Standard property discovery
+and `Object.get("_active_binding_capability")` recovered the exact replacement
+object, which then read metadata, queried, published, and released. The same
+contract now passes `14/0`; it additionally probes recursive properties,
+metadata, weak/callable/nested members, copied-secret and commitment forgeries,
+post-query replay state, release/rebind, and synchronous lease erasure. See
+`capability_encapsulation_fail_before.log` and
+`capability_encapsulation_repair.log`.
+
+Final merged verification passed task 5.3 `370/0`, task 5.2 compatibility
+`398/0`, and adjacent headless domain contracts for authority, session, units,
+combat content, health abilities, identity, combined add-ons and the newly
+merged ProfileStore. The Godot domain total is `20521/0`; toolchain `7/0`,
+vendor `4/0`, clean editor import, strict spec validation, diagnostics, hashes
+and diff checks also pass. A first optional ProfileStore execution collided
+with an old shared `user://` test fixture and is explicitly excluded; its clean
+nonconcurrent rerun passed `527/0`. No UI, screen, viewport, visual, responsive,
+compact, composition, inventory-UI, runtime-capture, or display-size suite ran.
+
+This section records a candidate, not independent acceptance. The 5.3 checkbox
+remains open for the primary reviewer.
+
+## Opaque-binding repair independent acceptance
+
+Accepted on 2026-09-11 at immutable candidate
+`cd2346b71e52c7e430980003a455708d7769d56f` after a fresh detached-worktree
+review found no P0-P2 correctness findings. The reviewer confirmed that the
+world retains no live capability object, weak reference, callable, raw lease,
+or published capability identifier, and that release/rebind leaves stale,
+copied, reflected, serialized, reconstructed, and cross-world values inert.
+
+The independent matrix passed task 5.3 `370/0`, task 5.2 compatibility
+`398/0`, and adjacent headless domain contracts `19753/0`, for a Godot-domain
+total of `20521/0`. Clean editor import, strict spec validation, source and
+packet hashes, toolchain checks, vendor checks, and `git diff --check` also
+passed. No UI, screen, viewport, visual, responsive, compact, or alternate-size
+test was run. Task 5.3 is accepted and its ledger checkbox is now closed.

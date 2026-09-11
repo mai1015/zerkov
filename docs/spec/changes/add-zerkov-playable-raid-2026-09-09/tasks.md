@@ -451,7 +451,7 @@ recorded Scav and mutant encounters.
   exactly-once completion.
 - [ ] 7.8 `[SOL]` Define and implement death loss plus the approved secure-
   container retention rule as one settlement plan.
-- [ ] 7.9 `[SOL]` Implement versioned `ProfileStore` envelopes with atomic
+- [x] 7.9 `[SOL]` Implement versioned `ProfileStore` envelopes with atomic
   replacement, backup recovery and checksum/fingerprint validation.
 - [ ] 7.10 `[SOL]` Implement idempotent `RaidSettlementService` prepare/commit/
   recover behavior for extract and death.
@@ -471,7 +471,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   `CommonActivatableScreen` lifecycle without changing layout geometry.
 - [x] 8.2 `[SOL]` Replace manual production navigation with CommonUI menu, HUD,
   modal and popup layers while retaining the F1 developer catalog.
-- [ ] 8.3 `[LUNA]` Author logical action definitions, default bindings, glyph
+- [x] 8.3 `[LUNA]` Author logical action definitions, default bindings, glyph
   metadata and rebinding persistence for gameplay and UI contexts.
 - [x] 8.4 `[SOL]` Define typed/read-only `RaidView`, `InventoryView`,
   `HealthView`, `TaskView`, `MapView`, `BunkerView` and `SummaryView` contracts.

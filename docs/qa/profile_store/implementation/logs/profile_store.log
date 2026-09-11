@@ -1,0 +1,4 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PROFILE_STORE_HOST filesystem=APFS replace=DirAccess.rename_absolute file_flush=true file_fsync_proven=false directory_sync=false interprocess_lock=false lease_thread_safe=true operation_admission_thread_safe=true
+PROFILE_STORE_RESULT checks=527 failures=0

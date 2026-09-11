@@ -2,6 +2,7 @@ class_name ZScreen
 extends CommonActivatableScreen
 
 const U = preload("res://ui/theme/tokens.gd")
+const InputActions = preload("res://game/input/zerkov_input_actions.gd")
 var app: ZUIContext
 var _adaptive_queued: bool = false
 var _adaptive_applied: bool = false
@@ -38,6 +39,57 @@ func build() -> void:
 func _on_activated() -> void:
 	process_mode = Node.PROCESS_MODE_INHERIT
 	register_action(CommonUIDefaults.BACK, _on_common_ui_back, {"priority": 100})
+	_register_zerkov_ui_actions()
+
+
+func _register_zerkov_ui_actions() -> void:
+	if app == null:
+		return
+	# These are the already-advertised first-playable navigation affordances.
+	# Registration stays on the active ZScreen so CommonUI owns eligibility,
+	# modal suspension, and exactly-once dispatch; no parallel input stack is
+	# introduced here. Gameplay actions remain definitions-only until task 5.7.
+	var route := app.current_route
+	if route not in [
+		"hud", "hud_coop", "inventory", "health", "stats", "maps", "tasks",
+		"bunker", "session", "settings", "controls"
+	]:
+		return
+	register_action(InputActions.UI_OPEN_INVENTORY, _on_open_inventory, {"priority": 40})
+	register_action(InputActions.UI_OPEN_MAP, _on_open_map, {"priority": 40})
+	register_action(InputActions.UI_OPEN_TASKS, _on_open_tasks, {"priority": 40})
+	register_action(InputActions.UI_OPEN_SETTINGS, _on_open_settings, {"priority": 40})
+
+
+func _on_open_inventory(event: Dictionary) -> int:
+	if event.get("phase") != CommonUIRuntime.PHASE_PRESSED or not accepts_input():
+		return CommonUIRuntime.ROUTE_UNHANDLED
+	if app.current_route in ["inventory", "health", "stats"]:
+		app.back()
+	else:
+		app.navigate("inventory")
+	return CommonUIRuntime.ROUTE_HANDLED
+
+
+func _on_open_map(event: Dictionary) -> int:
+	if event.get("phase") != CommonUIRuntime.PHASE_PRESSED or not accepts_input():
+		return CommonUIRuntime.ROUTE_UNHANDLED
+	app.navigate("maps")
+	return CommonUIRuntime.ROUTE_HANDLED
+
+
+func _on_open_tasks(event: Dictionary) -> int:
+	if event.get("phase") != CommonUIRuntime.PHASE_PRESSED or not accepts_input():
+		return CommonUIRuntime.ROUTE_UNHANDLED
+	app.navigate("tasks")
+	return CommonUIRuntime.ROUTE_HANDLED
+
+
+func _on_open_settings(event: Dictionary) -> int:
+	if event.get("phase") != CommonUIRuntime.PHASE_PRESSED or not accepts_input():
+		return CommonUIRuntime.ROUTE_UNHANDLED
+	app.navigate("settings")
+	return CommonUIRuntime.ROUTE_HANDLED
 
 func _on_deactivated() -> void:
 	process_mode = Node.PROCESS_MODE_DISABLED
