@@ -1,7 +1,7 @@
 # Task 5.6 implementation evidence
 
-Status: diagnostic-repair candidate ready for renewed independent acceptance.
-Task 5.6 remains unchecked by design.
+Status: accepted after renewed independent review of the diagnostic repair.
+Task 5.6 is checked; no later task or human gate is accepted here.
 
 - Recorded: 2026-09-11
 - Branch: `codex/damage-injury-healing-5-6-diagnostic-final`
@@ -245,7 +245,9 @@ above as diagnostic evidence and is not included in that green total.
 - `frozen_sources.sha256` seals the implementation, focused contracts,
   governing instructions, approved inputs and accepted Task 5.4/5.5 evidence.
   `packet.sha256` seals this report, the structured results and source manifest.
-- Task 5.6 remains unchecked pending renewed independent review.
+- Independent final review accepted
+  `1538beb46935a49c3309147017edcf67a5d480f7` with no P0/P1/P2 findings.
+  Task 5.6 alone is checked; human approval remains false.
 
 ## Limits and remaining risks
 
