@@ -12,6 +12,7 @@ var fixtures: ZUIFixtureStore
 ## It does not confer permission to forge later catalog selections.
 var developer_context: bool = false
 var route_payload: ZUIRoutePayload
+var _character_runtime: WeakRef
 ## Route immediately beneath this view when it was pushed, or the inherited
 ## return target when it replaced a view. CommonUI remains stack authority.
 var return_route: String = ""
@@ -30,13 +31,15 @@ func _init(
 	route: String,
 	store: ZUIFixtureStore,
 	is_developer_context: bool = false,
-	payload: ZUIRoutePayload = null
+	payload: ZUIRoutePayload = null,
+	character_runtime: CharacterUIRuntime = null
 ) -> void:
 	_host = weakref(host)
 	current_route = route
 	fixtures = store
 	developer_context = is_developer_context
 	route_payload = payload if payload != null else ZUIRoutePayload.empty()
+	_character_runtime = weakref(character_runtime) if character_runtime != null else null
 
 
 ## Bind this context to the one screen instance created with it. The opaque
@@ -102,3 +105,8 @@ func prompt(title: String, value: String, callback: Callable, max_length: int = 
 func accepts_input(view: Control) -> bool:
 	var host := _service()
 	return host != null and host.screen == view and not is_instance_valid(modal) and not is_instance_valid(picker)
+
+
+func character_runtime() -> CharacterUIRuntime:
+	return _character_runtime.get_ref() as CharacterUIRuntime \
+		if _character_runtime != null else null

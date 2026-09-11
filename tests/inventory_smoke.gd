@@ -33,6 +33,10 @@ func _contains_id(values: Array, item_id: String) -> bool:
 func run() -> void:
 	root.size = Vector2i(1920, 1080)
 	app = load("res://ui/main.tscn").instantiate()
+	# Historical authored-interaction regression. Production Character routes
+	# now receive immutable runtime views; this suite intentionally exercises the
+	# clearly gated local preview provider.
+	app.prototype_fixture_mode = true
 	root.add_child(app)
 	await settle()
 
