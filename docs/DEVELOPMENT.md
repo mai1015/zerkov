@@ -16,6 +16,17 @@ The validated macOS host is arm64 with SCons 4.10.1, Apple Clang 21, Xcode
 26.4 and the macOS 26.4 SDK. The accepted minimums remain those declared by
 the add-ons: Python 3.8, SCons 4.7, Apple Clang 15 and macOS SDK 14.
 
+## Current UI verification scope (2026-09-10)
+
+The active first-playable UI and visual-verification target is exact
+1920×1080. Current agents, runners and tests MUST NOT invoke smaller windows,
+responsive/compact suites or regenerate their captures. Existing smaller
+reports, PNGs and dedicated sources remain immutable historical evidence and
+may be reopened only by task 11.8 or a later approved display-support proposal.
+The post-acceptance scope results for this enforcement change are recorded in
+[`docs/qa/1080-only-scope.md`](qa/1080-only-scope.md); prior task 8.1/8.2 source
+seals remain valid only for their recorded immutable commits.
+
 ## Locked add-on workflow
 
 The project runs the snapshots under `addons/`; it never loads directly from
@@ -97,8 +108,10 @@ COMBAT_CONTENT_RESULT checks=79 failures=0
 
 Task 4.7b is complete at the implementation/evidence level. The fresh
 independent Astra gate accepted 31 distinct final suite/probe variants with
-`4228` raw checks and `0` failures at 1920x1080, 1600x900, 1280x720 and
-960x540. The full packet is
+`4228` raw checks and `0` failures across its historical resolution matrix.
+Those dimensions are immutable historical evidence; current 1920×1080-only
+reruns MUST NOT invoke the compact probes or regenerate their captures. The
+full packet is
 [`docs/qa/inventory_ui_binding/astra_final_accept/REPORT.md`](qa/inventory_ui_binding/astra_final_accept/REPORT.md);
 earlier rejection packets are retained there as history and are not acceptance
 evidence.
@@ -133,15 +146,17 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_weapon_reload_contract.gd
 ```
 
-The packet's independent canonical capacity, headless flow, native Compatibility
-window flow and full-suite reproductions are:
+The current-safe headless subset of the retained packet is:
 
 ```sh
 python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py capacity
 python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py flow
-python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py native
 python3 docs/qa/inventory_weapon_reload/astra_final/run_validation.py suites
 ```
+
+The visible `native` packet mode is retained historical evidence and is
+intentionally omitted from current commands; do not invoke it until task 11.8
+or a later approved display-support proposal.
 
 The accepted totals are catalog `537/0`, reload `159/0`, capacity `33/0`,
 headless flow `208/0`, native flow `213/0` (the same 208 core assertions plus
@@ -164,15 +179,18 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_ability_reconciliation_contract.gd
 ```
 
-The packet's full adjacent suite, independent headless flow and visible native
-Compatibility flow can be reproduced from the repository root:
+The current-safe headless subset of the retained packet can be run from the
+repository root:
 
 ```sh
 python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py suites
 python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py flow
-python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py native
 python3 -B docs/qa/inventory_ability_equipment/astra_final/finalize_packet.py
 ```
+
+The visible `native` packet mode is retained historical evidence and is
+intentionally omitted from current commands; do not invoke it until task 11.8
+or a later approved display-support proposal.
 
 The accepted totals are promoted reconciliation `546/0`, independent headless
 flow `451/0`, independent native flow `463/0`, and `21756/0` raw assertion
@@ -193,28 +211,35 @@ release acceptance remain open.
 
 ## Render-scale verification
 
-The isolated native render-scale spike compares the fixed 640x360 world surface
-with the existing full-output HUD at 1920x1080, 1600x900 and 1280x720. Run it
-from the project root with:
+The current isolated native render-scale check uses the fixed 640x360 world
+surface with the existing full-output HUD at exact 1920×1080 only. Run the
+current exact-size subset from the project root with:
 
 ```sh
 uv run --with pillow python tests/visual/render_scale/verify.py
 ```
 
-The recorded zero-failure lines are:
+Current generated render-scale files are written under
+`docs/qa/render_scale/current_1080/`; the historical root packet is not
+overwritten.
+
+The historical packet also contains smaller-resolution and responsive results;
+those are not current commands and MUST NOT be regenerated before task 11.8 or
+a later approved display-support proposal. Current exact-size results are
+recorded separately in [`docs/qa/1080-only-scope.md`](qa/1080-only-scope.md).
+
+The historical packet's zero-failure lines are:
 
 ```text
-RENDER_SCALE_COMPLETE checks=1292 failures=0
-UI_COMPOSITION_COMPLETE checks=109 failures=0
-RESPONSIVE_TEST_COMPLETE checks=96 failures=0
-BORDER_RENDER_TEST_COMPLETE checks=135 failures=0
+RENDER_SCALE_COMPLETE checks=1292 failures=0 (historical matrix)
+UI_COMPOSITION_COMPLETE checks=109 failures=0 (historical matrix)
+RESPONSIVE_TEST_COMPLETE checks=96 failures=0 (historical; deferred)
+BORDER_RENDER_TEST_COMPLETE checks=135 failures=0 (historical matrix)
 ```
 
-The evidence packet records 26 PNG hashes. At 1600x900, the selected
-integer-fit world is 1280x720 centered with 160 px horizontal and 90 px
-vertical matte; this constant-FOV policy is a fairness trade-off, not a human
-approval or a later animation, combat, readability or cursor-mapping
-acceptance.
+The historical evidence packet records 26 PNG hashes. Its smaller-output
+integer-fit and matte details are retained for audit only; they do not define
+the current first-playable acceptance scope.
 
 ## Platform status
 

@@ -73,13 +73,17 @@ its consumer.
    Do not derive resource paths from route names. F1 and `--screen=<id>` use it.
 3. Implement `build()` as repeatable binding, not child deletion. Connect each
    callable once. Use the supplied `app: ZUIContext` for UI services.
-4. Define compact placement using named nodes/components or authored
-   `metadata/compact_group`. Preserve fixed controls. `ZLayoutSnapshot` restores
-   authored parents/geometry before binding and reflow; use `layout_value()` for
-   reversible compact-only text/style changes, not live data rollback.
+4. If retaining compatibility placement, define it using named
+   nodes/components or authored `metadata/compact_group`. Preserve fixed
+   controls. `ZLayoutSnapshot` restores authored parents/geometry before binding
+   and reflow; use `layout_value()` for reversible compatibility-only text/style
+   changes, not live data rollback. Do not add or tune smaller-output branches in
+   the current first-playable slice.
 5. Run the screen with F6. Registered scenes create an isolated fixture-backed
    host automatically; they do not require `/root/Main`. Add focused tests and
-   desktop/compact captures before extending the catalog acceptance baseline.
+   exact 1920×1080 captures before extending the current catalog acceptance
+   baseline. Smaller/compact captures remain historical and deferred until task
+   11.8 or a later approved display-support proposal.
 
 For example, an authored `NavigationChrome` instance can be wired as follows:
 
@@ -130,11 +134,15 @@ Run the commands in the root README. In addition to the existing suites:
 
 - `tests/ui_composition_smoke.gd`: isolated host, invalid/canceled navigation,
   retained HUD/workspace, physical input isolation, focus and component APIs.
-- `tests/ui_reflow_smoke.gd`: all 28 routes, three desktop/compact round trips,
-  retained authored controls, no accumulating nodes, restored desktop textures.
+- `tests/ui_reflow_smoke.gd`: all 28 routes, repeated exact 1920×1080 desktop
+  reflow, retained authored controls, no accumulating nodes, restored textures.
+- `tests/raid/inventory_ui_binding_contract.gd`: retained live inventory binding,
+  canonical grids and runtime unbind/recovery at exact 1920×1080 only.
 - `tests/ui_component_states.gd`: native card/row/button states, runtime updates,
   disabled hit-target transparency, single activation, dialogs and prompts.
 - `tests/border_render_smoke.gd`: real renderer required; headless is not proof.
 
-Native QA covers 1920×1080, 1600×900, 1280×720, 960×540 and forced compact
-1280×720. Inspect logs for runtime errors even when Godot exits successfully.
+Current native QA covers exact 1920×1080 only. Existing smaller/responsive and
+compact sources/captures are historical and deferred; do not invoke or regenerate
+them until task 11.8 or a later approved display-support proposal. Inspect logs
+for runtime errors even when Godot exits successfully.

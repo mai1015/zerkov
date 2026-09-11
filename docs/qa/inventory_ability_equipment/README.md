@@ -1,5 +1,11 @@
 # Inventory-to-ability equipment evidence
 
+This is a retained historical task 4.10 evidence packet. Its visible native
+validation command and smaller-output captures are not part of the current
+first-playable UI matrix; current agents/tests MUST NOT invoke or regenerate
+them until task 11.8 or a later approved display-support proposal. The
+immutable packet remains audit history, not a current aggregate check.
+
 This directory contains the task 4.10 final accepted checkpoint. The acceptance
 authority is the fresh GPT-6 Astra packet:
 
@@ -45,9 +51,12 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_ability_reconciliation_contract.gd
 python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py suites
 python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py flow
-python3 -B docs/qa/inventory_ability_equipment/astra_final/run_validation.py native
 python3 -B docs/qa/inventory_ability_equipment/astra_final/finalize_packet.py
 ```
+
+The visible `native` mode remains an immutable historical packet reproduction;
+it is intentionally omitted from the current matrix and must not be invoked
+until task 11.8 or a later approved display-support proposal.
 
 The accepted boundary is offline, synchronous and in-memory. Native signals do
 not form a batch transaction boundary, and unexpected ambiguous failure may

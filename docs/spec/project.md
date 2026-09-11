@@ -21,7 +21,10 @@ bunker/stash -> choose loadout -> deploy -> move/loot/fight/task
 - Initial development target: macOS
 - Intended shipping client: Windows x86_64
 - Intended dedicated-server target: Linux x86_64
-- UI design canvas: 1920x1080 with compact fallback below 1280x720
+- UI design canvas and current acceptance target: exact 1920x1080. Existing
+  compact fallback code is retained for compatibility, but smaller-output
+  execution and capture review are deferred until task 11.8 or a later approved
+  display-support proposal.
 - Proposed world render surface: low-resolution `SubViewport`, validated by a
   dedicated pixel-scale spike before it becomes a contract
 

@@ -21,10 +21,26 @@ toast(message:String) # app.toast(message)
 
 Use explicit types or plain `=` for dynamic expressions; avoid inferred Variant warning errors. Godot 4.x. Native nodes only, not screenshot overlays. Read actual handoff HTML sections and view provided screenshots for owned screens before implementing. All buttons must navigate or perform clear local mock action. Can consolidate related screens into one script with scene wrapper and read `app.current_route` in build.
 
-## Adaptive windows
+## Current display scope
 
-Main uses the 1920×1080 logical canvas for PC windows at least 1280×720, with aspect-preserving scaling. Play defaults to 1600×900. Native UI pixels and compact reflow apply only below the threshold (or with `--layout=compact`). Resizing calls `reflow()` on retained screens; it must not navigate/remount. `refresh_view()` restores authored placement, binds data, reapplies `layout_compact(view)`, and restores eligible focus/caret/scroll state. Prefer narrower component data updates when no layout changes. Never clear a screen's fixed children to refresh it.
+Current first-playable acceptance runs at the exact 1920×1080 logical canvas,
+and Play defaults to 1920×1080. Existing adaptive windows, compact hosts and
+`reflow()`/`layout_compact(view)` compatibility APIs remain in production code,
+but current agents/tests MUST NOT execute smaller windows, compact overrides or
+regenerate smaller captures. Task 11.8 or a later approved display-support
+proposal is the only reopening point. At the current target, `reflow()` must not
+navigate/remount; `refresh_view()` restores authored placement, binds data and
+restores eligible focus/caret/scroll state. Prefer narrower component data
+updates when no layout changes. Never clear a screen's fixed children to refresh
+it.
 
-Use authored compact hosts and named content references. Where an adaptive wrapper is needed, `ZAdaptive.pane(host, bounds, content_size, name)` returns its content Control; `move_group(source, name, origin, content)` uses authored `compact_group` metadata, and `move_nodes(nodes, content, offset)` uses explicit references. Do not infer pane membership from screen coordinates. `backdrop(screen, view)` resizes backgrounds. Keep chrome, section tabs and primary footer actions outside scrolling content; bounded grids/maps may scroll horizontally.
+Retained compact hosts and named content references are compatibility surfaces for
+the deferred display-support work. Where those APIs are maintained,
+`ZAdaptive.pane(host, bounds, content_size, name)` returns its content Control;
+`move_group(source, name, origin, content)` uses authored `compact_group`
+metadata, and `move_nodes(nodes, content, offset)` uses explicit references. Do
+not infer pane membership from screen coordinates. `backdrop(screen, view)`
+resizes backgrounds. Keep chrome, section tabs and primary footer actions outside
+scrolling content; bounded grids/maps may scroll horizontally.
 
 CommonUI owns HUD/menu/modal/popup stacks and lifecycle. Raw screen input must check `accepts_input()`. Components expose configuration and semantic signals, not their child paths. See [component APIs, ownership and extension examples](ui/components/README.md) for the current contract and native verification commands.

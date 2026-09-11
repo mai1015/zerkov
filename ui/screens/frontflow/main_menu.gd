@@ -122,4 +122,7 @@ func _build_focus_graph() -> void:
 		var next: Button = menu_entries[(index + 1) % menu_entries.size()]
 		menu_entries[index].focus_neighbor_top = menu_entries[index].get_path_to(previous)
 		menu_entries[index].focus_neighbor_bottom = menu_entries[index].get_path_to(next)
-	menu_entries[0].grab_focus()
+	# CommonUI applies default/remembered focus only once activation settles.
+	# Directly grabbing here is overwritten by its deterministic fallback, which
+	# previously selected Header/SwitchAccount instead of the advertised CTA.
+	default_focus = get_path_to(menu_entries[0])

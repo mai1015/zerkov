@@ -1,5 +1,7 @@
 extends SceneTree
 ## Regressions for ownership, retained composition and cross-layer input.
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var app: Control
 var checks := 0
 var failures := 0
@@ -26,7 +28,7 @@ func key(code: Key) -> void:
 	await settle()
 
 func run() -> void:
-	root.size = Vector2i(1920, 1080)
+	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate()
 	app.name = "IsolatedUIHost"
 	root.add_child(app)
@@ -68,7 +70,7 @@ func run() -> void:
 	await key(KEY_R)
 	check(not bool(app.state.get("raid_reloading", false)), "covered HUD ignores physical reload")
 
-	app.confirm("Nested modal", "UI-only confirmation", func(): pass)
+	app.screen.app.confirm("Nested modal", "UI-only confirmation", func(): pass)
 	await settle()
 	check(app.modal != null and handle.is_suspended(), "modal keeps the covered HUD suspended")
 	await key(KEY_ESCAPE)
@@ -114,16 +116,18 @@ func run() -> void:
 	await settle()
 	check(inventory._grid_for_source("stash") == grid, "returning to stash reuses the grid")
 	check(grid.context_requested.get_connections().size() == 1, "mode changes do not duplicate context handlers")
-	for dimensions in [Vector2i(960, 540), Vector2i(1280, 720), Vector2i(1920, 1080)]:
-		app.ui_layout_mode = "compact" if dimensions.x < 1920 else "desktop"
-		root.size = dimensions
-		app._sync_window_scale()
-		await settle()
-		inventory.reflow(root.get_visible_rect().size)
-		await settle()
-		check(app.screen == inventory and inventory.get_node("InventoryContent") == shell, "reflow retains workspace at " + str(dimensions))
-		check(inventory.get_node("NavigationChrome") == chrome and chrome.is_visible_in_tree(), "reflow retains shared chrome at " + str(dimensions))
-		check(inventory._grid_for_source("stash") == grid, "reflow retains grid at " + str(dimensions))
+	app.ui_layout_mode = "desktop"
+	root.size = FIRST_PLAYABLE_SIZE
+	app._sync_window_scale()
+	await settle()
+	inventory.reflow(root.get_visible_rect().size)
+	await settle()
+	check(app.screen == inventory and inventory.get_node("InventoryContent") == shell,
+		"reflow retains workspace at 1920x1080")
+	check(inventory.get_node("NavigationChrome") == chrome and chrome.is_visible_in_tree(),
+		"reflow retains shared chrome at 1920x1080")
+	check(inventory._grid_for_source("stash") == grid,
+		"reflow retains grid at 1920x1080")
 
 	app.toggle_picker()
 	await settle()
@@ -144,8 +148,8 @@ func run() -> void:
 	var payload := {"type": "inventory_item", "source": "pockets", "item_id": drag_item.id, "item": drag_item}
 	pocket_grid.force_drag(payload, Label.new())
 	check(root.gui_is_dragging(), "inventory drag starts before resize")
-	app.ui_layout_mode = "compact"
-	root.size = Vector2i(960, 540)
+	app.ui_layout_mode = "desktop"
+	root.size = FIRST_PLAYABLE_SIZE
 	app._sync_window_scale()
 	await settle()
 	inventory.reflow(root.get_visible_rect().size)

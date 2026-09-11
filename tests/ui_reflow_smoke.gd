@@ -1,6 +1,9 @@
 extends SceneTree
-## Every catalog route must reflow repeatedly without replacing its screen or
-## authored controls, accumulating layout hosts, or retaining a cropped texture.
+## Every catalog route must reflow repeatedly at the exact first-playable canvas
+## without replacing its screen or authored controls, accumulating layout hosts,
+## or retaining a cropped texture.
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var app: Control
 var checks := 0
 var failures := 0
@@ -26,14 +29,14 @@ func resize_to(dimensions: Vector2i, mode: String) -> void:
 	await settle()
 
 func run() -> void:
-	root.size = Vector2i(1920, 1080)
+	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate()
 	app.name = "ReflowHost"
 	root.add_child(app)
 	app.qa_mode = true
 	await settle()
 	for route in ZRouteCatalog.ROUTES:
-		await resize_to(Vector2i(1920, 1080), "desktop")
+		await resize_to(FIRST_PLAYABLE_SIZE, "desktop")
 		app.navigate(route, false)
 		await settle()
 		var screen: Control = app.screen
@@ -44,24 +47,22 @@ func run() -> void:
 		var textures := {}
 		for node in authored:
 			if node is TextureRect: textures[node] = node.texture
-		var counts := {}
+		var authored_count := -1
 		for cycle in range(3):
-			for dimensions in [Vector2i(960, 540), Vector2i(1280, 720), Vector2i(1920, 1080)]:
-				await resize_to(dimensions, "desktop" if dimensions.x == 1920 else "compact")
-				var label := "%s cycle %d at %s" % [route, cycle, dimensions]
-				check(app.screen == screen, label + " retains screen")
-				var retained := true
-				for node in authored:
-					if not is_instance_valid(node) or not screen.is_ancestor_of(node): retained = false
-				check(retained, label + " retains authored controls")
-				var count := screen.find_children("*", "Control", true, false).size()
-				if cycle == 0: counts[dimensions] = count
-				else: check(count == counts[dimensions], label + " does not accumulate controls")
-				if dimensions.x == 1920:
-					var restored := true
-					for node in textures:
-						if is_instance_valid(node) and node.texture != textures[node]: restored = false
-					check(restored, label + " restores desktop textures")
+			await resize_to(FIRST_PLAYABLE_SIZE, "desktop")
+			var label := "%s cycle %d at 1920x1080" % [route, cycle]
+			check(app.screen == screen, label + " retains screen")
+			var retained := true
+			for node in authored:
+				if not is_instance_valid(node) or not screen.is_ancestor_of(node): retained = false
+			check(retained, label + " retains authored controls")
+			var count := screen.find_children("*", "Control", true, false).size()
+			if cycle == 0: authored_count = count
+			else: check(count == authored_count, label + " does not accumulate controls")
+			var restored := true
+			for node in textures:
+				if is_instance_valid(node) and node.texture != textures[node]: restored = false
+			check(restored, label + " restores desktop textures")
 	print("UI_REFLOW_COMPLETE checks=", checks, " failures=", failures)
 	app.queue_free()
 	await settle()

@@ -203,10 +203,12 @@ Gold Watch retain their true identities with neutral artwork and accessible
 `PLACEHOLDER` disclosure; Health and Stats are explicitly authored preview
 values. The accepted native evidence covers 1920x1080, 1600x900, 1280x720 and
 960x540 as historical regression evidence. The current first-playable visual
-acceptance target is 1920x1080 only; smaller and compact layouts are
-nonblocking and deferred. This does not claim human playtest, complete
-raid-loop, multiplayer, or other-platform release acceptance; later UI,
-combat and progression gates remain open.
+acceptance target is exact 1920x1080 only. Existing smaller and compact sources
+and captures may remain for audit history, but current agents, tasks and tests
+MUST NOT execute them or regenerate their outputs. Task 11.8 or a later
+approved display-support proposal is the reopening point. This does not claim
+human playtest, complete raid-loop, multiplayer, or other-platform release
+acceptance; later UI, combat and progression gates remain open.
 
 ### Identifiers and units
 
@@ -252,13 +254,14 @@ Camera2D smoothing off; simulation positions, ranges, collision shapes and
 `ZWorldUnits` remain unrounded. The HUD remains an independent full-output
 composition and can use the matte without being textured by the world surface.
 
-For the current first playable, 1920x1080 is the sole supported output: the
+For the current first playable, exact 1920x1080 is the sole supported output: the
 640x360 world surface displays at exact 3x scale and fills the viewport. The
 earlier 1600x900, 1280x720 and compact captures remain useful historical
-regressions but are not release gates. Support policy, adaptation and visual
-approval for smaller outputs are deferred. The capture evidence records
-`human_approval: false`; later animation, combat/readability and cursor-mapping
-gates remain open.
+regressions but are not current acceptance inputs and MUST NOT be regenerated
+by current agents or tests. Support policy, adaptation and visual approval for
+smaller outputs are deferred to task 11.8 or a later approved display-support
+proposal. The capture evidence records `human_approval: false`; later
+animation, combat/readability and cursor-mapping gates remain open.
 
 ### Combat and health ownership
 
@@ -275,7 +278,9 @@ animation cannot change canonical outcomes.
 
 ### UI migration
 
-- Keep the existing layout, theme, adaptive behavior and developer catalog.
+- Keep the existing layout, theme, retained compatibility behavior and
+  developer catalog. Do not add or tune smaller-output layout branches for this
+  slice.
 - Change the shared Zerkov screen base to participate in CommonUI activation
   and route logical actions through CommonUI contexts.
 - Keep custom Zerkov inventory visuals; bind them to the Inventory presentation
@@ -285,8 +290,9 @@ animation cannot change canonical outcomes.
   `SummaryView` projections.
 - A screen may temporarily use mock data only behind an explicit prototype
   flag. Production routes must not silently mix mock and canonical values.
-- Visual approval compares native captures at supported layouts and includes
-  keyboard, mouse and controller focus states.
+- Visual approval compares native captures at exact 1920x1080 and includes
+  keyboard, mouse and controller focus states. Smaller-output suites and
+  captures are historical only and MUST NOT run for current acceptance.
 
 ### Task-system staging
 
