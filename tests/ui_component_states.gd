@@ -1,5 +1,7 @@
 extends SceneTree
 ## Native component-state capture and one-activation-per-input acceptance.
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var app: Control
 var gallery: Control
 var checks := 0
@@ -38,7 +40,7 @@ func run() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture-dir="): output = arg.trim_prefix("--capture-dir=")
 	DirAccess.make_dir_recursive_absolute(output)
-	root.size = Vector2i(1920, 1080)
+	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate()
 	root.add_child(app)
 	app.qa_mode = true
@@ -46,9 +48,9 @@ func run() -> void:
 	app.navigate("main_menu", false)
 	await settle()
 	app.screen.hide()
-	for dimensions in [Vector2i(1920, 1080), Vector2i(1280, 720), Vector2i(960, 540)]:
-		app.ui_layout_mode = "compact"
-		root.size = dimensions
+	for dimensions in [FIRST_PLAYABLE_SIZE]:
+		app.ui_layout_mode = "desktop"
+		root.size = FIRST_PLAYABLE_SIZE
 		app._sync_window_scale()
 		await settle()
 		root.grab_focus()
@@ -80,7 +82,7 @@ func run() -> void:
 		row.world = {"id": "oak", "name": "OAK'S BUNKER", "difficulty": "STANDARD", "bunker": "LVL 3", "character": "LVL 14", "playtime": "14 h", "last": "2 h ago"}
 		row.position = Vector2(24, 200)
 		gallery.add_child(row)
-		row.layout_for(minf(1264, dimensions.x - 48), dimensions.x < 1920)
+		row.layout_for(minf(1264, dimensions.x - 48), false)
 		var empty: Control = load("res://ui/screens/frontflow/components/new_world_row.tscn").instantiate()
 		empty.position = Vector2(24, 320)
 		empty.size.x = row.size.x
@@ -123,11 +125,15 @@ func run() -> void:
 		gallery.queue_free()
 		await settle()
 		app.screen.show()
-		app.confirm("UI confirmation", "Shared modal with keyboard focus and an explicit cancel action.", func(): pass)
+		app.screen.app.confirm(
+			"UI confirmation",
+			"Shared modal with keyboard focus and an explicit cancel action.",
+			func(): pass
+		)
 		await capture(prefix + "dialog")
 		app._close_overlay(app.modal)
 		await settle()
-		app.prompt("Rename world", "OAK'S BUNKER", func(_value): pass)
+		app.screen.app.prompt("Rename world", "OAK'S BUNKER", func(_value): pass)
 		await capture(prefix + "prompt")
 		app._close_overlay(app.modal)
 		await settle()

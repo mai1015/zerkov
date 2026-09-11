@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-11T01:02:19Z
+updated_at: 2026-09-11T02:14:29Z
 completed_at:
 ---
 
@@ -27,10 +27,12 @@ checks, diagnostics review and named evidence are complete. Runtime errors count
 as failures even when a process exits successfully. Do not check a parent item
 while any required child behavior remains incomplete.
 
-Display-scope decision (2026-09-10): 1920x1080 is the only first-playable UI
-and visual acceptance target. Existing responsive/compact behavior and tests
-may remain, but are nonblocking; do not add smaller-layout implementation or
-review work until a later proposal reopens display support.
+Display-scope decision (2026-09-10): exact 1920x1080 is the only current
+first-playable UI and visual acceptance target. Existing responsive/compact
+behavior, historical captures and dedicated sources may remain, but current
+agents, tasks and tests MUST NOT execute their smaller suites or regenerate
+their outputs. Do not add smaller-layout implementation or review work until
+task 11.8 or a later approved proposal reopens display support.
 
 ## 0. Proposal and approval
 
@@ -182,7 +184,7 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   cancellation and rollback without duplication or loss.
 - [x] 4.10 `[SOL]` Implement inventory-to-ability equipment grants and revoke
   them idempotently from full snapshots and accepted deltas.
-- [ ] 4.11 `[LUNA]` After 4.12 and 4.12a are accepted, extend the existing
+- [x] 4.11 `[LUNA]` After 4.12 and 4.12a are accepted, extend the existing
   designed inventory/loot UI with loot-container open/search/close
   presentation, including inaccessible, stale, overweight, disconnected and
   resynchronizing states. Do not introduce a replacement inventory screen;
@@ -190,7 +192,7 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   transfer and focus behavior at 1920x1080. Existing compact code may remain
   but is not part of this task's acceptance gate. Preserve the audited baseline
   in `docs/qa/astra_visual_audit_2026-09-10/INVENTORY_1080P_BASELINE.md`.
-- [ ] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
+- [x] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
   authority replacement invalidate stale UI/adapters safely.
 - [x] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
   stash, world-crate and corpse profiles that can carry item-provided
@@ -328,20 +330,32 @@ adapter or tear down the inventory owner/component before `RaidAuthority`
 terminalizes. Raid terminalization clears its phase handlers and, by itself,
 does not revoke equipment contributions; automatic raid-terminal-first cleanup
 is not claimed. Production UI/input, human playtest, the complete raid loop,
-multiplayer and release gates remain open. Tasks 4.11, 4.12 and 4.12a remain
-unchecked.
+multiplayer and release gates remain open. Task 4.11 remains unchecked and must
+extend the existing audited inventory workspace; 4.12 and 4.12a are accepted.
+
+Completed task evidence (4.12, 2026-09-10): persistence and authority
+replacement passed independent review after repairing allocator-floor
+convergence, generation-scoped projection result ledgers and invalidated reload
+receipt replay. The accepted 4.12a-integrated matrix passed `21157/0`, including
+persistence `97/0` with four exact round trips, nested magazines `258/0`,
+catalog `543/0`, reload `176/0`, projection `99/0` and authority `79/0`.
+Retained UI/lifecycle checks added `306/0`; strict diagnostics, spec validation,
+vendor checks and SHA-256 seals passed. A forced post-commit verification
+mismatch reports committed recovery truthfully instead of returning a false
+failure after mutation. No UI layout was changed. See
+`docs/qa/inventory_persistence/implementation/REPORT.md`.
 
 ## 5. Weapons, health and combat mechanics
 
 - [x] 5.1 `[LUNA]` Author sealed AKM, machete, ammunition and attachment content
   using stable identifiers and bounded values.
-- [ ] 5.2 `[SOL]` Create weapon instances from equipped inventory state and
+- [x] 5.2 `[SOL]` Create weapon instances from equipped inventory state and
   provide authoritative liveness, equipment, pose and usability context.
 - [ ] 5.3 `[SOL]` Implement body hitboxes for head, torso, arms and legs with a
   deterministic overlap/tie-break policy.
 - [ ] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
   committed shot once and emit one stable hit/miss consequence.
-- [ ] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
+- [x] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
   health, overall life state, stamina, hydration, heavy bleed, fracture,
   bandage and splint.
 - [ ] 5.6 `[SOL]` Implement damage, injury, healing and death consequences with
@@ -364,6 +378,33 @@ unchecked.
 
 Evidence: combat authority suite; captured shot/reload/injury sequences; no
 duplicate consequences; documented tuning values; playtest notes.
+
+Completed task evidence (5.2, 2026-09-10): the accepted integration commit
+`8ab280f24a519923bd5e09321fd631990693ad2d` creates authoritative AKM instances
+from stable equipped-inventory mappings, preserves mechanics through supported
+custody changes, and exposes generation-checked liveness, equipment, pose and
+usability context. The final repair drains all 16 exact recovery bindings with
+retryable native-failure evidence and rejects a 17th live identity before any
+public record, outcome, native snapshot or binding changes. Permanent
+integration and adversarial regressions passed `43/0` and `49/0`; the fresh
+independent review accepted `21,892/0` focused and adjacent checks plus vendor,
+import, diagnostics, strict-spec and hash gates with no P0-P3 findings. The
+bounded context supports at most 16 concurrently live stable firearm identities;
+a genuine 17th fails closed through the established raid terminal transition.
+Input routing, hit consequences, melee and presentation remain later tasks. See
+`docs/qa/weapon_instance_context/implementation/REPORT.md`.
+
+Completed task evidence (5.5, 2026-09-10): the accepted content declares seven
+body zones, 12 attributes, 34 tags, 41 effects and 41 abilities. The final
+health contract passed `392/0`; combat content `79/0`, equipment reconciliation
+`546/0` and combined add-ons `155/0` produced a sealed `1172/0` packet. An
+independent `86/86` adversarial pass covered stale future ticks, reentrancy,
+bounded concurrent reservations and a saturated 64-request native queue. A
+rejected request cannot mutate later, advance admission watermarks or strand a
+reservation; capacity can be reused. Strict spec/import/diagnostics and ten
+source hashes passed. Cross-entity consequences, bleed scheduling, death order
+and medical inventory transactions remain task 5.6. See
+`docs/qa/health_ability_content/README.md`.
 
 ## 6. AI, perception and encounter behavior
 
@@ -428,7 +469,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
 
 - [x] 8.1 `[SOL]` Make the shared Zerkov screen base participate in
   `CommonActivatableScreen` lifecycle without changing layout geometry.
-- [ ] 8.2 `[SOL]` Replace manual production navigation with CommonUI menu, HUD,
+- [x] 8.2 `[SOL]` Replace manual production navigation with CommonUI menu, HUD,
   modal and popup layers while retaining the F1 developer catalog.
 - [ ] 8.3 `[LUNA]` Author logical action definitions, default bindings, glyph
   metadata and rebinding persistence for gameplay and UI contexts.
@@ -446,8 +487,10 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   settlement receipts.
 - [ ] 8.9 `[LUNA]` Mark bunker, crafting, friends, insurance and marketplace
   actions as explicit prototype/locked features until their services exist.
-- [ ] 8.10 `[LUNA]` Port modal, focus, action routing, rebinding and adaptive
-  regression coverage to CommonUI-backed screens.
+- [ ] 8.10 `[LUNA]` Port modal, focus and action routing plus rebinding
+  regression coverage to CommonUI-backed screens. Keep any retained adaptive
+  implementation out of the current first-playable test matrix; smaller suites
+  are deferred until task 11.8 or a later approved display-support proposal.
 - [ ] 8.11 `[SOL]` Remove production reads/writes of `app.state`; keep mock
   fixtures only behind test/developer providers.
 - [ ] 8.12 `[ASTRA]` Review every real-data screen at 1920x1080 for hierarchy,
@@ -459,9 +502,23 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
 Evidence: existing 28-route smoke remains green; CommonUI lifecycle/input
 tests; real-data screenshot matrix; zero production mock-state references.
 
+Completed task evidence (8.2, 2026-09-10): independent re-review accepted the
+final active-context repair at `e48f18baeede8687a96babc64fc9069016836a3d`.
+The exact retained Saves-under-Session deletion/rename reproduction, forged,
+replayed, replaced and torn-down context capabilities, and current-owner
+single-commit path passed `31/0`. The exact 1920x1080 navigation contract passed
+`94/0` headless and native; navigation, CommonUI, lifecycle, UI, component,
+composition, crawler, add-on and native-border suites remained green. The
+screen geometry digest stayed `550b91a79fa9c5ae30bc3f736629e78429c25f56e0fc4c52bbecf38e60fa1e03`
+and the 1920x1080 capture remained byte-identical. Strict validation, editor
+import, diagnostics, frozen hashes and diff checks passed. Tasks 8.3 and 8.10
+retain binding/glyph/device and exhaustive adaptive coverage respectively; the
+smaller-layout runs are historical information, not first-playable gates. See
+`docs/qa/common_ui_navigation/implementation/REPORT.md`.
+
 ## 9. Art, animation, VFX and audio
 
-- [ ] 9.1 `[LUNA]` Create a curated asset registry with source provenance,
+- [x] 9.1 `[LUNA]` Create a curated asset registry with source provenance,
   runtime aliases, frame/atlas metadata, filtering and license fields.
 - [ ] 9.2 `[LUNA]` Add import presets/tests that keep pixel sprites nearest,
   backgrounds appropriately filtered and every `DO NOT USE` path excluded.
@@ -487,6 +544,18 @@ tests; real-data screenshot matrix; zero production mock-state references.
 
 Evidence: asset-registry validation; no forbidden imports; approved animation
 sheet; pooled-effects stress run; labeled visual/audio review evidence.
+
+Completed task evidence (9.1, 2026-09-10): the accepted registry contains 74
+stable entries and aliases, 62 verified runtime hashes, 22 verified local-source
+hashes, 12 explicitly pending entries and seven dimension-checked atlas
+declarations. The focused contract passed `1425/0`; the original independent
+adversarial probe passed `26/0`, loader probe `13/0` and integer matrix `20/0`.
+A deliberate restoration of the approximate-integer bug made ten permanent
+tests fail. Six 1920x1080 UI background sources resolve with matching bytes;
+the Sawmill source is honestly registered as a nearest-filtered prop sheet.
+Three distribution-license blockers and pre-existing Level Task source drift
+remain disclosed. This completes registry metadata only; import policy and
+slicing remain tasks 9.2 and 9.3. See `docs/qa/asset_registry/README.md`.
 
 ## 10. Multiplayer, security and release readiness
 
@@ -551,9 +620,12 @@ Evidence: separate validated change proposal for each accepted meta capability.
 
 - [ ] 12.1 `[SOL]` Run the complete deterministic headless suite from profile
   load through raid settlement and profile reload.
-- [ ] 12.2 `[LUNA]` Run all 1920x1080 UI, inventory, bunker, raid and utility
-  regressions against the integrated project. Existing smaller/responsive
-  suites may run for information but do not gate this slice.
+- [ ] 12.2 `[LUNA]` Run all exact 1920x1080 UI, navigation, lifecycle,
+  composition, reflow, component, border, crawler, inventory, bunker, raid and
+  utility regressions against the integrated project. Current acceptance MUST
+  NOT invoke smaller-resolution or responsive/compact suites, even for
+  information; historical artifacts remain audit-only until task 11.8 or a
+  later approved display-support proposal.
 - [ ] 12.3 `[SOL]` Complete ten consecutive extract/death cycles without item
   duplication, loss outside policy, stale authority mutation or save corruption.
 - [ ] 12.4 `[ASTRA]` Perform final UI, Sawmill composition and combat-feedback

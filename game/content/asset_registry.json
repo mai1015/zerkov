@@ -1,0 +1,2242 @@
+{
+  "schema_version": 1,
+  "registry_id": "zerkov.assets",
+  "content_version": 1,
+  "source_manifest": "docs/ASSETS.md",
+  "forbidden_paths": [
+    "Characters (DO NOT USE)",
+    "Clothing and Gear Sprite sets (DO NOT USE)",
+    "UI/Steam exports",
+    "UI/UX",
+    "implementation-guide"
+  ],
+  "distribution_blockers": [
+    {
+      "id": "inventory_system",
+      "status": "blocked",
+      "reference": "config/distribution_licenses.json#addons.inventory_system",
+      "reason": "The locked source and vendored package contain no license grant or package-level third-party notice. Internal evaluation only until the owner supplies them."
+    },
+    {
+      "id": "weapon_system",
+      "status": "blocked",
+      "reference": "config/distribution_licenses.json#addons.weapon_system",
+      "reason": "The locked source and vendored package contain no license grant for Weapon System itself. Internal evaluation only until the owner supplies one."
+    },
+    {
+      "id": "zerkov-handoff-and-original-art",
+      "status": "blocked",
+      "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+      "reason": "No redistribution grant or project-owned provenance record is present. These assets remain internal-development-only until ownership is documented."
+    }
+  ],
+  "assets": [
+    {
+      "id": "zerkov.asset.character.mutant1.attack",
+      "aliases": [
+        "character.mutant1.attack"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Mutants/Mutant 1/attack.png",
+        "source_status": "available_external",
+        "source_sha256": "709c50f94ec06d8419d712f1d7b1b2e58e253693fc7ede69695e81a20ffbd354"
+      },
+      "runtime_sha256": null,
+      "family": "character_source",
+      "kind": "sheet",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "notes": "Frame geometry intentionally pending explicit authoring."
+    },
+    {
+      "id": "zerkov.asset.character.mutant1.idle",
+      "aliases": [
+        "character.mutant1.idle"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Mutants/Mutant 1/idle.png",
+        "source_status": "available_external",
+        "source_sha256": "5628fdae6789d8ecdceaedef761fa5e38fcaa3696a4f24ed08c9e4239d2f3237"
+      },
+      "runtime_sha256": null,
+      "family": "character_source",
+      "kind": "sheet",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "notes": "Frame geometry intentionally pending explicit authoring."
+    },
+    {
+      "id": "zerkov.asset.character.mutant1.walk",
+      "aliases": [
+        "character.mutant1.walk"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Mutants/Mutant 1/walk.png",
+        "source_status": "available_external",
+        "source_sha256": "d373acb75e843fa67dbadc1852c5048419ece0852928633e186deab23ffd8d84"
+      },
+      "runtime_sha256": null,
+      "family": "character_source",
+      "kind": "sheet",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "notes": "Frame geometry intentionally pending explicit authoring."
+    },
+    {
+      "id": "zerkov.asset.character.npc1.ak_overlay",
+      "aliases": [
+        "character.npc1.ak_overlay"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "NPC/NPC 1/arms+ak.png",
+        "source_status": "available_external",
+        "source_sha256": "77284f0164474e818f00021a5bfc3d4d53ae99f8257de6400cb87a8f7a37be22"
+      },
+      "runtime_sha256": null,
+      "family": "character_source",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "notes": "Small held-weapon overlay; no frame geometry inferred."
+    },
+    {
+      "id": "zerkov.asset.character.npc1.idle",
+      "aliases": [
+        "character.npc1.idle"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "NPC/NPC 1/idle-no-arms.png",
+        "source_status": "available_external",
+        "source_sha256": "54f594c70447e5db2625ea4ed4a2e18f8964eccef438abcddeee8555747f632e"
+      },
+      "runtime_sha256": null,
+      "family": "character_source",
+      "kind": "sheet",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          384,
+          64
+        ],
+        "cell_size": [
+          64,
+          64
+        ],
+        "columns": 6,
+        "rows": 1,
+        "frame_count": 6
+      },
+      "notes": "Explicit 64 px authored cells; composition belongs to task 9.4."
+    },
+    {
+      "id": "zerkov.asset.character.player.white_arms.idle",
+      "aliases": [
+        "character.player.white_arms.idle"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Main character/white arms/idle-arms.png",
+        "source_status": "available_external",
+        "source_sha256": "1e3f75df134733ffe56e66e7c77a323626ecd0de0d5552f21718209629a05faa"
+      },
+      "runtime_sha256": null,
+      "family": "character_source",
+      "kind": "sheet",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          384,
+          64
+        ],
+        "cell_size": [
+          64,
+          64
+        ],
+        "columns": 6,
+        "rows": 1,
+        "frame_count": 6
+      },
+      "notes": "Explicit 64 px authored cells; layered composition belongs to task 9.4."
+    },
+    {
+      "id": "zerkov.asset.character.player.white_arms.walk",
+      "aliases": [
+        "character.player.white_arms.walk"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Main character/white arms/walk-arms.png",
+        "source_status": "available_external",
+        "source_sha256": "09007eb0d7c305c973104f3cdda3f1b7b5a4e0ad3a318195b9878de70069819a"
+      },
+      "runtime_sha256": null,
+      "family": "character_source",
+      "kind": "sheet",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          384,
+          64
+        ],
+        "cell_size": [
+          64,
+          64
+        ],
+        "columns": 6,
+        "rows": 1,
+        "frame_count": 6
+      },
+      "notes": "Explicit 64 px authored cells; layered composition belongs to task 9.4."
+    },
+    {
+      "id": "zerkov.asset.font.chakrapetch_bold",
+      "aliases": [
+        "font.chakra_petch.bold"
+      ],
+      "runtime_path": "res://assets/fonts/ChakraPetch-Bold.ttf",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "https://raw.githubusercontent.com/google/fonts/main",
+        "source_relative_path": "ofl/chakrapetch/ChakraPetch-Bold.ttf",
+        "source_status": "unavailable_external",
+        "source_sha256": null
+      },
+      "runtime_sha256": "65fbf76d95651697275e19db4d717c0e95a789ddd3476478b05292104db278a0",
+      "family": "fonts",
+      "kind": "font",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "SIL Open Font License 1.1",
+        "reference": "res://assets/fonts/OFL-ChakraPetch.txt",
+        "reason": null
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.font.chakrapetch_medium",
+      "aliases": [
+        "font.chakra_petch.medium"
+      ],
+      "runtime_path": "res://assets/fonts/ChakraPetch-Medium.ttf",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "https://raw.githubusercontent.com/google/fonts/main",
+        "source_relative_path": "ofl/chakrapetch/ChakraPetch-Medium.ttf",
+        "source_status": "unavailable_external",
+        "source_sha256": null
+      },
+      "runtime_sha256": "d480f4f97405fac3600652e2e14fd0b14339031c0af4da11582994878f04d919",
+      "family": "fonts",
+      "kind": "font",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "SIL Open Font License 1.1",
+        "reference": "res://assets/fonts/OFL-ChakraPetch.txt",
+        "reason": null
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.font.chakrapetch_regular",
+      "aliases": [
+        "font.chakra_petch.regular"
+      ],
+      "runtime_path": "res://assets/fonts/ChakraPetch-Regular.ttf",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "https://raw.githubusercontent.com/google/fonts/main",
+        "source_relative_path": "ofl/chakrapetch/ChakraPetch-Regular.ttf",
+        "source_status": "unavailable_external",
+        "source_sha256": null
+      },
+      "runtime_sha256": "98fcd638baa5c81ff0316b7538ce330ee3b23b1302726de3526d5933a8ecf986",
+      "family": "fonts",
+      "kind": "font",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "SIL Open Font License 1.1",
+        "reference": "res://assets/fonts/OFL-ChakraPetch.txt",
+        "reason": null
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.font.chakrapetch_semibold",
+      "aliases": [
+        "font.chakra_petch.semibold"
+      ],
+      "runtime_path": "res://assets/fonts/ChakraPetch-SemiBold.ttf",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "https://raw.githubusercontent.com/google/fonts/main",
+        "source_relative_path": "ofl/chakrapetch/ChakraPetch-SemiBold.ttf",
+        "source_status": "unavailable_external",
+        "source_sha256": null
+      },
+      "runtime_sha256": "45264de3204ddbd5fb3e14a2402acd5c630d16650ae5fc221d2c52da46a6734b",
+      "family": "fonts",
+      "kind": "font",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "SIL Open Font License 1.1",
+        "reference": "res://assets/fonts/OFL-ChakraPetch.txt",
+        "reason": null
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.font.ibmplexmono_medium",
+      "aliases": [
+        "font.ibm_plex_mono.medium"
+      ],
+      "runtime_path": "res://assets/fonts/IBMPlexMono-Medium.ttf",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "https://raw.githubusercontent.com/google/fonts/main",
+        "source_relative_path": "ofl/ibmplexmono/IBMPlexMono-Medium.ttf",
+        "source_status": "unavailable_external",
+        "source_sha256": null
+      },
+      "runtime_sha256": "a9b4c49bb299e05b5f6c481e7fb5e78943d2793249a0c8874ab574a2d1ea6755",
+      "family": "fonts",
+      "kind": "font",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "SIL Open Font License 1.1",
+        "reference": "res://assets/fonts/OFL-IBM-Plex-Mono.txt",
+        "reason": null
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.font.ibmplexmono_regular",
+      "aliases": [
+        "font.ibm_plex_mono.regular"
+      ],
+      "runtime_path": "res://assets/fonts/IBMPlexMono-Regular.ttf",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "https://raw.githubusercontent.com/google/fonts/main",
+        "source_relative_path": "ofl/ibmplexmono/IBMPlexMono-Regular.ttf",
+        "source_status": "unavailable_external",
+        "source_sha256": null
+      },
+      "runtime_sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46",
+      "family": "fonts",
+      "kind": "font",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "SIL Open Font License 1.1",
+        "reference": "res://assets/fonts/OFL-IBM-Plex-Mono.txt",
+        "reason": null
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.font.ibmplexmono_semibold",
+      "aliases": [
+        "font.ibm_plex_mono.semibold"
+      ],
+      "runtime_path": "res://assets/fonts/IBMPlexMono-SemiBold.ttf",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "https://raw.githubusercontent.com/google/fonts/main",
+        "source_relative_path": "ofl/ibmplexmono/IBMPlexMono-SemiBold.ttf",
+        "source_status": "unavailable_external",
+        "source_sha256": null
+      },
+      "runtime_sha256": "d3c38e55c78f5b0f28009fddba4834ec503278936a5986032424c9bd2d23aa46",
+      "family": "fonts",
+      "kind": "font",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "SIL Open Font License 1.1",
+        "reference": "res://assets/fonts/OFL-IBM-Plex-Mono.txt",
+        "reason": null
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.akm",
+      "aliases": [
+        "item.weapon.akm"
+      ],
+      "runtime_path": "res://assets/handoff/gun_ak.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "gun_ak.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "1ba0f8fa7b6f191508c6b2e99669146fcc5498d7dd552e43e10943362c43537b",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.weapon.akm",
+        "zerkov.weapon.akm"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.backpack",
+      "aliases": [
+        "item.backpack_daypack"
+      ],
+      "runtime_path": "res://assets/handoff/ph_backpack.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ph_backpack.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "aa03a07d8827bac032eb4d26b73785c3551c21e5e8155b5f3244ed8e2a3d6bcb",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.gear.backpack_daypack"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.bunker_map",
+      "aliases": [
+        "ui.bunker_map"
+      ],
+      "runtime_path": "res://assets/handoff/bunker_map.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "bunker_map.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "e3b2391f9fd374c8a0c33a97af9651b560becca3092899bac79221bf0da24f44",
+      "family": "handoff",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.craft_arrow",
+      "aliases": [
+        "ui.craft_arrow"
+      ],
+      "runtime_path": "res://assets/handoff/craft_arrow.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "craft_arrow.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "a30c85b739482cfe159470cdefe75a706dc1e7fbb72c7c1e3c15f488fe5b9b0a",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.crosshair",
+      "aliases": [
+        "ui.crosshair"
+      ],
+      "runtime_path": "res://assets/handoff/crosshair.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "crosshair.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "581c5346b449ca81d4b231ea452d0cc4ab28de819eac023e7a0ec636937e3dae",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.energy",
+      "aliases": [
+        "hud.energy"
+      ],
+      "runtime_path": "res://assets/handoff/ico_energy.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ico_energy.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "4049252e5880ff6c3203b19e1f0fbcc1ba3ee4d5d5275945527f17215a480c7e",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.health",
+      "aliases": [
+        "hud.health"
+      ],
+      "runtime_path": "res://assets/handoff/ico_health.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ico_health.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "6ac7fd8f7c9758d66dcb14baa0aaf6f9f654921a73aa57bb9fc7060dd285fc1c",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.item_battery",
+      "aliases": [
+        "item.battery"
+      ],
+      "runtime_path": "res://assets/handoff/item_battery.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_battery.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "af95f8fc5bbe4d967dc337327a7439a7de54b10ed4ede659a301e37930183de2",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.junk.battery"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.item_book",
+      "aliases": [
+        "item.sealed_documents"
+      ],
+      "runtime_path": "res://assets/handoff/item_book.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_book.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "c351c45c72cf3ba226ee1fe7d24f2aa1dd30b5f00f6a31a6ebadcb317ecded60",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.quest.sealed_documents"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.item_bottle",
+      "aliases": [
+        "item.bottle"
+      ],
+      "runtime_path": "res://assets/handoff/item_bottle.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_bottle.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "34cb65cd18d2bbc4085c9d556f9fef4b6c7298b2bcf5585c5c3855bde5fc1279",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.item_box",
+      "aliases": [
+        "item.box"
+      ],
+      "runtime_path": "res://assets/handoff/item_box.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_box.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "46a2d72d55c254b0b23fb574738836c3e9fe43eb9dcc07accd177b29779de929",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.quest.supply_crate",
+        "zerkov.item.valuable.encrypted_drive",
+        "zerkov.item.valuable.gold_watch"
+      ],
+      "notes": "Neutral placeholder art; it never changes the linked item identity."
+    },
+    {
+      "id": "zerkov.asset.handoff.item_chess",
+      "aliases": [
+        "item.chess"
+      ],
+      "runtime_path": "res://assets/handoff/item_chess.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_chess.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "041dc5dc1bb3a6ab58d4fc4d5304e5e6362012fe9586000448243892f46105fb",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.item_coal",
+      "aliases": [
+        "item.coal"
+      ],
+      "runtime_path": "res://assets/handoff/item_coal.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_coal.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "0f0452b7e8a5425730880eaac6844b4baf97220240e3f8206be1745c85790420",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.item_cup",
+      "aliases": [
+        "item.cup"
+      ],
+      "runtime_path": "res://assets/handoff/item_cup.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_cup.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "56fb58c03dd06fcdf3e535415ef2176c3a5292c628d0f1f53f9a2082c5beb2f3",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.item_fish",
+      "aliases": [
+        "item.fish"
+      ],
+      "runtime_path": "res://assets/handoff/item_fish.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_fish.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "92ef0f73856160e06fd021c85c7a1ce9407dabc608f7d8423ce30547c8d691d1",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.item_parts",
+      "aliases": [
+        "item.bolts"
+      ],
+      "runtime_path": "res://assets/handoff/item_parts.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_parts.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "a2df3e56093809ba8fc7d6d1922a8243173508243b6d2a1457093f7ae05054db",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.junk.bolts"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.item_potion",
+      "aliases": [
+        "item.potion"
+      ],
+      "runtime_path": "res://assets/handoff/item_potion.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_potion.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "b0a04fae296a40ec5fc8348984b20e6e367b6ea140d26d7fbf7211ca940160c5",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.item_rig",
+      "aliases": [
+        "item.rig_basic"
+      ],
+      "runtime_path": "res://assets/handoff/item_rig.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_rig.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "c99430a10d40672fb58e537eb68e765994505c2a3eb25dc0a0c6f2286d4d9db7",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.gear.rig_basic"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.item_tape",
+      "aliases": [
+        "item.duct_tape"
+      ],
+      "runtime_path": "res://assets/handoff/item_tape.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "item_tape.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "e2c4e6b94ab1de60a8852e3c7a0ab0b34e1d04f3e60b3f70cb8e0093d08e9dd6",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.junk.duct_tape"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.keyart",
+      "aliases": [
+        "ui.keyart"
+      ],
+      "runtime_path": "res://assets/handoff/keyart.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "keyart.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "57c5e7de323939dbbadd017e8214bfb23e4dad7d7a1c8b4759a0c5b6e39c36ac",
+      "family": "handoff",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.level",
+      "aliases": [
+        "ui.level"
+      ],
+      "runtime_path": "res://assets/handoff/lvl_icon.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "lvl_icon.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "a53fab29da4165b9f99d4581ea372a536b3b6766b78cb5acce82780e64eec90c",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.logo",
+      "aliases": [
+        "ui.logo"
+      ],
+      "runtime_path": "res://assets/handoff/logo_white_pixel.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "logo_white_pixel.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "caaf08211a98fd036e9ef2426bd56e08d90d44f8735e2acf2791aaaccf1ae415",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.longgun",
+      "aliases": [
+        "hud.longgun"
+      ],
+      "runtime_path": "res://assets/handoff/ico_longgun.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ico_longgun.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "3354d4c7f694e7a0183b5dfe83d75bc4d4f284212fe652b6031ed7f58903584c",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.machete",
+      "aliases": [
+        "item.weapon.machete"
+      ],
+      "runtime_path": "res://assets/handoff/gun_machete.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "gun_machete.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "94dbe111c65226a42f92f013ea473339e4ddc0f77d9e84621795cbe859576769",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.weapon.machete",
+        "zerkov.weapon.machete"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.magazine",
+      "aliases": [
+        "item.magazine.akm_30"
+      ],
+      "runtime_path": "res://assets/handoff/ph_mag.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ph_mag.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "55660ae3d1c24fc934f8099f3e4e5d623ad9b13350a6eadc2bf6747fc638babf",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.magazine.akm_30"
+      ]
+    },
+    {
+      "id": "zerkov.asset.handoff.melee",
+      "aliases": [
+        "hud.melee"
+      ],
+      "runtime_path": "res://assets/handoff/ico_melee.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ico_melee.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "57ee742dda73f215d29209fbfeebe2a839074320f34c176d1f5e4d138e5e5d16",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.merchant",
+      "aliases": [
+        "ui.merchant"
+      ],
+      "runtime_path": "res://assets/handoff/merchant.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "merchant.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "511816d0663c52afc5049a258083550c189a0b7d92263d781c3799b061d83b6d",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.pistol",
+      "aliases": [
+        "ui.weapon.pistol"
+      ],
+      "runtime_path": "res://assets/handoff/wpn_pistol.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "wpn_pistol.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "ad4c2d7101ee61b9809a2d6487d652bd116692d39f4bc1d871913ff54a61bd1d",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.player_sprite",
+      "aliases": [
+        "raid.player_marker"
+      ],
+      "runtime_path": "res://assets/handoff/player_sprite.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "player_sprite.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "748cceebdf00f50d980131570ffb1495a20015697695fc759b32162a4780ddb9",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.raid_frame",
+      "aliases": [
+        "ui.raid_frame"
+      ],
+      "runtime_path": "res://assets/handoff/bg_raid_frame.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "bg_raid_frame.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "74275b24b92a58e38de51915bbd44d5153f70b1a9306e4d650246eeeea7715ab",
+      "family": "handoff",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.shortgun",
+      "aliases": [
+        "hud.shortgun"
+      ],
+      "runtime_path": "res://assets/handoff/ico_shortgun.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ico_shortgun.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "f8ccfe926b2d7a170abb1d65511d8b86b9e04d82d4f20d27cb9fc1b0339af6d0",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.shotgun",
+      "aliases": [
+        "ui.weapon.shotgun"
+      ],
+      "runtime_path": "res://assets/handoff/gun_shotgun.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "gun_shotgun.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "f94beca1a02392ec6aad515bbdc743b810a03c5d5b5362aa8993693c909ecc29",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.sil_gear",
+      "aliases": [
+        "ui.silhouette.gear"
+      ],
+      "runtime_path": "res://assets/handoff/sil_gear.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "sil_gear.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "99a4bb2bbf921db7dc4c0553c87fa29a24a7aa05fc1f32b8856777869f12195b",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.sil_health",
+      "aliases": [
+        "ui.silhouette.health"
+      ],
+      "runtime_path": "res://assets/handoff/sil_health.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "sil_health.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "c43cc659071fb82911d069e363faeffae802073c3d640c6b629205136838a305",
+      "family": "handoff",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.stash_all",
+      "aliases": [
+        "ui.stash.all"
+      ],
+      "runtime_path": "res://assets/handoff/st_all.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "st_all.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "d7f9cd46969546b5dda2ffc8edc26e8c9869d7c7f3c5399085d888ee9eed2914",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.stash_ammo",
+      "aliases": [
+        "ui.stash.ammo"
+      ],
+      "runtime_path": "res://assets/handoff/st_ammo.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "st_ammo.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "dd5527f3ee8e7114237c6a466f6863ce54e1c76ab45700c7a0480db6eea3649c",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.stash_armor",
+      "aliases": [
+        "ui.stash.armor"
+      ],
+      "runtime_path": "res://assets/handoff/st_armor.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "st_armor.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "ade618b8c0494a08be9525fc150ee7da425670aa82f7a18a3ef8cba3a64551ca",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.stash_clothing",
+      "aliases": [
+        "ui.stash.clothing"
+      ],
+      "runtime_path": "res://assets/handoff/st_clothing.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "st_clothing.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "14cb1a900c084d63eb81d195c8041733c7d8b770fb7e96fc30b13a08466f3c8e",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.stash_food",
+      "aliases": [
+        "ui.stash.food"
+      ],
+      "runtime_path": "res://assets/handoff/st_food.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "st_food.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "0aea362cd47fd0dc6b27a583825b942d0b6d67704bcedc17d8b4e41d05ffdfda",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.stash_guns",
+      "aliases": [
+        "ui.stash.guns"
+      ],
+      "runtime_path": "res://assets/handoff/st_guns.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "st_guns.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "40af793e355bfa11c4f8d29e85b5b25545113874d400c6d55ded77d0ef4b9dde",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.stash_util",
+      "aliases": [
+        "ui.stash.utilities"
+      ],
+      "runtime_path": "res://assets/handoff/st_util.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "st_util.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "b8a7e9aeb1ee4bf944e381c7518b4d656e0fec366a291ba62f8c6b46832858af",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.tab_gear",
+      "aliases": [
+        "ui.tab.gear"
+      ],
+      "runtime_path": "res://assets/handoff/tab_gear.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "tab_gear.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "79d629b3a3e489c791710a8fc6d0f27ed1e2c30b1317c7699f6a4e8c68b61d02",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.tab_health",
+      "aliases": [
+        "ui.tab.health"
+      ],
+      "runtime_path": "res://assets/handoff/tab_health.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "tab_health.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "569ab42e9a7ac0d82aa613c31c1460285f30f34f6b8fa5546740b121f6edfe78",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.tab_stats",
+      "aliases": [
+        "ui.tab.stats"
+      ],
+      "runtime_path": "res://assets/handoff/tab_stats.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "tab_stats.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "bb1700d40fd79a78ba1709a9175735f52c049b1ff1c4dc5e9aef8af170939de2",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.handoff.thirst",
+      "aliases": [
+        "hud.thirst"
+      ],
+      "runtime_path": "res://assets/handoff/ico_thirst.png",
+      "availability": "imported_source_missing",
+      "provenance": {
+        "source_root": "/Volumes/Data/Downloads/handoff/assets",
+        "source_relative_path": "ico_thirst.png",
+        "source_status": "missing",
+        "source_sha256": null
+      },
+      "runtime_sha256": "dc35f27d6477f0e2e6e28fc05a52c3dbe5b87dd773bb3e789e1f549f39cb0fbf",
+      "family": "handoff",
+      "kind": "icon",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Handoff art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.original.ammo.standard_762x39",
+      "aliases": [
+        "item.ammo.762x39.standard"
+      ],
+      "runtime_path": "res://assets/original/Ammo/Ammo Bullets-Standard 7.62mm.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Ammo/Ammo Bullets-Standard 7.62mm.png",
+        "source_status": "available",
+        "source_sha256": "10053a52a3608f0ee0a4a5ad008ede34003daca890714c33ee398baf11695955"
+      },
+      "runtime_sha256": "10053a52a3608f0ee0a4a5ad008ede34003daca890714c33ee398baf11695955",
+      "family": "original_ammo",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.ammo.caliber_762x39_standard"
+      ]
+    },
+    {
+      "id": "zerkov.asset.original.bunker.basic_bandages",
+      "aliases": [
+        "item.medical.bandage"
+      ],
+      "runtime_path": "res://assets/original/Bunker Items/Basic Bandages.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Bunker Items/Basic Bandages.png",
+        "source_status": "available",
+        "source_sha256": "6e5764674376dc959dbd01794f675291f58904f896729de447b4782ff9d3346f"
+      },
+      "runtime_sha256": "6e5764674376dc959dbd01794f675291f58904f896729de447b4782ff9d3346f",
+      "family": "original_bunker_items",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.medical.bandage"
+      ]
+    },
+    {
+      "id": "zerkov.asset.original.bunker.splint",
+      "aliases": [
+        "item.medical.splint"
+      ],
+      "runtime_path": "res://assets/original/Bunker Items/Splint.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Bunker Items/Splint.png",
+        "source_status": "available",
+        "source_sha256": "5ff49d65ecb55da15566043f1409a0f66f0ce45090213580abf87fd64acff534"
+      },
+      "runtime_sha256": "5ff49d65ecb55da15566043f1409a0f66f0ce45090213580abf87fd64acff534",
+      "family": "original_bunker_items",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.medical.splint"
+      ]
+    },
+    {
+      "id": "zerkov.asset.original.inventory.scrap_metal",
+      "aliases": [
+        "item.junk.scrap_metal"
+      ],
+      "runtime_path": "res://assets/original/inventory items/Metal.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "inventory items/Metal.png",
+        "source_status": "available",
+        "source_sha256": "42b9090338372e670b6db2ed28c0de230671339d48cdf2a449d3cb7db8ea6341"
+      },
+      "runtime_sha256": "42b9090338372e670b6db2ed28c0de230671339d48cdf2a449d3cb7db8ea6341",
+      "family": "original_inventory_items",
+      "kind": "sprite",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": [
+        "zerkov.item.junk.scrap_metal"
+      ]
+    },
+    {
+      "id": "zerkov.asset.original.ui.background.clouds",
+      "aliases": [
+        "ui.background.clouds"
+      ],
+      "runtime_path": "res://assets/original/UI/UI/Background UI/background_layer-5_clouds.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
+        "source_relative_path": "Background UI/background_layer-5_clouds.png",
+        "source_status": "available",
+        "source_sha256": "8f0810c125c68b600309e5135b4dca212fb522cf5f3b8e88506bcf5135d37954"
+      },
+      "runtime_sha256": "8f0810c125c68b600309e5135b4dca212fb522cf5f3b8e88506bcf5135d37954",
+      "family": "original_ui",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.original.ui.background.foreground",
+      "aliases": [
+        "ui.background.foreground"
+      ],
+      "runtime_path": "res://assets/original/UI/UI/Background UI/background_Layer-1_Front_CORRECTED.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
+        "source_relative_path": "Background UI/background_Layer-1_Front_CORRECTED.png",
+        "source_status": "available",
+        "source_sha256": "7c44574e5dfa02e56e849f9e232dee4854a9193787909598dc5d652ad35faa7a"
+      },
+      "runtime_sha256": "7c44574e5dfa02e56e849f9e232dee4854a9193787909598dc5d652ad35faa7a",
+      "family": "original_ui",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.original.ui.background.house",
+      "aliases": [
+        "ui.background.house"
+      ],
+      "runtime_path": "res://assets/original/UI/UI/Background UI/background_layer-2_house.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
+        "source_relative_path": "Background UI/background_layer-2_house.png",
+        "source_status": "available",
+        "source_sha256": "ea4567eb43cc1a9eee7d1d0e264ab8ef4b201333cae70b21343ea8eaedaa0cc5"
+      },
+      "runtime_sha256": "ea4567eb43cc1a9eee7d1d0e264ab8ef4b201333cae70b21343ea8eaedaa0cc5",
+      "family": "original_ui",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.original.ui.background.logo_clouds",
+      "aliases": [
+        "ui.background.logo_clouds"
+      ],
+      "runtime_path": "res://assets/original/UI/UI/Background UI/background_layer-6_logo-clouds.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
+        "source_relative_path": "Background UI/background_layer-6_logo-clouds.png",
+        "source_status": "available",
+        "source_sha256": "25f0343637c99f486abbf63f154a6b773bc2ff7cbc7a7d99a930f29104232469"
+      },
+      "runtime_sha256": "25f0343637c99f486abbf63f154a6b773bc2ff7cbc7a7d99a930f29104232469",
+      "family": "original_ui",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.original.ui.background.mountains",
+      "aliases": [
+        "ui.background.mountains"
+      ],
+      "runtime_path": "res://assets/original/UI/UI/Background UI/background_layer-3_mountains.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
+        "source_relative_path": "Background UI/background_layer-3_mountains.png",
+        "source_status": "available",
+        "source_sha256": "ee829867e0dcbe78730e0d709a2c1ca8ac141cedd317d1e975e6921d92b277d4"
+      },
+      "runtime_sha256": "ee829867e0dcbe78730e0d709a2c1ca8ac141cedd317d1e975e6921d92b277d4",
+      "family": "original_ui",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.original.ui.background.sky",
+      "aliases": [
+        "ui.background.sky"
+      ],
+      "runtime_path": "res://assets/original/UI/UI/Background UI/background_layer-4_sky.png",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
+        "source_relative_path": "Background UI/background_layer-4_sky.png",
+        "source_status": "available",
+        "source_sha256": "60218b16e108be4a56c084f4338094beb988e0ccdbd1c1a5f7d87b491bba180b"
+      },
+      "runtime_sha256": "60218b16e108be4a56c084f4338094beb988e0ccdbd1c1a5f7d87b491bba180b",
+      "family": "original_ui",
+      "kind": "background",
+      "filtering": {
+        "mode": "linear",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "Original art has no redistribution grant or project-owned provenance record."
+      },
+      "content_links": []
+    },
+    {
+      "id": "zerkov.asset.world.exterior.fenches",
+      "aliases": [
+        "world.exterior.fenches"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Exterior/Fenches.png",
+        "source_status": "available_external",
+        "source_sha256": "d442671240815cb6443b5e6c7664639b15c5d889709e3a8efc82bb5aa397920d"
+      },
+      "runtime_sha256": null,
+      "family": "world_source",
+      "kind": "atlas",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          1152,
+          320
+        ],
+        "cell_size": [
+          32,
+          32
+        ],
+        "columns": 36,
+        "rows": 10,
+        "frame_count": 360
+      },
+      "notes": "Source spelling is preserved exactly; do not normalize Fenches to Fences."
+    },
+    {
+      "id": "zerkov.asset.world.exterior.props",
+      "aliases": [
+        "world.exterior.props"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Exterior/Props.png",
+        "source_status": "available_external",
+        "source_sha256": "cc8bf90b881256a4299313b709cb834139f6bba8e0d8659d7d7a90a054963142"
+      },
+      "runtime_sha256": null,
+      "family": "world_source",
+      "kind": "atlas",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          704,
+          704
+        ],
+        "cell_size": [
+          32,
+          32
+        ],
+        "columns": 22,
+        "rows": 22,
+        "frame_count": 484
+      }
+    },
+    {
+      "id": "zerkov.asset.world.exterior.roads",
+      "aliases": [
+        "world.exterior.roads"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Exterior/Roads.png",
+        "source_status": "available_external",
+        "source_sha256": "79fa71ea0aea83ddd066d88572a498d9560e5c917ee13b39e8c40d1fa0c2a90b"
+      },
+      "runtime_sha256": null,
+      "family": "world_source",
+      "kind": "atlas",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          832,
+          384
+        ],
+        "cell_size": [
+          32,
+          32
+        ],
+        "columns": 26,
+        "rows": 12,
+        "frame_count": 312
+      },
+      "notes": "Selected 32 px road source-tile sheet; slicing belongs to task 9.3."
+    },
+    {
+      "id": "zerkov.asset.world.exterior_textures",
+      "aliases": [
+        "world.exterior.textures"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Exterior/Exterior Textures.png",
+        "source_status": "available_external",
+        "source_sha256": "9b09c86b46b9115953362e2a29e48c3f17b5f6cea3e91d95d23727725b91e09a"
+      },
+      "runtime_sha256": null,
+      "family": "world_source",
+      "kind": "atlas",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          704,
+          704
+        ],
+        "cell_size": [
+          32,
+          32
+        ],
+        "columns": 22,
+        "rows": 22,
+        "frame_count": 484
+      },
+      "notes": "Selected 32 px source-tile sheet; TileSet authoring belongs to task 3.3."
+    },
+    {
+      "id": "zerkov.asset.world.sawmill.prop_sheet",
+      "aliases": [
+        "world.sawmill.prop_sheet"
+      ],
+      "runtime_path": "",
+      "availability": "pending_unimported",
+      "provenance": {
+        "source_root": "/Volumes/Data/Assets/zerkov",
+        "source_relative_path": "Lumber Yard/Lumber yard.png",
+        "source_status": "available_external",
+        "source_sha256": "fd2152209bda587d23d25573c03b7b127970b2a9f2f1d891d37897b1e29789ff"
+      },
+      "runtime_sha256": null,
+      "family": "world_source",
+      "kind": "prop_sheet",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "blocked",
+        "name": null,
+        "reference": "config/distribution_licenses.json#asset_families.zerkov-handoff-and-original-art",
+        "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
+      },
+      "content_links": [],
+      "notes": "1000x800 pixel-art prop sheet; slicing belongs to task 9.3."
+    }
+  ]
+}

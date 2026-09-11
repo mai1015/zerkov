@@ -76,6 +76,7 @@ var _weapon_port_token: String = ""
 var _bindings: Dictionary = {}
 var _pending_by_weapon: Dictionary = {}
 var _pending_by_reservation: Dictionary = {}
+var _terminal_quarantine_receipts: Dictionary = {}
 var _request_receipts: Dictionary = {}
 var _receipt_order: PackedStringArray = PackedStringArray()
 var _transaction_active: bool = false
@@ -158,6 +159,13 @@ func commit_capability() -> WeaponReloadParticipantPort.CommitCapability:
 		if _weapon_port != null else WeaponReloadParticipantPort.CommitCapability.UNAVAILABLE
 
 
+## Opaque provenance for game-owned composition adapters. This permits task
+## 5.2 to prove that instance lifecycle and reload coordination target the
+## exact same WeaponAuthority without exposing either participant for mutation.
+func weapon_port_identity_token() -> String:
+	return _weapon_port_token if is_bound() else ""
+
+
 func recovery_details() -> Dictionary:
 	return _recovery_details.duplicate(true)
 
@@ -215,6 +223,116 @@ func register_weapon(mapping: Dictionary, binding_generation: int) -> Dictionary
 		"inventory_revision": _inventory_authority.inventory_revision(_inventory_id),
 		"weapon_revision": int(weapon_snapshot.get("revision", -1)),
 	}
+
+
+## Retires one instance binding without mutating either native authority. This
+## cleanup operation deliberately does not require a current inventory runtime:
+## owner lifecycle signals arrive after native inventory erasure, while the
+## game-owned binding must still be explicitly accounted for. Exact replay is a
+## no-op; a stale generation can never remove a replacement binding.
+func unregister_weapon(weapon_id: String, binding_generation: int) -> Dictionary:
+	last_error = &""
+	if _transaction_active or _public_signal_active:
+		return _rejection(&"reentrant_binding_change")
+	if ZWeaponId.parse(weapon_id) == null:
+		return _rejection(&"weapon_id_invalid")
+	if binding_generation <= 0:
+		return _rejection(&"weapon_binding_generation_invalid")
+	var existing := _bindings.get(weapon_id, {}) as Dictionary
+	if existing.is_empty():
+		return {
+			"accepted": true,
+			"replayed": true,
+			"weapon_id": weapon_id,
+			"binding_generation": binding_generation,
+		}
+	if lifecycle != Lifecycle.BOUND and lifecycle != Lifecycle.RECOVERY_REQUIRED:
+		return _rejection(&"adapter_not_bound")
+	if _pending_by_weapon.has(weapon_id):
+		return _rejection(&"weapon_reload_active")
+	if int(existing.get("binding_generation", 0)) != binding_generation:
+		return _rejection(&"weapon_binding_generation_stale")
+	_bindings.erase(weapon_id)
+	return {
+		"accepted": true,
+		"replayed": false,
+		"weapon_id": weapon_id,
+		"binding_generation": binding_generation,
+	}
+
+
+## Retires one exact reload binding after its native inventory runtime has
+## already disappeared. This is a terminal owner-loss quarantine, not reload
+## recovery: no inventory or weapon mutation is attempted here. The owning
+## weapon-instance adapter remains responsible for retiring the corresponding
+## native weapon and accounting for any reservation id returned by that
+## removal. Exact receipts make a retry idempotent and prevent an old cleanup
+## request from retiring a replacement binding.
+func quarantine_weapon_after_inventory_loss(
+	weapon_id: String,
+	binding_generation: int
+) -> Dictionary:
+	last_error = &""
+	if _transaction_active or _public_signal_active:
+		return _rejection(&"reentrant_binding_change")
+	if ZWeaponId.parse(weapon_id) == null:
+		return _rejection(&"weapon_id_invalid")
+	if binding_generation <= 0:
+		return _rejection(&"weapon_binding_generation_invalid")
+	var prior := _terminal_quarantine_receipts.get(weapon_id, {}) as Dictionary
+	if not prior.is_empty():
+		if int(prior.get("binding_generation", 0)) != binding_generation:
+			return _rejection(&"weapon_binding_generation_stale")
+		var replay := prior.duplicate(true)
+		replay["replayed"] = true
+		return replay
+	if lifecycle != Lifecycle.BOUND and lifecycle != Lifecycle.RECOVERY_REQUIRED:
+		return _rejection(&"adapter_not_bound")
+	if _inventory_runtime_is_live():
+		return _rejection(&"inventory_runtime_still_live")
+	if _terminal_quarantine_receipts.size() >= MAX_PENDING_RELOADS:
+		return _rejection(&"terminal_quarantine_receipt_limit")
+	var existing := _bindings.get(weapon_id, {}) as Dictionary
+	if existing.is_empty():
+		return _rejection(&"weapon_binding_missing")
+	if int(existing.get("binding_generation", 0)) != binding_generation:
+		return _rejection(&"weapon_binding_generation_stale")
+	var reservation_id := String(_pending_by_weapon.get(weapon_id, ""))
+	if not reservation_id.is_empty():
+		var pending := _pending_by_reservation.get(reservation_id, {}) as Dictionary
+		if pending.is_empty() \
+				or String(pending.get("weapon_id", "")) != weapon_id \
+				or int(pending.get("weapon_binding_generation", 0)) != binding_generation \
+				or String(pending.get("reservation_id", "")) != reservation_id:
+			return _rejection(&"terminal_quarantine_evidence_invalid")
+	if _bindings.size() == 1 and (
+			_pending_by_weapon.size() > (0 if reservation_id.is_empty() else 1) \
+			or _pending_by_reservation.size() > (0 if reservation_id.is_empty() else 1)):
+		return _rejection(&"terminal_quarantine_evidence_invalid")
+
+	if not reservation_id.is_empty():
+		_pending_by_weapon.erase(weapon_id)
+		_pending_by_reservation.erase(reservation_id)
+	_bindings.erase(weapon_id)
+	var receipt := {
+		"accepted": true,
+		"replayed": false,
+		"terminal_quarantine": true,
+		"weapon_id": weapon_id,
+		"binding_generation": binding_generation,
+		"reservation_id": reservation_id,
+		"inventory_id": _inventory_id,
+		"owner_generation": _owner_generation,
+	}
+	_terminal_quarantine_receipts[weapon_id] = receipt.duplicate(true)
+	if _bindings.is_empty():
+		_disconnect_inventory_lifecycle()
+		lifecycle = Lifecycle.INVALIDATED
+		last_error = &"authority_invalidation"
+		_generation_counter += 1
+		_adapter_generation = _generation_counter
+		_emit_invalidation(last_error)
+	return receipt
 
 
 func begin_reload(intent: Dictionary) -> Dictionary:
@@ -541,6 +659,7 @@ func release_binding(reason: StringName = &"teardown", tick: int = 0) -> bool:
 	_bindings.clear()
 	_pending_by_weapon.clear()
 	_pending_by_reservation.clear()
+	_clear_reload_request_receipts()
 	_weapon_port.clear()
 	_emit_invalidation(reason)
 	return true
@@ -1244,6 +1363,14 @@ func _remove_pending(record: Dictionary) -> void:
 
 
 func _request_replay(intent: Dictionary) -> Dictionary:
+	# Completed receipts are generation-scoped. Preserve synchronous publication
+	# replay while the exact binding is current, but never answer from an
+	# invalidated/deferred-stale adapter merely because this check precedes the
+	# normal mutation gate.
+	if lifecycle != Lifecycle.BOUND \
+			or not _deferred_invalidation_reason.is_empty() \
+			or not _binding_is_current():
+		return {}
 	var request_id := String(intent.get("request_id", ""))
 	if request_id.is_empty() or not _request_receipts.has(request_id):
 		return {}
@@ -1447,6 +1574,7 @@ func _resolve_stale_binding(tick: int) -> void:
 		_bindings.clear()
 		_pending_by_weapon.clear()
 		_pending_by_reservation.clear()
+		_clear_reload_request_receipts()
 		_emit_invalidation(last_error)
 		return
 
@@ -1494,6 +1622,7 @@ func _disconnect_inventory_lifecycle() -> void:
 func _on_inventory_unloaded(unloaded_inventory_id: int) -> void:
 	if unloaded_inventory_id != _inventory_id:
 		return
+	_clear_reload_request_receipts()
 	if _transaction_active or _public_signal_active:
 		_deferred_invalidation_reason = &"authority_invalidation"
 		return
@@ -1503,6 +1632,7 @@ func _on_inventory_unloaded(unloaded_inventory_id: int) -> void:
 func _on_inventory_generation_changing(changing_inventory_id: int) -> void:
 	if changing_inventory_id != _inventory_id:
 		return
+	_clear_reload_request_receipts()
 	if _transaction_active or _public_signal_active:
 		_deferred_invalidation_reason = &"authority_invalidation"
 		return
@@ -1510,8 +1640,14 @@ func _on_inventory_generation_changing(changing_inventory_id: int) -> void:
 
 
 func _invalidate_after_external_lifecycle(reason: StringName, tick: int) -> void:
+	# Recovery evidence is retained until the exact weapon owner explicitly
+	# quarantines its generation-scoped binding. Clearing it from this unordered
+	# signal callback could orphan a still-live native weapon.
+	if lifecycle == Lifecycle.RECOVERY_REQUIRED:
+		return
 	if lifecycle != Lifecycle.BOUND:
 		return
+	_clear_reload_request_receipts()
 	# The inventory lifecycle operation clears this inventory's ephemeral
 	# reservation ledger. Stop each weapon mechanically so it cannot later
 	# complete against a disappeared hold. No inventory mutation is attempted
@@ -1630,6 +1766,11 @@ func _emit_invalidation(reason: StringName) -> void:
 	_public_signal_active = false
 
 
+func _clear_reload_request_receipts() -> void:
+	_request_receipts.clear()
+	_receipt_order.clear()
+
+
 func _reset_unbound_state() -> void:
 	_disconnect_inventory_lifecycle()
 	lifecycle = Lifecycle.UNBOUND
@@ -1647,8 +1788,8 @@ func _reset_unbound_state() -> void:
 	_bindings.clear()
 	_pending_by_weapon.clear()
 	_pending_by_reservation.clear()
-	_request_receipts.clear()
-	_receipt_order.clear()
+	_clear_reload_request_receipts()
+	_terminal_quarantine_receipts.clear()
 	_transaction_active = false
 	_public_signal_active = false
 	_deferred_invalidation_reason = &""

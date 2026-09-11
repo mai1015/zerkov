@@ -13,6 +13,18 @@ func build() -> void:
 	queue_adaptive_layout()
 
 
+func _on_activated() -> void:
+	super._on_activated()
+	register_action(CommonUIDefaults.CONFIRM, _on_common_ui_continue)
+
+
+func _on_common_ui_continue(event: Dictionary) -> int:
+	if event.get("phase", -1) != CommonUIRuntime.PHASE_PRESSED:
+		return CommonUIRuntime.ROUTE_UNHANDLED
+	app.navigate("main_menu")
+	return CommonUIRuntime.ROUTE_HANDLED
+
+
 func _install_scale_safe_styles() -> void:
 	for node in find_children("*", "Control", true, false):
 		var control := node as Control

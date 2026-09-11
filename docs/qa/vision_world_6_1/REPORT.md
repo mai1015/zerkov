@@ -1,9 +1,11 @@
 # Task 6.1 authoritative Vision world evidence
 
 This packet records the implementation-level evidence for approved task 6.1
-on branch `codex/vision-world-6-1`, based on `d947b40`. It incorporates both
-independent-review repair rounds. Human approval, encounter tuning, tasks 6.2
-and 6.3, and whole-game acceptance are not claimed.
+on branch `codex/vision-world-6-1`, originally based on `d947b40`. It
+incorporates both independent-review repair rounds and the integration of
+accepted main commit `c08a39b9026c9f45fd666d61a5c5d96b211e178b` on
+2026-09-11. Human approval, encounter tuning, tasks 6.2 and 6.3, and whole-game
+acceptance are not claimed.
 
 ## Outcome
 
@@ -21,6 +23,22 @@ The production owner has no observer, target, occluder, transform, query, or
 projection port. Those belong to tasks 6.2/6.3. Native memory/budget behavior is
 tested through an explicitly test-only fixture that cannot be obtained from a
 normally configured owner.
+
+## Accepted-main integration
+
+The only content conflict while merging `c08a39b` was the shared
+`RaidAuthority`. Its resolved record preserves main's bounded handler
+priorities/dependencies, unregister lifecycle, weapon actor pose/status state,
+phase-5 context reads, digest contribution, and teardown. The reserved Vision
+registration now writes the same priority/dependency metadata shape as generic
+handlers, while generic registration and the newly merged generic
+unregister/preflight APIs all reject `raid_vision_world`. The specialized
+two-sided owner release remains the sole way to replace that slot.
+
+The independently merged `ZWorldUnits` keeps both accepted contracts: weapon
+aim normalization at scale 1,000,000 and the repaired +/-65,536-pixel Vision
+domain. The combined units contract proves both without widening the signed
+`Vector2i` range.
 
 `RaidAuthority` owns the fixed `raid_vision_world` slot. Generic phase handler
 registration rejects that ID in every phase and reserves capacity for it even
@@ -111,25 +129,40 @@ the project. Every accepted command exited zero. Output was reviewed for script
 errors, engine errors, extension failures, assertions, leaks, and timeouts; the
 accepted diagnostic count is zero.
 
-These are domain-only headless checks. No UI/composition/screen suite or visual
-evidence was invoked, so no alternate-resolution artifact was created; the
-project's exact 1920x1080 UI boundary was not exercised by this task.
+These are domain-only headless checks. No UI/composition/screen suite, visual
+capture, or viewport-setting test was invoked, so this integration run created
+no alternate-resolution artifact; the project's exact 1920x1080 UI boundary
+was not exercised. Historical UI evidence files arrived unchanged through the
+requested main merge and are not evidence for this run. In particular,
+`inventory_loot_ui_4_11_contract.gd` was excluded because it instantiates the
+screen even in headless mode; 4.11 was covered through its resolution-independent
+authority, adapter, projection, routing, catalog, and multi-controller tests.
 
 | Validation | Result |
 | --- | ---: |
 | Final editor import / script registration | exit 0; diagnostics 0 |
-| Vision world focused contract | 190 / 0 |
-| Deterministic focused repeat | 190 / 0; identical seal/failure metrics |
+| Vision world focused contract | 192 / 0 |
+| Deterministic focused repeat | 192 / 0; identical seal/failure metrics |
 | Combined six-add-on smoke | 155 / 0 |
-| Units and clock contract | 33 / 0 |
+| Units and clock contract | 36 / 0 |
 | Session lifecycle domain contract | 44 / 0 |
 | Authority replay/tick-order contract | 81 / 0; 4 expected reentrant rejections |
+| Weapon instance context contract (5.2) | 306 / 0 |
+| Weapon instance adversarial contract (5.2) | 49 / 0 |
+| Inventory/weapon reload contract | 176 / 0 |
+| Inventory/ability reconciliation contract | 562 / 0 |
+| Inventory intent adapter contract (4.11 adjacent) | 162 / 0 |
+| Inventory projection contract (4.11 adjacent) | 99 / 0 |
+| Inventory mutation routing contract (4.11 adjacent) | 146 / 0 |
+| Inventory multi-controller contract (4.11 adjacent) | 23 / 0 |
+| Inventory authority contract (4.11 adjacent) | 79 / 0 |
+| Inventory catalog contract (4.11 adjacent) | 543 / 0 |
 | Toolchain lock | 7 / 0 |
 | Locked destination packages | 6 passed; 0 failed |
 | Vendor tooling unit tests | 4 passed; 0 failed |
 | Strict approved-change validation | `Valid` |
 | `git diff --check` | exit 0 |
-| Accepted Godot assertion executions | **693 / 0** |
+| Accepted Godot assertion executions | **2,845 / 0** |
 
 ## Reproduction
 
@@ -148,6 +181,26 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/session_lifecycle_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/authority_replay_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/weapon_instance_context_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/weapon_instance_context_adversarial_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_weapon_reload_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_ability_reconciliation_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_intent_adapter_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_projection_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_mutation_routing_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_multi_controller_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_authority_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_catalog_contract.gd
 python3 tools/check_toolchain.py
 python3 tools/vendor_addons.py check --scope destination
 python3 -m unittest tests/addons/test_vendor_addons.py
@@ -170,8 +223,12 @@ git diff --check
 - Exact source paths intentionally make the accepted local macOS provenance
   non-portable. A relocated SDK, Windows/Linux artifacts, or a changed package
   must be explicitly re-attested and resealed rather than silently accepted.
-- No `project.godot`, bootstrap, central identity, add-on/vendor source, truth
-  spec, approved task ledger, UI, inventory, combat, or world scene was changed.
+- The requested main merge brings accepted `project.godot`, UI, inventory,
+  combat, documentation, and task-ledger history into this branch. The 6.1
+  integration resolution itself changed only `RaidAuthority`, its focused
+  Vision assertions, and this QA packet; it did not independently edit
+  `project.godot`, bootstrap, central identity, add-on/vendor source, truth
+  specs, the approved task ledger, UI, inventory, combat, or a world scene.
 
 Exact source, test, dependency, lock, toolchain, manifest, and artifact hashes
 are recorded in `reviewed_hashes.sha256` beside this report.

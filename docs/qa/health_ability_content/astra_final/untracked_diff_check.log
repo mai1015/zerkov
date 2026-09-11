@@ -1,0 +1,47 @@
+COMMAND: git diff --no-index --check -- /dev/null docs/qa/health_ability_content/README.md
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)
+
+COMMAND: git diff --no-index --check -- /dev/null docs/qa/health_ability_content/implementation/run_validation.py
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)
+
+COMMAND: git diff --no-index --check -- /dev/null game/combat/content/zerkov_health_ability_content.gd
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)
+
+COMMAND: git diff --no-index --check -- /dev/null game/combat/content/zerkov_health_ability_content.gd.uid
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)
+
+COMMAND: git diff --no-index --check -- /dev/null game/content/zerkov_gameplay_ability_content.gd
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)
+
+COMMAND: git diff --no-index --check -- /dev/null game/content/zerkov_gameplay_ability_content.gd.uid
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)
+
+COMMAND: git diff --no-index --check -- /dev/null tests/combat/health_ability_content_contract.gd
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)
+
+COMMAND: git diff --no-index --check -- /dev/null tests/combat/health_ability_content_contract.gd.uid
+EXIT_CODE: 1
+INTERPRETATION: new-file diff present; no whitespace diagnostics
+OUTPUT:
+(no output)

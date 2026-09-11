@@ -1,0 +1,24 @@
+COMMAND: git rev-parse HEAD
+EXIT_CODE: 0
+OUTPUT:
+ab036d2a6c102b6692a9d36e7db6a1b8821f0402
+
+COMMAND: git status --short
+EXIT_CODE: 0
+OUTPUT:
+ M game/combat/content/README.md
+ M game/content/README.md
+?? docs/qa/health_ability_content/
+?? game/combat/content/zerkov_health_ability_content.gd
+?? game/combat/content/zerkov_health_ability_content.gd.uid
+?? game/content/zerkov_gameplay_ability_content.gd
+?? game/content/zerkov_gameplay_ability_content.gd.uid
+?? tests/combat/health_ability_content_contract.gd
+?? tests/combat/health_ability_content_contract.gd.uid
+
+COMMAND: git diff --stat HEAD -- game/combat/content/README.md game/content/README.md
+EXIT_CODE: 0
+OUTPUT:
+ game/combat/content/README.md | 16 ++++++++++++++++
+ game/content/README.md        |  5 +++++
+ 2 files changed, 21 insertions(+)

@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+QA_SCREEN title nodes=16
+QA_SCREEN main_menu nodes=110
+QA_SCREEN saves nodes=133
+QA_SCREEN join_friend nodes=120
+QA_SCREEN session nodes=176
+QA_SCREEN bunker nodes=319
+QA_SCREEN build_mode nodes=324
+QA_SCREEN crafting nodes=241
+QA_SCREEN deploying nodes=34
+QA_SCREEN hud nodes=85
+QA_SCREEN hud_coop nodes=119
+QA_SCREEN hud_detail nodes=68
+QA_SCREEN inventory nodes=568
+QA_SCREEN health nodes=568
+QA_SCREEN stats nodes=568
+QA_SCREEN maps nodes=302
+QA_SCREEN tasks nodes=222
+QA_SCREEN settings nodes=372
+QA_SCREEN controls nodes=224
+QA_SCREEN pause nodes=84
+QA_SCREEN summary_solo nodes=201
+QA_SCREEN summary_squad nodes=214
+QA_SCREEN crosshairs nodes=265
+QA_SCREEN status_icons nodes=64
+QA_SCREEN squad_list nodes=34
+QA_SCREEN reload nodes=18
+QA_SCREEN mag_empty nodes=20
+QA_SCREEN showcase nodes=72
+QA_COMPLETE screens=28 missing_or_capture_errors=0

@@ -1,0 +1,7 @@
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tests/combat/health_ability_content_contract.gd
+EXECUTION_CONTEXT: escalated (exact command; normal Godot user logging/certificate access)
+EXIT_CODE: 0
+OUTPUT:
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+HEALTH_ABILITY_CONTENT_RESULT checks=251 failures=0 zones=7 attributes=10 tags=34 effects=41 real_gameplay_abilities=true

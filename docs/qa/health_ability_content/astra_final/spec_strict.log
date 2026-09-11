@@ -1,0 +1,4 @@
+COMMAND: /opt/homebrew/opt/python@3.14/bin/python3.14 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py validate add-zerkov-playable-raid-2026-09-09 --type change --strict
+EXIT_CODE: 0
+OUTPUT:
+Valid

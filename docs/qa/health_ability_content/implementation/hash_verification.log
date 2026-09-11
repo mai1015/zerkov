@@ -1,0 +1,11 @@
+MATCH docs/qa/health_ability_content/README.md
+MATCH docs/qa/health_ability_content/implementation/run_validation.py
+MATCH game/combat/content/README.md
+MATCH game/combat/content/zerkov_health_ability_content.gd
+MATCH game/combat/content/zerkov_health_ability_content.gd.uid
+MATCH game/content/README.md
+MATCH game/content/zerkov_gameplay_ability_content.gd
+MATCH game/content/zerkov_gameplay_ability_content.gd.uid
+MATCH tests/combat/health_ability_content_contract.gd
+MATCH tests/combat/health_ability_content_contract.gd.uid
+HEALTH_ABILITY_HASH_RESULT matches=10 expected=10

@@ -26,3 +26,49 @@ All IDs are lower-case dotted `zerkov.*` identifiers. Spatial and damage values
 are integer Weapon System milliunits, scalar costs use integer Gameplay
 Abilities micro-units, and timing uses authoritative integer ticks. No
 presentation or animation event can make a melee hit authoritative.
+
+`zerkov_health_ability_content.gd` is the first-playable Gameplay Abilities
+health catalog. It authors seven zone-health attributes plus whole-life state,
+stamina, hydration, pain and movement scale, together with zone-specific heavy
+bleed, fracture, bandage and splint tags/effects. Persistent state is committed
+by long-running abilities: dead cancels the alive execution, bandaged cancels
+the matching bleed execution, and splinted cancels the matching fracture
+execution, so native teardown removes the old effect, tag and modifiers.
+
+Set-by-caller damage/resource effects must enter through
+`ZerkovHealthAbilityContent.apply_bounded_instant()`. It accepts integer
+micro-units, caps overkill and restoration to actual base/current headroom,
+rejects resource overspend, and verifies the exact authored ability grant.
+Before native activation it also rejects stale per-grant command sequences,
+runs the public side-effect-free effect preflight, and holds a per-component
+guard so a synchronous native change notification cannot reenter the seam and
+enqueue a second helper-owned mutation. If a notification from another native
+operation is delivering notifications, the seam probes the native mutation
+queue through its public task-transition API at the already-admitted tick. A
+full queue is rejected synchronously without exposing the request's future tick
+or reserving headroom. Otherwise the seam reserves projected attribute
+headroom, command sequence and tick, then dispatches the real ability activation
+from its bounded game-owned queue after native notification delivery. Calls
+arriving behind a reservation join that queue instead of overtaking it. Each
+receipt reports zero applied work until public activation-lifecycle signals
+settle it, and `bounded_application_receipt()` exposes that terminal result.
+The bounded receipt ID is process-local admission bookkeeping, not the stable
+combat-consequence identity which remains task 5.6-owned.
+Rejected calls therefore advance neither canonical snapshot bytes nor the
+component's diagnostic tick watermark, while multiple queued calls cannot
+oversubscribe a bounded attribute. Initialization likewise verifies the live
+sealed-catalog provenance and 60 Hz clock before mutation, and remains
+idempotent after valid gameplay changes.
+
+The declarations intentionally stop at task 5.5's data/policy boundary. Heavy-
+bleed tick damage and cadence, lethal-zone rules, pain/movement contributions,
+and healing eligibility are fingerprinted here. Task 5.6 owns authoritative
+hit/injury evaluation, scheduled bleed requests through the bounded seam,
+stable consequence IDs, death ordering, medical inventory transactions and
+cross-domain idempotency. Presentation remains consequence-free.
+
+`ZerkovGameplayAbilityContent` is the explicit composition root for health and
+equipment definitions. Gameplay Abilities catalogs do not merge implicitly, so
+runtime composition must configure a component from that combined catalog
+before initializing either content family. Its combined initializer performs
+one exact-catalog/family preflight before either family may mutate state.

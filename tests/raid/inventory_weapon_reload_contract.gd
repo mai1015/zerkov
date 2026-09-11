@@ -199,6 +199,7 @@ func run() -> void:
 		"installed WeaponAuthority honestly lacks public reload rollback")
 	_run_real_addon_flow()
 	_run_real_active_teardown_flow()
+	_run_real_persistence_generation_replay_flow()
 	_run_real_external_owner_teardown_flow()
 	_run_real_external_completion_fail_stop_flow()
 	_run_real_weapon_port_token_invalidation_flow()
@@ -493,6 +494,84 @@ func _run_real_active_teardown_flow() -> void:
 		and String(weapon_authority.snapshot(weapon_id).get("phase", "")) == "ready",
 		"active teardown releases ammo and leaves weapon ready without loss")
 	check(owner.teardown(owner.generation()), "active-teardown inventory owner tears down")
+	adapter.queue_free()
+	owner.queue_free()
+	weapon_authority.queue_free()
+
+
+func _run_real_persistence_generation_replay_flow() -> void:
+	var fixture := _build_inventory_fixture("persistence_generation", 10)
+	var owner := fixture["owner"] as RaidInventoryOwner
+	var admission := fixture["admission"] as ZSessionAdmission
+	var mapping := fixture["mapping"] as Dictionary
+	var weapon_id := String(mapping["weapon_id"])
+	var weapon_authority := WeaponAuthority.new()
+	root.add_child(weapon_authority)
+	check(bool(ZerkovCombatContent.configure_authority(weapon_authority).get(
+		"ok", false)),
+		"persistence-generation real WeaponAuthority configures")
+	check(bool(weapon_authority.create_weapon(
+		weapon_id,
+		String(ZerkovCombatContent.WEAPON_AKM),
+		ZerkovCombatContent.CONTENT_VERSION,
+		10,
+		{
+			"id": String(ZerkovCombatContent.AMMO_PROFILE_762X39_STANDARD),
+			"version": ZerkovCombatContent.CONTENT_VERSION,
+		},
+		admission.raid_id.canonical_key(),
+		admission.authority_epoch).get("ok", false)),
+		"persistence-generation real AKM creates with ten loaded rounds")
+	var port := WeaponAuthorityReloadPort.new()
+	check(port.configure(weapon_authority),
+		"persistence-generation real port configures")
+	var adapter := InventoryWeaponAdapter.new()
+	root.add_child(adapter)
+	check(adapter.bind_owner(owner, admission, port, owner.generation()) \
+		and bool(adapter.register_weapon(mapping, 1).get("accepted", false)),
+		"persistence-generation adapter binds registered weapon")
+	var authority := owner.raid_authority()
+	var inventory_id := owner.raid_player_inventory_id
+	var record := authority.make_persistence_record(inventory_id)
+	var intent := _begin_intent(
+		fixture,
+		adapter,
+		weapon_authority.snapshot(weapon_id),
+		"persistence_generation",
+		17)
+	var begun := adapter.begin_reload(intent)
+	check(bool(begun.get("accepted", false)) \
+		and begun.get("kind", &"") == &"reload_started" \
+		and adapter.pending_reloads().size() == 1 \
+		and authority.active_quantity_reservation_count() == 1,
+		"persistence-generation fixture owns one pending reload and native hold")
+	var invalidations: Array[StringName] = []
+	adapter.binding_invalidated.connect(func(reason: StringName) -> void:
+		invalidations.append(reason))
+	var replacement: Dictionary = authority.apply_persistence_record(record, true)
+	check(bool(replacement.get("ok", false)) \
+		and adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.INVALIDATED \
+		and invalidations == [&"authority_invalidation"],
+		"same-ID persistence replacement invalidates reload coordination exactly once")
+	check(adapter.pending_reloads().is_empty() \
+		and authority.active_quantity_reservation_count() == 0 \
+		and String(weapon_authority.snapshot(weapon_id).get("phase", "")) == "ready",
+		"replacement cancels the weapon and clears pending and held ammunition state")
+	check((adapter.get("_request_receipts") as Dictionary).is_empty() \
+		and (adapter.get("_receipt_order") as PackedStringArray).is_empty(),
+		"generation invalidation clears reload request receipt and order ledgers")
+	var stale_replay := adapter.begin_reload(intent)
+	check(not bool(stale_replay.get("accepted", true)) \
+		and not bool(stale_replay.get("replayed", true)) \
+		and stale_replay.get("reason", &"") == &"adapter_not_bound" \
+		and stale_replay.get("kind", &"") != &"reload_started",
+		"invalidated adapter cannot replay the old accepted begin receipt")
+	check(adapter.pending_reloads().is_empty() \
+		and authority.active_quantity_reservation_count() == 0 \
+		and String(weapon_authority.snapshot(weapon_id).get("phase", "")) == "ready",
+		"stale exact replay leaves pending, hold, and weapon state unchanged")
+	check(owner.teardown(owner.generation()),
+		"persistence-generation inventory owner tears down")
 	adapter.queue_free()
 	owner.queue_free()
 	weapon_authority.queue_free()

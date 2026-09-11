@@ -1,6 +1,12 @@
 extends "res://tests/visual/inventory_ui_binding/capture.gd"
+## HISTORICAL / DEFERRED reentrant visual packet; not a current runner.
 ## Negative lifecycle probe. Expected contract: fail closed with a typed result,
 ## no stale authority submission, no script diagnostics, no pending leak.
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: reentrant_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+
 func run() -> void:
 	setup_runtime()
 	var item: Dictionary = _find_rotatable(controller.items_for(&"crate"))

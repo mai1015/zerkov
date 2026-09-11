@@ -776,6 +776,18 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 		"direct specialized call cannot forge the owner's provisional claim")
 	check(owner.register_with_raid_authority(raid),
 		"owner-authenticated flow claims the authority-owned slot")
+	check(not raid.can_unregister_phase_handler(
+		RaidAuthority.RESERVED_VISION_HANDLER_ID, raid.generation()
+	) and raid.last_error == &"handler_id_reserved"
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid.generation()
+		), "generic removal preflight cannot release the reserved owner slot")
+	check(not raid.unregister_phase_handler(
+		RaidAuthority.RESERVED_VISION_HANDLER_ID, raid.generation()
+	) and raid.last_error == &"handler_id_reserved"
+		and owner.is_registered_binding_current(
+			raid, owner.generation(), raid.generation()
+		), "generic unregister cannot desynchronize the reserved owner binding")
 	check(not owner.release_registered_binding(
 		raid, owner.generation(), raid.generation(), false
 	) and owner.is_registered_binding_current(

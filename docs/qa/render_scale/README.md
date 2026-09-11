@@ -9,6 +9,12 @@ production renderer change or human approval.
 Baseline: clean UI checkpoint `93f337e`. Native evidence: Godot
 `4.7.2.stable.official.ed1daf0bf`, Compatibility, Apple M4 Pro, macOS.
 
+The comparison table and PNG packet below are immutable historical evidence.
+The current `capture.gd` and `verify.py` entry points now execute the exact
+1920×1080 path only; current agents/tests MUST NOT regenerate the historical
+smaller-output matrix until task 11.8 or a later approved display-support
+proposal.
+
 ## Comparison
 
 [Resolution comparison sheet](comparison_sheet.png) shows all 12 combinations.
@@ -78,9 +84,11 @@ Actual gameplay aim/interaction wiring belongs to task 3.7.
 For other desktop aspects, preserve 640×360 and center the integer-fit rectangle;
 do not widen world visibility. Uneven spare pixels put the extra pixel on the
 right/bottom. Only the three requested 16:9 layouts have new capture evidence.
-Below 1280×720, the existing compact UI contract still applies, but the combined
-world/compact composition needs its own capture gate before adoption. Below
-640×360 this spike has no supported render policy.
+The historical packet below the current 1920×1080 target retained the compact
+UI contract, but that path is deferred and has no current capture gate. Current
+agents/tests MUST NOT execute or regenerate any smaller world/compact
+composition until task 11.8 or a later approved display-support proposal.
+Below 640×360 the spike has no supported render policy.
 
 ## Measurable acceptance and failure limits
 
@@ -107,7 +115,7 @@ is claimed from static captures.
 
 ## Verification and artifacts
 
-Run from the project root:
+Run the current exact-size subset from the project root:
 
 ```sh
 uv run --with pillow python tests/visual/render_scale/verify.py
@@ -120,6 +128,9 @@ no project/runtime dependency is installed. The actual native command is:
 ```sh
 /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path . --script res://tests/visual/render_scale/capture.gd
 ```
+
+Current captures are written to `current_1080/`; the historical root PNGs,
+logs, metrics and manifests remain untouched.
 
 The script mounts the existing `ui/main.tscn` HUD and hides only its instantiated
 background/atmosphere for this diagnostic. It freezes fixture animation, then

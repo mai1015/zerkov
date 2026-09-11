@@ -491,6 +491,39 @@ func release_binding(
 	return _invalidate_binding(final_reason, effective_tick)
 
 
+## Explicit composition seam for the accepted task-4.10 lifecycle constraint.
+## Call this before requesting a terminal RaidAuthority transition (or tear down
+## the inventory owner / ability component first). It deliberately does not
+## transition the raid or change phase-handler ordering; the invalidated phase
+## Callable remains a safe no-op until RaidAuthority seals it.
+func prepare_for_raid_terminalization(
+	raid_authority: RaidAuthority,
+	expected_raid_generation: int,
+	tick: int = -1
+) -> bool:
+	last_error = &""
+	if raid_authority == null or raid_authority != _raid_authority \
+			or raid_authority.get_instance_id() != _raid_authority_instance_id \
+			or expected_raid_generation != _raid_generation \
+			or raid_authority.generation() != expected_raid_generation:
+		return _reject_bind(&"raid_authority_generation_invalidated")
+	if raid_authority.lifecycle == RaidAuthority.Lifecycle.COMPLETED \
+			or raid_authority.lifecycle == RaidAuthority.Lifecycle.FAILED \
+			or raid_authority.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN:
+		return _reject_bind(&"raid_already_terminal")
+	if lifecycle == Lifecycle.INVALIDATED:
+		return _active_sources.is_empty()
+	if lifecycle != Lifecycle.BOUND:
+		return _reject_bind(&"equipment_ability_recovery_required")
+	if _mutation_active or _public_signal_active:
+		return _reject_bind(&"reentrant_binding_change")
+	release_binding(&"raid_terminalization_prepared", tick)
+	if lifecycle != Lifecycle.INVALIDATED or not _active_sources.is_empty():
+		return _reject_bind(&"raid_terminalization_cleanup_failed")
+	last_error = &""
+	return true
+
+
 static func derive_source_item_key(
 	admission: ZSessionAdmission,
 	owner_generation_value: int,
