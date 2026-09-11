@@ -1,4 +1,9 @@
 """Final independent Astra evidence runner. No production writes."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical multi-resolution QA runner is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import argparse
 import hashlib
 import json

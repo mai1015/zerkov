@@ -10,10 +10,10 @@ Baseline: clean UI checkpoint `93f337e`. Native evidence: Godot
 `4.7.2.stable.official.ed1daf0bf`, Compatibility, Apple M4 Pro, macOS.
 
 The comparison table and PNG packet below are immutable historical evidence.
-The current `capture.gd` and `verify.py` entry points now execute the exact
-1920×1080 path only; current agents/tests MUST NOT regenerate the historical
-smaller-output matrix until task 11.8 or a later approved display-support
-proposal.
+The retained `capture.gd` and `verify.py` entry points are inert and exit before
+argument handling, renderer setup, imports, paths, or writes. There is no
+current render-scale command. Current agents/tests MUST NOT regenerate this
+packet until task 11.8 or a later approved display-support proposal.
 
 ## Comparison
 
@@ -113,33 +113,20 @@ Adaptive integer scaling remains viable only if window-dependent field of view
 is explicitly accepted later. No motion-comfort or human readability acceptance
 is claimed from static captures.
 
-## Verification and artifacts
+## Historical verification artifacts
 
-Run the current exact-size subset from the project root:
+There is deliberately no runnable verification or sheet-generation command for
+this packet. Direct invocation of either retained launcher exits with
+`DEFERRED_DISPLAY_SUITE`; agents must not bypass that retirement guard. The
+historical PNGs, logs, metrics, manifests, and contact sheets remain available
+for provenance only and are not current acceptance evidence.
 
-```sh
-uv run --with pillow python tests/visual/render_scale/verify.py
-```
-
-`--godot /path/to/Godot` overrides the pinned default. To regenerate contact
-sheets from existing captures, add `--sheets-only`. Pillow is isolated by `uv`;
-no project/runtime dependency is installed. The actual native command is:
-
-```sh
-/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path . --script res://tests/visual/render_scale/capture.gd
-```
-
-Current captures are written to `current_1080/`; the historical root PNGs,
-logs, metrics and manifests remain untouched.
-
-The script mounts the existing `ui/main.tscn` HUD and hides only its instantiated
-background/atmosphere for this diagnostic. It freezes fixture animation, then
-renders the UI directly into an exact-size GPU output target independently from
-the low-resolution world. The macOS desktop clamps decorated windows below
-1920×1080, so the harness sets the native output framebuffer explicitly using
-the root Window's viewport content-scaling mode. PNGs are read directly from
-that framebuffer without post-resizing; preview-window size is not the evidence.
-Only the two clearly labeled contact sheets contain thumbnails/crops.
+At the original checkpoint, the harness mounted the existing `ui/main.tscn`
+HUD, hid only its instantiated background/atmosphere, froze fixture animation,
+and rendered the UI independently from the low-resolution world. That old
+virtual-framebuffer workaround is not an approved current capture method. Only
+genuine renderer-backed 1920×1080 readback may be used for current visual work;
+no smaller framebuffer may be resized or regenerated.
 
 | Suite | Checks | Failures | Evidence |
 | --- | --- | --- | --- |
@@ -148,10 +135,11 @@ Only the two clearly labeled contact sheets contain thumbnails/crops.
 | Existing responsive layouts | 96 | 0 | [responsive.log](responsive.log) |
 | Existing native border rendering | 135 | 0 | [border_render.log](border_render.log) |
 
-All four processes exited 0. [verification.json](verification.json) records
-exact commands and results. [captures.sha256.json](captures.sha256.json) records
-all 26 PNG hashes: 12 comparison frames, 3 HUD-only frames, 6 pan frames, 3
-impulse frames, 2 contact sheets. The chosen temporal evidence uses suffixes
+At the original historical checkpoint, all four processes exited 0.
+[verification.json](verification.json) records those retired commands and
+results. [captures.sha256.json](captures.sha256.json) records all 26 PNG hashes:
+12 comparison frames, 3 HUD-only frames, 6 pan frames, 3 impulse frames, 2
+contact sheets. The chosen temporal evidence uses suffixes
 `_640_integer_pan_000`, `_640_integer_pan_051`, and `_640_integer_impulse` at
 each of the three resolutions.
 

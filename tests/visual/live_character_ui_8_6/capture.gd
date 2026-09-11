@@ -89,6 +89,8 @@ func run() -> void:
         return
     app = load("res://ui/main.tscn").instantiate()
     app.name = "LiveCharacterUI86CaptureHost"
+    check(app.require_exact_capture_canvas(),
+        "production-data capture host rejects resize before reflow")
     check(app.inject_character_runtime(runtime),
         "test-only runtime injection is accepted before tree entry")
     if failures > 0:

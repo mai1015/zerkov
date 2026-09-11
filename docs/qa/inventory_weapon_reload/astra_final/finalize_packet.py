@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """Verify and seal the current fresh QA packet. Never touches the prior packet."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical 1280x720 QA packet finalizer is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import datetime
 import hashlib
 import json

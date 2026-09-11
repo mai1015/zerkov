@@ -60,7 +60,7 @@ func run() -> void:
 			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before paths or writes")
 			quit(2)
 			return
-	DirAccess.make_dir_recursive_absolute(output)
+		DirAccess.make_dir_recursive_absolute(output)
 	app = load("res://ui/main.tscn").instantiate()
 	root.add_child(app)
 	app.qa_mode = true

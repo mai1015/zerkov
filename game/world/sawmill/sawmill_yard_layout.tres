@@ -1,0 +1,162 @@
+[gd_resource type="Resource" script_class="ZSawmillYardLayout" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/world/sawmill/sawmill_yard_layout.gd" id="1_layout"]
+
+[resource]
+script = ExtResource("1_layout")
+level_id = "zerkov.level.sawmill_yard"
+revision = 1
+size_cells = Vector2i(40, 20)
+ground_regions = Array[Dictionary]([{
+"id": "zerkov.terrain_region.sawmill.base", "tile": "dirt", "rect": Rect2i(0, 0, 40, 20)
+}, {
+"id": "zerkov.terrain_region.sawmill.north_verge", "tile": "grass", "rect": Rect2i(0, 0, 40, 2)
+}, {
+"id": "zerkov.terrain_region.sawmill.west_verge", "tile": "grass", "rect": Rect2i(0, 2, 3, 18)
+}, {
+"id": "zerkov.terrain_region.sawmill.south_verge", "tile": "grass", "rect": Rect2i(3, 18, 37, 2)
+}, {
+"id": "zerkov.terrain_region.sawmill.east_verge", "tile": "grass", "rect": Rect2i(37, 2, 3, 16)
+}, {
+"id": "zerkov.terrain_region.sawmill.log_pad", "tile": "sand", "rect": Rect2i(3, 2, 11, 6)
+}, {
+"id": "zerkov.terrain_region.sawmill.saw_house", "tile": "stone_floor", "rect": Rect2i(17, 2, 10, 6)
+}, {
+"id": "zerkov.terrain_region.sawmill.arrival", "tile": "stone_floor", "rect": Rect2i(3, 13, 6, 5)
+}, {
+"id": "zerkov.terrain_region.sawmill.haul_lane", "tile": "road", "rect": Rect2i(2, 9, 37, 3)
+}, {
+"id": "zerkov.terrain_region.sawmill.west_link", "tile": "road", "rect": Rect2i(5, 7, 3, 10)
+}, {
+"id": "zerkov.terrain_region.sawmill.south_bypass", "tile": "road", "rect": Rect2i(6, 15, 28, 3)
+}, {
+"id": "zerkov.terrain_region.sawmill.east_link", "tile": "road", "rect": Rect2i(32, 10, 3, 8)
+}, {
+"id": "zerkov.terrain_region.sawmill.settling_pad", "tile": "sand", "rect": Rect2i(23, 13, 7, 2)
+}, {
+"id": "zerkov.terrain_region.sawmill.settling_basin_west", "tile": "water", "rect": Rect2i(21, 18, 2, 1)
+}, {
+"id": "zerkov.terrain_region.sawmill.settling_basin_east", "tile": "water", "rect": Rect2i(30, 18, 2, 1)
+}, {
+"id": "zerkov.terrain_region.sawmill.settling_basin_south", "tile": "water", "rect": Rect2i(21, 19, 11, 1)
+}, {
+"id": "zerkov.terrain_region.sawmill.settling_inlet", "tile": "water", "rect": Rect2i(30, 12, 2, 3)
+}])
+detail_regions = Array[Dictionary]([{
+"id": "zerkov.detail.sawmill.log_spill", "tile": "sawdust", "rect": Rect2i(8, 4, 3, 3)
+}, {
+"id": "zerkov.detail.sawmill.saw_spill", "tile": "sawdust", "rect": Rect2i(20, 7, 3, 2)
+}, {
+"id": "zerkov.detail.sawmill.dock_spill", "tile": "sawdust", "rect": Rect2i(23, 13, 3, 2)
+}, {
+"id": "zerkov.detail.sawmill.west_lichen", "tile": "lichen", "rect": Rect2i(1, 4, 2, 4)
+}, {
+"id": "zerkov.detail.sawmill.east_lichen", "tile": "lichen", "rect": Rect2i(37, 14, 2, 3)
+}])
+structures = Array[Dictionary]([{
+"id": "zerkov.structure.sawmill.north_fence", "tile": "fence", "layer": "Obstacles", "role": "perimeter", "rect": Rect2i(0, 0, 40, 1)
+}, {
+"id": "zerkov.structure.sawmill.west_fence", "tile": "fence", "layer": "Obstacles", "role": "perimeter", "rect": Rect2i(0, 1, 1, 18)
+}, {
+"id": "zerkov.structure.sawmill.east_fence", "tile": "fence", "layer": "Obstacles", "role": "perimeter", "rect": Rect2i(39, 1, 1, 18)
+}, {
+"id": "zerkov.structure.sawmill.south_fence", "tile": "fence", "layer": "Obstacles", "role": "perimeter", "rect": Rect2i(0, 19, 21, 1)
+}, {
+"id": "zerkov.structure.sawmill.southeast_fence", "tile": "fence", "layer": "Obstacles", "role": "perimeter", "rect": Rect2i(32, 19, 8, 1)
+}, {
+"id": "zerkov.structure.sawmill.northwest_trees", "tile": "canopy", "layer": "Canopy", "role": "screen", "rect": Rect2i(1, 1, 3, 2)
+}, {
+"id": "zerkov.structure.sawmill.north_trees", "tile": "canopy", "layer": "Canopy", "role": "screen", "rect": Rect2i(13, 1, 3, 3)
+}, {
+"id": "zerkov.structure.sawmill.northeast_trees", "tile": "canopy", "layer": "Canopy", "role": "screen", "rect": Rect2i(30, 1, 9, 2)
+}, {
+"id": "zerkov.structure.sawmill.east_trees", "tile": "canopy", "layer": "Canopy", "role": "screen", "rect": Rect2i(37, 3, 2, 5)
+}, {
+"id": "zerkov.structure.sawmill.southwest_trees", "tile": "canopy", "layer": "Canopy", "role": "screen", "rect": Rect2i(1, 18, 5, 1)
+}, {
+"id": "zerkov.structure.sawmill.southeast_trees", "tile": "canopy", "layer": "Canopy", "role": "screen", "rect": Rect2i(35, 18, 4, 1)
+}, {
+"id": "zerkov.structure.sawmill.logs_north", "tile": "log_wall", "layer": "Obstacles", "role": "landmark", "rect": Rect2i(5, 2, 7, 1)
+}, {
+"id": "zerkov.structure.sawmill.logs_west", "tile": "log_wall", "layer": "Obstacles", "role": "cover", "rect": Rect2i(4, 4, 3, 1)
+}, {
+"id": "zerkov.structure.sawmill.logs_east", "tile": "log_wall", "layer": "Obstacles", "role": "cover", "rect": Rect2i(11, 4, 3, 1)
+}, {
+"id": "zerkov.structure.sawmill.logs_south", "tile": "log_wall", "layer": "Obstacles", "role": "cover", "rect": Rect2i(11, 6, 3, 1)
+}, {
+"id": "zerkov.structure.sawmill.mill_north_wall", "tile": "log_wall", "layer": "Obstacles", "role": "landmark", "rect": Rect2i(17, 2, 10, 1)
+}, {
+"id": "zerkov.structure.sawmill.mill_west_wall", "tile": "log_wall", "layer": "Obstacles", "role": "landmark", "rect": Rect2i(17, 3, 1, 4)
+}, {
+"id": "zerkov.structure.sawmill.mill_east_wall", "tile": "log_wall", "layer": "Obstacles", "role": "landmark", "rect": Rect2i(26, 3, 1, 4)
+}, {
+"id": "zerkov.structure.sawmill.mill_west_return", "tile": "log_wall", "layer": "Obstacles", "role": "cover", "rect": Rect2i(18, 6, 2, 1)
+}, {
+"id": "zerkov.structure.sawmill.mill_east_return", "tile": "log_wall", "layer": "Obstacles", "role": "cover", "rect": Rect2i(23, 6, 3, 1)
+}, {
+"id": "zerkov.structure.sawmill.mill_machine", "tile": "rock_blocked", "layer": "Obstacles", "role": "cover", "rect": Rect2i(23, 4, 2, 1)
+}, {
+"id": "zerkov.structure.sawmill.haul_north_cover", "tile": "rock_blocked", "layer": "Obstacles", "role": "cover", "rect": Rect2i(29, 7, 3, 1)
+}, {
+"id": "zerkov.structure.sawmill.haul_south_cover", "tile": "log_wall", "layer": "Obstacles", "role": "cover", "rect": Rect2i(12, 13, 5, 1)
+}, {
+"id": "zerkov.structure.sawmill.south_split_cover", "tile": "rock_blocked", "layer": "Obstacles", "role": "cover", "rect": Rect2i(19, 13, 2, 2)
+}, {
+"id": "zerkov.structure.sawmill.dock_stack", "tile": "log_wall", "layer": "Obstacles", "role": "landmark", "rect": Rect2i(27, 13, 3, 1)
+}, {
+"id": "zerkov.structure.sawmill.dock_rim", "tile": "log_wall", "layer": "Obstacles", "role": "landmark", "rect": Rect2i(23, 18, 7, 1)
+}, {
+"id": "zerkov.structure.sawmill.arrival_cover", "tile": "rock_blocked", "layer": "Obstacles", "role": "cover", "rect": Rect2i(3, 13, 2, 1)
+}, {
+"id": "zerkov.structure.sawmill.road_gate_north", "tile": "fence", "layer": "Obstacles", "role": "gate", "rect": Rect2i(35, 5, 1, 4)
+}, {
+"id": "zerkov.structure.sawmill.road_gate_south", "tile": "fence", "layer": "Obstacles", "role": "gate", "rect": Rect2i(35, 12, 1, 5)
+}])
+landmarks = Array[Dictionary]([{
+"id": "zerkov.landmark.sawmill.log_racks", "name": "01 / LOG RACKS", "rect": Rect2i(3, 2, 11, 6), "identity": "parallel timber bars on a sand pad; open central aisle", "objective_id": "zerkov.loot.sawmill.crate.log_racks"
+}, {
+"id": "zerkov.landmark.sawmill.saw_house", "name": "02 / SAW HOUSE", "rect": Rect2i(17, 2, 10, 6), "identity": "stone floor inside a roofless U; three-cell south doorway", "objective_id": "zerkov.loot.sawmill.crate.saw_house"
+}, {
+"id": "zerkov.landmark.sawmill.settling_dock", "name": "03 / SETTLING DOCK", "rect": Rect2i(23, 12, 9, 7), "identity": "sawdust pad, blue settling inlet, and short timber rim above the basin", "objective_id": "zerkov.loot.sawmill.crate.settling_dock"
+}])
+anchors = Array[Dictionary]([{
+"id": "zerkov.spawn.sawmill.west_service", "kind": "spawn", "name": "WEST SERVICE / SPAWN", "cell": Vector2i(4, 15), "approach_cell": Vector2i(5, 15), "tile": "actor_marker", "label_offset_px": Vector2i(-80, 72)
+}, {
+"id": "zerkov.loot.sawmill.crate.log_racks", "kind": "objective_crate", "name": "01 / LOG RACKS", "cell": Vector2i(9, 5), "approach_cell": Vector2i(9, 6), "tile": "fx_marker", "landmark_id": "zerkov.landmark.sawmill.log_racks", "content_profile_id": "zerkov.profile.raid.world_crate", "label_offset_px": Vector2i(-112, 68)
+}, {
+"id": "zerkov.loot.sawmill.crate.saw_house", "kind": "objective_crate", "name": "02 / SAW HOUSE", "cell": Vector2i(21, 4), "approach_cell": Vector2i(21, 5), "tile": "fx_marker", "landmark_id": "zerkov.landmark.sawmill.saw_house", "content_profile_id": "zerkov.profile.raid.world_crate", "label_offset_px": Vector2i(-112, 68)
+}, {
+"id": "zerkov.loot.sawmill.crate.settling_dock", "kind": "objective_crate", "name": "03 / SETTLING DOCK", "cell": Vector2i(25, 14), "approach_cell": Vector2i(25, 15), "tile": "fx_marker", "landmark_id": "zerkov.landmark.sawmill.settling_dock", "content_profile_id": "zerkov.profile.raid.world_crate", "label_offset_px": Vector2i(-136, 68)
+}, {
+"id": "zerkov.loot.sawmill.service_cache", "kind": "loot", "name": "SERVICE CACHE", "cell": Vector2i(10, 14), "approach_cell": Vector2i(10, 15), "tile": "fx_marker", "content_profile_id": "zerkov.profile.raid.world_crate", "label_offset_px": Vector2i(-104, -88)
+}, {
+"id": "zerkov.loot.sawmill.corpse.haul_lane", "kind": "corpse", "name": "CORPSE / FIXED ANCHOR", "cell": Vector2i(29, 12), "approach_cell": Vector2i(29, 11), "tile": "actor_marker", "content_profile_id": "zerkov.profile.raid.corpse", "label_offset_px": Vector2i(-132, 68)
+}, {
+"id": "zerkov.extract.sawmill.road_gate", "kind": "extract", "name": "ROAD GATE / EXTRACT", "cell": Vector2i(37, 10), "approach_cell": Vector2i(36, 10), "tile": "extract", "zone_cells": Rect2i(36, 9, 3, 3), "label_offset_px": Vector2i(-268, -92)
+}, {
+"id": "zerkov.encounter.sawmill.scav_cover", "kind": "encounter", "name": "SCAV STAGING", "cell": Vector2i(30, 6), "approach_cell": Vector2i(31, 6), "tile": "", "label_offset_px": Vector2i(-96, -64)
+}, {
+"id": "zerkov.encounter.sawmill.mutant_verge", "kind": "encounter", "name": "MUTANT STAGING", "cell": Vector2i(15, 17), "approach_cell": Vector2i(16, 17), "tile": "", "label_offset_px": Vector2i(-96, -64)
+}])
+routes = Array[Dictionary]([{
+"id": "zerkov.route.sawmill.haul_lane", "name": "HAUL LANE", "width_cells": 3, "points": PackedVector2Array(6, 10, 37, 10), "purpose": "direct exposed east-west combat lane, with off-lane cover on both sides"
+}, {
+"id": "zerkov.route.sawmill.south_bypass", "name": "SOUTH BYPASS", "width_cells": 3, "points": PackedVector2Array(6, 10, 6, 16, 33, 16, 33, 10), "purpose": "longer return route with split cover; rejoins before Road Gate"
+}, {
+"id": "zerkov.route.sawmill.mill_approach", "name": "MILL APPROACH", "width_cells": 3, "points": PackedVector2Array(21, 10, 21, 5), "purpose": "three-cell opening keeps the saw-house landmark and its exit legible"
+}, {
+"id": "zerkov.route.sawmill.log_approach", "name": "LOG AISLE", "width_cells": 3, "points": PackedVector2Array(9, 10, 9, 5), "purpose": "central aisle between timber racks; no blind single-cell squeeze"
+}])
+review_views = Array[Dictionary]([{
+"id": "northwest", "title": "01 / LOG RACKS", "camera_px": Vector2(320, 180), "note": "Parallel racks identify the first supply pad; a three-cell aisle opens onto the haul lane."
+}, {
+"id": "north", "title": "02 / SAW HOUSE", "camera_px": Vector2(704, 180), "note": "The roofless U and stone floor define a distinct room with a broad south-facing opening."
+}, {
+"id": "northeast", "title": "ROAD GATE / NORTH APPROACH", "camera_px": Vector2(960, 244), "note": "Gate wings frame a three-cell road throat; the extract sits inside the east perimeter."
+}, {
+"id": "southwest", "title": "WEST SERVICE / ARRIVAL", "camera_px": Vector2(320, 460), "note": "Arrival has an immediate landmark, a nearby cache, and a visible choice of direct lane or bypass."
+}, {
+"id": "south", "title": "03 / SETTLING DOCK", "camera_px": Vector2(736, 460), "note": "Blue water, sawdust, and a short timber rim distinguish the final supply pad; the bypass stays clear."
+}, {
+"id": "southeast", "title": "ROAD GATE / RETURN", "camera_px": Vector2(960, 460), "note": "The southern loop rejoins the road before extraction; the corpse anchor stays off the travel lane."
+}])

@@ -1,4 +1,10 @@
 extends "res://docs/qa/inventory_ui_binding/astra_final_accept/native_flow.gd"
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: historical compact inventory QA is retired; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+	return
+
 ## One independently constructed compact runtime: both native scroll ranges,
 ## then native selection/search/tooltip with unchanged authoritative state.
 

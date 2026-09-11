@@ -1,4 +1,10 @@
 extends "res://tests/raid/inventory_ui_binding_contract.gd"
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: historical multi-resolution inventory QA is retired; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
+	return
+
 ## Independent Astra gate evidence. Graphical Godot only. This reuses identity
 ## and world-policy test ports, but dispatches native viewport input itself.
 const OUTPUT := "res://docs/qa/inventory_ui_binding/astra_final_accept/core"

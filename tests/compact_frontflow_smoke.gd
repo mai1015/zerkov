@@ -11,6 +11,7 @@ var capture_dir: String = ""
 func _initialize() -> void:
 	push_error("DEFERRED_DISPLAY_SUITE: compact_frontflow_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
 	quit(2)
+	return
 
 func check(ok: bool, message: String) -> void:
 	checks += 1

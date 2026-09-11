@@ -119,7 +119,7 @@ suite; replay digest; teardown/reentrancy regression tests.
   mapping gates remain open.
 - [x] 3.3 `[LUNA]` Create a 32 px Sawmill source TileSet with explicit terrain,
   navigation, collision and draw-layer metadata.
-- [ ] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
+- [x] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
   spawn, objective landmarks, combat lanes, cover, loot and Road Gate extract.
 - [ ] 3.5 `[LUNA]` Implement player acceleration, speed, facing and input intent
   generation without direct transform authority in the UI/controller.
@@ -642,7 +642,9 @@ Evidence: separate validated change proposal for each accepted meta capability.
   utility regressions against the integrated project. Current acceptance MUST
   NOT invoke smaller-resolution or responsive/compact suites, even for
   information; historical artifacts remain audit-only until task 11.8 or a
-  later approved display-support proposal.
+  later approved display-support proposal. Every tracked historical
+  display/capture launcher or packet generator must fail closed before imports,
+  viewport/layout setup, path creation, subprocess execution or writes.
 - [ ] 12.3 `[SOL]` Complete ten consecutive extract/death cycles without item
   duplication, loss outside policy, stale authority mutation or save corruption.
 - [ ] 12.4 `[ASTRA]` Perform final UI, Sawmill composition and combat-feedback

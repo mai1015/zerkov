@@ -40,6 +40,9 @@ var resize_timer: Timer
 var _last_window_size: Vector2i
 var _resize_pending: bool = false
 var _review_navigation_enabled: bool = false
+## Native capture sessions may retain production routing/data while still
+## rejecting any host resize before scale synchronization or screen reflow.
+var exact_capture_mode: bool = false
 var ui_layout_mode: String = "auto"
 var common_ui_root: CommonUIScreenRoot
 var input_service: ZerkovInputService
@@ -100,7 +103,7 @@ func _ready() -> void:
 	# CLI smoke/review entry points are current UI runners. Pin their window
 	# before any route is constructed so they can never exercise a retained
 	# smaller-output path accidentally.
-	if qa_mode or review_start:
+	if qa_mode or review_start or exact_capture_mode:
 		if not review_cli_uses_exact_canvas(OS.get_cmdline_args()) \
 				or not review_cli_uses_exact_canvas(user_arguments):
 			push_error("QA/review UI accepts only exact 1920x1080 desktop output")
@@ -191,6 +194,15 @@ func inject_presentation_provider(value: ZUIPresentationProvider) -> bool:
 			or not value.is_initialized() or not value.is_active():
 		return false
 	_presentation_provider_override = value
+	return true
+
+
+## Opt a pre-tree production-data host into the exact native capture contract
+## without enabling QA fixtures or changing its navigation origin.
+func require_exact_capture_canvas() -> bool:
+	if is_inside_tree():
+		return false
+	exact_capture_mode = true
 	return true
 
 
@@ -292,7 +304,7 @@ func _on_window_resized() -> void:
 	# A QA/review session is an exact-output contract, not a responsive-layout
 	# exercise. Reject a later host resize before syncing scale or reflowing any
 	# screen; ordinary production compatibility remains unchanged below.
-	if qa_mode or _review_navigation_enabled:
+	if qa_mode or _review_navigation_enabled or exact_capture_mode:
 		push_error("QA/review window left exact 1920x1080; alternate layout rejected")
 		get_tree().quit(2)
 		return
@@ -412,8 +424,10 @@ func _run_qa() -> void:
 	if not capture_dir.is_empty():
 		await RenderingServer.frame_post_draw
 		var preflight := get_viewport().get_texture().get_image()
-		if preflight == null or preflight.get_size() != DESKTOP_CANVAS \
-				or get_viewport().get_visible_rect().size != Vector2(DESKTOP_CANVAS):
+		var exact_preflight := preflight != null \
+				and preflight.get_size() == DESKTOP_CANVAS \
+				and get_viewport().get_visible_rect().size == Vector2(DESKTOP_CANVAS)
+		if not exact_preflight:
 			push_error("QA capture requires a genuine 1920x1080 framebuffer; rejected before paths or writes")
 			get_tree().quit(2)
 			return
@@ -434,8 +448,10 @@ func _run_qa() -> void:
 		if not capture_dir.is_empty():
 			await RenderingServer.frame_post_draw
 			var capture = get_viewport().get_texture().get_image()
-			if capture == null or capture.get_size() != DESKTOP_CANVAS \
-					or get_viewport().get_visible_rect().size != Vector2(DESKTOP_CANVAS):
+			var exact_capture := capture != null \
+					and capture.get_size() == DESKTOP_CANVAS \
+					and get_viewport().get_visible_rect().size == Vector2(DESKTOP_CANVAS)
+			if not exact_capture:
 				push_error("QA capture framebuffer changed from exact 1920x1080; no image written")
 				get_tree().quit(2)
 				return

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """Fresh Astra 4.9 validation. Only this new QA packet is writable."""
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: historical 1280x720 QA packet runner is retired; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import argparse
 import datetime
 import hashlib

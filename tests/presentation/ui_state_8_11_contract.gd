@@ -274,7 +274,7 @@ func _test_production_source_surface() -> void:
 	var screen_source := FileAccess.get_file_as_string("res://ui/core/screen.gd")
 	check(not main_source.contains("ZUIFixtureStore.new"),
 		"production app never constructs the mutable fixture store directly")
-	check(main_source.contains("if qa_mode or review_start:")
+	check(main_source.contains("if qa_mode or review_start or exact_capture_mode:")
 			and main_source.contains(
 				"review_cli_uses_exact_canvas(OS.get_cmdline_args())")
 			and main_source.contains(
@@ -282,8 +282,11 @@ func _test_production_source_surface() -> void:
 			and main_source.contains(
 				"get_tree().root.get_visible_rect().size")
 			and main_source.contains("window.size != DESKTOP_CANVAS")
-			and main_source.contains("window.size = DESKTOP_CANVAS"),
-		"built-in review runners validate both argument sources and exact root size")
+			and main_source.contains("window.size = DESKTOP_CANVAS")
+			and main_source.contains("func require_exact_capture_canvas()")
+			and main_source.contains(
+				"qa_mode or _review_navigation_enabled or exact_capture_mode"),
+		"review and production-data capture hosts enforce exact output before reflow")
 	var capture_source := FileAccess.get_file_as_string(
 		"res://tests/visual/zerkov_screen_lifecycle/capture.gd")
 	var lifecycle_guard_position := capture_source.find(

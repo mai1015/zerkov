@@ -1,0 +1,184 @@
+{
+	"captures": [
+		{
+			"annotation_scope": "capture-only; no gameplay UI or task state",
+			"camera_px": [
+				320.0,
+				180.0
+			],
+			"camera_zoom": [
+				1,
+				1
+			],
+			"dimensions": [
+				1920,
+				1080
+			],
+			"file": "1920x1080_northwest.png",
+			"sha256": "226f6b21ce018ac49343bea06d77ee3e102eb86edeaa65fd07f41fe3e0838dd7",
+			"title": "01 / LOG RACKS",
+			"world_pixel_match": true,
+			"world_scale": 3,
+			"world_surface": [
+				640,
+				360
+			]
+		},
+		{
+			"annotation_scope": "capture-only; no gameplay UI or task state",
+			"camera_px": [
+				704.0,
+				180.0
+			],
+			"camera_zoom": [
+				1,
+				1
+			],
+			"dimensions": [
+				1920,
+				1080
+			],
+			"file": "1920x1080_north.png",
+			"sha256": "c4a1878a2cd09dd189f203ed012df6d68b3918dcbbdfb2c918be7178d2d2fca3",
+			"title": "02 / SAW HOUSE",
+			"world_pixel_match": true,
+			"world_scale": 3,
+			"world_surface": [
+				640,
+				360
+			]
+		},
+		{
+			"annotation_scope": "capture-only; no gameplay UI or task state",
+			"camera_px": [
+				960.0,
+				244.0
+			],
+			"camera_zoom": [
+				1,
+				1
+			],
+			"dimensions": [
+				1920,
+				1080
+			],
+			"file": "1920x1080_northeast.png",
+			"sha256": "26ee2a040ff42e76c75cdd8b6ae836c0a737c2017574f52dc58266e8f37a13c7",
+			"title": "ROAD GATE / NORTH APPROACH",
+			"world_pixel_match": true,
+			"world_scale": 3,
+			"world_surface": [
+				640,
+				360
+			]
+		},
+		{
+			"annotation_scope": "capture-only; no gameplay UI or task state",
+			"camera_px": [
+				320.0,
+				460.0
+			],
+			"camera_zoom": [
+				1,
+				1
+			],
+			"dimensions": [
+				1920,
+				1080
+			],
+			"file": "1920x1080_southwest.png",
+			"sha256": "e4b99e46cd815444eada7661753f0817cc9729f2df7f28727cfff43d2810e5d2",
+			"title": "WEST SERVICE / ARRIVAL",
+			"world_pixel_match": true,
+			"world_scale": 3,
+			"world_surface": [
+				640,
+				360
+			]
+		},
+		{
+			"annotation_scope": "capture-only; no gameplay UI or task state",
+			"camera_px": [
+				736.0,
+				460.0
+			],
+			"camera_zoom": [
+				1,
+				1
+			],
+			"dimensions": [
+				1920,
+				1080
+			],
+			"file": "1920x1080_south.png",
+			"sha256": "82f09ee1819c984550cc7811114fb0d2b2cbfafc42175dc11bc328f366fba4cd",
+			"title": "03 / SETTLING DOCK",
+			"world_pixel_match": true,
+			"world_scale": 3,
+			"world_surface": [
+				640,
+				360
+			]
+		},
+		{
+			"annotation_scope": "capture-only; no gameplay UI or task state",
+			"camera_px": [
+				960.0,
+				460.0
+			],
+			"camera_zoom": [
+				1,
+				1
+			],
+			"dimensions": [
+				1920,
+				1080
+			],
+			"file": "1920x1080_southeast.png",
+			"sha256": "cb84674db357505fb711a2188f5c56d5dc14cf42a4ba3e8b27205da27e2c1cc4",
+			"title": "ROAD GATE / RETURN",
+			"world_pixel_match": true,
+			"world_scale": 3,
+			"world_surface": [
+				640,
+				360
+			]
+		}
+	],
+	"checks": 74,
+	"contact_sheet": {
+		"dimensions": [
+			1920,
+			1080
+		],
+		"file": "1920x1080_contact_sheet.png",
+		"kind": "labeled native GPU montage; thumbnails are not gameplay output",
+		"sha256": "b9afe9cb43888c17ef60007495be46d77e4f9874d886d5b2f1232279d55b01fa"
+	},
+	"display": "macOS",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": 0,
+	"host_window_note": "OS-clamped preview only; never read or saved as evidence. The exact GPU root target is captured.",
+	"host_window_size": [
+		1849,
+		1050
+	],
+	"human_approval": false,
+	"independent_acceptance": false,
+	"output_target": [
+		1920,
+		1080
+	],
+	"renderer": "gl_compatibility",
+	"task": "3.4"
+}
