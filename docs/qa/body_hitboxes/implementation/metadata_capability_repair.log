@@ -1,0 +1,57 @@
+TASK 5.3 METADATA-CAPABILITY REPAIR / CURRENT-MAIN INTEGRATION
+recorded_at=2026-09-11T04:14:21Z
+worktree=/Volumes/Data/codes/codex-workspace/zerkov-5-3
+rejected_commit=758eef077c80b0b0bca5efb0bc3c12b5b51699ca
+repair_commit=21596eabaa8ec484d9967562424bd52373a17a16
+merged_main=c08a39b9026c9f45fd666d61a5c5d96b211e178b
+merge_commit=832877c09203d0598f3ea8db38a8e421c0a06436
+
+IMPORT (RUN FIRST AFTER FINAL MERGE)
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --editor --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --quit
+exit=0
+engine=Godot Engine v4.7.2.stable.official.ed1daf0bf
+result=first_scan_filesystem DONE; update_scripts_classes DONE; loading_editor_layout DONE
+diagnostic_matches=0
+
+TASK 5.2 FOCUSED HEADLESS DOMAIN CONTRACTS
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --audio-driver Dummy --script res://tests/raid/weapon_instance_context_contract.gd
+exit=0
+WEAPON_INSTANCE_CONTEXT_RESULT checks=306 failures=0 accepted_shot=true dormant_preserved=true transfer_conserved=true teardown_safe=true dropped_retired=true recovery_quarantine=true
+
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --audio-driver Dummy --script res://tests/raid/weapon_instance_context_adversarial_contract.gd
+exit=0
+WEAPON_INSTANCE_CONTEXT_ADVERSARIAL_RESULT checks=49 failures=0 recovery_drained=true capacity_rejection_atomic=true
+
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --audio-driver Dummy --script res://tests/raid/weapon_persistence_integration_contract.gd
+exit=0
+WEAPON_PERSISTENCE_INTEGRATION_RESULT checks=43 failures=0 replacement_verified=true stable_weapon_rebound=true owner_first_clean=true
+
+TASK 5.3 FOCUSED HEADLESS DOMAIN CONTRACTS
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --audio-driver Dummy --script res://tests/combat/body_hitbox_contract.gd
+exit=0
+BODY_HITBOX_RESULT checks=111 failures=0
+
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --audio-driver Dummy --script res://tests/combat/body_hitbox_adversarial_contract.gd
+exit=0
+BODY_HITBOX_ADVERSARIAL_RESULT checks=173 failures=0
+
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --audio-driver Dummy --script res://tests/combat/body_hitbox_review_regression_contract.gd
+exit=0
+BODY_HITBOX_REVIEW_REGRESSION_RESULT checks=72 failures=0
+
+SURFACE SCAN
+command=rg -n 'func (is_bound|binding_token|authority_generation|snapshot_tick|snapshot_revision|snapshot_digest)|\\.binding_token\\(\\)|\\.snapshot_(tick|revision|digest)\\(\\)' /Volumes/Data/codes/codex-workspace/zerkov-5-3/game/combat/hitboxes /Volumes/Data/codes/codex-workspace/zerkov-5-3/tests/combat
+exit=1
+matches=0
+result=No redundant scalar metadata getter or callsite remains.
+
+STRICT SPEC VALIDATION
+command=python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py validate add-zerkov-playable-raid-2026-09-09 --type change --strict
+exit=0
+result=Valid
+
+DIFF / DIAGNOSTICS / SCREEN POLICY
+command=git diff --check && git diff --check HEAD^1..HEAD && git diff --check HEAD^2..HEAD
+exit=0
+diagnostic_scan=No ERROR:, SCRIPT ERROR, Parse Error, assertion, invalid-call, stack-overflow, ObjectDB, RID, or resource-leak diagnostic in accepted outputs.
+screen_policy=No UI, viewport, visual, composition, inventory UI, runtime-capture, or screen-size suite was invoked. Mainline-carried 1920x1080 artifacts were not executed or regenerated.

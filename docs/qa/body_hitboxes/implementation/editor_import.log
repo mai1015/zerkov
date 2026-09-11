@@ -1,0 +1,6 @@
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --editor --path . --audio-driver Dummy --import --quit
+EXIT_CODE: 0
+ENGINE: Godot Engine v4.7.2.stable.official.ed1daf0bf
+RESULT: filesystem scan, GDExtension verification, global-class registration, and editor load completed
+DIAGNOSTIC_COUNTS: script_error=0; parse_error=0; engine_error=0; invalid_call=0
+VIEWPORT_OR_SCREEN_SIZE_ACTIONS: 0
