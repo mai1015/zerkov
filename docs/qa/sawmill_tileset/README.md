@@ -98,3 +98,20 @@ has no engine diagnostics at shutdown.
 No UI, viewport, capture, visual, responsive, compact, or alternate-size test
 was run. The exact 1920x1080 visual path was not necessary for this source-only
 work.
+
+## Independent acceptance — 2026-09-11
+
+Fresh detached review accepted exact candidate
+`aaa7454fa822e8e3724563de7962c698f51cba72` with no P0, P1, or P2
+findings. The permanent two-process gate passed `2638/0` with zero diagnostics;
+each direct Sawmill run passed `1319/0`, exited zero, and emitted zero stderr
+bytes. Registry `1447/0`, clean import, strict spec validation, diagnostic
+fail-before `7/7`, hashes, diff, and clean-tree gates passed.
+
+The reviewer independently confirmed 16 base tiles, two alternatives, six
+terrains, 11 navigation polygons, six collision polygons, four occluders, 144
+valid peering assignments, 72 custom values, checkout-relative `res://`
+provenance, and correctly centered TileMapLayer world bounds. The final
+resource teardown removed all prior ObjectDB/RID leak diagnostics. No UI,
+screen, viewport, visual, capture, compact, responsive, or alternate-size test
+was run.

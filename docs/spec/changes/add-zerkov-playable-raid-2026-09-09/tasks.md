@@ -117,7 +117,7 @@ suite; replay digest; teardown/reentrancy regression tests.
   integer fit/centered matte and a rounded final presentation camera; human
   approval remains false and later animation, combat/readability and cursor
   mapping gates remain open.
-- [ ] 3.3 `[LUNA]` Create a 32 px Sawmill source TileSet with explicit terrain,
+- [x] 3.3 `[LUNA]` Create a 32 px Sawmill source TileSet with explicit terrain,
   navigation, collision and draw-layer metadata.
 - [ ] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
   spawn, objective landmarks, combat lanes, cover, loot and Road Gate extract.
