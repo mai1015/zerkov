@@ -419,7 +419,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
 
 ## 8. UI, input and presentation integration
 
-- [ ] 8.1 `[SOL]` Make the shared Zerkov screen base participate in
+- [x] 8.1 `[SOL]` Make the shared Zerkov screen base participate in
   `CommonActivatableScreen` lifecycle without changing layout geometry.
 - [ ] 8.2 `[SOL]` Replace manual production navigation with CommonUI menu, HUD,
   modal and popup layers while retaining the F1 developer catalog.
