@@ -356,6 +356,13 @@ func _runtime_contract() -> void:
 	check(not collision_result.get("ok", false)
 			and str(collision_result.get("error", "")).contains("ui_"),
 		"rebinds that target a Godot ui_* focus key are rejected before registry mutation")
+	var confirm_focus_collision := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_TAB,
+		&"key_tab")
+	var confirm_collision_result := service.rebind(ZerkovInputActions.UI_CONFIRM,
+		CommonUIBinding.SLOT_PRIMARY, confirm_focus_collision)
+	check(not confirm_collision_result.get("ok", false)
+			and str(confirm_collision_result.get("error", "")).contains("ui_"),
+		"Confirm cannot repurpose a ui_* focus key outside its authored Enter overlap")
 	var high_godot_key := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F24)
 	var high_key_result := service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
 		CommonUIBinding.SLOT_PRIMARY, high_godot_key,
@@ -519,6 +526,21 @@ func _persistence_contract() -> void:
 	check(service.active_bindings_bytes() == before,
 		"device-mismatched persistence leaves live bindings unchanged")
 	remove_persistence_candidates()
+	write_persistence(JSON.stringify({
+		"format_version": 2,
+		"definition_version": ZerkovInputActions.CONFIG_DEFINITION_VERSION,
+		"overrides": [{
+			"action": String(ZerkovInputActions.UI_OPEN_TASKS),
+			"slot": 0,
+			"cleared": false,
+			"binding": persistence_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_B,
+				CommonUIBinding.AXIS_DIRECTION_NONE, "key_b", 2.0),
+		}],
+	}))
+	check(not service.reload_overrides(), "out-of-range persisted dead zone is rejected before CommonUI clamping")
+	check(service.active_bindings_bytes() == before,
+		"out-of-range persisted dead zone leaves live bindings unchanged")
+	remove_persistence_candidates()
 
 
 func _context_contract() -> void:
@@ -536,6 +558,13 @@ func _context_contract() -> void:
 			and gameplay_peer.capability_id != gameplay.capability_id
 			and ui_peer.capability_id != ui.capability_id,
 		"context leases are distinct capabilities for distinct callers")
+	var edited_capability := service.activate_context(ZerkovInputActions.GAMEPLAY_CONTEXT, -1, &"edited")
+	if edited_capability != null:
+		edited_capability.context_id = ZerkovInputActions.UI_CONTEXT
+		edited_capability.generation = -1
+		edited_capability.capability_id = -1
+	check(edited_capability != null and edited_capability.release(),
+		"lease release uses service-owned capability identity rather than mutable caller fields")
 	check(not gameplay.snapshot().get("released", true), "context snapshot is detached")
 	var forged_token := ZerkovInputContextToken.new()
 	forged_token.context_id = ZerkovInputActions.UI_CONTEXT

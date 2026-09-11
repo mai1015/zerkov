@@ -373,42 +373,62 @@ func activate_context(context_id: StringName, priority: int = -1, source: String
 
 
 func release_context_token(token: ZerkovInputContextToken) -> bool:
-	if token == null or not _contexts.has(token.context_id):
+	if token == null:
 		return false
-	var entry: Dictionary = _contexts[token.context_id]
-	if int(entry.get("generation", -1)) != token.generation:
+	# Do not trust caller-mutated context/generation/capability fields to locate
+	# the lease. The service owns the identity relation and scans the bounded
+	# lease table for the exact token object, so a forged or edited capability
+	# cannot release a peer or a replacement context.
+	var found_context: StringName = &""
+	var found_capability: int = 0
+	var found_entry: Dictionary = {}
+	for context_id_variant in _contexts.keys():
+		var context_id: StringName = context_id_variant
+		var candidate_entry: Dictionary = _contexts[context_id]
+		var candidate_leases: Dictionary = candidate_entry.get("leases", {})
+		for capability_variant in candidate_leases.keys():
+			var capability_id := int(capability_variant)
+			if candidate_leases[capability_id] != token:
+				continue
+			found_context = context_id
+			found_capability = capability_id
+			found_entry = candidate_entry
+			break
+		if found_capability != 0:
+			break
+	if found_capability == 0:
 		return false
-	var leases: Dictionary = entry.get("leases", {})
-	if token.capability_id <= 0 or not leases.has(token.capability_id) \
-			or leases[token.capability_id] != token:
-		return false
-	leases.erase(token.capability_id)
+	var leases: Dictionary = found_entry.get("leases", {})
+	leases.erase(found_capability)
 	token._invalidate()
-	entry["leases"] = leases
+	found_entry["leases"] = leases
 	if leases.is_empty():
-		var handle := entry.get("handle") as CommonUIContextHandle
+		var handle := found_entry.get("handle") as CommonUIContextHandle
 		if handle != null:
 			handle.release()
-		_contexts.erase(token.context_id)
+		_contexts.erase(found_context)
 		for route_context_variant in _route_tokens.keys():
-			if route_context_variant == token.context_id:
+			if route_context_variant == found_context:
 				_route_tokens.erase(route_context_variant)
 	else:
-		_contexts[token.context_id] = entry
+		_contexts[found_context] = found_entry
 	_apply_context_priority()
 	_publish_contexts()
 	return true
 
 
 func is_context_token_active(token: ZerkovInputContextToken) -> bool:
-	if token == null or not _contexts.has(token.context_id):
+	if token == null:
 		return false
-	var entry: Dictionary = _contexts[token.context_id]
-	var handle := entry.get("handle") as CommonUIContextHandle
-	var leases: Dictionary = entry.get("leases", {})
-	return int(entry.get("generation", -1)) == token.generation \
-			and token.capability_id > 0 and leases.get(token.capability_id, null) == token \
-			and handle != null and handle.is_active()
+	for entry_variant in _contexts.values():
+		var entry: Dictionary = entry_variant
+		var handle := entry.get("handle") as CommonUIContextHandle
+		if handle == null or not handle.is_active():
+			continue
+		for lease_variant in (entry.get("leases", {}) as Dictionary).values():
+			if lease_variant == token:
+				return true
+	return false
 
 
 func set_context_suspended(context_id: StringName, suspended: bool) -> bool:
@@ -836,8 +856,15 @@ func _integer_value(value: Variant) -> Dictionary:
 func _binding_from_persistence_dictionary(data: Dictionary, slot: int) -> Dictionary:
 	if not _has_exact_keys(data, ["device_kind", "code", "axis_direction", "dead_zone", "shift", "ctrl", "alt", "meta", "glyph"]):
 		return {"ok": false, "error": "fields are malformed"}
-	if typeof(data.get("dead_zone", null)) != TYPE_INT and typeof(data.get("dead_zone", null)) != TYPE_FLOAT:
+	var dead_zone_value: Variant = data.get("dead_zone", null)
+	if typeof(dead_zone_value) != TYPE_INT and typeof(dead_zone_value) != TYPE_FLOAT:
 		return {"ok": false, "error": "dead zone is not numeric"}
+	var dead_zone := float(dead_zone_value)
+	# Validate the serialized value before CommonUIBinding's setter can clamp it;
+	# otherwise a forged out-of-range document would be silently normalized into
+	# an accepted binding instead of being rejected as malformed.
+	if not is_finite(dead_zone) or dead_zone < 0.0 or dead_zone > 1.0:
+		return {"ok": false, "error": "dead zone is outside the inclusive [0,1] bound"}
 	for key in ["shift", "ctrl", "alt", "meta"]:
 		if typeof(data.get(key, null)) != TYPE_BOOL:
 			return {"ok": false, "error": "modifier field is not boolean"}
@@ -855,7 +882,7 @@ func _binding_from_persistence_dictionary(data: Dictionary, slot: int) -> Dictio
 	binding.set_device_kind(int(kind_value["value"]))
 	binding.set_code(int(code_value["value"]))
 	binding.set_axis_direction(int(axis_value["value"]))
-	binding.set_dead_zone(float(data.get("dead_zone", 0.25)))
+	binding.set_dead_zone(dead_zone)
 	binding.set_shift_pressed(bool(data.get("shift", false)))
 	binding.set_ctrl_pressed(bool(data.get("ctrl", false)))
 	binding.set_alt_pressed(bool(data.get("alt", false)))
@@ -925,9 +952,13 @@ func _contexts_conflict(left: StringName, right: StringName) -> bool:
 func _ui_collision_owner(action_id: StringName, binding: CommonUIBinding) -> String:
 	if binding == null or binding.get_device_kind() != CommonUIBinding.DEVICE_KEYBOARD:
 		return ""
-	# CommonUI Confirm/Enter is the only intentional framework overlap. All game
-	# actions and all other rebinds must stay out of Godot's ui_* focus set.
-	if action_id == ACTIONS.UI_CONFIRM:
+	# CommonUI Confirm/Enter is the only intentional framework overlap. Restrict
+	# that exception to the authored unmodified Enter default; a caller cannot
+	# use the framework action id to smuggle an arbitrary ui_* focus key into a
+	# rebind.
+	if action_id == ACTIONS.UI_CONFIRM and binding.get_code() == KEY_ENTER \
+			and not binding.is_shift_pressed() and not binding.is_ctrl_pressed() \
+			and not binding.is_alt_pressed() and not binding.is_meta_pressed():
 		return ""
 	for action in InputMap.get_actions():
 		if not String(action).begins_with("ui_"):
