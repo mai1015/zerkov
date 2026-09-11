@@ -10,7 +10,7 @@ extends RefCounted
 const CONFIG_SCHEMA_VERSION: int = 1
 const CONFIG_ID: String = "zerkov.vision.authority.first_playable_v1"
 const SEALED_FINGERPRINT: String = \
-	"0abdcc202b3f0299fa6d9d3726e16ab955b8a1d1481c201c1770aea21e57dd2e"
+	"3ead6e826bfd2552aa1396a4d266de3603524355c56620033cb1bd84b6df58f3"
 
 const ADDON_ID: String = "common_vision"
 const ADDON_DESTINATION: String = "addons/common_vision"
@@ -21,6 +21,10 @@ const EXPECTED_API_VERSION: String = "0.1.0"
 const EXPECTED_PROTOCOL_VERSION: int = 1
 const EXPECTED_ALGORITHM_CONTRACT: int = 1
 const EXPECTED_COORDINATE_SCALE: int = 1_000_000
+const EXPECTED_SOURCE_REPOSITORY_PATH: String = \
+	"/Volumes/Data/sdk/godot/addons/common_vision"
+const EXPECTED_SOURCE_PACKAGE_PATH: String = \
+	"/Volumes/Data/sdk/godot/addons/common_vision/addons/common_vision"
 const EXPECTED_PACKAGE_TREE_SHA256: String = \
 	"868119892c8d4ce16c9329f1f22129663c035bb59d6d11005bb351969ac63c10"
 const EXPECTED_RELEASE_SOURCE_REVISION: String = \
@@ -541,7 +545,10 @@ static func _validate_target_profile(profile: Dictionary) -> String:
 
 
 static func _validate_locked_entry(entry: Dictionary, verify_files: bool) -> Dictionary:
-	if not _all_string_fields(entry, PackedStringArray([
+	if not _has_exact_keys(entry, PackedStringArray([
+		"id", "version", "api_version", "protocol_version", "schema_versions",
+		"source", "destination", "integration", "native_artifacts",
+	])) or not _all_string_fields(entry, PackedStringArray([
 		"id", "destination", "version", "api_version",
 	])) or not _all_json_integer_fields(entry, PackedStringArray(["protocol_version"])):
 		return _status(false, &"common_vision_lock_identity_incompatible")
@@ -566,13 +573,19 @@ static func _validate_locked_entry(entry: Dictionary, verify_files: bool) -> Dic
 	if not source_value is Dictionary:
 		return _status(false, &"common_vision_lock_source_invalid")
 	var source := source_value as Dictionary
-	if not _all_string_fields(source, PackedStringArray([
-		"git_head", "release_source_revision", "package_tree_sha256",
+	if not _has_exact_keys(source, PackedStringArray([
+		"repository_path", "package_path", "git_head", "release_source_revision",
+		"package_worktree_dirty", "package_file_count", "package_tree_sha256",
 		"release_manifest_sha256",
+	])) or not _all_string_fields(source, PackedStringArray([
+		"repository_path", "package_path", "git_head", "release_source_revision",
+		"package_tree_sha256", "release_manifest_sha256",
 	])) or not _all_json_integer_fields(source, PackedStringArray(["package_file_count"])) \
 			or typeof(source.get("package_worktree_dirty", null)) != TYPE_BOOL:
 		return _status(false, &"common_vision_lock_provenance_incompatible")
-	if String(source["git_head"]) != EXPECTED_GIT_HEAD \
+	if String(source["repository_path"]) != EXPECTED_SOURCE_REPOSITORY_PATH \
+			or String(source["package_path"]) != EXPECTED_SOURCE_PACKAGE_PATH \
+			or String(source["git_head"]) != EXPECTED_GIT_HEAD \
 			or String(source["release_source_revision"]) != EXPECTED_RELEASE_SOURCE_REVISION \
 			or bool(source["package_worktree_dirty"]) != EXPECTED_PACKAGE_WORKTREE_DIRTY \
 			or int(source["package_file_count"]) != EXPECTED_PACKAGE_FILE_COUNT \
@@ -647,6 +660,8 @@ static func _validate_locked_entry(entry: Dictionary, verify_files: bool) -> Dic
 			"algorithm_contract": int(schemas["algorithm_contract"]),
 		},
 		"source": {
+			"repository_path": String(source["repository_path"]),
+			"package_path": String(source["package_path"]),
 			"git_head": String(source["git_head"]),
 			"release_source_revision": String(source["release_source_revision"]),
 			"package_worktree_dirty": bool(source["package_worktree_dirty"]),
@@ -711,6 +726,8 @@ static func _expected_provenance() -> Dictionary:
 			"algorithm_contract": EXPECTED_ALGORITHM_CONTRACT,
 		},
 		"source": {
+			"repository_path": EXPECTED_SOURCE_REPOSITORY_PATH,
+			"package_path": EXPECTED_SOURCE_PACKAGE_PATH,
 			"git_head": EXPECTED_GIT_HEAD,
 			"release_source_revision": EXPECTED_RELEASE_SOURCE_REVISION,
 			"package_worktree_dirty": EXPECTED_PACKAGE_WORKTREE_DIRTY,
@@ -799,11 +816,12 @@ static func _configuration_provenance_types_are_valid(value: Variant) -> bool:
 	])) or not _all_int_fields(schemas, PackedStringArray([
 		"release_manifest", "algorithm_contract",
 	])) or not _has_exact_keys(source, PackedStringArray([
-		"git_head", "release_source_revision", "package_worktree_dirty",
-		"package_file_count", "package_tree_sha256", "release_manifest_sha256",
-	])) or not _all_string_fields(source, PackedStringArray([
-		"git_head", "release_source_revision", "package_tree_sha256",
+		"repository_path", "package_path", "git_head", "release_source_revision",
+		"package_worktree_dirty", "package_file_count", "package_tree_sha256",
 		"release_manifest_sha256",
+	])) or not _all_string_fields(source, PackedStringArray([
+		"repository_path", "package_path", "git_head", "release_source_revision",
+		"package_tree_sha256", "release_manifest_sha256",
 	])) or not _all_int_fields(source, PackedStringArray(["package_file_count"])) \
 			or typeof(source.get("package_worktree_dirty", null)) != TYPE_BOOL:
 		return false

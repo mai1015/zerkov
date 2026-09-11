@@ -2,11 +2,14 @@ class_name RaidVisionWorldOwner
 extends Node
 ## Game-owned authoritative Common Vision world for one raid generation.
 ##
-## The native node is retained privately and never attached to the scene tree or
-## returned to callers. All mutation ports are sealed-profile,
-## generation/binding-checked operations intended for the task-6.2 lifecycle
-## owner. Only the bound RaidAuthority's authenticated VISION slot can advance
-## time; this owner has no render-delta or public direct-tick driver.
+## Task 6.1 owns configuration, deterministic authority cadence, bounded work,
+## telemetry, and teardown only. Actor/target/occluder lifecycle and AI-facing
+## projections deliberately have no production port in this slice.
+##
+## The live CommonVisionWorld2D exists only in lexical state captured by an
+## opaque Callable. No Object/Resource property on this owner retains it, and
+## the Callable can only advance while RaidAuthority attests this exact owner,
+## generation, phase, tick, and reserved callback slot.
 
 enum Lifecycle {
 	NOT_STARTED,
@@ -21,9 +24,12 @@ const LIFECYCLE_NAMES: PackedStringArray = [
 	"quarantined",
 	"torn_down",
 ]
-const PHASE_HANDLER_ID: StringName = &"raid_vision_world"
+const PHASE_HANDLER_ID: StringName = RaidAuthority.RESERVED_VISION_HANDLER_ID
 const NATIVE_MAX_OBSERVERS: int = 4_096
-const NATIVE_MAX_OCCLUDER_SEGMENTS: int = 131_072
+
+const _RUNTIME_ADVANCE: StringName = &"advance_attested"
+const _RUNTIME_DISPOSE: StringName = &"dispose_attested"
+const _RUNTIME_STATUS: StringName = &"status"
 
 var lifecycle: Lifecycle = Lifecycle.NOT_STARTED
 var last_error: StringName = &""
@@ -33,7 +39,13 @@ var _world_id: int = 0
 var _configuration: Dictionary = {}
 var _configuration_fingerprint: String = ""
 var _provenance_fingerprint: String = ""
-var _native_world: CommonVisionWorld2D
+
+# The Callable owns inaccessible lexical state. Its bound-argument list is
+# empty and its Callable object is this script resource, never the native node.
+var _runtime_dispatch: Callable = Callable()
+var _runtime_alive: bool = false
+var _runtime_disposal_authorized: bool = false
+
 var _last_attempted_tick: int = 0
 var _last_successful_tick: int = 0
 var _last_evaluation_tick: int = 0
@@ -41,9 +53,16 @@ var _last_attempted_evaluation_tick: int = 0
 var _last_tick_was_evaluation: bool = false
 var _is_advancing: bool = false
 var _inside_phase_handler: bool = false
+
 var _raid_authority_ref: WeakRef
 var _raid_authority_instance_id: int = 0
 var _raid_authority_generation: int = 0
+var _binding_claim_pending: bool = false
+var _binding_registered: bool = false
+var _binding_release_pending: bool = false
+var _binding_consumed: bool = false
+var _predelete_started: bool = false
+
 var _history: Array[Dictionary] = []
 var _last_native_status: Dictionary = {}
 
@@ -64,7 +83,8 @@ var _failed_evaluations: int = 0
 ## cannot be reconfigured because native configure() is a destructive reset.
 func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 	last_error = &""
-	if lifecycle != Lifecycle.NOT_STARTED or _native_world != null:
+	if lifecycle != Lifecycle.NOT_STARTED or _runtime_alive \
+			or _runtime_dispatch.is_valid():
 		return _reject(&"owner_already_configured")
 	if world_id <= 0 or world_id > ZerkovVisionConfig.WORLD_ID_MAX:
 		return _reject(&"vision_world_id_invalid")
@@ -73,10 +93,14 @@ func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 		if configuration_record.is_empty() else configuration_record.duplicate(true)
 	var validation := ZerkovVisionConfig.validate_configuration(candidate, true)
 	if not bool(validation.get("ok", false)):
-		return _reject(StringName(validation.get("reason", &"vision_configuration_invalid")))
+		return _reject(StringName(validation.get(
+			"reason", &"vision_configuration_invalid"
+		)))
 	var preflight := ZerkovVisionConfig.runtime_preflight()
 	if not bool(preflight.get("ok", false)):
-		return _reject(StringName(preflight.get("reason", &"vision_runtime_incompatible")))
+		return _reject(StringName(preflight.get(
+			"reason", &"vision_runtime_incompatible"
+		)))
 
 	var native_object: Object = ClassDB.instantiate("CommonVisionWorld2D")
 	var native_world := native_object as CommonVisionWorld2D
@@ -96,15 +120,82 @@ func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 		native_world.free()
 		return _reject(&"vision_native_configuration_failed")
 
-	# A detached Node has no public scene-tree traversal path. The owner keeps
-	# the only native reference and frees it synchronously on failure/teardown.
-	_native_world = native_world
+	# This state is captured by the lambda and cannot be reached through
+	# Object.get(), get_property_list(), Callable.get_object(), or the Callable's
+	# (empty) bound-argument list. No operation returns the native value.
+	var runtime_state := {
+		"alive": true,
+		"native": native_world,
+	}
+	var captured_owner_id := get_instance_id()
+	var captured_owner_generation := 1
+	_runtime_dispatch = func(operation: StringName, request: Dictionary) -> Dictionary:
+		if operation == _RUNTIME_STATUS:
+			return {"ok": true, "alive": bool(runtime_state["alive"])}
+		var owner_value: Variant = request.get("owner", null)
+		if not owner_value is RaidVisionWorldOwner \
+				or not is_instance_valid(owner_value) \
+				or (owner_value as RaidVisionWorldOwner).get_instance_id() \
+					!= captured_owner_id:
+			return {"ok": false, "reason": "runtime_owner_invalid"}
+		var owner := owner_value as RaidVisionWorldOwner
+		if operation == _RUNTIME_DISPOSE:
+			if not _has_exact_keys(request, PackedStringArray([
+				"owner", "owner_generation",
+			])) or typeof(request.get("owner_generation", null)) != TYPE_INT \
+					or int(request["owner_generation"]) != captured_owner_generation \
+					or not owner.is_runtime_disposal_authorized(
+						captured_owner_generation
+					):
+				return {"ok": false, "reason": "runtime_disposal_unauthorized"}
+			if not bool(runtime_state["alive"]):
+				return {"ok": true, "alive": false}
+			var native_value: Variant = runtime_state["native"]
+			if native_value is CommonVisionWorld2D and is_instance_valid(native_value):
+				(native_value as CommonVisionWorld2D).free()
+			runtime_state["native"] = null
+			runtime_state["alive"] = false
+			return {"ok": true, "alive": false}
+		if operation != _RUNTIME_ADVANCE \
+				or not bool(runtime_state["alive"]) \
+				or not _has_exact_keys(request, PackedStringArray([
+					"owner", "raid_authority", "phase", "tick",
+					"owner_generation", "raid_generation", "work_budget",
+				])):
+			return {"ok": false, "reason": "runtime_operation_rejected"}
+		for integer_key in [
+			"phase", "tick", "owner_generation", "raid_generation", "work_budget",
+		]:
+			if typeof(request.get(integer_key, null)) != TYPE_INT:
+				return {"ok": false, "reason": "runtime_request_invalid"}
+		var raid_value: Variant = request.get("raid_authority", null)
+		if not raid_value is RaidAuthority or not is_instance_valid(raid_value) \
+				or int(request["owner_generation"]) != captured_owner_generation \
+				or int(request["work_budget"]) \
+					!= ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION:
+			return {"ok": false, "reason": "runtime_request_invalid"}
+		var raid := raid_value as RaidAuthority
+		var phase: RaidAuthority.TickPhase = int(request["phase"])
+		var tick := int(request["tick"])
+		var raid_generation := int(request["raid_generation"])
+		if not raid.is_dispatching_vision_world_owner(
+			owner, phase, tick, captured_owner_generation, raid_generation
+		):
+			return {"ok": false, "reason": "runtime_dispatch_unattested"}
+		var native_value: Variant = runtime_state["native"]
+		if not native_value is CommonVisionWorld2D or not is_instance_valid(native_value):
+			return {"ok": false, "reason": "runtime_native_invalid"}
+		return (native_value as CommonVisionWorld2D).advance(
+			tick, int(request["work_budget"])
+		).duplicate(true)
+
+	_runtime_alive = true
 	_configuration = candidate.duplicate(true)
 	_make_deep_read_only(_configuration)
 	_configuration_fingerprint = String(validation.get("fingerprint", ""))
 	_provenance_fingerprint = String(preflight.get("fingerprint", ""))
 	_world_id = world_id
-	_generation = 1
+	_generation = captured_owner_generation
 	lifecycle = Lifecycle.ACTIVE
 	_last_native_status = _native_status_copy(native_result)
 	return true
@@ -129,8 +220,8 @@ func lifecycle_name() -> StringName:
 func is_current_generation(expected_generation: int) -> bool:
 	return lifecycle == Lifecycle.ACTIVE \
 		and expected_generation == _generation \
-		and _native_world != null \
-		and is_instance_valid(_native_world)
+		and _runtime_alive \
+		and _runtime_dispatch.is_valid()
 
 
 func configuration_fingerprint() -> String:
@@ -156,214 +247,107 @@ func configuration_receipt() -> Dictionary:
 		"work_budget_per_evaluation": ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION,
 		"phase_handler_id": String(PHASE_HANDLER_ID),
 		"native_handle_exposed": false,
+		"actor_lifecycle_ports_exposed": false,
+		"runtime_storage": "opaque_closure",
 	}
 	_make_deep_read_only(result)
 	return result
 
 
-## Claims the one fixed Vision-owner slot while RaidAuthority is PREPARING.
-## There is intentionally no caller-selected handler identity.
+## Claims the fixed Vision slot. The owner first publishes an exact provisional
+## binding that RaidAuthority authenticates, then the authority derives and
+## records the callback without accepting a caller-supplied identity/Callable.
 func register_with_raid_authority(raid_authority: RaidAuthority) -> bool:
 	last_error = &""
 	if not is_current_generation(_generation):
 		return _reject(&"vision_owner_inactive")
 	if raid_authority == null or not is_instance_valid(raid_authority):
 		return _reject(&"raid_authority_invalid")
-	if _raid_authority_instance_id != 0:
+	if _binding_consumed or _binding_claim_pending or _binding_registered:
 		return _reject(&"raid_authority_already_registered")
 	if _last_attempted_tick != 0:
 		return _reject(&"vision_tick_driver_already_started")
 	var captured_raid_generation := raid_authority.generation()
-	if not raid_authority.register_phase_handler(
-		RaidAuthority.TickPhase.VISION,
-		PHASE_HANDLER_ID,
-		Callable(self, "_handle_raid_phase"),
-		captured_raid_generation,
-	):
-		return _reject(raid_authority.last_error)
+	_binding_claim_pending = true
 	_raid_authority_ref = weakref(raid_authority)
 	_raid_authority_instance_id = raid_authority.get_instance_id()
 	_raid_authority_generation = captured_raid_generation
+	if not raid_authority.register_vision_world_owner(
+		self, _generation, captured_raid_generation
+	):
+		var reason := raid_authority.last_error
+		_clear_authority_binding()
+		return _reject(reason)
+	_binding_claim_pending = false
+	_binding_registered = true
+	_binding_consumed = true
 	return true
 
 
-## The following ports are the only production route to native world state.
-## They apply sealed profiles and require the exact bound raid and owner
-## generation. Task 6.2 remains responsible for actor identity, transform
-## revisions, liveness, and when these ports are invoked.
-func set_occluder_segments(
+## Read-only registration proofs consumed only by RaidAuthority's specialized
+## slot API. They expose no native world or mutation capability.
+func is_registration_claim_current(
 	raid_authority: RaidAuthority,
-	segments: Array,
-	geometry_revision: int,
-	expected_generation: int
+	owner_generation: int,
+	raid_generation: int
 ) -> bool:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
-		return false
-	if geometry_revision <= 0 \
-			or geometry_revision > ZerkovVisionConfig.TELEMETRY_COUNTER_LIMIT:
-		return _reject(&"vision_geometry_revision_invalid")
-	if segments.size() > NATIVE_MAX_OCCLUDER_SEGMENTS:
-		return _reject(&"vision_occluder_limit")
-	var accepted: Array[Dictionary] = []
-	var segment_ids: Dictionary = {}
-	for segment_value in segments:
-		if not segment_value is Dictionary:
-			return _reject(&"vision_occluder_invalid")
-		var segment := segment_value as Dictionary
-		if not _has_exact_keys(segment, PackedStringArray([
-			"id", "a", "b", "mask", "two_sided",
-		])) or not _all_int_fields(segment, PackedStringArray(["id", "mask"])):
-			return _reject(&"vision_occluder_invalid")
-		var segment_id := int(segment["id"])
-		var mask := int(segment["mask"])
-		if segment_id <= 0 or segment_ids.has(segment_id) \
-				or mask <= 0 or mask & ZerkovVisionConfig.OCCLUDER_LAYER_ALL != mask \
-				or typeof(segment["two_sided"]) != TYPE_BOOL \
-				or not bool(segment["two_sided"]):
-			return _reject(&"vision_occluder_invalid")
-		if not _point_dictionary_is_valid(segment["a"]) \
-				or not _point_dictionary_is_valid(segment["b"]) \
-				or segment["a"] == segment["b"]:
-			return _reject(&"vision_occluder_invalid")
-		segment_ids[segment_id] = true
-		accepted.append(segment.duplicate(true))
-	return _accept_native_mutation(
-		_native_world.set_occluder_segments(accepted, geometry_revision)
-	)
+	return _binding_claim_pending \
+		and not _binding_registered \
+		and _binding_values_match(raid_authority, owner_generation, raid_generation) \
+		and is_current_generation(owner_generation)
 
 
-func register_observer(
+func is_registered_binding_current(
 	raid_authority: RaidAuthority,
-	observer_id: int,
-	profile_id: String,
-	position_raw: Vector2i,
-	facing_raw: Vector2i,
-	revision: int,
-	expected_generation: int
+	owner_generation: int,
+	raid_generation: int
 ) -> bool:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
-		return false
-	var definition := _observer_definition(
-		observer_id, profile_id, position_raw, facing_raw, revision
-	)
-	if definition.is_empty():
-		return _reject(&"vision_observer_definition_invalid")
-	return _accept_native_mutation(_native_world.register_observer(definition))
+	return _binding_registered \
+		and not _binding_claim_pending \
+		and _binding_values_match(raid_authority, owner_generation, raid_generation) \
+		and lifecycle == Lifecycle.ACTIVE \
+		and _runtime_alive
 
 
-func update_observer(
+func is_release_claim_current(
 	raid_authority: RaidAuthority,
-	observer_id: int,
-	profile_id: String,
-	position_raw: Vector2i,
-	facing_raw: Vector2i,
-	revision: int,
-	expected_revision: int,
-	expected_generation: int
+	owner_generation: int,
+	raid_generation: int
 ) -> bool:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
-		return false
-	if expected_revision <= 0 \
-			or expected_revision >= ZerkovVisionConfig.TELEMETRY_COUNTER_LIMIT \
-			or revision != expected_revision + 1:
-		return _reject(&"vision_observer_revision_invalid")
-	var definition := _observer_definition(
-		observer_id, profile_id, position_raw, facing_raw, revision
-	)
-	if definition.is_empty():
-		return _reject(&"vision_observer_definition_invalid")
-	return _accept_native_mutation(
-		_native_world.update_observer(definition, expected_revision)
-	)
+	return _binding_release_pending \
+		and _binding_registered \
+		and _binding_values_match(raid_authority, owner_generation, raid_generation)
 
 
-func remove_observer(
+## Authority-owned release callback. An owner that has already participated in
+## simulation is quarantined and loses the runtime synchronously; a PREPARING
+## replacement release only clears the binding.
+func release_registered_binding(
 	raid_authority: RaidAuthority,
-	observer_id: int,
-	expected_generation: int
+	owner_generation: int,
+	raid_generation: int,
+	seal_owner: bool
 ) -> bool:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
+	if not raid_authority.is_releasing_vision_world_owner(
+			self, owner_generation, raid_generation
+		) or not _binding_registered \
+			or not _binding_values_match(
+			raid_authority, owner_generation, raid_generation
+		):
 		return false
-	if observer_id <= 0:
-		return _reject(&"vision_observer_id_invalid")
-	return _accept_native_mutation(_native_world.remove_observer(observer_id))
+	_clear_authority_binding()
+	if seal_owner and (lifecycle == Lifecycle.ACTIVE \
+			or lifecycle == Lifecycle.QUARANTINED):
+		_quarantine()
+	return true
 
 
-func register_target(
-	raid_authority: RaidAuthority,
-	target_id: int,
-	profile_id: String,
-	position_raw: Vector2i,
-	revision: int,
-	expected_generation: int
-) -> bool:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
-		return false
-	var definition := _target_definition(target_id, profile_id, position_raw, revision)
-	if definition.is_empty():
-		return _reject(&"vision_target_definition_invalid")
-	return _accept_native_mutation(_native_world.register_target(definition))
-
-
-func update_target(
-	raid_authority: RaidAuthority,
-	target_id: int,
-	profile_id: String,
-	position_raw: Vector2i,
-	revision: int,
-	expected_revision: int,
-	expected_generation: int
-) -> bool:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
-		return false
-	if expected_revision <= 0 \
-			or expected_revision >= ZerkovVisionConfig.TELEMETRY_COUNTER_LIMIT \
-			or revision != expected_revision + 1:
-		return _reject(&"vision_target_revision_invalid")
-	var definition := _target_definition(target_id, profile_id, position_raw, revision)
-	if definition.is_empty():
-		return _reject(&"vision_target_definition_invalid")
-	return _accept_native_mutation(
-		_native_world.update_target(definition, expected_revision)
-	)
-
-
-func remove_target(
-	raid_authority: RaidAuthority,
-	target_id: int,
-	expected_generation: int
-) -> bool:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
-		return false
-	if target_id <= 0:
-		return _reject(&"vision_target_id_invalid")
-	return _accept_native_mutation(_native_world.remove_target(target_id))
-
-
-## Returns the add-on's detached value copy after recursively making it
-## read-only. No returned value can configure, mutate, query, or advance the
-## private native world.
-func observer_projection(
-	raid_authority: RaidAuthority,
-	observer_id: int,
-	expected_generation: int
-) -> Dictionary:
-	last_error = &""
-	if not _check_bound_access(raid_authority, expected_generation):
-		return _read_only_failure(last_error)
-	if observer_id <= 0:
-		last_error = &"vision_observer_id_invalid"
-		return _read_only_failure(last_error)
-	var projection: Dictionary = _native_world.get_projection(observer_id).duplicate(true)
-	_make_deep_read_only(projection)
-	return projection
+func is_runtime_disposal_authorized(expected_generation: int) -> bool:
+	return _runtime_disposal_authorized \
+		and expected_generation == _generation \
+		and (lifecycle == Lifecycle.ACTIVE \
+			or lifecycle == Lifecycle.QUARANTINED \
+			or _predelete_started)
 
 
 func _handle_raid_phase(
@@ -377,11 +361,8 @@ func _handle_raid_phase(
 		return _reject(&"raid_authority_binding_invalid")
 	if phase != RaidAuthority.TickPhase.VISION:
 		return _reject(&"vision_phase_invalid")
-	if not raid_authority.is_dispatching_phase_handler(
-		phase,
-		tick,
-		PHASE_HANDLER_ID,
-		_raid_authority_generation,
+	if not raid_authority.is_dispatching_vision_world_owner(
+		self, phase, tick, _generation, _raid_authority_generation
 	):
 		return _reject(&"vision_phase_attestation_failed")
 	if _inside_phase_handler:
@@ -392,8 +373,8 @@ func _handle_raid_phase(
 	return advanced
 
 
-## Advances only from the exact synchronously executing fixed phase slot. The
-## signature deliberately contains no delta/time input.
+## Advances only from the exact synchronously executing reserved owner slot.
+## The signature deliberately contains no delta/time input.
 func _advance_attested_tick(
 	raid_authority: RaidAuthority,
 	phase: RaidAuthority.TickPhase,
@@ -404,8 +385,8 @@ func _advance_attested_tick(
 	if not is_current_generation(_generation):
 		return _reject(&"vision_owner_inactive")
 	if not _inside_phase_handler \
-			or not raid_authority.is_dispatching_phase_handler(
-				phase, tick, PHASE_HANDLER_ID, _raid_authority_generation
+			or not raid_authority.is_dispatching_vision_world_owner(
+				self, phase, tick, _generation, _raid_authority_generation
 			):
 		return _reject(&"vision_phase_attestation_failed")
 	if tick <= 0 or tick > ZerkovVisionConfig.TELEMETRY_COUNTER_LIMIT:
@@ -426,10 +407,7 @@ func _advance_attested_tick(
 
 	_last_attempted_evaluation_tick = tick
 	_evaluation_attempts = _bounded_add(_evaluation_attempts, 1)
-	var native_result := _native_world.advance(
-		tick,
-		ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION,
-	)
+	var native_result := _dispatch_runtime_advance(raid_authority, phase, tick)
 	_last_native_status = _native_status_copy(native_result)
 	if not _metrics_are_valid(native_result):
 		_failed_evaluations = _bounded_add(_failed_evaluations, 1)
@@ -461,6 +439,30 @@ func _advance_attested_tick(
 	_evaluation_ticks = _bounded_add(_evaluation_ticks, 1)
 	_is_advancing = false
 	return true
+
+
+## Single overridable result boundary used by the isolated contract fixture to
+## inject a documented native failure record. It accepts/returns values only;
+## no native Object or actor lifecycle operation crosses this seam. Production
+## RaidAuthority accepts only this base script, so an overriding subclass can
+## run only behind the contract's test-local authority fixture.
+func _dispatch_runtime_advance(
+	raid_authority: RaidAuthority,
+	phase: RaidAuthority.TickPhase,
+	tick: int
+) -> Dictionary:
+	if not _runtime_dispatch.is_valid():
+		return {"ok": false, "reason": "runtime_capability_invalid"}
+	var result: Variant = _runtime_dispatch.call(_RUNTIME_ADVANCE, {
+		"owner": self,
+		"raid_authority": raid_authority,
+		"phase": int(phase),
+		"tick": tick,
+		"owner_generation": _generation,
+		"raid_generation": _raid_authority_generation,
+		"work_budget": ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION,
+	})
+	return result as Dictionary if result is Dictionary else {}
 
 
 func telemetry_snapshot() -> Dictionary:
@@ -548,41 +550,41 @@ func teardown(expected_generation: int) -> bool:
 		return _reject(&"stale_generation")
 	if _is_advancing or _inside_phase_handler:
 		return _reject(&"vision_teardown_during_tick")
-
-	_dispose_native_world()
+	_release_authority_for_teardown()
+	_dispose_native_runtime()
 	lifecycle = Lifecycle.TORN_DOWN
 	_generation += 1
 	_world_id = 0
 	_configuration = {}
 	_configuration_fingerprint = ""
 	_provenance_fingerprint = ""
-	_raid_authority_ref = null
-	_raid_authority_instance_id = 0
-	_raid_authority_generation = 0
+	_clear_authority_binding()
 	return true
 
 
 func _exit_tree() -> void:
-	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
+	if not _predelete_started \
+			and (lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED):
 		teardown(_generation)
 
 
-func _check_bound_access(
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_PREDELETE or _predelete_started:
+		return
+	_predelete_started = true
+	_release_authority_for_teardown()
+	_dispose_native_runtime()
+	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
+		lifecycle = Lifecycle.TORN_DOWN
+		_generation += 1
+	_clear_authority_binding()
+
+
+func _binding_values_match(
 	raid_authority: RaidAuthority,
-	expected_generation: int
+	owner_generation: int,
+	raid_generation: int
 ) -> bool:
-	if expected_generation != _generation:
-		return _reject(&"stale_generation")
-	if lifecycle == Lifecycle.QUARANTINED:
-		return _reject(&"vision_owner_quarantined")
-	if not is_current_generation(expected_generation):
-		return _reject(&"vision_owner_inactive")
-	if not _bound_authority_matches(raid_authority):
-		return _reject(&"raid_authority_binding_invalid")
-	return true
-
-
-func _bound_authority_matches(raid_authority: RaidAuthority) -> bool:
 	var captured_authority: Variant = _raid_authority_ref.get_ref() \
 		if _raid_authority_ref != null else null
 	return (
@@ -590,84 +592,41 @@ func _bound_authority_matches(raid_authority: RaidAuthority) -> bool:
 		and is_instance_valid(raid_authority)
 		and captured_authority == raid_authority
 		and raid_authority.get_instance_id() == _raid_authority_instance_id
-		and raid_authority.generation() == _raid_authority_generation
-		and (
-			raid_authority.lifecycle == RaidAuthority.Lifecycle.PREPARING
-			or raid_authority.lifecycle == RaidAuthority.Lifecycle.ACTIVE
-			or raid_authority.lifecycle == RaidAuthority.Lifecycle.EXTRACTING
-		)
+		and owner_generation == _generation
+		and raid_generation == _raid_authority_generation
+		and raid_authority.generation() == raid_generation
 	)
 
 
-func _observer_definition(
-	observer_id: int,
-	profile_id: String,
-	position_raw: Vector2i,
-	facing_raw: Vector2i,
-	revision: int
-) -> Dictionary:
-	if observer_id <= 0 or revision <= 0 \
-			or revision > ZerkovVisionConfig.TELEMETRY_COUNTER_LIMIT \
-			or not _point_is_valid(position_raw) \
-			or not _point_is_valid(facing_raw) \
-			or facing_raw == Vector2i.ZERO:
-		return {}
-	var profile := ZerkovVisionConfig.observer_profile(profile_id)
-	if profile.is_empty():
-		return {}
-	return {
-		"id": observer_id,
-		"position": _point(position_raw),
-		"facing": _point(facing_raw),
-		"range": int(profile["range_raw"]),
-		"cone_cos_million": int(profile["cone_cos_million"]),
-		"full_circle": bool(profile["full_circle"]),
-		"target_mask": int(profile["target_mask"]),
-		"occluder_mask": int(profile["occluder_mask"]),
-		"memory_ticks": int(profile["memory_ticks"]),
-		"priority": int(profile["priority"]),
-		"urgent": bool(profile["urgent"]),
-		"revision": revision,
-	}
+func _bound_authority_matches(raid_authority: RaidAuthority) -> bool:
+	return _binding_registered \
+		and _binding_values_match(
+			raid_authority, _generation, _raid_authority_generation
+		) \
+		and (raid_authority.lifecycle == RaidAuthority.Lifecycle.PREPARING \
+			or raid_authority.lifecycle == RaidAuthority.Lifecycle.ACTIVE \
+			or raid_authority.lifecycle == RaidAuthority.Lifecycle.EXTRACTING)
 
 
-func _target_definition(
-	target_id: int,
-	profile_id: String,
-	position_raw: Vector2i,
-	revision: int
-) -> Dictionary:
-	if target_id <= 0 or revision <= 0 \
-			or revision > ZerkovVisionConfig.TELEMETRY_COUNTER_LIMIT \
-			or not _point_is_valid(position_raw):
-		return {}
-	var profile := ZerkovVisionConfig.target_profile(profile_id)
-	if profile.is_empty():
-		return {}
-	var offsets := (profile["sample_offsets"] as Array).duplicate(true)
-	for offset_value in offsets:
-		var offset := offset_value as Dictionary
-		var sample := Vector2i(
-			position_raw.x + int(offset["x"]),
-			position_raw.y + int(offset["y"]),
+func _release_authority_for_teardown() -> void:
+	if not _binding_registered or _raid_authority_ref == null:
+		return
+	var raid_value: Variant = _raid_authority_ref.get_ref()
+	if raid_value is RaidAuthority and is_instance_valid(raid_value):
+		_binding_release_pending = true
+		(raid_value as RaidAuthority).release_vision_world_owner(
+			self, _generation, _raid_authority_generation
 		)
-		if not _point_is_valid(sample):
-			return {}
-	return {
-		"id": target_id,
-		"position": _point(position_raw),
-		"mask": int(profile["mask"]),
-		"sample_policy": int(profile["sample_policy"]),
-		"sample_offsets": offsets,
-		"revision": revision,
-	}
+		_binding_release_pending = false
 
 
-func _accept_native_mutation(native_result: Dictionary) -> bool:
-	_last_native_status = _native_status_copy(native_result)
-	if not bool(native_result.get("ok", false)):
-		return _reject(&"vision_native_mutation_failed")
-	return true
+func _clear_authority_binding() -> void:
+	_binding_claim_pending = false
+	_binding_registered = false
+	_binding_release_pending = false
+	_raid_authority_ref = null
+	_raid_authority_instance_id = 0
+	_raid_authority_generation = 0
 
 
 func _append_metrics_record(
@@ -734,10 +693,9 @@ func _account_metrics(
 
 func _quarantine() -> void:
 	lifecycle = Lifecycle.QUARANTINED
-	# Whole-call native failure may leave an immutable publication prefix. Free
-	# the private world immediately so no subsequent call can advance or mutate
-	# that partial state. Recovery is a fresh owner/generation after teardown.
-	_dispose_native_world()
+	# Whole-call native failure may leave an immutable publication prefix. The
+	# opaque runtime is invalidated immediately; recovery requires a new owner.
+	_dispose_native_runtime()
 
 
 func _metrics_are_valid(metrics: Dictionary) -> bool:
@@ -747,7 +705,8 @@ func _metrics_are_valid(metrics: Dictionary) -> bool:
 			or typeof(metrics.get("detail", null)) != TYPE_INT:
 		return false
 	for key in ["requested", "consumed", "completed", "invalidated", "deferred"]:
-		if not metrics.has(key) or typeof(metrics[key]) != TYPE_INT or int(metrics[key]) < 0:
+		if not metrics.has(key) or typeof(metrics[key]) != TYPE_INT \
+				or int(metrics[key]) < 0:
 			return false
 	var maximum_requested := NATIVE_MAX_OBSERVERS \
 		* ZerkovVisionConfig.NATIVE_MAX_WORK_UNITS
@@ -757,7 +716,8 @@ func _metrics_are_valid(metrics: Dictionary) -> bool:
 		and int(metrics["completed"]) <= NATIVE_MAX_OBSERVERS
 		and int(metrics["deferred"]) <= NATIVE_MAX_OBSERVERS
 		and int(metrics["invalidated"]) == 0
-		and int(metrics["completed"]) + int(metrics["deferred"]) <= NATIVE_MAX_OBSERVERS
+		and int(metrics["completed"]) + int(metrics["deferred"]) \
+			<= NATIVE_MAX_OBSERVERS
 	)
 
 
@@ -785,38 +745,32 @@ func _native_status_copy(status: Dictionary) -> Dictionary:
 	return result
 
 
-func _dispose_native_world() -> void:
-	if _native_world == null or not is_instance_valid(_native_world):
-		_native_world = null
+func _dispose_native_runtime() -> void:
+	if not _runtime_dispatch.is_valid():
+		_runtime_alive = false
 		return
-	_native_world.free()
-	_native_world = null
+	_runtime_disposal_authorized = true
+	var result: Variant = _runtime_dispatch.call(_RUNTIME_DISPOSE, {
+		"owner": self,
+		"owner_generation": _generation,
+	})
+	_runtime_disposal_authorized = false
+	_runtime_alive = false
+	# Clearing the owner's copy plus the shared lexical `alive` bit makes every
+	# retained copy of the Callable inert synchronously.
+	_runtime_dispatch = Callable()
+	if not result is Dictionary or not bool((result as Dictionary).get("ok", false)):
+		_last_native_status = {
+			"ok": false,
+			"code": 0,
+			"diagnostic": 0,
+			"detail": 0,
+		}
 
 
 func _reject(reason: StringName) -> bool:
 	last_error = reason
 	return false
-
-
-static func _point(value: Vector2i) -> Dictionary:
-	return {"x": value.x, "y": value.y}
-
-
-static func _point_is_valid(point: Vector2i) -> bool:
-	return absi(point.x) <= ZWorldUnits.MAX_CANONICAL_RAW \
-		and absi(point.y) <= ZWorldUnits.MAX_CANONICAL_RAW
-
-
-static func _point_dictionary_is_valid(value: Variant) -> bool:
-	if not value is Dictionary:
-		return false
-	var point := value as Dictionary
-	return (
-		_has_exact_keys(point, PackedStringArray(["x", "y"]))
-		and _all_int_fields(point, PackedStringArray(["x", "y"]))
-		and absi(int(point["x"])) <= ZWorldUnits.MAX_CANONICAL_RAW
-		and absi(int(point["y"])) <= ZWorldUnits.MAX_CANONICAL_RAW
-	)
 
 
 static func _has_exact_keys(value: Dictionary, expected: PackedStringArray) -> bool:
@@ -826,19 +780,6 @@ static func _has_exact_keys(value: Dictionary, expected: PackedStringArray) -> b
 		if not value.has(key):
 			return false
 	return true
-
-
-static func _all_int_fields(value: Dictionary, keys: PackedStringArray) -> bool:
-	for key in keys:
-		if not value.has(key) or typeof(value[key]) != TYPE_INT:
-			return false
-	return true
-
-
-static func _read_only_failure(reason: StringName) -> Dictionary:
-	var result := {"ok": false, "reason": String(reason)}
-	_make_deep_read_only(result)
-	return result
 
 
 static func _make_deep_read_only(value: Variant) -> void:

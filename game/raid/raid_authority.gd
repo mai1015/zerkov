@@ -47,6 +47,11 @@ const PHASE_NAMES: PackedStringArray = [
 ]
 
 const MAX_HANDLERS_PER_PHASE: int = 16
+## This identity is owned by RaidAuthority. Generic handler registration may
+## never claim it, even in another phase.
+const RESERVED_VISION_HANDLER_ID: StringName = &"raid_vision_world"
+const VISION_OWNER_SCRIPT_PATH: String = \
+	"res://game/ai/vision/raid_vision_world_owner.gd"
 
 var lifecycle: Lifecycle = Lifecycle.PREPARING
 var last_error: StringName = &""
@@ -68,6 +73,11 @@ var _processing_handler_id: StringName = &""
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
+var _vision_owner_ref: WeakRef
+var _vision_owner_instance_id: int = 0
+var _vision_owner_generation: int = 0
+var _vision_owner_raid_generation: int = 0
+var _releasing_vision_owner: bool = false
 
 
 func configure(raid_id: ZRaidId, admission: ZSessionAdmission, seed: int) -> bool:
@@ -164,20 +174,89 @@ func register_phase_handler(
 		return _reject(&"handler_registration_closed")
 	if int(phase) < 0 or int(phase) >= PHASE_NAMES.size():
 		return _reject(&"phase_invalid")
+	if handler_id == RESERVED_VISION_HANDLER_ID:
+		return _reject(&"handler_id_reserved")
 	if not ZIdentityRules.is_valid_part(String(handler_id)) or not callback.is_valid():
 		return _reject(&"handler_invalid")
-	if _handler_ids.has(handler_id):
-		return _reject(&"handler_id_duplicate")
-	var handlers: Array = _phase_handlers.get(int(phase), [])
-	if handlers.size() >= MAX_HANDLERS_PER_PHASE:
+	# Generic Vision handlers may not consume the authority-owned slot's final
+	# capacity before the real owner registers.
+	if phase == TickPhase.VISION \
+			and not _handler_ids.has(RESERVED_VISION_HANDLER_ID) \
+			and (_phase_handlers.get(int(phase), []) as Array).size() \
+				>= MAX_HANDLERS_PER_PHASE - 1:
 		return _reject(&"phase_handler_limit")
-	handlers.append({"id": handler_id, "callback": callback})
-	handlers.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
-		return String(left["id"]) < String(right["id"])
-	)
-	_phase_handlers[int(phase)] = handlers
-	_handler_ids[handler_id] = true
+	return _register_phase_handler_unchecked(phase, handler_id, callback)
+
+
+## Claims the sole game-owned Vision slot. The authority derives the callback
+## from the concrete configured owner; callers cannot supply an identity or
+## Callable. The owner's provisional binding is checked before anything is
+## published into the phase table.
+func register_vision_world_owner(
+	owner: RaidVisionWorldOwner,
+	owner_generation: int,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if lifecycle != Lifecycle.PREPARING:
+		return _reject(&"handler_registration_closed")
+	if owner == null or not is_instance_valid(owner):
+		return _reject(&"vision_owner_invalid")
+	if not _is_exact_vision_owner(owner):
+		return _reject(&"vision_owner_type_invalid")
+	if owner_generation <= 0:
+		return _reject(&"vision_owner_generation_invalid")
+	if _vision_owner_instance_id != 0 \
+			or _handler_ids.has(RESERVED_VISION_HANDLER_ID):
+		return _reject(&"vision_owner_slot_claimed")
+	if not owner.is_registration_claim_current(
+		self, owner_generation, expected_generation
+	):
+		return _reject(&"vision_owner_claim_invalid")
+	var callback := Callable(owner, "_handle_raid_phase")
+	if not callback.is_valid():
+		return _reject(&"vision_owner_callback_invalid")
+	if not _register_phase_handler_unchecked(
+		TickPhase.VISION, RESERVED_VISION_HANDLER_ID, callback
+	):
+		return false
+	_vision_owner_ref = weakref(owner)
+	_vision_owner_instance_id = owner.get_instance_id()
+	_vision_owner_generation = owner_generation
+	_vision_owner_raid_generation = expected_generation
 	return true
+
+
+## Releases a matching owner before simulation starts. Once ticks can run, a
+## disappearing Vision authority terminalizes the raid instead of silently
+## continuing without perception.
+func release_vision_world_owner(
+	owner: RaidVisionWorldOwner,
+	owner_generation: int,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if not _vision_owner_matches(owner, owner_generation, expected_generation):
+		return _reject(&"vision_owner_binding_invalid")
+	if not owner.is_release_claim_current(
+		self, owner_generation, expected_generation
+	):
+		return _reject(&"vision_owner_release_claim_invalid")
+	if _is_advancing:
+		return _reject(&"vision_owner_release_during_tick")
+	if lifecycle == Lifecycle.PREPARING:
+		_remove_reserved_vision_handler()
+		_release_vision_owner_binding(false)
+		return true
+	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.EXTRACTING:
+		lifecycle = Lifecycle.FAILED
+		_seal_terminal_runtime()
+		return true
+	return _reject(&"vision_owner_release_closed")
 
 
 ## Read-only phase attestation for game-owned handlers that must reject direct,
@@ -203,6 +282,38 @@ func is_dispatching_phase_handler(
 		and not handler_id.is_empty()
 		and _processing_handler_id == handler_id
 	)
+
+
+## Stronger attestation for the reserved Vision slot. Besides the current
+## phase/tick, this binds the exact registered owner object, both generations,
+## and the authority-derived callback provenance.
+func is_dispatching_vision_world_owner(
+	owner: RaidVisionWorldOwner,
+	phase: TickPhase,
+	tick: int,
+	owner_generation: int,
+	expected_generation: int
+) -> bool:
+	if phase != TickPhase.VISION \
+			or not is_dispatching_phase_handler(
+				phase, tick, RESERVED_VISION_HANDLER_ID, expected_generation
+			):
+		return false
+	if not _vision_owner_matches(owner, owner_generation, expected_generation):
+		return false
+	return _reserved_vision_callback_is_current()
+
+
+## True only during this authority's synchronous release callback for the
+## exact registered object and generations. Direct/replayed owner callbacks
+## therefore cannot clear a live binding.
+func is_releasing_vision_world_owner(
+	owner: RaidVisionWorldOwner,
+	owner_generation: int,
+	expected_generation: int
+) -> bool:
+	return _releasing_vision_owner \
+		and _vision_owner_matches(owner, owner_generation, expected_generation)
 
 
 func enqueue_intent(intent: ZRaidIntent, expected_generation: int) -> bool:
@@ -326,6 +437,7 @@ func teardown(expected_generation: int) -> bool:
 		return _reject(&"teardown_during_tick")
 	if lifecycle == Lifecycle.TORN_DOWN:
 		return _reject(&"already_torn_down")
+	_release_vision_owner_binding(true)
 	lifecycle = Lifecycle.TORN_DOWN
 	clock.pause()
 	clock.clear_pending()
@@ -389,6 +501,9 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 		for entry in handlers:
 			_processing_handler_id = entry["id"]
 			var callback: Callable = entry["callback"]
+			if _processing_handler_id == RESERVED_VISION_HANDLER_ID \
+					and not _reserved_vision_callback_is_current():
+				return _fail_current_tick(tick, &"vision_owner_provenance_invalid")
 			if not callback.is_valid():
 				return _fail_current_tick(tick, &"phase_handler_invalidated")
 			var handler_intents: Array[ZRaidIntent] = []
@@ -464,8 +579,122 @@ func _seal_terminal_runtime() -> void:
 	journal.seal()
 	rng.seal()
 	_intent_queue.clear()
+	_release_vision_owner_binding(true)
 	_phase_handlers.clear()
 	_handler_ids.clear()
+
+
+func _register_phase_handler_unchecked(
+	phase: TickPhase,
+	handler_id: StringName,
+	callback: Callable
+) -> bool:
+	if _handler_ids.has(handler_id):
+		return _reject(&"handler_id_duplicate")
+	var handlers: Array = _phase_handlers.get(int(phase), [])
+	if handlers.size() >= MAX_HANDLERS_PER_PHASE:
+		return _reject(&"phase_handler_limit")
+	handlers.append({"id": handler_id, "callback": callback})
+	handlers.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
+		return String(left["id"]) < String(right["id"])
+	)
+	_phase_handlers[int(phase)] = handlers
+	_handler_ids[handler_id] = true
+	return true
+
+
+func _vision_owner_matches(
+	owner: RaidVisionWorldOwner,
+	owner_generation: int,
+	expected_generation: int
+) -> bool:
+	if owner == null or not is_instance_valid(owner) \
+			or not _is_exact_vision_owner(owner) or _vision_owner_ref == null:
+		return false
+	var captured: Variant = _vision_owner_ref.get_ref()
+	return (
+		captured == owner
+		and owner.get_instance_id() == _vision_owner_instance_id
+		and owner_generation == _vision_owner_generation
+		and expected_generation == _vision_owner_raid_generation
+		and expected_generation == _generation
+	)
+
+
+func _is_exact_vision_owner(owner: RaidVisionWorldOwner) -> bool:
+	if owner == null or not is_instance_valid(owner):
+		return false
+	var owner_script: Variant = owner.get_script()
+	if not owner_script is Script \
+			or String((owner_script as Script).resource_path) \
+				!= VISION_OWNER_SCRIPT_PATH:
+		return false
+	var expected_script: Resource = ResourceLoader.load(VISION_OWNER_SCRIPT_PATH)
+	return expected_script != null and owner_script == expected_script
+
+
+func _reserved_vision_callback_is_current() -> bool:
+	if _vision_owner_ref == null:
+		return false
+	var owner_value: Variant = _vision_owner_ref.get_ref()
+	if not owner_value is RaidVisionWorldOwner:
+		return false
+	var owner := owner_value as RaidVisionWorldOwner
+	if not _vision_owner_matches(
+		owner, _vision_owner_generation, _vision_owner_raid_generation
+	) or not owner.is_registered_binding_current(
+		self, _vision_owner_generation, _vision_owner_raid_generation
+	):
+		return false
+	var handlers: Array = _phase_handlers.get(int(TickPhase.VISION), [])
+	for entry_value in handlers:
+		if not entry_value is Dictionary:
+			continue
+		var entry := entry_value as Dictionary
+		if entry.get("id", &"") != RESERVED_VISION_HANDLER_ID:
+			continue
+		var callback_value: Variant = entry.get("callback", Callable())
+		if not callback_value is Callable:
+			return false
+		var callback := callback_value as Callable
+		return callback.is_valid() \
+			and callback.get_object() == owner \
+			and callback.get_method() == &"_handle_raid_phase" \
+			and callback.get_bound_arguments_count() == 0
+	return false
+
+
+func _remove_reserved_vision_handler() -> void:
+	var handlers: Array = _phase_handlers.get(int(TickPhase.VISION), [])
+	var retained: Array = []
+	for entry_value in handlers:
+		if entry_value is Dictionary \
+				and (entry_value as Dictionary).get("id", &"") \
+					== RESERVED_VISION_HANDLER_ID:
+			continue
+		retained.append(entry_value)
+	if retained.is_empty():
+		_phase_handlers.erase(int(TickPhase.VISION))
+	else:
+		_phase_handlers[int(TickPhase.VISION)] = retained
+	_handler_ids.erase(RESERVED_VISION_HANDLER_ID)
+
+
+func _release_vision_owner_binding(seal_owner: bool) -> void:
+	var owner_value: Variant = _vision_owner_ref.get_ref() \
+		if _vision_owner_ref != null else null
+	var owner_generation := _vision_owner_generation
+	var raid_generation := _vision_owner_raid_generation
+	_releasing_vision_owner = true
+	if owner_value is RaidVisionWorldOwner and is_instance_valid(owner_value):
+		(owner_value as RaidVisionWorldOwner).release_registered_binding(
+			self, owner_generation, raid_generation, seal_owner
+		)
+	_releasing_vision_owner = false
+	_vision_owner_ref = null
+	_vision_owner_instance_id = 0
+	_vision_owner_generation = 0
+	_vision_owner_raid_generation = 0
 
 
 func _actor_source_key(actor_id: ZEntityId, source: ZRaidIntent.Source) -> String:

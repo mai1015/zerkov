@@ -1,42 +1,50 @@
 # Task 6.1 authoritative Vision world evidence
 
-Task 6.1 is complete at the implementation/evidence level on branch
-`codex/vision-world-6-1`, based on `d947b40`. This packet incorporates the six
-requested independent-review repairs to `bf4d2dd`. Human approval, encounter
-tuning, and whole-game acceptance are not claimed.
+This packet records the implementation-level evidence for approved task 6.1
+on branch `codex/vision-world-6-1`, based on `d947b40`. It incorporates both
+independent-review repair rounds. Human approval, encounter tuning, tasks 6.2
+and 6.3, and whole-game acceptance are not claimed.
 
 ## Outcome
 
 The game owns one sealed first-playable Common Vision configuration and one
-privately retained offline authority world. The native `CommonVisionWorld2D`
-is not attached for public scene traversal and no method returns its mutable
-handle. The only production-facing operations are bound-generation-checked,
-sealed-profile mutation ports and recursively immutable detached projection
-copies. Teardown frees native state synchronously before incrementing the
-generation, so a retained operation callable is immediately inert.
+offline authority world. The live `CommonVisionWorld2D` exists solely in
+lexical state captured by an opaque Callable. No reflectively readable owner
+property contains the native Node, `Callable.get_object()` is the script
+resource, and the Callable has no bound arguments. Its operation protocol
+never returns the native value and advances only while the exact reserved
+authority callback is synchronously attested. `NOTIFICATION_PREDELETE`
+synchronously frees the native state even for an owner configured off-tree;
+every retained copy of the Callable observes `alive == false` afterward.
 
-The owner uses exactly one fixed `raid_vision_world` slot per `RaidAuthority`.
-There is no caller-selected handler identity and no public direct tick driver.
-`RaidAuthority` attests the synchronously executing generation, phase, tick,
-and handler slot. Direct calls, calls forged from another handler in the same
-VISION phase, replay after dispatch, and retained callbacks after authority
-teardown all fail closed without advancing telemetry.
+The production owner has no observer, target, occluder, transform, query, or
+projection port. Those belong to tasks 6.2/6.3. Native memory/budget behavior is
+tested through an explicitly test-only fixture that cannot be obtained from a
+normally configured owner.
 
-Startup checks the project lock, installed debug/release artifact hashes,
-release-manifest hash, API, protocol, algorithm contract, feature bits,
-coordinate scale, and the 60 Hz raid clock before native state is created. The
-accepted lock fingerprint covers Git head, release revision, package dirty
-state/count/tree digest, manifest schema/digest, integration fields, and each
-artifact's platform, architecture, build, status, artifact digest, manifest
-digest, and manifest-match label. Fingerprints are calculated from the
-normalized accepted records returned by validation. Numeric strings and other
-malformed types are rejected before conversion across configuration, schedule,
-budget, layer, profile, sample, runtime-contract, and lock fields.
+`RaidAuthority` owns the fixed `raid_vision_world` slot. Generic phase handler
+registration rejects that ID in every phase and reserves capacity for it even
+when all generic Vision slots are occupied. A typed Vision-owner API derives
+the callback and checks the exact configured owner object, owner generation,
+raid generation, provisional binding, and callback provenance. A two-sided
+release claim plus synchronous authority attestation permits safe PREPARING
+replacement; direct/replayed release calls are inert. Direct callbacks,
+callbacks forged by an earlier handler in the same VISION phase, replayed
+callbacks, and reflected runtime calls outside dispatch cannot advance.
+
+Startup checks the exact project lock, installed debug/release artifacts,
+release manifest, API, protocol, algorithm contract, required feature bits,
+coordinate scale, and 60 Hz RaidClock before native creation. The accepted
+lock schema includes and hashes both claimed source paths, Git head, release
+revision, dirty state, package count/tree digest, manifest digest, integration
+fields, and every artifact field. Unknown entry/source/artifact fields,
+selected-field source replacements, relabels, mismatches, and malformed types
+fail closed. The returned fingerprint hashes the immutable accepted record.
 
 The repaired sealed configuration fingerprint is:
 
 ```text
-0abdcc202b3f0299fa6d9d3726e16ab955b8a1d1481c201c1770aea21e57dd2e
+3ead6e826bfd2552aa1396a4d266de3603524355c56620033cb1bd84b6df58f3
 ```
 
 ## Fixed configuration contract
@@ -44,86 +52,88 @@ The repaired sealed configuration fingerprint is:
 | Boundary | Sealed value |
 | --- | --- |
 | Godot / canonical relation | 32 px = one tile = 1,000,000 Vision microunits |
-| Checked coordinate domain | +/-65,536 px = +/-2,048,000,000 canonical raw; one outside rejected |
+| Checked coordinate domain | +/-65,536 px = +/-2,048,000,000 raw; one outside rejected atomically |
 | Spatial grid | four-tile cells; 256 visited cells maximum |
 | Per-evaluation budget | 16,384 deterministic work units |
 | Cadence | first tick 1; every 3 authority ticks; 20 Hz at RaidClock 60 Hz |
 | Telemetry | 64 evaluation rows; counters saturate at 9,007,199,254,740,000 |
 | Scav sight | 18 tiles; 120-degree total cone; 180 memory ticks; urgent priority 200 |
 | Mutant sight | 12 tiles; 160-degree total cone; 120 memory ticks; priority 100 |
-| Target samples | `ANY_SAMPLE`; center and vertical +/- quarter-tile; three of native max eight |
+| Target samples | `ANY_SAMPLE`; center and vertical +/- quarter-tile; three of max eight |
 | Target masks | player bit 0; Scav bit 1; mutant bit 2 |
 | Occluder masks | structure bit 0; vegetation bit 1 |
 
-The coordinate limit is intentionally reduced from the inherited
-1,048,576-pixel bound. Godot `Vector2i` components are signed 32-bit values;
-the old bound produced 32,768,000,000 raw and could wrap. The new exact
-power-of-two pixel bound produces 2,048,000,000 raw, leaving explicit headroom
-below `INT32_MAX`. Both conversion directions cover the exact positive and
-negative boundary and reject one pixel/raw unit outside without a partial
-result. Target base-plus-sample sums are also checked before native mutation.
+The coordinate limit remains the repaired bound from the first review.
+Godot's `Vector2i` components are signed 32-bit values, so the inherited
+1,048,576-pixel domain could wrap its 32,768,000,000 raw result. The exact
+power-of-two 65,536-pixel bound produces 2,048,000,000 raw. Both conversion
+directions accept the positive/negative boundary and reject one pixel/raw unit
+outside without a partial value.
 
 ## Scheduler, memory, and failure evidence
 
-The 16,384 budget admits a conservative workload of 42 matching three-sample
-targets against 128 segments (`42 + 42 * 3 * 128 = 16,170`). The contract proves
-that 43 targets request 16,555: the expensive urgent observer is deferred
-whole, a later zero-candidate observer completes, no partial observer
-projection is published, and two isolated runs yield the same telemetry
-fingerprint. This is a bounded scheduler fixture, not authored Sawmill geometry
-or a promised actor count; task 3.10 still owns real occluder authoring.
+The isolated native memory fixture sees a target at tick 1, hides it before
+tick 4, retains it at tick 181 where `181 - 1 == 180`, emits the position-free
+`MEMORY_EXPIRED` record at tick 184, and omits it at tick 187. The production
+owner receives RaidAuthority ticks 1 through 193 and records exactly 65
+evaluation attempts/completions plus 128 cadence skips. It exposes no process,
+physics-process, delta, or public direct-tick driver.
 
-Memory evidence sees the target at tick 1, hides it before tick 4, retains it at
-tick 181 where `181 - 1 == 180`, emits a position-free `MEMORY_EXPIRED` record
-at the next cadence tick 184, and omits it afterward. Render frames between
-configuration and tick 1 leave the telemetry fingerprint and projection
-unchanged.
+The 16,384-work-unit fixture installs 128 synthetic segments and 43 matching
+three-sample targets. Each cadence evaluation requests 16,555: the expensive
+urgent observer defers whole, a later zero-candidate observer completes, and no
+partial expensive projection is published. Two isolated worlds yield identical
+metrics and projections. This fixture is not shipped Sawmill geometry and does
+not claim task 3.10.
 
-The adversarial native fixture advances observer 2 to tick 4 and then calls
-the scheduler at tick 1. Observer 1 publishes before observer 2 rejects the
-regressed tick, reproducing Common Vision's documented whole-call partial
-failure. The exact returned prefix is:
+The native failure fixture advances observer 2 to tick 4, then schedules tick
+1. Observer 1 publishes before observer 2 rejects the regressed tick, reproducing
+the documented per-observer publication prefix:
 
 ```text
 requested=0 consumed=0 completed=1 deferred=0 invalidated=0
 code=6 diagnostic=13 detail=1
 ```
 
-The owner records attempted tick 1 separately from successful tick 0, retains
-all five exact metrics in immutable bounded history and cumulative totals,
-enters `QUARANTINED`, destroys native state synchronously, and refuses further
-mutation or advancement. Recovery requires teardown and a fresh owner.
+The owner contract delivers that exact value record through a nested test-only
+owner/authority fixture (never a native handle); production RaidAuthority
+explicitly rejects subclass claim methods. The owner records attempted tick 1 versus successful
+tick 0, accounts every exact bounded metric in immutable history and totals,
+enters `QUARANTINED`, invalidates the opaque runtime synchronously, and refuses
+further advancement. Recovery requires teardown and a new owner/generation.
 
-## Accepted final validation
+## Accepted validation
 
-All commands used
+All Godot commands used
 `/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot`, version
-`4.7.2.stable.official.ed1daf0bf`, with the Compatibility renderer. Every final
-process exited zero. Output was reviewed for `SCRIPT ERROR`, `ERROR`, extension
-load failures, assertions, leaks, and timeout markers; the accepted diagnostic
-count is zero.
+`4.7.2.stable.official.ed1daf0bf`, with Compatibility rendering configured by
+the project. Every accepted command exited zero. Output was reviewed for script
+errors, engine errors, extension failures, assertions, leaks, and timeouts; the
+accepted diagnostic count is zero.
+
+These are domain-only headless checks. No UI/composition/screen suite or visual
+evidence was invoked, so no alternate-resolution artifact was created; the
+project's exact 1920x1080 UI boundary was not exercised by this task.
 
 | Validation | Result |
 | --- | ---: |
 | Final editor import / script registration | exit 0; diagnostics 0 |
-| Vision world focused contract | 388 / 0 |
-| Deterministic focused repeat | 388 / 0; identical config/failure metrics |
+| Vision world focused contract | 190 / 0 |
+| Deterministic focused repeat | 190 / 0; identical seal/failure metrics |
 | Combined six-add-on smoke | 155 / 0 |
 | Units and clock contract | 33 / 0 |
-| Session lifecycle contract | 44 / 0 |
+| Session lifecycle domain contract | 44 / 0 |
 | Authority replay/tick-order contract | 81 / 0; 4 expected reentrant rejections |
-| Identity collision contract | 18,442 / 0; 9,216 unique fixtures |
-| Inventory/ability phase-adjacency contract | 546 / 0 |
 | Toolchain lock | 7 / 0 |
 | Locked destination packages | 6 passed; 0 failed |
 | Vendor tooling unit tests | 4 passed; 0 failed |
 | Strict approved-change validation | `Valid` |
 | `git diff --check` | exit 0 |
-| Godot assertion executions, including deterministic repeat | **20,077 / 0** |
+| Accepted Godot assertion executions | **693 / 0** |
 
 ## Reproduction
 
-From the repository root:
+From the isolated repository root:
 
 ```sh
 export ZERKOV_GODOT=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot
@@ -138,10 +148,6 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/session_lifecycle_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/authority_replay_contract.gd
-$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
-  --script res://tests/raid/identity_contract.gd
-$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
-  --script res://tests/raid/inventory_ability_reconciliation_contract.gd
 python3 tools/check_toolchain.py
 python3 tools/vendor_addons.py check --scope destination
 python3 -m unittest tests/addons/test_vendor_addons.py
@@ -152,22 +158,20 @@ git diff --check
 
 ## Boundaries and remaining risks
 
-- The low-level sealed-profile ports do not implement production actor
-  identity, transform/liveness ownership, or observer/target orchestration;
-  those remain task 6.2.
-- `VisionAIAdapter` and the no-hidden-live-state consumption boundary remain
-  task 6.3. No AI state, decisions, navigation, combat, hearing/noise, UI, or
-  debug overlay is introduced here.
-- Sawmill occluder segments remain task 3.10. The task-6.1 geometry is
-  synthetic, in-memory, and never shipped as level content.
-- The native package documents atomic publication per observer, not per
-  scheduler call. This owner therefore fail-stops on any whole-call failure;
-  it does not attempt in-place recovery of the partial world.
-- No `project.godot`, shared bootstrap, central identity, add-on/vendor source,
-  truth spec, approved task ledger, UI, inventory, combat, or world scene was
-  changed.
-- The accepted provenance is the exact locked internal macOS development
-  baseline. Windows/Linux release support and multiplayer remain gated.
+- Task 6.2 still owns the concrete lifecycle capability, actor identities,
+  transform revisions/liveness, and observer/target/occluder orchestration.
+- Task 6.3 still owns the AI-facing immutable projection adapter. There is no AI
+  state, decision, navigation, combat, hearing/noise, UI, or overlay here.
+- Authored Sawmill occluders remain task 3.10; all geometry in this evidence is
+  synthetic and test-only.
+- The native package publishes atomically per observer, not scheduler call. The
+  owner therefore fail-stops on any whole-call failure and never recovers the
+  partial native instance in place.
+- Exact source paths intentionally make the accepted local macOS provenance
+  non-portable. A relocated SDK, Windows/Linux artifacts, or a changed package
+  must be explicitly re-attested and resealed rather than silently accepted.
+- No `project.godot`, bootstrap, central identity, add-on/vendor source, truth
+  spec, approved task ledger, UI, inventory, combat, or world scene was changed.
 
-Exact source, test, dependency, lock, toolchain, manifest, and native artifact
-hashes are recorded in `reviewed_hashes.sha256` beside this report.
+Exact source, test, dependency, lock, toolchain, manifest, and artifact hashes
+are recorded in `reviewed_hashes.sha256` beside this report.
