@@ -280,3 +280,16 @@ treat `committed_durability_uncertain` and `committed_recovery_required` as
 committed states rather than retrying blindly. The required current-main merge
 contributes only the reopened 5.3 ledger note and its report; this 7.9 repair
 preserves that note unchanged and leaves 7.9 unchecked.
+
+## Independent acceptance
+
+Accepted on 2026-09-11 at immutable head
+`5ba56656b173438ecd9e7bd9bdc4571b6e6c7683` with no P0-P2 findings. A fresh
+review verified that recognized unsupported formats in either slot block load,
+save and replay without modifying any of the four storage slots, while corrupt
+supported-v1 and foreign-profile data retain the intended recovery behavior.
+The full domain matrix passed `21,347/0`, the focused contract passed `527/0`,
+25 concurrency repetitions passed `13,175/0`, and an independent format probe
+passed `36/0`. Import diagnostics, strict spec validation, hashes, vendor and
+diff checks were clean. No UI, screen, viewport, visual, responsive or compact
+test ran.

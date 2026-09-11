@@ -451,7 +451,7 @@ recorded Scav and mutant encounters.
   exactly-once completion.
 - [ ] 7.8 `[SOL]` Define and implement death loss plus the approved secure-
   container retention rule as one settlement plan.
-- [ ] 7.9 `[SOL]` Implement versioned `ProfileStore` envelopes with atomic
+- [x] 7.9 `[SOL]` Implement versioned `ProfileStore` envelopes with atomic
   replacement, backup recovery and checksum/fingerprint validation.
 - [ ] 7.10 `[SOL]` Implement idempotent `RaidSettlementService` prepare/commit/
   recover behavior for extract and death.
