@@ -124,6 +124,7 @@ var later_teardown_generation: int = 0
 var later_teardown_result: bool = true
 var later_teardown_error: StringName = &""
 var later_free_owner: RaidVisionWorldOwner
+var later_free_reenters: bool = true
 var later_reentry_result: bool = true
 var later_reentry_error: StringName = &""
 
@@ -149,12 +150,14 @@ func run() -> void:
 	await _test_owner_opaque_runtime_and_off_tree_free()
 	_test_reserved_slot_spoofing_and_replacement()
 	_test_reflective_lifecycle_authority_is_not_forgeable()
-	_test_preparing_predelete_without_dependents()
+	await _test_direct_predelete_helpers_are_inert()
+	await _test_preparing_predelete_without_dependents()
 	_test_bound_teardown_is_fail_atomic()
 	_test_preparing_release_respects_dependencies()
-	_test_preparing_predelete_with_dependents()
-	_test_active_predelete_fail_stop()
-	_test_forced_owner_loss_fails_current_tick()
+	await _test_preparing_predelete_with_dependents()
+	await _test_active_predelete_fail_stop()
+	await _test_queued_owner_loss_without_reentry()
+	await _test_forced_owner_loss_fails_current_tick()
 	_test_reserved_callback_provenance()
 	_test_authority_cadence_and_callback_attestation()
 	_test_partial_native_failure_quarantine()
@@ -672,8 +675,9 @@ func _test_owner_opaque_runtime_and_off_tree_free() -> void:
 		"owner rejects an unsealed otherwise-valid configuration")
 	invalid_owner.free()
 
-	# Deliberately never add this owner to the scene tree. PREDELETE, not
-	# _exit_tree, must invalidate the retained closure synchronously.
+	# Deliberately never add this owner to the scene tree. A real queue_free()
+	# still carries engine-owned deletion provenance and must invalidate the
+	# retained closure when PREDELETE is delivered.
 	var owner := VisionOwner.new()
 	check(owner.configure(50_104), "off-tree production owner configures")
 	var generation := owner.generation()
@@ -731,13 +735,16 @@ func _test_owner_opaque_runtime_and_off_tree_free() -> void:
 		and bool((live_status as Dictionary).get("alive", false)),
 		"reflected closure cannot forge disposal")
 
-	owner.free()
+	owner.queue_free()
+	check(owner.is_queued_for_deletion()
+		and bool((retained.call(&"status", {}) as Dictionary).get("alive", false)),
+		"off-tree queue commits deletion without premature runtime mutation")
+	await process_frame
 	var dead_status: Variant = retained.call(&"status", {})
 	check(dead_status is Dictionary
 		and bool((dead_status as Dictionary).get("ok", false))
 		and not bool((dead_status as Dictionary).get("alive", true)),
-		"off-tree free synchronously invalidates every retained runtime capability")
-	await process_frame
+		"off-tree queued PREDELETE invalidates every retained runtime capability")
 
 
 func _test_reserved_slot_spoofing_and_replacement() -> void:
@@ -1013,6 +1020,102 @@ func _test_reflective_lifecycle_authority_is_not_forgeable() -> void:
 	owner.free()
 
 
+func _test_direct_predelete_helpers_are_inert() -> void:
+	var fixture := _new_bound_fixture(50_124, "direct_predelete_helpers")
+	check(not fixture.is_empty(),
+		"direct PREDELETE helper fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	var owner := fixture["owner"] as RaidVisionWorldOwner
+	var raid_generation := raid.generation()
+	var owner_generation := owner.generation()
+	var retained := owner.get("_runtime_dispatch") as Callable
+	var consumer_id: StringName = &"vision_direct_predelete_consumer"
+	check(raid.register_phase_handler(
+		RaidAuthority.TickPhase.VISION,
+		consumer_id,
+		Callable(self, "_noop_phase_handler"),
+		raid_generation,
+		1,
+		PackedStringArray([String(RaidAuthority.RESERVED_VISION_HANDLER_ID)]),
+	), "direct PREDELETE probe records a dependent handler")
+	var direct_queue_terminalize: Variant = raid.call(
+		"_terminalize_queued_vision_owner_during_tick"
+	)
+	check(direct_queue_terminalize is bool
+		and not bool(direct_queue_terminalize)
+		and raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
+		and owner.is_registered_binding_current(
+			raid, owner_generation, raid_generation
+		), "reflective queued-loss helper is inert without an actual queued owner tick")
+
+	# These are all ordinary, reflectively callable entry points. None is an
+	# engine destruction event and none may mint a valid lifecycle attestation.
+	owner.call("_notification", NOTIFICATION_PREDELETE)
+	owner.call("_exit_tree")
+	owner.call("_notification", NOTIFICATION_PREDELETE)
+	owner.notification(NOTIFICATION_PREDELETE)
+	check(is_instance_valid(owner)
+		and not owner.is_queued_for_deletion()
+		and owner.lifecycle == VisionOwner.Lifecycle.ACTIVE
+		and owner.generation() == owner_generation
+		and owner.is_registered_binding_current(
+			raid, owner_generation, raid_generation
+		)
+		and bool((retained.call(&"status", {}) as Dictionary).get("alive", false)),
+		"Object.notification PREDELETE is canceled without lifecycle authority")
+	# Object.notification() drives built-in PREDELETE/exit behavior even when
+	# invoked manually. cancel_free() keeps the owner alive; restore its tree
+	# placement before proving that no deferred mutation was smuggled through.
+	if owner.get_parent() == null:
+		root.add_child(owner)
+	await process_frame
+	check(is_instance_valid(owner)
+		and owner.is_inside_tree()
+		and not owner.is_queued_for_deletion()
+		and owner.lifecycle == VisionOwner.Lifecycle.ACTIVE
+		and owner.generation() == owner_generation
+		and owner.is_registered_binding_current(
+			raid, owner_generation, raid_generation
+		)
+		and bool((retained.call(&"status", {}) as Dictionary).get("alive", false)),
+		"direct notification/exit helper sequence preserves the live owner generation")
+	check(raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
+		and raid.generation() == raid_generation
+		and raid.last_processed_tick == 0
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		)
+		and raid.has_phase_handler(consumer_id, raid_generation)
+		and int(raid.get("_vision_owner_instance_id")) == owner.get_instance_id(),
+		"direct helper sequence cannot release the slot or strand its dependent graph")
+	owner.free()
+	check(is_instance_valid(owner)
+		and not owner.is_inside_tree()
+		and owner.get_parent() == null
+		and not owner.is_queued_for_deletion()
+		and owner.lifecycle == VisionOwner.Lifecycle.ACTIVE
+		and owner.generation() == owner_generation
+		and owner.is_registered_binding_current(
+			raid, owner_generation, raid_generation
+		)
+		and bool((retained.call(&"status", {}) as Dictionary).get("alive", false)),
+		"unqueued direct free is canceled before it can split owner and binding state")
+	root.add_child(owner)
+	check(owner.is_inside_tree()
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		)
+		and raid.has_phase_handler(consumer_id, raid_generation),
+		"canceled direct-free owner can reenter its unchanged live composition")
+	check(raid.teardown(raid_generation),
+		"direct PREDELETE helper fixture authority tears down")
+	check(owner.teardown(owner_generation),
+		"direct PREDELETE helper fixture owner tears down")
+	owner.free()
+
+
 func _test_preparing_predelete_without_dependents() -> void:
 	var replacement_raid := _new_raid(50_108, "predelete_replace")
 	if replacement_raid == null:
@@ -1032,12 +1135,30 @@ func _test_preparing_predelete_without_dependents() -> void:
 		and replacement_raid.has_phase_handler(
 			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
 		), "PREPARING replacement fixture starts with exact live generations and slot")
-	released.free()
+	released.queue_free()
+	check(released.is_queued_for_deletion()
+		and released.lifecycle == VisionOwner.Lifecycle.ACTIVE
+		and replacement_raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "queueing alone does not publish a partial PREPARING release")
+	released.call("_notification", NOTIFICATION_PREDELETE)
+	var destroyed_generation := released.generation()
+	released.call("_notification", NOTIFICATION_PREDELETE)
+	check(released.lifecycle == VisionOwner.Lifecycle.TORN_DOWN
+		and destroyed_generation == owner_generation + 1
+		and released.generation() == destroyed_generation
+		and not bool((released_runtime.call(&"status", {}) as Dictionary).get(
+			"alive", true
+		))
+		and not replacement_raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "irrevocably queued PREDELETE releases runtime, slot, and generation once")
 	released = null
+	await process_frame
 	check(released_ref.get_ref() == null
 		and not bool((released_runtime.call(&"status", {}) as Dictionary).get(
 			"alive", true
-		)), "off-tree PREDELETE destroys the owner and invalidates retained runtime")
+		)), "queued PREDELETE destroys the owner and invalidates retained runtime")
 	check(replacement_raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
 		and replacement_raid.generation() == raid_generation
 		and replacement_raid.last_processed_tick == 0
@@ -1183,8 +1304,16 @@ func _test_preparing_predelete_with_dependents() -> void:
 		)
 		and raid.has_phase_handler(consumer_id, raid_generation),
 		"dependent fixture records exact generations and both handler slots")
-	owner.free()
+	owner.queue_free()
+	check(owner.is_queued_for_deletion()
+		and raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		)
+		and raid.has_phase_handler(consumer_id, raid_generation),
+		"queued dependent owner remains coherent until real PREDELETE")
 	owner = null
+	await process_frame
 	check(owner_ref.get_ref() == null
 		and not bool((retained.call(&"status", {}) as Dictionary).get(
 			"alive", true
@@ -1246,8 +1375,14 @@ func _test_active_predelete_fail_stop() -> void:
 		PackedStringArray([String(RaidAuthority.RESERVED_VISION_HANDLER_ID)]),
 	) and raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid_generation),
 		"active PREDELETE fixture transitions with a declared dependent")
-	owner.free()
+	owner.queue_free()
+	check(owner.is_queued_for_deletion()
+		and raid.lifecycle == RaidAuthority.Lifecycle.ACTIVE
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "active queueing preserves one live composition until PREDELETE")
 	owner = null
+	await process_frame
 	check(owner_generation == 1
 		and owner_ref.get_ref() == null
 		and not bool((retained.call(&"status", {}) as Dictionary).get(
@@ -1283,6 +1418,59 @@ func _test_active_predelete_fail_stop() -> void:
 	replacement.free()
 
 
+func _test_queued_owner_loss_without_reentry() -> void:
+	var fixture := _new_bound_fixture(50_125, "queued_owner_loss")
+	check(not fixture.is_empty(),
+		"non-reentrant queued owner-loss fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	later_free_owner = fixture["owner"] as RaidVisionWorldOwner
+	later_free_reenters = false
+	var raid_generation := raid.generation()
+	var owner_generation := later_free_owner.generation()
+	var owner_ref: WeakRef = weakref(later_free_owner)
+	var retained := later_free_owner.get("_runtime_dispatch") as Callable
+	var later_id: StringName = &"vision_later_queue_only_probe"
+	check(raid.register_phase_handler(
+		RaidAuthority.TickPhase.AI_DECISIONS,
+		later_id,
+		Callable(self, "_free_owner_in_later_phase"),
+		raid_generation,
+	), "non-reentrant later phase queue probe registers")
+	check(raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid_generation)
+		and not raid.advance_one(raid_generation)
+		and raid.lifecycle == RaidAuthority.Lifecycle.FAILED
+		and raid.last_error == &"vision_owner_lost_during_tick"
+		and raid.last_processed_tick == 1
+		and raid.generation() == raid_generation,
+		"post-callback queued-owner check commits the exact terminal cause")
+	check(is_instance_valid(later_free_owner)
+		and later_free_owner.is_queued_for_deletion()
+		and later_free_owner.lifecycle == VisionOwner.Lifecycle.QUARANTINED
+		and later_free_owner.generation() == owner_generation
+		and not bool((retained.call(&"status", {}) as Dictionary).get(
+			"alive", true
+		))
+		and not raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		)
+		and not raid.has_phase_handler(later_id, raid_generation)
+		and (raid.get("_handler_ids") as Dictionary).is_empty(),
+		"non-reentrant queue seals runtime, owner slot, and handler graph together")
+	later_free_owner = null
+	await process_frame
+	check(owner_ref.get_ref() == null
+		and not bool((retained.call(&"status", {}) as Dictionary).get(
+			"alive", true
+		)), "non-reentrant queued owner frees once without a retained runtime")
+	check(raid.teardown(raid_generation)
+		and raid.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN
+		and raid.generation() == raid_generation + 1,
+		"non-reentrant owner-loss authority tears down exactly once")
+	later_free_reenters = true
+
+
 func _test_forced_owner_loss_fails_current_tick() -> void:
 	var fixture := _new_bound_fixture(50_116, "forced_owner_loss")
 	check(not fixture.is_empty(),
@@ -1291,6 +1479,7 @@ func _test_forced_owner_loss_fails_current_tick() -> void:
 		return
 	var raid := fixture["raid"] as RaidAuthority
 	later_free_owner = fixture["owner"] as RaidVisionWorldOwner
+	later_free_reenters = true
 	later_reentry_result = true
 	later_reentry_error = &""
 	var raid_generation := raid.generation()
@@ -1315,7 +1504,15 @@ func _test_forced_owner_loss_fails_current_tick() -> void:
 		and later_reentry_error == &"vision_owner_lost_during_tick"
 		and raid.last_error == &"vision_owner_lost_during_tick",
 		"same-callback reentry cannot overwrite the latched owner-loss cause")
+	check(is_instance_valid(later_free_owner)
+		and later_free_owner.is_queued_for_deletion()
+		and later_free_owner.lifecycle == VisionOwner.Lifecycle.QUARANTINED
+		and later_free_owner.generation() == owner_generation
+		and not bool((retained.call(&"status", {}) as Dictionary).get(
+			"alive", true
+		)), "later-callback queue synchronously seals runtime before frame-end free")
 	later_free_owner = null
+	await process_frame
 	check(owner_generation == 1
 		and owner_ref.get_ref() == null
 		and not bool((retained.call(&"status", {}) as Dictionary).get("alive", true)),
@@ -1902,9 +2099,10 @@ func _free_owner_in_later_phase(
 	_intents: Array[ZRaidIntent]
 ) -> bool:
 	if tick == 1 and later_free_owner != null:
-		later_free_owner.free()
-		later_reentry_result = raid.advance_one(raid.generation())
-		later_reentry_error = raid.last_error
+		later_free_owner.queue_free()
+		if later_free_reenters:
+			later_reentry_result = raid.advance_one(raid.generation())
+			later_reentry_error = raid.last_error
 	return true
 
 

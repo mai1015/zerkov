@@ -239,7 +239,8 @@ func is_current_generation(expected_generation: int) -> bool:
 	return lifecycle == Lifecycle.ACTIVE \
 		and expected_generation == _generation \
 		and _runtime_alive \
-		and _runtime_dispatch.is_valid()
+		and _runtime_dispatch.is_valid() \
+		and not is_queued_for_deletion()
 
 
 func configuration_fingerprint() -> String:
@@ -323,7 +324,8 @@ func is_registered_binding_current(
 	return _binding_registered \
 		and _binding_values_match(raid_authority, owner_generation, raid_generation) \
 		and lifecycle == Lifecycle.ACTIVE \
-		and _runtime_alive
+		and _runtime_alive \
+		and not is_queued_for_deletion()
 
 
 ## Authority-owned release callback. An owner that has already participated in
@@ -626,14 +628,25 @@ func teardown(expected_generation: int) -> bool:
 
 
 func _exit_tree() -> void:
-	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
-		teardown(_generation)
+	# `_exit_tree` is directly callable by ordinary project GDScript while this
+	# node is still live and parented, so it must never mint lifecycle authority.
+	# A real queued destruction reaches NOTIFICATION_PREDELETE first and is
+	# authenticated there by Object's engine-owned deletion-queue state.
+	pass
 
 
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_PREDELETE \
 			or (lifecycle != Lifecycle.ACTIVE \
 				and lifecycle != Lifecycle.QUARANTINED):
+		return
+	# GDScript may invoke `_notification(NOTIFICATION_PREDELETE)` directly. Only
+	# Object's engine-owned queued-for-deletion bit proves this is the real
+	# destruction path. An unqueued direct `free()` is canceled as well: callers
+	# must use queue_free() so the owner cannot disappear before its authority,
+	# reserved slot, and native runtime are reconciled atomically.
+	if not is_queued_for_deletion():
+		cancel_free()
 		return
 	var predelete_context := {
 		"owner_instance_id": get_instance_id(),

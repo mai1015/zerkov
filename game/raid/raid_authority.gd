@@ -695,6 +695,12 @@ func _drain_requested_ticks(expected_generation: int, limit: int) -> int:
 func advance_one(expected_generation: int) -> bool:
 	last_error = &""
 	if _is_advancing:
+		# queue_free() commits the bound owner to deletion before PREDELETE is
+		# delivered at frame end. If a later handler reenters in that interval,
+		# terminalize from the engine-owned queued state now so the committed
+		# owner-loss cause cannot be replaced by `reentrant_tick`.
+		if _terminalize_queued_vision_owner_during_tick():
+			return _reject(&"vision_owner_lost_during_tick")
 		return _reject(&"reentrant_tick")
 	if not _is_current_generation(expected_generation):
 		return _reject(&"stale_generation")
@@ -931,9 +937,15 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 		return _reject(&"tick_regressed_or_skipped")
 
 	var lifecycle_context := _authority_lifecycle_attestation_context()
+	var commit_context := lifecycle_context.duplicate()
+	commit_context["cause"] = &"vision_owner_lost_during_tick"
 	var lifecycle_attestation := func(
 		operation: StringName, request: Dictionary
 	) -> Dictionary:
+		if operation == _ATTEST_TERMINAL_COMMIT:
+			return _answer_attestation(
+				operation, request, operation, commit_context
+			)
 		if operation != _ATTEST_TERMINAL_SEAL \
 				and operation != _ATTEST_OWNER_RELEASE:
 			return {"ok": false}
@@ -983,14 +995,14 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 			# dispatch another handler or replace the recorded terminal cause.
 			if not _read_terminal_cause().is_empty():
 				return _finish_preterminalized_tick(tick)
-			if typeof(outcome) != TYPE_BOOL or not outcome:
-				return _fail_current_tick(
-					tick, &"phase_handler_failed", lifecycle_attestation
-				)
 			if vision_owner_required_for_tick \
 					and not _reserved_vision_callback_is_current():
 				return _fail_current_tick(
 					tick, &"vision_owner_lost_during_tick", lifecycle_attestation
+				)
+			if typeof(outcome) != TYPE_BOOL or not outcome:
+				return _fail_current_tick(
+					tick, &"phase_handler_failed", lifecycle_attestation
 				)
 		_processing_phase = -1
 	last_processed_tick = tick
@@ -1040,6 +1052,9 @@ func _fail_current_tick(
 ) -> bool:
 	# The clock has already consumed this tick. A handler failure is terminal, so
 	# retain any committed audit prefix and keep the canonical tick invariant.
+	if code == &"vision_owner_lost_during_tick" \
+			and not _commit_terminal_cause(code, lifecycle_attestation):
+		code = _TERMINAL_LATCH_INVALID
 	last_processed_tick = tick
 	_is_advancing = false
 	_processing_tick = 0
@@ -1191,6 +1206,52 @@ func _reserved_vision_callback_is_current() -> bool:
 			and callback.get_method() == &"_handle_raid_phase" \
 			and callback.get_bound_arguments_count() == 0
 	return false
+
+
+## Commits the one owner-loss transition that can be observed before Godot
+## delivers PREDELETE: the exact bound Node is already irreversibly queued
+## while its authority callback is still on the stack. This method accepts no
+## caller bearer and remains inert unless engine-owned state and the complete
+## current-tick binding agree.
+func _terminalize_queued_vision_owner_during_tick() -> bool:
+	if not _is_advancing \
+			or _processing_tick <= 0 \
+			or (lifecycle != Lifecycle.ACTIVE \
+				and lifecycle != Lifecycle.EXTRACTING) \
+			or _vision_owner_ref == null:
+		return false
+	var owner_value: Variant = _vision_owner_ref.get_ref()
+	if not owner_value is RaidVisionWorldOwner \
+			or not is_instance_valid(owner_value):
+		return false
+	var owner := owner_value as RaidVisionWorldOwner
+	if not owner.is_queued_for_deletion() \
+			or not _vision_owner_matches(
+				owner, _vision_owner_generation, _vision_owner_raid_generation
+			):
+		return false
+	var lifecycle_context := _authority_lifecycle_attestation_context()
+	var commit_context := lifecycle_context.duplicate()
+	commit_context["cause"] = &"vision_owner_lost_during_tick"
+	var lifecycle_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation == _ATTEST_TERMINAL_COMMIT:
+			return _answer_attestation(
+				operation, request, operation, commit_context
+			)
+		if operation == _ATTEST_TERMINAL_SEAL \
+				or operation == _ATTEST_OWNER_RELEASE:
+			return _answer_attestation(
+				operation, request, operation, lifecycle_context
+			)
+		return {"ok": false}
+	if not _commit_terminal_cause(
+		&"vision_owner_lost_during_tick", lifecycle_attestation
+	):
+		return false
+	lifecycle = Lifecycle.FAILED
+	return _seal_terminal_runtime(lifecycle_attestation)
 
 
 func _remove_reserved_vision_handler() -> void:
