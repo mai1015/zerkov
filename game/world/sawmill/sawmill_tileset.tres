@@ -1,0 +1,411 @@
+[gd_resource type="TileSet" format=3]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_yyb6g"]
+texture_region_size = Vector2i(32, 32)
+
+[resource]
+resource_name = "Sawmill Source TileSet"
+tile_size = Vector2i(32, 32)
+uv_clipping = true
+physics_layer_0/collision_layer = 1
+physics_layer_0/collision_mask = 1
+physics_layer_0/collision_priority = 1.0
+terrain_set_0/mode = 0
+terrain_set_0/terrain_0/name = "dirt"
+terrain_set_0/terrain_0/color = Color(0.40392157, 0.2901961, 0.21568628, 1)
+terrain_set_0/terrain_1/name = "grass"
+terrain_set_0/terrain_1/color = Color(0.36862746, 0.5294118, 0.20784314, 1)
+terrain_set_0/terrain_2/name = "stone"
+terrain_set_0/terrain_2/color = Color(0.52156866, 0.54509807, 0.5568628, 1)
+terrain_set_0/terrain_3/name = "water"
+terrain_set_0/terrain_3/color = Color(0.18431373, 0.43137255, 0.4862745, 1)
+terrain_set_0/terrain_4/name = "road"
+terrain_set_0/terrain_4/color = Color(0.60784316, 0.48235294, 0.3137255, 1)
+terrain_set_0/terrain_5/name = "sand"
+terrain_set_0/terrain_5/color = Color(0.7372549, 0.627451, 0.42352942, 1)
+navigation_layer_0/layers = 1
+custom_data_layer_0/name = "source_tile_id"
+custom_data_layer_0/type = 4
+custom_data_layer_1/name = "navigation_kind"
+custom_data_layer_1/type = 4
+custom_data_layer_2/name = "collision_kind"
+custom_data_layer_2/type = 4
+custom_data_layer_3/name = "draw_layer"
+custom_data_layer_3/type = 4
+sources/0 = SubResource("TileSetAtlasSource_yyb6g")
+metadata/sawmill_schema_version = 1
+metadata/sawmill_source_asset_id = "zerkov.asset.world.exterior_textures"
+metadata/sawmill_source_asset_alias = "world.exterior.textures"
+metadata/sawmill_source_registry_id = "zerkov.assets"
+metadata/sawmill_source_registry_path = "res://game/content/asset_registry.json"
+metadata/sawmill_source_provenance = {
+"availability": "pending_unimported",
+"filtering": "nearest",
+"mipmaps": false,
+"runtime_path": "",
+"runtime_sha256": "",
+"source_relative_path": "Exterior/Exterior Textures.png",
+"source_root": "/Volumes/Data/Assets/zerkov",
+"source_sha256": "9b09c86b46b9115953362e2a29e48c3f17b5f6cea3e91d95d23727725b91e09a",
+"source_status": "available_external"
+}
+metadata/sawmill_source_atlas = {
+"cell_size": [32, 32],
+"columns": 22,
+"frame_count": 484,
+"rows": 22,
+"source_size": [704, 704]
+}
+metadata/sawmill_terrain_metadata = [{
+"display_name": "Dirt",
+"id": "dirt",
+"terrain_index": 0,
+"terrain_set": 0,
+"walkable": true
+}, {
+"display_name": "Grass",
+"id": "grass",
+"terrain_index": 1,
+"terrain_set": 0,
+"walkable": true
+}, {
+"display_name": "Stone",
+"id": "stone",
+"terrain_index": 2,
+"terrain_set": 0,
+"walkable": true
+}, {
+"display_name": "Water",
+"id": "water",
+"terrain_index": 3,
+"terrain_set": 0,
+"walkable": false
+}, {
+"display_name": "Road",
+"id": "road",
+"terrain_index": 4,
+"terrain_set": 0,
+"walkable": true
+}, {
+"display_name": "Sand",
+"id": "sand",
+"terrain_index": 5,
+"terrain_set": 0,
+"walkable": true
+}]
+metadata/sawmill_navigation_metadata = {
+"default_kind": "walkable",
+"kinds": [{
+"cost_milli": 1000,
+"id": "walkable",
+"walkable": true
+}, {
+"cost_milli": 1500,
+"id": "slow",
+"walkable": true
+}, {
+"cost_milli": 0,
+"id": "blocked",
+"walkable": false
+}, {
+"cost_milli": 0,
+"id": "water",
+"walkable": false
+}],
+"layer_bit": 1,
+"layer_id": 0,
+"layer_name": "sawmill_walkable"
+}
+metadata/sawmill_collision_metadata = {
+"collision_layer": 1,
+"collision_mask": 1,
+"collision_priority_milli": 1000,
+"kinds": [{
+"enabled": false,
+"id": "none",
+"one_way": false
+}, {
+"enabled": true,
+"id": "solid",
+"one_way": false
+}, {
+"enabled": true,
+"id": "one_way",
+"one_way": true
+}],
+"physics_layer_id": 0
+}
+metadata/sawmill_draw_layer_metadata = [{
+"id": "ground",
+"occludes": false,
+"y_sort": false,
+"z_index": 0
+}, {
+"id": "detail",
+"occludes": false,
+"y_sort": false,
+"z_index": 10
+}, {
+"id": "obstacle",
+"occludes": true,
+"y_sort": false,
+"z_index": 20
+}, {
+"id": "canopy",
+"occludes": true,
+"y_sort": false,
+"z_index": 30
+}, {
+"id": "actor",
+"occludes": false,
+"y_sort": true,
+"z_index": 40
+}, {
+"id": "fx",
+"occludes": false,
+"y_sort": false,
+"z_index": 50
+}]
+metadata/sawmill_tile_catalog = [{
+"atlas_coord": [0, 0],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 0,
+"id": "zerkov.tile.sawmill.dirt.full",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "dirt",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [1, 0],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 1,
+"id": "zerkov.tile.sawmill.dirt.edge_n",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "dirt",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [2, 0],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 2,
+"id": "zerkov.tile.sawmill.dirt.edge_s",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "dirt",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [3, 0],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 3,
+"id": "zerkov.tile.sawmill.grass.full",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "grass",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [4, 0],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 4,
+"id": "zerkov.tile.sawmill.grass.edge",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "grass",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [0, 8],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 176,
+"id": "zerkov.tile.sawmill.stone.floor",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "stone",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [1, 8],
+"collision_kind": "solid",
+"draw_layer": "obstacle",
+"frame_index": 177,
+"id": "zerkov.tile.sawmill.stone.wall",
+"navigation_kind": "blocked",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "stone",
+"tile_size_px": [32, 32],
+"z_index": 20
+}, {
+"atlas_coord": [2, 8],
+"collision_kind": "solid",
+"draw_layer": "obstacle",
+"frame_index": 178,
+"id": "zerkov.tile.sawmill.stone.wall_edge",
+"navigation_kind": "blocked",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "stone",
+"tile_size_px": [32, 32],
+"z_index": 20
+}, {
+"atlas_coord": [10, 0],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 10,
+"id": "zerkov.tile.sawmill.road.full",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "road",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [11, 0],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 11,
+"id": "zerkov.tile.sawmill.road.edge",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "road",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [6, 4],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 94,
+"id": "zerkov.tile.sawmill.sand.full",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "sand",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [7, 4],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 95,
+"id": "zerkov.tile.sawmill.sand.edge",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "sand",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [8, 13],
+"collision_kind": "solid",
+"draw_layer": "ground",
+"frame_index": 294,
+"id": "zerkov.tile.sawmill.water.full",
+"navigation_kind": "water",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "water",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [9, 13],
+"collision_kind": "solid",
+"draw_layer": "ground",
+"frame_index": 295,
+"id": "zerkov.tile.sawmill.water.edge",
+"navigation_kind": "water",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "water",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [13, 4],
+"collision_kind": "solid",
+"draw_layer": "obstacle",
+"frame_index": 101,
+"id": "zerkov.tile.sawmill.crate_cover",
+"navigation_kind": "blocked",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "dirt",
+"tile_size_px": [32, 32],
+"z_index": 20
+}, {
+"atlas_coord": [14, 4],
+"collision_kind": "solid",
+"draw_layer": "obstacle",
+"frame_index": 102,
+"id": "zerkov.tile.sawmill.fence_segment",
+"navigation_kind": "blocked",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "stone",
+"tile_size_px": [32, 32],
+"z_index": 20
+}, {
+"atlas_coord": [15, 4],
+"collision_kind": "solid",
+"draw_layer": "canopy",
+"frame_index": 103,
+"id": "zerkov.tile.sawmill.canopy_pine",
+"navigation_kind": "blocked",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "grass",
+"tile_size_px": [32, 32],
+"z_index": 30
+}, {
+"atlas_coord": [16, 4],
+"collision_kind": "none",
+"draw_layer": "detail",
+"frame_index": 104,
+"id": "zerkov.tile.sawmill.detail_sawdust",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "dirt",
+"tile_size_px": [32, 32],
+"z_index": 10
+}, {
+"atlas_coord": [17, 4],
+"collision_kind": "none",
+"draw_layer": "ground",
+"frame_index": 105,
+"id": "zerkov.tile.sawmill.slow_lichen",
+"navigation_kind": "slow",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "grass",
+"tile_size_px": [32, 32],
+"z_index": 0
+}, {
+"atlas_coord": [18, 4],
+"collision_kind": "one_way",
+"draw_layer": "obstacle",
+"frame_index": 106,
+"id": "zerkov.tile.sawmill.one_way_dock",
+"navigation_kind": "walkable",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "road",
+"tile_size_px": [32, 32],
+"z_index": 20
+}, {
+"atlas_coord": [19, 4],
+"collision_kind": "none",
+"draw_layer": "actor",
+"frame_index": 107,
+"id": "zerkov.tile.sawmill.actor_marker",
+"navigation_kind": "blocked",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "dirt",
+"tile_size_px": [32, 32],
+"z_index": 40
+}, {
+"atlas_coord": [20, 4],
+"collision_kind": "none",
+"draw_layer": "fx",
+"frame_index": 108,
+"id": "zerkov.tile.sawmill.fx_marker",
+"navigation_kind": "blocked",
+"source_asset_id": "zerkov.asset.world.exterior_textures",
+"terrain_id": "dirt",
+"tile_size_px": [32, 32],
+"z_index": 50
+}]
