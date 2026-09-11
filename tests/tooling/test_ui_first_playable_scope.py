@@ -249,7 +249,8 @@ def readonly_image_helpers(source: str) -> frozenset[str]:
     """Recognize single-expression image checks without mutation or callbacks."""
     helpers: set[str] = set()
     for match in re.finditer(
-        r"(?m)^(?:static\s+)?func\s+(\w+)\(\w+:\s*Image\)\s*->\s*bool:",
+        r"(?m)^(?:static\s+)?func\s+(?P<helper>\w+)\("
+        r"(?P<receiver>\w+):\s*Image\)\s*->\s*bool:",
         gdscript_code(source),
     ):
         body, _ = gdscript_function_region(source, match.start())
@@ -261,21 +262,72 @@ def readonly_image_helpers(source: str) -> frozenset[str]:
             expression = ast.parse(lines[0][7:], mode="eval").body
         except SyntaxError:
             continue
-        calls = [node.func for node in ast.walk(expression) if isinstance(node, ast.Call)]
-        if all(
-            isinstance(call, ast.Name) and call.id in {"Vector2", "Vector2i"}
-            or isinstance(call, ast.Attribute) and call.attr in {"get_size", "get_visible_rect"}
-            for call in calls
-        ):
-            helpers.add(match.group(1))
+        receiver = match.group("receiver")
+        calls = [node for node in ast.walk(expression) if isinstance(node, ast.Call)]
+
+        def is_receiver_size_readback(call: ast.Call) -> bool:
+            function = call.func
+            return (
+                isinstance(function, ast.Attribute)
+                and function.attr == "get_size"
+                and isinstance(function.value, ast.Name)
+                and function.value.id == receiver
+                and not call.args
+                and not call.keywords
+            )
+
+        def is_readonly_call(call: ast.Call) -> bool:
+            function = call.func
+            if isinstance(function, ast.Name):
+                return function.id in {"Vector2", "Vector2i"}
+            if not isinstance(function, ast.Attribute):
+                return False
+            if is_receiver_size_readback(call):
+                return True
+            return (
+                function.attr == "get_visible_rect"
+                and not call.args
+                and not call.keywords
+            )
+
+        if any(is_receiver_size_readback(call) for call in calls) \
+                and all(is_readonly_call(call) for call in calls):
+            helpers.add(match.group("helper"))
     return frozenset(helpers)
 
 
+def image_aliases_before(source: str, receiver: str) -> frozenset[str]:
+    """Return simple local names that may alias receiver before its proof.
+
+    Alias discovery is deliberately monotonic. Once a local is assigned from
+    the saved image (or another known alias), a later use must be treated as a
+    possible use of that image even if retained source also reassigns the name.
+    """
+    aliases = {receiver}
+    logical_source = re.sub(
+        r"\\[ \t]*\r?\n[ \t]*", " ", gdscript_code(source)
+    )
+    assignment = re.compile(
+        r"(?m)(?:^|;)[ \t]*(?:var[ \t]+)?(?P<target>[A-Za-z_]\w*)"
+        r"(?:[ \t]*:[ \t]*(?![=])[^=\n;]+)?[ \t]*(?::=|=(?!=))[ \t]*"
+        r"(?P<value>[^;\n]+?)[ \t]*(?=;|$)"
+    )
+    direct_alias = re.compile(
+        r"\(*[ \t]*(?P<name>[A-Za-z_]\w*)"
+        r"(?:[ \t]+as[ \t]+[A-Za-z_]\w*)?[ \t]*\)*"
+    )
+    for match in assignment.finditer(logical_source):
+        value = direct_alias.fullmatch(match.group("value"))
+        if value and value.group("name") in aliases:
+            aliases.add(match.group("target"))
+    return frozenset(aliases)
+
+
 def assert_image_not_changed(
-    testcase: unittest.TestCase, source: str, receiver: str,
+    testcase: unittest.TestCase, source: str, receivers: frozenset[str],
     helpers: frozenset[str],
 ) -> None:
-    """Reject replacements, aliases and unrecognized image calls after proof."""
+    """Reject replacement, escape or mutation of a proven image before save."""
     # Strings cannot manufacture a method/alias occurrence, and comments cannot
     # hide one. This range contains only the proof and following write prefix.
     code = gdscript_code(source)
@@ -285,17 +337,34 @@ def assert_image_not_changed(
     }
     testcase.assertIsNone(re.search(r"\bawait\b", code),
                           "frame proof cannot cross an asynchronous boundary")
-    for occurrence in re.finditer(rf"\b{re.escape(receiver)}\b", code):
-        tail = code[occurrence.end():]
-        method = re.match(r"\.(\w+)\s*\(", tail)
-        if method and method.group(1) in readonly:
-            continue
-        if re.match(r"\s*(?:!=|==)\s*null\b", tail):
-            continue
-        helper = re.search(r"\b(\w+)\(\s*$", code[:occurrence.start()])
-        if helper and helper.group(1) in helpers and re.match(r"\s*\)", tail):
-            continue
-        testcase.fail("saved framebuffer is replaced, aliased or passed to an unproven image operation")
+    for receiver in sorted(receivers):
+        for occurrence in re.finditer(rf"\b{re.escape(receiver)}\b", code):
+            tail = code[occurrence.end():]
+            method = re.match(r"\.(\w+)\s*\(", tail)
+            if method and method.group(1) in readonly:
+                continue
+            if re.match(r"\s*(?:!=|==)\s*null\b", tail):
+                continue
+            helper = re.search(r"\b(\w+)\(\s*$", code[:occurrence.start()])
+            if helper and helper.group(1) in helpers and re.match(r"\s*\)", tail):
+                continue
+            testcase.fail(
+                "saved framebuffer or a pre-proof alias is replaced, aliased "
+                "or passed to an unproven image operation"
+            )
+
+
+def call_end(source: str, open_parenthesis: int) -> int:
+    """Return the exclusive end of a call whose opening parenthesis is known."""
+    depth = 0
+    for index in range(open_parenthesis, len(source)):
+        if source[index] == "(":
+            depth += 1
+        elif source[index] == ")":
+            depth -= 1
+            if depth == 0:
+                return index + 1
+    return -1
 
 
 def direct_return_in_guard(lines: list[str], guard_index: int, indent: int) -> bool:
@@ -325,19 +394,27 @@ def assert_exact_guard_before(
     testcase.assertGreaterEqual(write_position, 0, "write token is missing")
     body = gdscript_code(body)
     line_start = body.rfind("\n", 0, write_position) + 1
-    line_end = body.find("\n", write_position)
-    if line_end < 0:
-        line_end = len(body)
-    write_line = strip_gdscript_comment(body[line_start:line_end])
-    write_indent = line_indent(body[line_start:line_end])
-    save_match = re.search(r"\b(\w+)\.save_png\s*\(", write_line)
+    write_indent = line_indent(body[line_start:])
+    save_match = next((match for match in re.finditer(
+        r"\b(?P<receiver>\w+)\.(?P<method>save_png)\s*\(", body
+    ) if match.start("method") == write_position), None)
+    mkdir_match = next((match for match in re.finditer(
+        r"(?P<method>make_dir_recursive_absolute)\s*\(", body
+    ) if match.start("method") == write_position), None)
     receiver = save_match.group(1) if save_match else None
     testcase.assertTrue(
-        receiver is not None or "make_dir_recursive_absolute" in write_line,
+        receiver is not None or mkdir_match is not None,
         "unsupported capture write shape",
     )
+    write_match = save_match or mkdir_match
+    testcase.assertIsNotNone(write_match)
+    open_parenthesis = body.find("(", write_match.start("method")) \
+        if write_match else -1
+    write_end = call_end(body, open_parenthesis)
+    testcase.assertGreater(write_end, write_position, "capture write call is incomplete")
 
-    prefix_lines = body[:line_start].splitlines()
+    prefix_chunks = body[:line_start].splitlines(keepends=True)
+    prefix_lines = [chunk.rstrip("\r\n") for chunk in prefix_chunks]
     selected_guard = -1
     proof_start = -1
     proven_receiver = ""
@@ -378,8 +455,10 @@ def assert_exact_guard_before(
         0,
         "write lacks a same-scope receiver-specific exact-frame rejection with return",
     )
-    intervening = "\n".join(prefix_lines[proof_start:] + [write_line])
-    assert_image_not_changed(testcase, intervening, proven_receiver, helpers)
+    proof_offset = sum(len(chunk) for chunk in prefix_chunks[:proof_start])
+    aliases = image_aliases_before(body[:proof_offset], proven_receiver)
+    intervening = body[proof_offset:write_end]
+    assert_image_not_changed(testcase, intervening, aliases, helpers)
 
 
 def assert_unconditional_python_retirement(
@@ -764,6 +843,167 @@ static func capture(image, path):
         second_write = replaced.rfind("save_png")
         with self.assertRaises(AssertionError):
             assert_exact_guard_before(self, replaced, second_write)
+
+    def test_pre_guard_aliases_cannot_change_the_proven_image(self) -> None:
+        safe_readback = """func capture(image, path):
+    var alias: Image = image
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    check(alias.get_size() == FIRST_PLAYABLE_SIZE, "still exact")
+    image.save_png(path)
+"""
+        assert_exact_guard_before(
+            self, safe_readback, safe_readback.find("save_png")
+        )
+
+        mutation_before_proof = """func capture(image, path):
+    var alias := image
+    alias.clear()
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    image.save_png(path)
+"""
+        assert_exact_guard_before(
+            self, mutation_before_proof, mutation_before_proof.find("save_png")
+        )
+
+        unrelated = """func capture(image, metadata, path):
+    var details = metadata
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    details.clear()
+    image.save_png(path)
+"""
+        assert_exact_guard_before(self, unrelated, unrelated.find("save_png"))
+
+        mutation_after_save = """func capture(image, path):
+    var alias := image
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    image.save_png(path); alias.clear()
+"""
+        assert_exact_guard_before(
+            self, mutation_after_save, mutation_after_save.find("save_png")
+        )
+
+        rejected = {
+            "direct_mutation": """func capture(image, path):
+    var alias = image
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    alias.clear()
+    image.save_png(path)
+""",
+            "typed_chain_mutation": """func capture(image, path):
+    var first: Image = image
+    var second := first
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    second.resize(1920, 1080)
+    image.save_png(path)
+""",
+            "alias_consuming_call": """func capture(image, path):
+    var alias := image
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    change_image(alias)
+    image.save_png(path)
+""",
+            "continued_cast_alias": """func capture(image, path):
+    var alias: Image = \\
+        (image as Image)
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    change_image(alias)
+    image.save_png(path)
+""",
+        }
+        for name, source in rejected.items():
+            with self.subTest(alias_case=name), self.assertRaises(AssertionError):
+                assert_exact_guard_before(self, source, source.find("save_png"))
+
+    def test_same_line_writes_bind_each_exact_call_receiver(self) -> None:
+        first_only = """func capture(first, second, path_a, path_b):
+    if first.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    first.save_png(path_a); second.save_png(path_b)
+"""
+        assert_exact_guard_before(self, first_only, first_only.find("save_png"))
+        with self.assertRaises(AssertionError):
+            assert_exact_guard_before(self, first_only, first_only.rfind("save_png"))
+
+        both_guarded = """func capture(first, second, path_a, path_b):
+    if first.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    if second.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    first.save_png(path_a); second.save_png(path_b)
+"""
+        assert_exact_guard_before(
+            self, both_guarded, both_guarded.find("save_png")
+        )
+        assert_exact_guard_before(
+            self, both_guarded, both_guarded.rfind("save_png")
+        )
+
+        changed_between_writes = """func capture(image, path_a, path_b):
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    image.save_png(path_a); image.clear(); image.save_png(path_b)
+"""
+        assert_exact_guard_before(
+            self, changed_between_writes, changed_between_writes.find("save_png")
+        )
+        with self.assertRaises(AssertionError):
+            assert_exact_guard_before(
+                self, changed_between_writes,
+                changed_between_writes.rfind("save_png"),
+            )
+
+    def test_readonly_helper_requires_its_image_receiver_readback(self) -> None:
+        helpers_source = """func exact(image: Image) -> bool:
+    return image.get_size() == EXACT_SIZE
+func exact_with_viewport(image: Image) -> bool:
+    return root.get_visible_rect().size == Vector2(EXACT_SIZE) and image.get_size() == EXACT_SIZE
+func foreign_argument(image: Image) -> bool:
+    return attacker.get_size(image) == EXACT_SIZE
+func foreign_receiver(image: Image) -> bool:
+    return attacker.get_size() == EXACT_SIZE and image.get_size() == EXACT_SIZE
+func argumented_receiver(image: Image) -> bool:
+    return image.get_size(attacker) == EXACT_SIZE
+func argumented_viewport(image: Image) -> bool:
+    return root.get_visible_rect(image).size == Vector2(EXACT_SIZE) \
+        and image.get_size() == EXACT_SIZE
+"""
+        helpers = readonly_image_helpers(helpers_source)
+        self.assertEqual(helpers, {"exact", "exact_with_viewport"})
+
+        safe_use = helpers_source + """func capture(image, path):
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    exact_with_viewport(image)
+    image.save_png(path)
+"""
+        assert_exact_guard_before(
+            self, safe_use, safe_use.find("save_png"),
+            readonly_image_helpers(safe_use),
+        )
+
+        for helper in (
+            "foreign_argument", "foreign_receiver", "argumented_receiver",
+            "argumented_viewport",
+        ):
+            source = helpers_source + """func capture(image, path):
+    if image.get_size() != FIRST_PLAYABLE_SIZE:
+        return
+    %s(image)
+    image.save_png(path)
+""" % helper
+            with self.subTest(helper=helper), self.assertRaises(AssertionError):
+                assert_exact_guard_before(
+                    self, source, source.find("save_png"),
+                    readonly_image_helpers(source),
+                )
 
     def test_boolean_proof_accepts_only_necessary_exact_comparisons(self) -> None:
         for condition in (
