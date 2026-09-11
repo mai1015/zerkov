@@ -487,7 +487,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   settlement receipts.
 - [ ] 8.9 `[LUNA]` Mark bunker, crafting, friends, insurance and marketplace
   actions as explicit prototype/locked features until their services exist.
-- [ ] 8.10 `[LUNA]` Port modal, focus and action routing plus rebinding
+- [x] 8.10 `[LUNA]` Port modal, focus and action routing plus rebinding
   regression coverage to CommonUI-backed screens. Keep any retained adaptive
   implementation out of the current first-playable test matrix; smaller suites
   are deferred until task 11.8 or a later approved display-support proposal.
