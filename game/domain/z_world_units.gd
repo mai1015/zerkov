@@ -8,21 +8,27 @@ const VISION_MICROUNITS_PER_WORLD_UNIT: int = 1_000_000
 const ABILITY_MICROUNITS_PER_WHOLE: int = 1_000_000
 const WEAPON_MILLIUNITS_PER_WORLD_UNIT: int = 1_000
 const WEAPON_DAMAGE_MILLIUNITS_PER_WHOLE: int = 1_000
-const MAX_GODOT_COORDINATE_PX: float = 1_048_576.0
-const MAX_CANONICAL_RAW: int = 32_768_000_000
+# Godot's Vector2i components are signed 32-bit values.  Keep the accepted
+# floating-point domain at an exact power-of-two pixel boundary whose canonical
+# representation (2,048,000,000) leaves explicit headroom below INT32_MAX.
+# Conversion validates the rounded scalars before constructing Vector2i, so an
+# out-of-domain input can never wrap or partially publish a point.
+const MAX_GODOT_COORDINATE_PX: float = 65_536.0
+const MAX_CANONICAL_RAW: int = 2_048_000_000
 
 
 static func godot_to_canonical(point_px: Vector2) -> ZUnitConversion:
 	if not _is_valid_godot_point(point_px):
 		return ZUnitConversion.failure(&"invalid_godot_position")
-	return ZUnitConversion.point_i(Vector2i(
-		_round_half_away_from_zero(
-			point_px.x * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
-		),
-		_round_half_away_from_zero(
-			point_px.y * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
-		)
-	))
+	var raw_x := _round_half_away_from_zero(
+		point_px.x * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
+	)
+	var raw_y := _round_half_away_from_zero(
+		point_px.y * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
+	)
+	if absi(raw_x) > MAX_CANONICAL_RAW or absi(raw_y) > MAX_CANONICAL_RAW:
+		return ZUnitConversion.failure(&"canonical_position_out_of_range")
+	return ZUnitConversion.point_i(Vector2i(raw_x, raw_y))
 
 
 static func canonical_to_godot(point_raw: Vector2i) -> ZUnitConversion:

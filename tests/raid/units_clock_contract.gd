@@ -52,6 +52,29 @@ func _test_units() -> void:
 	check(not WorldUnits.godot_to_canonical(Vector2(INF, 0.0)).ok, "infinity is rejected")
 	check(not WorldUnits.godot_to_canonical(Vector2(2_000_000.0, 0.0)).ok,
 		"out-of-bounds position is rejected")
+	var boundary := WorldUnits.godot_to_canonical(Vector2(
+		WorldUnits.MAX_GODOT_COORDINATE_PX,
+		-WorldUnits.MAX_GODOT_COORDINATE_PX,
+	))
+	check(boundary.ok and boundary.vector2i_value == Vector2i(
+		WorldUnits.MAX_CANONICAL_RAW,
+		-WorldUnits.MAX_CANONICAL_RAW,
+	), "exact signed safe boundary converts without Vector2i wrap")
+	var restored_boundary := WorldUnits.canonical_to_godot(boundary.vector2i_value)
+	check(restored_boundary.ok and restored_boundary.vector2_value == Vector2(
+		WorldUnits.MAX_GODOT_COORDINATE_PX,
+		-WorldUnits.MAX_GODOT_COORDINATE_PX,
+	), "exact signed safe boundary round-trips")
+	var outside := WorldUnits.godot_to_canonical(Vector2(
+		WorldUnits.MAX_GODOT_COORDINATE_PX + 1.0,
+		17.0,
+	))
+	check(not outside.ok and outside.vector2i_value == Vector2i.ZERO,
+		"one pixel outside rejects without a wrapped or partial result")
+	check(not WorldUnits.canonical_to_godot(Vector2i(
+		WorldUnits.MAX_CANONICAL_RAW + 1,
+		0,
+	)).ok, "one canonical raw unit outside rejects before float conversion")
 	var damage := WorldUnits.weapon_damage_to_ability(42_500)
 	check(damage.ok and damage.integer_value == 42_500_000,
 		"weapon damage converts exactly to ability fixed units")

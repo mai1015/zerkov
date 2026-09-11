@@ -10,7 +10,7 @@ extends RefCounted
 const CONFIG_SCHEMA_VERSION: int = 1
 const CONFIG_ID: String = "zerkov.vision.authority.first_playable_v1"
 const SEALED_FINGERPRINT: String = \
-	"9a1bf1980b873fd71bcc864dc9e4f5fc32325597ed49e419e14f9167c0122ed2"
+	"0abdcc202b3f0299fa6d9d3726e16ab955b8a1d1481c201c1770aea21e57dd2e"
 
 const ADDON_ID: String = "common_vision"
 const ADDON_DESTINATION: String = "addons/common_vision"
@@ -25,16 +25,28 @@ const EXPECTED_PACKAGE_TREE_SHA256: String = \
 	"868119892c8d4ce16c9329f1f22129663c035bb59d6d11005bb351969ac63c10"
 const EXPECTED_RELEASE_SOURCE_REVISION: String = \
 	"1d42579ac9899953a5a7b7f50f846a71706eae1d"
+const EXPECTED_GIT_HEAD: String = \
+	"d4157a666496b2e001076dcaff5afb2e1d2d8472"
+const EXPECTED_PACKAGE_WORKTREE_DIRTY: bool = true
+const EXPECTED_PACKAGE_FILE_COUNT: int = 44
 const EXPECTED_RELEASE_MANIFEST_SHA256: String = \
 	"549ef93e061c5d39653e057bc9685c6117496a13a1d755f87584a08f1a3b0c34"
+const EXPECTED_RELEASE_MANIFEST_SCHEMA: int = 1
 const EXPECTED_DEBUG_ARTIFACT_PATH: String = \
 	"bin/libcommon_vision.macos.template_debug.universal.dylib"
 const EXPECTED_DEBUG_ARTIFACT_SHA256: String = \
 	"e03cc5322eff09e287dedf983262ebebc1e4bb9ad956a47a1ba06becbdf30791"
+const EXPECTED_DEBUG_MANIFEST_ARTIFACT_SHA256: String = \
+	"479a81be659d1bbbd6e8ecaa02502d699a92cbaa1cd96082a43c1d5b9c2b6b1e"
 const EXPECTED_RELEASE_ARTIFACT_PATH: String = \
 	"bin/libcommon_vision.macos.template_release.universal.dylib"
 const EXPECTED_RELEASE_ARTIFACT_SHA256: String = \
 	"a4b30328059c8329c68ab6e92a36ffdb208fa347b6094e68f6e15fd6c4dc4a55"
+const EXPECTED_RELEASE_MANIFEST_ARTIFACT_SHA256: String = \
+	"3e927bc088e119ae61137d13c28ef62ca86837902cf4de31c2f462a356483213"
+const EXPECTED_ARTIFACT_PLATFORM: String = "macos"
+const EXPECTED_ARTIFACT_ARCH: String = "universal"
+const EXPECTED_ARTIFACT_STATUS: String = "local_rebuilt_unmanifested"
 
 # Public feature values documented by Common Vision API 0.1.0.  Snapshot/delta
 # and dedicated-server features are deliberately not required by this offline
@@ -112,10 +124,12 @@ static func configuration() -> Dictionary:
 		"schema_version": CONFIG_SCHEMA_VERSION,
 		"config_id": CONFIG_ID,
 		"provenance": _expected_provenance(),
+		"runtime_contract": _expected_runtime_contract(),
 		"world": {
 			"role": OFFLINE_AUTHORITY_ROLE,
 			"spatial_cell_size_raw": SPATIAL_CELL_SIZE_RAW,
 			"max_visited_cells": MAX_VISITED_CELLS,
+			"canonical_coordinate_limit_raw": ZWorldUnits.MAX_CANONICAL_RAW,
 		},
 		"schedule": {
 			"authority_tick_rate": AUTHORITY_TICK_RATE,
@@ -204,7 +218,8 @@ static func validate_lock_document(
 	lock_document: Dictionary,
 	verify_installed_files: bool = false
 ) -> Dictionary:
-	if int(lock_document.get("schema_version", 0)) != 1:
+	if not _is_json_integer(lock_document.get("schema_version", null)) \
+			or int(lock_document["schema_version"]) != 1:
 		return _status(false, &"addon_lock_schema_incompatible")
 	var addons_value: Variant = lock_document.get("addons", null)
 	if not addons_value is Array:
@@ -221,11 +236,7 @@ static func validate_lock_document(
 	var entry_result := _validate_locked_entry(matches[0], verify_installed_files)
 	if not bool(entry_result.get("ok", false)):
 		return entry_result
-	return _status(
-		true,
-		&"",
-		ZCanonicalValue.sha256(_expected_provenance()),
-	)
+	return entry_result
 
 
 static func runtime_preflight() -> Dictionary:
@@ -256,19 +267,45 @@ static func runtime_preflight() -> Dictionary:
 	]:
 		if not version_probe.has_method(method_name):
 			return _status(false, &"common_vision_version_method_missing")
-	if String(version_probe.call("get_api_version")) != EXPECTED_API_VERSION:
+	var actual_api: Variant = version_probe.call("get_api_version")
+	var actual_protocol: Variant = version_probe.call("get_protocol_version")
+	var actual_algorithm: Variant = version_probe.call("get_algorithm_contract_version")
+	var actual_scale: Variant = version_probe.call("get_coordinate_scale")
+	var actual_features: Variant = version_probe.call("get_supported_features")
+	if typeof(actual_api) != TYPE_STRING or String(actual_api) != EXPECTED_API_VERSION:
 		return _status(false, &"common_vision_api_incompatible")
-	if int(version_probe.call("get_protocol_version")) != EXPECTED_PROTOCOL_VERSION:
+	if typeof(actual_protocol) != TYPE_INT \
+			or int(actual_protocol) != EXPECTED_PROTOCOL_VERSION:
 		return _status(false, &"common_vision_protocol_incompatible")
-	if int(version_probe.call("get_algorithm_contract_version")) \
-			!= EXPECTED_ALGORITHM_CONTRACT:
+	if typeof(actual_algorithm) != TYPE_INT \
+			or int(actual_algorithm) != EXPECTED_ALGORITHM_CONTRACT:
 		return _status(false, &"common_vision_algorithm_incompatible")
-	if int(version_probe.call("get_coordinate_scale")) != EXPECTED_COORDINATE_SCALE:
+	if typeof(actual_scale) != TYPE_INT \
+			or int(actual_scale) != EXPECTED_COORDINATE_SCALE:
 		return _status(false, &"common_vision_coordinate_scale_incompatible")
-	var supported_features := int(version_probe.call("get_supported_features"))
+	if typeof(actual_features) != TYPE_INT:
+		return _status(false, &"common_vision_features_invalid")
+	var supported_features := int(actual_features)
 	if supported_features & REQUIRED_FEATURES != REQUIRED_FEATURES:
 		return _status(false, &"common_vision_features_missing")
-	var result := _status(true, &"", String(lock_result.get("fingerprint", "")))
+	var accepted_runtime := {
+		"api_version": String(actual_api),
+		"protocol_version": int(actual_protocol),
+		"algorithm_contract": int(actual_algorithm),
+		"coordinate_scale": int(actual_scale),
+		"required_features": REQUIRED_FEATURES,
+		"supported_features": supported_features,
+	}
+	var accepted_bundle := {
+		"locked_provenance": (
+			lock_result.get("accepted_record", {}) as Dictionary
+		).duplicate(true),
+		"runtime_contract": accepted_runtime,
+	}
+	var result := _status(true, &"", ZCanonicalValue.sha256(accepted_bundle))
+	_make_deep_read_only(accepted_bundle)
+	result["accepted_record"] = accepted_bundle
+	result["lock_fingerprint"] = String(lock_result.get("fingerprint", ""))
 	result["api_version"] = EXPECTED_API_VERSION
 	result["protocol_version"] = EXPECTED_PROTOCOL_VERSION
 	result["algorithm_contract"] = EXPECTED_ALGORITHM_CONTRACT
@@ -279,15 +316,23 @@ static func runtime_preflight() -> Dictionary:
 
 static func _validate_configuration_semantics(configuration_record: Dictionary) -> String:
 	if not _has_exact_keys(configuration_record, PackedStringArray([
-		"schema_version", "config_id", "provenance", "world", "schedule",
-		"layers", "observer_profiles", "target_profiles",
+		"schema_version", "config_id", "provenance", "runtime_contract",
+		"world", "schedule", "layers", "observer_profiles", "target_profiles",
 	])):
 		return "configuration_schema_invalid"
-	if int(configuration_record.get("schema_version", 0)) != CONFIG_SCHEMA_VERSION \
-			or String(configuration_record.get("config_id", "")) != CONFIG_ID:
+	if typeof(configuration_record.get("schema_version", null)) != TYPE_INT \
+			or typeof(configuration_record.get("config_id", null)) != TYPE_STRING \
+			or int(configuration_record["schema_version"]) != CONFIG_SCHEMA_VERSION \
+			or String(configuration_record["config_id"]) != CONFIG_ID:
 		return "configuration_identity_incompatible"
-	if configuration_record.get("provenance", null) != _expected_provenance():
+	var provenance_value: Variant = configuration_record.get("provenance", null)
+	if not _configuration_provenance_types_are_valid(provenance_value) \
+			or provenance_value != _expected_provenance():
 		return "configuration_provenance_incompatible"
+	var runtime_contract_value: Variant = configuration_record.get("runtime_contract", null)
+	if not _runtime_contract_types_are_valid(runtime_contract_value) \
+			or runtime_contract_value != _expected_runtime_contract():
+		return "configuration_runtime_contract_incompatible"
 
 	var world_value: Variant = configuration_record.get("world", null)
 	if not world_value is Dictionary:
@@ -295,12 +340,18 @@ static func _validate_configuration_semantics(configuration_record: Dictionary) 
 	var world := world_value as Dictionary
 	if not _has_exact_keys(world, PackedStringArray([
 		"role", "spatial_cell_size_raw", "max_visited_cells",
+		"canonical_coordinate_limit_raw",
+	])) or not _all_int_fields(world, PackedStringArray([
+		"role", "spatial_cell_size_raw", "max_visited_cells",
+		"canonical_coordinate_limit_raw",
 	])):
 		return "world_configuration_invalid"
-	if int(world.get("role", -1)) != OFFLINE_AUTHORITY_ROLE:
+	if int(world["role"]) != OFFLINE_AUTHORITY_ROLE:
 		return "world_role_invalid"
-	var cell_size := int(world.get("spatial_cell_size_raw", 0))
-	var visited_cells := int(world.get("max_visited_cells", 0))
+	if int(world["canonical_coordinate_limit_raw"]) != ZWorldUnits.MAX_CANONICAL_RAW:
+		return "world_coordinate_limit_invalid"
+	var cell_size := int(world["spatial_cell_size_raw"])
+	var visited_cells := int(world["max_visited_cells"])
 	if cell_size <= 0 or cell_size > NATIVE_MAX_COORDINATE_RAW:
 		return "spatial_cell_size_invalid"
 	if visited_cells <= 0 or visited_cells > NATIVE_MAX_VISITED_CELLS:
@@ -314,14 +365,18 @@ static func _validate_configuration_semantics(configuration_record: Dictionary) 
 		"authority_tick_rate", "first_evaluation_tick", "cadence_interval_ticks",
 		"work_budget_per_evaluation", "telemetry_history_limit",
 		"telemetry_counter_limit",
+	])) or not _all_int_fields(schedule, PackedStringArray([
+		"authority_tick_rate", "first_evaluation_tick", "cadence_interval_ticks",
+		"work_budget_per_evaluation", "telemetry_history_limit",
+		"telemetry_counter_limit",
 	])):
 		return "vision_schedule_invalid"
-	var tick_rate := int(schedule.get("authority_tick_rate", 0))
-	var first_tick := int(schedule.get("first_evaluation_tick", -1))
-	var cadence := int(schedule.get("cadence_interval_ticks", 0))
-	var work_budget := int(schedule.get("work_budget_per_evaluation", -1))
-	var history_limit := int(schedule.get("telemetry_history_limit", 0))
-	var counter_limit := int(schedule.get("telemetry_counter_limit", 0))
+	var tick_rate := int(schedule["authority_tick_rate"])
+	var first_tick := int(schedule["first_evaluation_tick"])
+	var cadence := int(schedule["cadence_interval_ticks"])
+	var work_budget := int(schedule["work_budget_per_evaluation"])
+	var history_limit := int(schedule["telemetry_history_limit"])
+	var counter_limit := int(schedule["telemetry_counter_limit"])
 	if tick_rate <= 0 or first_tick <= 0 or cadence <= 0 \
 			or cadence > tick_rate or tick_rate % cadence != 0:
 		return "vision_cadence_invalid"
@@ -338,16 +393,19 @@ static func _validate_configuration_semantics(configuration_record: Dictionary) 
 	if not _has_exact_keys(layers, PackedStringArray([
 		"target_player", "target_scav", "target_mutant",
 		"occluder_structure", "occluder_vegetation",
+	])) or not _all_int_fields(layers, PackedStringArray([
+		"target_player", "target_scav", "target_mutant",
+		"occluder_structure", "occluder_vegetation",
 	])):
 		return "vision_layers_invalid"
 	var target_layers := [
-		int(layers.get("target_player", 0)),
-		int(layers.get("target_scav", 0)),
-		int(layers.get("target_mutant", 0)),
+		int(layers["target_player"]),
+		int(layers["target_scav"]),
+		int(layers["target_mutant"]),
 	]
 	var occluder_layers := [
-		int(layers.get("occluder_structure", 0)),
-		int(layers.get("occluder_vegetation", 0)),
+		int(layers["occluder_structure"]),
+		int(layers["occluder_vegetation"]),
 	]
 	if not _layers_are_disjoint_single_bits(target_layers) \
 			or not _layers_are_disjoint_single_bits(occluder_layers):
@@ -403,10 +461,16 @@ static func _validate_observer_profile(
 		"occluder_mask", "memory_ticks", "priority", "urgent",
 	])):
 		return "observer_profile_invalid"
+	if typeof(profile.get("id", null)) != TYPE_STRING \
+			or not _all_int_fields(profile, PackedStringArray([
+				"range_raw", "cone_cos_million", "target_mask", "occluder_mask",
+				"memory_ticks", "priority",
+			])):
+		return "observer_profile_invalid"
 	var profile_id := String(profile.get("id", ""))
 	if not ZIdentityRules.is_valid(profile_id, &"vision"):
 		return "observer_profile_id_invalid"
-	var range_raw := int(profile.get("range_raw", 0))
+	var range_raw := int(profile["range_raw"])
 	if range_raw <= 0 or range_raw > MAX_PROFILE_RANGE_RAW \
 			or range_raw > ZWorldUnits.MAX_CANONICAL_RAW:
 		return "observer_range_invalid"
@@ -414,18 +478,18 @@ static func _validate_observer_profile(
 	var worst_axis_cells := (range_raw * 2 + cell_size - 1) / cell_size + 2
 	if worst_axis_cells * worst_axis_cells > visited_cell_limit:
 		return "observer_grid_span_invalid"
-	var cone := int(profile.get("cone_cos_million", -1))
+	var cone := int(profile["cone_cos_million"])
 	if cone < 0 or cone > CONE_COS_SCALE:
 		return "observer_cone_invalid"
 	if typeof(profile.get("full_circle", null)) != TYPE_BOOL:
 		return "observer_full_circle_invalid"
-	if not _mask_is_valid(int(profile.get("target_mask", 0))) \
-			or not _mask_is_valid(int(profile.get("occluder_mask", 0))):
+	if not _mask_is_valid(int(profile["target_mask"])) \
+			or not _mask_is_valid(int(profile["occluder_mask"])):
 		return "observer_mask_invalid"
-	var memory_ticks := int(profile.get("memory_ticks", -1))
+	var memory_ticks := int(profile["memory_ticks"])
 	if memory_ticks < 0 or memory_ticks > MAX_MEMORY_TICKS:
 		return "observer_memory_invalid"
-	var priority := int(profile.get("priority", INT32_MIN - 1))
+	var priority := int(profile["priority"])
 	if priority < INT32_MIN or priority > INT32_MAX:
 		return "observer_priority_invalid"
 	if typeof(profile.get("urgent", null)) != TYPE_BOOL:
@@ -438,12 +502,15 @@ static func _validate_target_profile(profile: Dictionary) -> String:
 		"id", "mask", "sample_policy", "sample_offsets",
 	])):
 		return "target_profile_invalid"
+	if typeof(profile.get("id", null)) != TYPE_STRING \
+			or not _all_int_fields(profile, PackedStringArray(["mask", "sample_policy"])):
+		return "target_profile_invalid"
 	var profile_id := String(profile.get("id", ""))
 	if not ZIdentityRules.is_valid(profile_id, &"vision"):
 		return "target_profile_id_invalid"
-	if not _mask_is_valid(int(profile.get("mask", 0))):
+	if not _mask_is_valid(int(profile["mask"])):
 		return "target_mask_invalid"
-	var sample_policy := int(profile.get("sample_policy", -1))
+	var sample_policy := int(profile["sample_policy"])
 	if sample_policy != SAMPLE_POLICY_ANY and sample_policy != SAMPLE_POLICY_ALL:
 		return "target_sample_policy_invalid"
 	var offsets_value: Variant = profile.get("sample_offsets", null)
@@ -474,27 +541,60 @@ static func _validate_target_profile(profile: Dictionary) -> String:
 
 
 static func _validate_locked_entry(entry: Dictionary, verify_files: bool) -> Dictionary:
-	if String(entry.get("destination", "")) != ADDON_DESTINATION \
-			or String(entry.get("version", "")) != EXPECTED_API_VERSION \
-			or String(entry.get("api_version", "")) != EXPECTED_API_VERSION \
-			or int(entry.get("protocol_version", 0)) != EXPECTED_PROTOCOL_VERSION:
+	if not _all_string_fields(entry, PackedStringArray([
+		"id", "destination", "version", "api_version",
+	])) or not _all_json_integer_fields(entry, PackedStringArray(["protocol_version"])):
+		return _status(false, &"common_vision_lock_identity_incompatible")
+	if String(entry["id"]) != ADDON_ID \
+			or String(entry["destination"]) != ADDON_DESTINATION \
+			or String(entry["version"]) != EXPECTED_API_VERSION \
+			or String(entry["api_version"]) != EXPECTED_API_VERSION \
+			or int(entry["protocol_version"]) != EXPECTED_PROTOCOL_VERSION:
 		return _status(false, &"common_vision_lock_identity_incompatible")
 	var schemas_value: Variant = entry.get("schema_versions", null)
-	if not schemas_value is Dictionary \
-			or int((schemas_value as Dictionary).get("algorithm_contract", 0)) \
-				!= EXPECTED_ALGORITHM_CONTRACT:
+	if not schemas_value is Dictionary:
+		return _status(false, &"common_vision_lock_algorithm_incompatible")
+	var schemas := schemas_value as Dictionary
+	if not _has_exact_keys(schemas, PackedStringArray([
+		"release_manifest", "algorithm_contract",
+	])) or not _all_json_integer_fields(schemas, PackedStringArray([
+		"release_manifest", "algorithm_contract",
+	])) or int(schemas["release_manifest"]) != EXPECTED_RELEASE_MANIFEST_SCHEMA \
+			or int(schemas["algorithm_contract"]) != EXPECTED_ALGORITHM_CONTRACT:
 		return _status(false, &"common_vision_lock_algorithm_incompatible")
 	var source_value: Variant = entry.get("source", null)
 	if not source_value is Dictionary:
 		return _status(false, &"common_vision_lock_source_invalid")
 	var source := source_value as Dictionary
-	if String(source.get("release_source_revision", "")) \
-			!= EXPECTED_RELEASE_SOURCE_REVISION \
-			or String(source.get("package_tree_sha256", "")) \
-				!= EXPECTED_PACKAGE_TREE_SHA256 \
-			or String(source.get("release_manifest_sha256", "")) \
+	if not _all_string_fields(source, PackedStringArray([
+		"git_head", "release_source_revision", "package_tree_sha256",
+		"release_manifest_sha256",
+	])) or not _all_json_integer_fields(source, PackedStringArray(["package_file_count"])) \
+			or typeof(source.get("package_worktree_dirty", null)) != TYPE_BOOL:
+		return _status(false, &"common_vision_lock_provenance_incompatible")
+	if String(source["git_head"]) != EXPECTED_GIT_HEAD \
+			or String(source["release_source_revision"]) != EXPECTED_RELEASE_SOURCE_REVISION \
+			or bool(source["package_worktree_dirty"]) != EXPECTED_PACKAGE_WORKTREE_DIRTY \
+			or int(source["package_file_count"]) != EXPECTED_PACKAGE_FILE_COUNT \
+			or String(source["package_tree_sha256"]) != EXPECTED_PACKAGE_TREE_SHA256 \
+			or String(source["release_manifest_sha256"]) \
 				!= EXPECTED_RELEASE_MANIFEST_SHA256:
 		return _status(false, &"common_vision_lock_provenance_incompatible")
+	var integration_value: Variant = entry.get("integration", null)
+	if not integration_value is Dictionary:
+		return _status(false, &"common_vision_lock_integration_incompatible")
+	var integration := integration_value as Dictionary
+	if not _has_exact_keys(integration, PackedStringArray([
+		"editor_plugin_enabled", "autoloads", "feature_flags",
+	])) or typeof(integration.get("editor_plugin_enabled", null)) != TYPE_BOOL \
+			or not integration.get("autoloads", null) is Array \
+			or not integration.get("feature_flags", null) is Array \
+			or bool(integration["editor_plugin_enabled"]) != true \
+			or integration["autoloads"] != [] \
+			or integration["feature_flags"] != [
+				"offline_authority", "visibility", "memory",
+			]:
+		return _status(false, &"common_vision_lock_integration_incompatible")
 
 	var artifacts_value: Variant = entry.get("native_artifacts", null)
 	if not artifacts_value is Array or (artifacts_value as Array).size() != 2:
@@ -504,36 +604,65 @@ static func _validate_locked_entry(entry: Dictionary, verify_files: bool) -> Dic
 		if not artifact_value is Dictionary:
 			return _status(false, &"common_vision_lock_artifacts_invalid")
 		var artifact := artifact_value as Dictionary
-		var path := String(artifact.get("path", ""))
+		if not _has_exact_keys(artifact, PackedStringArray([
+			"path", "platform", "arch", "build", "sha256",
+			"release_manifest_sha256", "release_manifest_matches", "status",
+		])) or not _all_string_fields(artifact, PackedStringArray([
+			"path", "platform", "arch", "build", "sha256",
+			"release_manifest_sha256", "status",
+		])) or typeof(artifact.get("release_manifest_matches", null)) != TYPE_BOOL:
+			return _status(false, &"common_vision_lock_artifacts_invalid")
+		var path := String(artifact["path"])
 		if path.is_empty() or artifacts_by_path.has(path):
 			return _status(false, &"common_vision_lock_artifact_duplicate")
-		artifacts_by_path[path] = String(artifact.get("sha256", ""))
-	for expected in [
-		{
-			"path": EXPECTED_DEBUG_ARTIFACT_PATH,
-			"sha256": EXPECTED_DEBUG_ARTIFACT_SHA256,
-		},
-		{
-			"path": EXPECTED_RELEASE_ARTIFACT_PATH,
-			"sha256": EXPECTED_RELEASE_ARTIFACT_SHA256,
-		},
-	]:
+		artifacts_by_path[path] = artifact.duplicate(true)
+	var accepted_artifacts: Array[Dictionary] = []
+	for expected in _expected_artifacts():
 		var path := String(expected["path"])
-		var expected_sha := String(expected["sha256"])
-		if String(artifacts_by_path.get(path, "")) != expected_sha:
+		var artifact_value: Variant = artifacts_by_path.get(path, null)
+		if not artifact_value is Dictionary or artifact_value != expected:
 			return _status(false, &"common_vision_lock_artifact_incompatible")
+		var artifact := artifact_value as Dictionary
+		var expected_sha := String(expected["sha256"])
 		if verify_files:
 			var resource_path := "res://%s/%s" % [ADDON_DESTINATION, path]
 			if not FileAccess.file_exists(resource_path) \
 					or FileAccess.get_sha256(resource_path) != expected_sha:
 				return _status(false, &"common_vision_artifact_hash_mismatch")
+		accepted_artifacts.append(artifact.duplicate(true))
 	if verify_files and (
 		not FileAccess.file_exists(RELEASE_MANIFEST_PATH)
 		or FileAccess.get_sha256(RELEASE_MANIFEST_PATH) \
 			!= EXPECTED_RELEASE_MANIFEST_SHA256
 	):
 		return _status(false, &"common_vision_manifest_hash_mismatch")
-	return _status(true)
+	var accepted_record := {
+		"addon_id": String(entry["id"]),
+		"destination": String(entry["destination"]),
+		"version": String(entry["version"]),
+		"api_version": String(entry["api_version"]),
+		"protocol_version": int(entry["protocol_version"]),
+		"schema_versions": {
+			"release_manifest": int(schemas["release_manifest"]),
+			"algorithm_contract": int(schemas["algorithm_contract"]),
+		},
+		"source": {
+			"git_head": String(source["git_head"]),
+			"release_source_revision": String(source["release_source_revision"]),
+			"package_worktree_dirty": bool(source["package_worktree_dirty"]),
+			"package_file_count": int(source["package_file_count"]),
+			"package_tree_sha256": String(source["package_tree_sha256"]),
+			"release_manifest_sha256": String(source["release_manifest_sha256"]),
+		},
+		"integration": integration.duplicate(true),
+		"artifacts": accepted_artifacts,
+	}
+	if accepted_record != _expected_provenance():
+		return _status(false, &"common_vision_lock_provenance_incompatible")
+	var result := _status(true, &"", ZCanonicalValue.sha256(accepted_record))
+	_make_deep_read_only(accepted_record)
+	result["accepted_record"] = accepted_record
+	return result
 
 
 static func _observer_profile(
@@ -573,25 +702,64 @@ static func _target_profile(profile_id: String, mask: int) -> Dictionary:
 static func _expected_provenance() -> Dictionary:
 	return {
 		"addon_id": ADDON_ID,
+		"destination": ADDON_DESTINATION,
+		"version": EXPECTED_API_VERSION,
+		"api_version": EXPECTED_API_VERSION,
+		"protocol_version": EXPECTED_PROTOCOL_VERSION,
+		"schema_versions": {
+			"release_manifest": EXPECTED_RELEASE_MANIFEST_SCHEMA,
+			"algorithm_contract": EXPECTED_ALGORITHM_CONTRACT,
+		},
+		"source": {
+			"git_head": EXPECTED_GIT_HEAD,
+			"release_source_revision": EXPECTED_RELEASE_SOURCE_REVISION,
+			"package_worktree_dirty": EXPECTED_PACKAGE_WORKTREE_DIRTY,
+			"package_file_count": EXPECTED_PACKAGE_FILE_COUNT,
+			"package_tree_sha256": EXPECTED_PACKAGE_TREE_SHA256,
+			"release_manifest_sha256": EXPECTED_RELEASE_MANIFEST_SHA256,
+		},
+		"integration": {
+			"editor_plugin_enabled": true,
+			"autoloads": [],
+			"feature_flags": ["offline_authority", "visibility", "memory"],
+		},
+		"artifacts": _expected_artifacts(),
+	}
+
+
+static func _expected_runtime_contract() -> Dictionary:
+	return {
 		"api_version": EXPECTED_API_VERSION,
 		"protocol_version": EXPECTED_PROTOCOL_VERSION,
 		"algorithm_contract": EXPECTED_ALGORITHM_CONTRACT,
 		"coordinate_scale": EXPECTED_COORDINATE_SCALE,
 		"required_features": REQUIRED_FEATURES,
-		"release_source_revision": EXPECTED_RELEASE_SOURCE_REVISION,
-		"package_tree_sha256": EXPECTED_PACKAGE_TREE_SHA256,
-		"release_manifest_sha256": EXPECTED_RELEASE_MANIFEST_SHA256,
-		"artifacts": [
-			{
-				"path": EXPECTED_DEBUG_ARTIFACT_PATH,
-				"sha256": EXPECTED_DEBUG_ARTIFACT_SHA256,
-			},
-			{
-				"path": EXPECTED_RELEASE_ARTIFACT_PATH,
-				"sha256": EXPECTED_RELEASE_ARTIFACT_SHA256,
-			},
-		],
 	}
+
+
+static func _expected_artifacts() -> Array[Dictionary]:
+	return [
+		{
+			"path": EXPECTED_DEBUG_ARTIFACT_PATH,
+			"platform": EXPECTED_ARTIFACT_PLATFORM,
+			"arch": EXPECTED_ARTIFACT_ARCH,
+			"build": "debug",
+			"sha256": EXPECTED_DEBUG_ARTIFACT_SHA256,
+			"release_manifest_sha256": EXPECTED_DEBUG_MANIFEST_ARTIFACT_SHA256,
+			"release_manifest_matches": false,
+			"status": EXPECTED_ARTIFACT_STATUS,
+		},
+		{
+			"path": EXPECTED_RELEASE_ARTIFACT_PATH,
+			"platform": EXPECTED_ARTIFACT_PLATFORM,
+			"arch": EXPECTED_ARTIFACT_ARCH,
+			"build": "release",
+			"sha256": EXPECTED_RELEASE_ARTIFACT_SHA256,
+			"release_manifest_sha256": EXPECTED_RELEASE_MANIFEST_ARTIFACT_SHA256,
+			"release_manifest_matches": false,
+			"status": EXPECTED_ARTIFACT_STATUS,
+		},
+	]
 
 
 static func _layers_are_disjoint_single_bits(values: Array) -> bool:
@@ -605,6 +773,78 @@ static func _layers_are_disjoint_single_bits(values: Array) -> bool:
 	return true
 
 
+static func _configuration_provenance_types_are_valid(value: Variant) -> bool:
+	if not value is Dictionary:
+		return false
+	var provenance := value as Dictionary
+	if not _has_exact_keys(provenance, PackedStringArray([
+		"addon_id", "destination", "version", "api_version", "protocol_version",
+		"schema_versions", "source", "integration", "artifacts",
+	])) or not _all_string_fields(provenance, PackedStringArray([
+		"addon_id", "destination", "version", "api_version",
+	])) or not _all_int_fields(provenance, PackedStringArray(["protocol_version"])):
+		return false
+	var schemas_value: Variant = provenance.get("schema_versions", null)
+	var source_value: Variant = provenance.get("source", null)
+	var integration_value: Variant = provenance.get("integration", null)
+	var artifacts_value: Variant = provenance.get("artifacts", null)
+	if not schemas_value is Dictionary or not source_value is Dictionary \
+			or not integration_value is Dictionary or not artifacts_value is Array:
+		return false
+	var schemas := schemas_value as Dictionary
+	var source := source_value as Dictionary
+	var integration := integration_value as Dictionary
+	if not _has_exact_keys(schemas, PackedStringArray([
+		"release_manifest", "algorithm_contract",
+	])) or not _all_int_fields(schemas, PackedStringArray([
+		"release_manifest", "algorithm_contract",
+	])) or not _has_exact_keys(source, PackedStringArray([
+		"git_head", "release_source_revision", "package_worktree_dirty",
+		"package_file_count", "package_tree_sha256", "release_manifest_sha256",
+	])) or not _all_string_fields(source, PackedStringArray([
+		"git_head", "release_source_revision", "package_tree_sha256",
+		"release_manifest_sha256",
+	])) or not _all_int_fields(source, PackedStringArray(["package_file_count"])) \
+			or typeof(source.get("package_worktree_dirty", null)) != TYPE_BOOL:
+		return false
+	if not _has_exact_keys(integration, PackedStringArray([
+		"editor_plugin_enabled", "autoloads", "feature_flags",
+	])) or typeof(integration.get("editor_plugin_enabled", null)) != TYPE_BOOL \
+			or not integration.get("autoloads", null) is Array \
+			or not integration.get("feature_flags", null) is Array:
+		return false
+	for artifact_value in artifacts_value as Array:
+		if not artifact_value is Dictionary:
+			return false
+		var artifact := artifact_value as Dictionary
+		if not _has_exact_keys(artifact, PackedStringArray([
+			"path", "platform", "arch", "build", "sha256",
+			"release_manifest_sha256", "release_manifest_matches", "status",
+		])) or not _all_string_fields(artifact, PackedStringArray([
+			"path", "platform", "arch", "build", "sha256",
+			"release_manifest_sha256", "status",
+		])) or typeof(artifact.get("release_manifest_matches", null)) != TYPE_BOOL:
+			return false
+	return true
+
+
+static func _runtime_contract_types_are_valid(value: Variant) -> bool:
+	if not value is Dictionary:
+		return false
+	var runtime_contract := value as Dictionary
+	return (
+		_has_exact_keys(runtime_contract, PackedStringArray([
+			"api_version", "protocol_version", "algorithm_contract",
+			"coordinate_scale", "required_features",
+		]))
+		and _all_string_fields(runtime_contract, PackedStringArray(["api_version"]))
+		and _all_int_fields(runtime_contract, PackedStringArray([
+			"protocol_version", "algorithm_contract", "coordinate_scale",
+			"required_features",
+		]))
+	)
+
+
 static func _mask_is_valid(mask: int) -> bool:
 	return mask > 0 and mask <= UINT32_MAX
 
@@ -616,6 +856,49 @@ static func _has_exact_keys(value: Dictionary, expected: PackedStringArray) -> b
 		if not value.has(key):
 			return false
 	return true
+
+
+static func _all_int_fields(value: Dictionary, keys: PackedStringArray) -> bool:
+	for key in keys:
+		if not value.has(key) or typeof(value[key]) != TYPE_INT:
+			return false
+	return true
+
+
+static func _all_string_fields(value: Dictionary, keys: PackedStringArray) -> bool:
+	for key in keys:
+		if not value.has(key) or typeof(value[key]) != TYPE_STRING:
+			return false
+	return true
+
+
+static func _all_json_integer_fields(value: Dictionary, keys: PackedStringArray) -> bool:
+	for key in keys:
+		if not value.has(key) or not _is_json_integer(value[key]):
+			return false
+	return true
+
+
+static func _is_json_integer(value: Variant) -> bool:
+	if typeof(value) == TYPE_INT:
+		return true
+	if typeof(value) != TYPE_FLOAT:
+		return false
+	var numeric := float(value)
+	return not is_nan(numeric) and not is_inf(numeric) and numeric == floor(numeric)
+
+
+static func _make_deep_read_only(value: Variant) -> void:
+	if value is Dictionary:
+		var dictionary := value as Dictionary
+		for key in dictionary:
+			_make_deep_read_only(dictionary[key])
+		dictionary.make_read_only()
+	elif value is Array:
+		var array := value as Array
+		for child in array:
+			_make_deep_read_only(child)
+		array.make_read_only()
 
 
 static func _status(

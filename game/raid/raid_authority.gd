@@ -63,6 +63,8 @@ var _generation: int = 0
 var _configured: bool = false
 var _is_advancing: bool = false
 var _processing_tick: int = 0
+var _processing_phase: int = -1
+var _processing_handler_id: StringName = &""
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
@@ -176,6 +178,31 @@ func register_phase_handler(
 	_phase_handlers[int(phase)] = handlers
 	_handler_ids[handler_id] = true
 	return true
+
+
+## Read-only phase attestation for game-owned handlers that must reject direct,
+## forged, or replayed callback invocation.  It is true only while the exact
+## registered slot is synchronously executing for the current authority tick.
+func is_dispatching_phase_handler(
+	phase: TickPhase,
+	tick: int,
+	handler_id: StringName,
+	expected_generation: int
+) -> bool:
+	return (
+		_is_current_generation(expected_generation)
+		and (lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.EXTRACTING)
+		and _is_advancing
+		and tick > 0
+		and _processing_tick == tick
+		and clock != null
+		and clock.current_tick == tick
+		and int(phase) >= 0
+		and int(phase) < PHASE_NAMES.size()
+		and _processing_phase == int(phase)
+		and not handler_id.is_empty()
+		and _processing_handler_id == handler_id
+	)
 
 
 func enqueue_intent(intent: ZRaidIntent, expected_generation: int) -> bool:
@@ -354,11 +381,13 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	var due_intents: Array[ZRaidIntent] = []
 	for phase_value in PHASE_NAMES.size():
 		var phase: TickPhase = phase_value
+		_processing_phase = phase_value
 		last_phase_trace.append(PHASE_NAMES[phase_value])
 		if phase == TickPhase.ADMIT_INTENTS:
 			due_intents = _intent_queue.drain_tick(tick)
 		var handlers: Array = _phase_handlers.get(phase_value, [])
 		for entry in handlers:
+			_processing_handler_id = entry["id"]
 			var callback: Callable = entry["callback"]
 			if not callback.is_valid():
 				return _fail_current_tick(tick, &"phase_handler_invalidated")
@@ -369,11 +398,15 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 					return _fail_current_tick(tick, &"queued_intent_corrupted")
 				handler_intents.append(intent_copy)
 			var outcome: Variant = callback.call(self, phase, tick, handler_intents)
+			_processing_handler_id = &""
 			if typeof(outcome) != TYPE_BOOL or not outcome:
 				return _fail_current_tick(tick, &"phase_handler_failed")
+		_processing_phase = -1
 	last_processed_tick = tick
 	_is_advancing = false
 	_processing_tick = 0
+	_processing_phase = -1
+	_processing_handler_id = &""
 	last_error = &""
 	return true
 
@@ -415,12 +448,16 @@ func _fail_current_tick(tick: int, code: StringName) -> bool:
 	last_processed_tick = tick
 	_is_advancing = false
 	_processing_tick = 0
+	_processing_phase = -1
+	_processing_handler_id = &""
 	lifecycle = Lifecycle.FAILED
 	_seal_terminal_runtime()
 	return _reject(code)
 
 
 func _seal_terminal_runtime() -> void:
+	_processing_phase = -1
+	_processing_handler_id = &""
 	clock.pause()
 	clock.clear_pending()
 	clock.seal()

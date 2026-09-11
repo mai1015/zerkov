@@ -1,22 +1,33 @@
 # Authoritative Vision world
 
 Task 6.1 owns only the Common Vision world configuration and its deterministic
-tick/budget driver. `RaidVisionWorldOwner` creates one scene-owned
-`OFFLINE_AUTHORITY` `CommonVisionWorld2D`, verifies the pinned package and
-native artifacts, and registers its optional handler in `RaidAuthority` phase
-3 (`VISION`). It has no `_process()` or delta-time API.
+tick/budget driver. `RaidVisionWorldOwner` privately retains one
+`OFFLINE_AUTHORITY` `CommonVisionWorld2D`; the native node is neither attached
+for scene-tree traversal nor returned as a mutable handle. The owner claims one
+fixed handler slot in `RaidAuthority` phase 3 (`VISION`). Each callback is
+authenticated against the authority's synchronously executing phase, tick,
+handler identity, and generation, so direct, forged, and replayed calls are
+inert. It has no `_process()`, delta-time API, or public direct-tick driver.
 
 `ZerkovVisionConfig` seals the complete configuration as SHA-256
-`9a1bf1980b873fd71bcc864dc9e4f5fc32325597ed49e419e14f9167c0122ed2`.
+`0abdcc202b3f0299fa6d9d3726e16ab955b8a1d1481c201c1770aea21e57dd2e`.
 Startup fails closed if the record, project add-on lock, installed artifact
 hashes, API `0.1.0`, protocol `1`, algorithm contract `1`, required feature
 bits, Common Vision scale, `ZWorldUnits` scale, or 60 Hz `RaidClock` differs.
-The lock is authoritative for the project's locally rebuilt artifacts; the
-upstream release manifest remains pinned and is hash-checked as provenance.
+The accepted-record fingerprint covers the locked Git head, release revision,
+package dirty state/count/tree digest, manifest schema/digest, integration
+flags, and each artifact's platform, architecture, build, status, digest,
+manifest digest, and manifest-match label. The lock is authoritative for the
+project's locally rebuilt artifacts; the upstream release manifest remains
+pinned and hash-checked as provenance.
 
 ## Fixed first-playable values
 
 - One world unit is one 32 px tile and exactly 1,000,000 Vision microunits.
+- Godot positions are accepted only through the exact symmetric
+  `+/-65,536 px` boundary, mapping to `+/-2,048,000,000` canonical units before
+  `Vector2i` construction. One pixel/raw unit outside is rejected without wrap
+  or partial conversion.
 - The target grid uses four-tile cells and rejects a query rectangle above 256
   visited cells. The 18-tile maximum authored range occupies at most 121 cells
   at an adverse cell boundary.
@@ -30,6 +41,9 @@ upstream release manifest remains pinned and is hash-checked as provenance.
   budget validation.
 - Telemetry retains 64 evaluation records (3.2 seconds at 20 Hz), contains no
   recipient records, and saturates cumulative counters rather than wrapping.
+  A native whole-call failure records the attempted tick and exact bounded
+  metric prefix, quarantines the owner, synchronously destroys native state,
+  and permits only teardown followed by a fresh owner/generation.
 - Scav sight is 18 tiles, a 120-degree total cone, and 180 memory ticks (three
   seconds). Mutant sight is 12 tiles, a 160-degree total cone, and 120 memory
   ticks (two seconds). Memory expiry follows Common Vision's exact rule:
@@ -41,11 +55,12 @@ upstream release manifest remains pinned and is hash-checked as provenance.
 - Player, Scav, and mutant target masks are bits 0, 1, and 2. Structure and
   vegetation occluders are bits 0 and 1 in the separate occluder-mask domain.
 
-Task 6.2 remains responsible for registering, revision-updating, and removing
-real observers and targets from authoritative transforms. Task 6.3 owns the
-AI-facing projection adapter. Hearing/noise, AI behavior, Sawmill occluder
-authoring, UI/debug overlays, and shared bootstrap composition are not part of
-this owner.
+The owner exposes only bound-generation-checked, sealed-profile low-level
+mutation ports and recursively immutable detached projection copies. Task 6.2
+remains responsible for real actor identity, registration/update/removal
+lifecycle, transform revisions, and liveness. Task 6.3 owns the AI-facing
+projection adapter. Hearing/noise, AI behavior, Sawmill occluder authoring,
+UI/debug overlays, and shared bootstrap composition are not part of this owner.
 
 Run the focused contract with the pinned Godot executable:
 
