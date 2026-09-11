@@ -177,8 +177,12 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   cancellation and rollback without duplication or loss.
 - [x] 4.10 `[SOL]` Implement inventory-to-ability equipment grants and revoke
   them idempotently from full snapshots and accepted deltas.
-- [ ] 4.11 `[LUNA]` Add loot-container open/search/close presentation, including
-  inaccessible, stale, overweight, disconnected and resynchronizing states.
+- [ ] 4.11 `[LUNA]` After 4.12 and 4.12a are accepted, extend the existing
+  designed inventory/loot UI with loot-container open/search/close
+  presentation, including inaccessible, stale, overweight, disconnected and
+  resynchronizing states. Do not introduce a replacement inventory screen;
+  bind canonical inventory snapshots/intents into the accepted grid, drag,
+  transfer, focus and compact-layout behavior.
 - [ ] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
   authority replacement invalidate stale UI/adapters safely.
 - [ ] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
@@ -425,8 +429,10 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   `HealthView`, `TaskView`, `MapView`, `BunkerView` and `SummaryView` contracts.
 - [ ] 8.5 `[LUNA]` Bind the HUD to real raid, weapon, health, task and extraction
   projections with reversible prediction/correction states.
-- [ ] 8.6 `[SOL]` Bind inventory and health screens to real snapshots while
-  preserving drag state, selection, focus and compact scroll positions.
+- [ ] 8.6 `[SOL]` After inventory tasks 4.11, 4.12 and 4.12a are accepted, bind
+  the existing designed inventory and health screens to real snapshots while
+  preserving drag state, selection, focus and compact scroll positions. Do
+  not create a replacement inventory interface.
 - [ ] 8.7 `[LUNA]` Bind Tasks and Maps to the Sawmill task/level projections;
   feature-gate unavailable zones and persistent task functions.
 - [ ] 8.8 `[LUNA]` Bind deployment and summary screens to real raid lifecycle and
