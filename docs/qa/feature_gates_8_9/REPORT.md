@@ -49,6 +49,20 @@ Vector2i(1920, 1080) and covers:
   marketplace behavior;
 - exact logical root sizing and optional native evidence capture.
 
+## Visible gate evidence contract
+
+tests/presentation/feature_gates_8_9_visual_evidence.gd is an explicit QA
+runner, not a production fallback. It enables the existing app's fixture
+provider, mounts the authored `bunker`, `crafting`, `join_friend`,
+`summary_solo`, and `inventory` routes through CommonUI, focuses one real
+control on each route, and triggers the screen's real toast path. For every
+one of the five typed action ids it asserts the visible control's
+`z_feature_action`, `z_feature_status`, `z_feature_status_label`, and tooltip,
+then asserts that the visible toast names the action and says `PROTOTYPE ONLY`.
+Native runs save the five full-size source frames and a contact sheet derived
+only from those frames; the runner does not create a replacement screen,
+populate production state, or bypass the existing focus graph.
+
 ## Executed checks
 
 | Evidence | Result |
@@ -57,6 +71,7 @@ Vector2i(1920, 1080) and covers:
 | editor import/class registration | exit 0 |
 | static first-playable scope contract | 2 tests, 0 failures |
 | Task 8.9 provider/action/route/focus contract | 54/0 headless; 57/0 native capture |
+| Task 8.9 visible gate evidence contract | 37/0 headless assertions; 55/0 native assertions, 5 frames |
 | Task 8.11 provider/source contract | 57/0 |
 | read-only view contracts | 115/0 |
 | CommonUI navigation | 79/0 |
@@ -85,6 +100,9 @@ Every Godot invocation used the exact approved viewport argument:
     /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd
     /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd -- --capture-path=res://docs/qa/feature_gates_8_9/feature_gates_headless_1920x1080.png
     /opt/homebrew/bin/godot --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd -- --capture-path=res://docs/qa/feature_gates_8_9/feature_gates_1920x1080.png
+    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --check-only --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd
+    /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd
+    /opt/homebrew/bin/godot --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd -- --capture-dir=res://docs/qa/feature_gates_8_9
     /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/ui_state_8_11_contract.gd
     /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/view_contracts_contract.gd
     /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 --script res://tests/common_ui_navigation_contract.gd
@@ -111,12 +129,50 @@ neighbor sampling only to write the logical evidence image at the required
 
 ## Native evidence
 
-[feature_gates_1920x1080.png](feature_gates_1920x1080.png) is the native
-Compatibility-renderer production missing-service frame. It shows the
+[feature_gates_contact_sheet_1920x1080.png](feature_gates_contact_sheet_1920x1080.png)
+is the exact-1920 QA overview made from the five native source frames. Its
+top row is the authored Bunker, Crafting, and Join Friend UI; its bottom row is
+the authored Summary Solo and Character Inventory UI. Each tile retains the
+real focused control and the real `PROTOTYPE ONLY` toast. The five full-size
+source frames are the primary evidence when reading control metadata and
+toast text: [bunker](feature_gate_bunker_1920x1080.png),
+[crafting](feature_gate_crafting_1920x1080.png),
+[friends](feature_gate_friends_1920x1080.png),
+[insurance](feature_gate_insurance_1920x1080.png), and
+[marketplace](feature_gate_marketplace_1920x1080.png).
+
+[feature_gates_1920x1080.png](feature_gates_1920x1080.png) remains the native
+Compatibility-renderer production missing-service reference. It shows the
 existing centered unavailable card, explicit diagnostic truth, and no sample
-profile or fake production data. The PNG is exactly 1920x1080 and has SHA-256
-56c177ede335d4f66a9d295d65a44df92e6d4bc86c7d0b8daec784765c63f4f8.
-Source/evidence hashes are recorded in [sources.sha256](sources.sha256).
+profile or fake production data; it is intentionally separate from the
+fixture-provider gate sheet above. That PNG is exactly 1920x1080 and has
+SHA-256 56c177ede335d4f66a9d295d65a44df92e6d4bc86c7d0b8daec784765c63f4f8.
+The six new visual artifacts and all source hashes are recorded in
+[sources.sha256](sources.sha256).
+
+The native runner logged the actual macOS Compatibility framebuffer as
+`(1809, 1018)` while the logical Godot root remained exactly `1920x1080`.
+It nearest-neighbor resampled only the captured image to the required
+1920x1080 artifact dimensions; no alternate layout or viewport was rendered.
+
+## Diff and route audit
+
+The implementation commit touched 30 paths because the same typed guard must
+be attached at every existing owner of the five approved actions: the provider
+and context contract, shared CommonUI Insurance chrome, the five-file Bunker
+family, four front-flow friend/world setup files, six raid/character callback
+owners, and four utility Insurance owners, plus the typed view, focused
+contract, and QA artifacts. The visual-evidence follow-up adds one test script
+and six derived PNG artifacts only.
+
+The source diff contains no `.tscn` geometry or layout changes, no route catalog
+change, no marketplace route, no inventory hierarchy replacement, no service,
+and no production fixture data. Every changed callback is either a gate
+annotation/tooltip or an execution-time guard for bunker, crafting, friends,
+insurance, or marketplace; unrelated callbacks retain their existing route,
+state, and focus behavior. The unchanged 28-route catalog, no-marketplace
+assertion, CommonUI navigation, composition, smoke, and lifecycle regressions
+provide the non-gated route and focus audit.
 
 No compact, responsive, 1600, 1280, 960, or other alternate-size command or
 capture was run or regenerated.
