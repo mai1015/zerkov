@@ -4,8 +4,9 @@ Status: implementation candidate only. Task 8.11 remains unchecked pending
 independent review.
 
 Implementation base: `64e01051e6676c9582ce5409b683d542dddc8686`.
-Merged accepted main before sealing:
-`abc9c107d91b7b01819a67da88add254de2e0bcf` (Task 8.10).
+Merged accepted main before final sealing:
+`ef9250068fcbcff961bd4a7303d9fc9e8513530a` (accepted Task 6.1, including the
+previously accepted Task 8.10 at `abc9c107d91b7b01819a67da88add254de2e0bcf`).
 Engine: Godot `4.7.2.stable.official.ed1daf0bf`; native Compatibility renderer
 for the exact screenshot and headless Compatibility for structural UI checks.
 
@@ -111,6 +112,7 @@ Every UI/visual invocation used the single approved viewport explicitly:
 /opt/homebrew/bin/godot --headless --path . --resolution 1920x1080 -- --smoke --layout=desktop
 /opt/homebrew/bin/godot --path . --resolution 1920x1080 -- --smoke --layout=desktop
 /opt/homebrew/bin/godot --path . --resolution 1920x1080 --script res://tests/visual/zerkov_screen_lifecycle/capture.gd -- --capture-path=/tmp/zerkov-8-11-lifecycle-c6816ff-1920x1080.png
+/opt/homebrew/bin/godot --path . --resolution 1920x1080 --script res://tests/visual/zerkov_screen_lifecycle/capture.gd -- --capture-path=/tmp/zerkov-8-11-lifecycle-ef92500-1920x1080.png
 ```
 
 The editor import, strict spec validation, source/provider and read-only domain
