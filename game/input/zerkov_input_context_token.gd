@@ -1,7 +1,8 @@
 class_name ZerkovInputContextToken
 extends RefCounted
 
-## Opaque generation-scoped lease for one game-owned CommonUI context.
+## Opaque capability for one caller-owned lease on a game-owned CommonUI
+## context.
 ##
 ## A stale token cannot release a replacement context.  The token exposes only
 ## detached state and a release operation; callers never receive the native
@@ -11,16 +12,18 @@ var context_id: StringName = &""
 var generation: int = 0
 var priority: int = 0
 var source: StringName = &""
+var capability_id: int = 0
 var _owner: WeakRef
 var _released: bool = false
 
 
-func configure(owner: Node, p_context_id: StringName, p_generation: int, p_priority: int, p_source: StringName) -> void:
+func configure(owner: Node, p_context_id: StringName, p_generation: int, p_priority: int, p_source: StringName, p_capability_id: int) -> void:
 	_owner = weakref(owner)
 	context_id = p_context_id
 	generation = p_generation
 	priority = p_priority
 	source = p_source
+	capability_id = p_capability_id
 	_released = false
 
 
@@ -49,12 +52,18 @@ func release() -> bool:
 	return released
 
 
+func _invalidate() -> void:
+	_released = true
+	_owner = null
+
+
 func snapshot() -> Dictionary:
 	return {
 		"context": String(context_id),
 		"generation": generation,
 		"priority": priority,
 		"source": String(source),
+		"capability_id": capability_id,
 		"active": is_active(),
 		"released": _released,
 	}

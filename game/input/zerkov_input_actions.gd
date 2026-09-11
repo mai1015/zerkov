@@ -37,6 +37,10 @@ const UI_TAB_NEXT: StringName = CommonUIDefaults.TAB_NEXT
 const UI_TAB_PREVIOUS: StringName = CommonUIDefaults.TAB_PREVIOUS
 
 const GAME_MOVE: StringName = &"common_ui/zerkov/gameplay/move"
+const GAME_MOVE_UP: StringName = &"common_ui/zerkov/gameplay/move_up"
+const GAME_MOVE_LEFT: StringName = &"common_ui/zerkov/gameplay/move_left"
+const GAME_MOVE_DOWN: StringName = &"common_ui/zerkov/gameplay/move_down"
+const GAME_MOVE_RIGHT: StringName = &"common_ui/zerkov/gameplay/move_right"
 const GAME_SPRINT: StringName = &"common_ui/zerkov/gameplay/sprint"
 const GAME_CROUCH: StringName = &"common_ui/zerkov/gameplay/crouch"
 const GAME_INTERACT: StringName = &"common_ui/zerkov/gameplay/interact"
@@ -50,6 +54,7 @@ const GAME_QUICK_HEAL: StringName = &"common_ui/zerkov/gameplay/quick_heal"
 const GAME_FIRE_MODE: StringName = &"common_ui/zerkov/gameplay/fire_mode"
 const GAME_GRENADE: StringName = &"common_ui/zerkov/gameplay/grenade"
 const GAME_WEAPON_CYCLE: StringName = &"common_ui/zerkov/gameplay/weapon_cycle"
+const GAME_WEAPON_CYCLE_CONTROLLER: StringName = &"common_ui/zerkov/gameplay/weapon_cycle_controller"
 const GAME_QUICK_USE: StringName = &"common_ui/zerkov/gameplay/quick_use"
 const GAME_EAT_DRINK: StringName = &"common_ui/zerkov/gameplay/eat_drink"
 const GAME_PUSH_TO_TALK: StringName = &"common_ui/zerkov/gameplay/push_to_talk"
@@ -76,6 +81,8 @@ const _GLYPH_META := {
 	&"key_i": {"family": "keyboard", "label": "I", "fallback": "glyph_unknown"},
 	&"key_m": {"family": "keyboard", "label": "M", "fallback": "glyph_unknown"},
 	&"key_j": {"family": "keyboard", "label": "J", "fallback": "glyph_unknown"},
+	&"key_k": {"family": "keyboard", "label": "K", "fallback": "glyph_unknown"},
+	&"key_l": {"family": "keyboard", "label": "L", "fallback": "glyph_unknown"},
 	&"key_p": {"family": "keyboard", "label": "P", "fallback": "glyph_unknown"},
 	&"key_o": {"family": "keyboard", "label": "O", "fallback": "glyph_unknown"},
 	&"key_b": {"family": "keyboard", "label": "B", "fallback": "glyph_unknown"},
@@ -83,6 +90,12 @@ const _GLYPH_META := {
 	&"key_v": {"family": "keyboard", "label": "V", "fallback": "glyph_unknown"},
 	&"key_g": {"family": "keyboard", "label": "G", "fallback": "glyph_unknown"},
 	&"key_1": {"family": "keyboard", "label": "1", "fallback": "glyph_unknown"},
+	&"key_2": {"family": "keyboard", "label": "2", "fallback": "glyph_unknown"},
+	&"key_f2": {"family": "keyboard", "label": "F2", "fallback": "glyph_unknown"},
+	&"key_f3": {"family": "keyboard", "label": "F3", "fallback": "glyph_unknown"},
+	&"key_f4": {"family": "keyboard", "label": "F4", "fallback": "glyph_unknown"},
+	&"key_f5": {"family": "keyboard", "label": "F5", "fallback": "glyph_unknown"},
+	&"key_f6": {"family": "keyboard", "label": "F6", "fallback": "glyph_unknown"},
 	&"key_5": {"family": "keyboard", "label": "5", "fallback": "glyph_unknown"},
 	&"key_h": {"family": "keyboard", "label": "H", "fallback": "glyph_unknown"},
 	&"key_t": {"family": "keyboard", "label": "T", "fallback": "glyph_unknown"},
@@ -112,6 +125,8 @@ const _GLYPH_META := {
 	&"pad_dpad_right": {"family": "gamepad", "label": "D-pad →", "fallback": "pad_generic"},
 	&"pad_ls_up": {"family": "gamepad", "label": "LS ↑", "fallback": "pad_generic"},
 	&"pad_ls_left": {"family": "gamepad", "label": "LS ←", "fallback": "pad_generic"},
+	&"pad_ls_down": {"family": "gamepad", "label": "LS ↓", "fallback": "pad_generic"},
+	&"pad_ls_right": {"family": "gamepad", "label": "LS →", "fallback": "pad_generic"},
 	&"pad_generic": {"family": "gamepad", "label": "Gamepad", "fallback": "glyph_unknown"},
 	&"xbox_a": {"family": "xbox", "label": "A", "fallback": "xbox_generic"},
 	&"xbox_b": {"family": "xbox", "label": "B", "fallback": "xbox_generic"},
@@ -121,6 +136,14 @@ const _GLYPH_META := {
 	&"xbox_rb": {"family": "xbox", "label": "RB", "fallback": "xbox_generic"},
 	&"xbox_back": {"family": "xbox", "label": "View", "fallback": "xbox_generic"},
 	&"xbox_start": {"family": "xbox", "label": "Menu", "fallback": "xbox_generic"},
+	&"xbox_ls": {"family": "xbox", "label": "Left stick", "fallback": "xbox_generic"},
+	&"xbox_rs": {"family": "xbox", "label": "Right stick", "fallback": "xbox_generic"},
+	&"xbox_lt": {"family": "xbox", "label": "LT", "fallback": "xbox_generic"},
+	&"xbox_rt": {"family": "xbox", "label": "RT", "fallback": "xbox_generic"},
+	&"xbox_dpad_up": {"family": "xbox", "label": "D-pad ↑", "fallback": "xbox_generic"},
+	&"xbox_dpad_down": {"family": "xbox", "label": "D-pad ↓", "fallback": "xbox_generic"},
+	&"xbox_dpad_left": {"family": "xbox", "label": "D-pad ←", "fallback": "xbox_generic"},
+	&"xbox_dpad_right": {"family": "xbox", "label": "D-pad →", "fallback": "xbox_generic"},
 	&"xbox_generic": {"family": "xbox", "label": "Xbox", "fallback": "pad_generic"},
 	&"ps_cross": {"family": "playstation", "label": "Cross", "fallback": "playstation_generic"},
 	&"ps_circle": {"family": "playstation", "label": "Circle", "fallback": "playstation_generic"},
@@ -130,11 +153,27 @@ const _GLYPH_META := {
 	&"ps_r1": {"family": "playstation", "label": "R1", "fallback": "playstation_generic"},
 	&"ps_share": {"family": "playstation", "label": "Share", "fallback": "playstation_generic"},
 	&"ps_options": {"family": "playstation", "label": "Options", "fallback": "playstation_generic"},
+	&"ps_ls": {"family": "playstation", "label": "Left stick", "fallback": "playstation_generic"},
+	&"ps_rs": {"family": "playstation", "label": "Right stick", "fallback": "playstation_generic"},
+	&"ps_lt": {"family": "playstation", "label": "L2", "fallback": "playstation_generic"},
+	&"ps_rt": {"family": "playstation", "label": "R2", "fallback": "playstation_generic"},
+	&"ps_dpad_up": {"family": "playstation", "label": "D-pad ↑", "fallback": "playstation_generic"},
+	&"ps_dpad_down": {"family": "playstation", "label": "D-pad ↓", "fallback": "playstation_generic"},
+	&"ps_dpad_left": {"family": "playstation", "label": "D-pad ←", "fallback": "playstation_generic"},
+	&"ps_dpad_right": {"family": "playstation", "label": "D-pad →", "fallback": "playstation_generic"},
 	&"playstation_generic": {"family": "playstation", "label": "PlayStation", "fallback": "pad_generic"},
 	&"switch_a": {"family": "switch", "label": "A", "fallback": "switch_generic"},
 	&"switch_b": {"family": "switch", "label": "B", "fallback": "switch_generic"},
 	&"switch_x": {"family": "switch", "label": "X", "fallback": "switch_generic"},
 	&"switch_y": {"family": "switch", "label": "Y", "fallback": "switch_generic"},
+	&"switch_ls": {"family": "switch", "label": "Left stick", "fallback": "switch_generic"},
+	&"switch_rs": {"family": "switch", "label": "Right stick", "fallback": "switch_generic"},
+	&"switch_lt": {"family": "switch", "label": "ZL", "fallback": "switch_generic"},
+	&"switch_rt": {"family": "switch", "label": "ZR", "fallback": "switch_generic"},
+	&"switch_dpad_up": {"family": "switch", "label": "D-pad ↑", "fallback": "switch_generic"},
+	&"switch_dpad_down": {"family": "switch", "label": "D-pad ↓", "fallback": "switch_generic"},
+	&"switch_dpad_left": {"family": "switch", "label": "D-pad ←", "fallback": "switch_generic"},
+	&"switch_dpad_right": {"family": "switch", "label": "D-pad →", "fallback": "switch_generic"},
 	&"switch_generic": {"family": "switch", "label": "Switch", "fallback": "pad_generic"},
 }
 
@@ -206,11 +245,11 @@ static func framework_action_definitions() -> Array[Dictionary]:
 			 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_START, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_start", FAMILY_GENERIC_GAMEPAD)],
 			0.0, false),
 		_definition(UI_TAB_NEXT, "Next tab", UI_CONTEXT, &"ui", CommonUIAction.PROTECTION_NONE,
-			[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_E, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_e", FAMILY_KEYBOARD_MOUSE),
+			[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F2, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_f2", FAMILY_KEYBOARD_MOUSE),
 			 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_RIGHT_SHOULDER, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_rb", FAMILY_GENERIC_GAMEPAD)],
 			0.0, false),
 		_definition(UI_TAB_PREVIOUS, "Previous tab", UI_CONTEXT, &"ui", CommonUIAction.PROTECTION_NONE,
-			[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_Q, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_q", FAMILY_KEYBOARD_MOUSE),
+			[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F3, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_f3", FAMILY_KEYBOARD_MOUSE),
 			 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_LEFT_SHOULDER, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_lb", FAMILY_GENERIC_GAMEPAD)],
 			0.0, false),
 	]
@@ -231,6 +270,31 @@ static func action_definitions() -> Array[Dictionary]:
 		0.0, false,
 		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_W, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_w", FAMILY_KEYBOARD_MOUSE),
 		 _binding(CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_Y, CommonUIBinding.AXIS_DIRECTION_NEGATIVE, &"pad_ls_up", FAMILY_GENERIC_GAMEPAD)]))
+	# CommonUI exposes two slots per logical action.  Keep the aggregate Move
+	# action for consumers that want the vector intent, and give each advertised
+	# direction its own stable action so no physical default is metadata-only.
+	# The direction group is deliberately distinct from the aggregate vector
+	# group; this is an alias projection, not a second gameplay dispatcher.
+	result.append(_definition(
+		GAME_MOVE_UP, "Move up", GAMEPLAY_CONTEXT, &"gameplay/movement/direction", CommonUIAction.PROTECTION_REQUIRED,
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_W, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_w", FAMILY_KEYBOARD_MOUSE),
+		 _binding(CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_Y, CommonUIBinding.AXIS_DIRECTION_NEGATIVE, &"pad_ls_up", FAMILY_GENERIC_GAMEPAD)],
+		0.0, false))
+	result.append(_definition(
+		GAME_MOVE_LEFT, "Move left", GAMEPLAY_CONTEXT, &"gameplay/movement/direction", CommonUIAction.PROTECTION_REQUIRED,
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_A, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_a", FAMILY_KEYBOARD_MOUSE),
+		 _binding(CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_X, CommonUIBinding.AXIS_DIRECTION_NEGATIVE, &"pad_ls_left", FAMILY_GENERIC_GAMEPAD)],
+		0.0, false))
+	result.append(_definition(
+		GAME_MOVE_DOWN, "Move down", GAMEPLAY_CONTEXT, &"gameplay/movement/direction", CommonUIAction.PROTECTION_REQUIRED,
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_S, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_s", FAMILY_KEYBOARD_MOUSE),
+		 _binding(CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_Y, CommonUIBinding.AXIS_DIRECTION_POSITIVE, &"pad_ls_down", FAMILY_GENERIC_GAMEPAD)],
+		0.0, false))
+	result.append(_definition(
+		GAME_MOVE_RIGHT, "Move right", GAMEPLAY_CONTEXT, &"gameplay/movement/direction", CommonUIAction.PROTECTION_REQUIRED,
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_D, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_d", FAMILY_KEYBOARD_MOUSE),
+		 _binding(CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_X, CommonUIBinding.AXIS_DIRECTION_POSITIVE, &"pad_ls_right", FAMILY_GENERIC_GAMEPAD)],
+		0.0, false))
 	result.append(_definition(
 		GAME_SPRINT, "Sprint", GAMEPLAY_CONTEXT, &"gameplay/movement", CommonUIAction.PROTECTION_REQUIRED,
 		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_SHIFT, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_shift", FAMILY_KEYBOARD_MOUSE),
@@ -268,7 +332,9 @@ static func action_definitions() -> Array[Dictionary]:
 		0.0, false))
 	result.append(_definition(
 		GAME_CANCEL_RELOAD, "Cancel reload", GAMEPLAY_CONTEXT, &"gameplay/combat", CommonUIAction.PROTECTION_REQUIRED,
-		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_ESCAPE, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_escape", FAMILY_KEYBOARD_MOUSE),
+		# Escape is reserved for the CommonUI Back action while a Control owns
+		# focus; cancel-reload keeps a distinct game-owned fallback.
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F4, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_f4", FAMILY_KEYBOARD_MOUSE),
 		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_B, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_b", FAMILY_GENERIC_GAMEPAD)],
 		0.0, false))
 	result.append(_definition(
@@ -294,11 +360,18 @@ static func action_definitions() -> Array[Dictionary]:
 	result.append(_definition(
 		GAME_WEAPON_CYCLE, "Weapon cycle", GAMEPLAY_CONTEXT, &"gameplay/combat", CommonUIAction.PROTECTION_REQUIRED,
 		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_1, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_1", FAMILY_KEYBOARD_MOUSE),
-		 _binding(CommonUIBinding.DEVICE_MOUSE, MOUSE_BUTTON_WHEEL_UP, CommonUIBinding.AXIS_DIRECTION_NONE, &"mouse_wheel", FAMILY_KEYBOARD_MOUSE),
+		 _binding(CommonUIBinding.DEVICE_MOUSE, MOUSE_BUTTON_WHEEL_UP, CommonUIBinding.AXIS_DIRECTION_NONE, &"mouse_wheel", FAMILY_KEYBOARD_MOUSE)],
+		0.0, false))
+	# The controller affordance has its own projection because the native
+	# CommonUI action contract intentionally has exactly two slots. It remains
+	# part of the same logical weapon-cycle family and is installed through
+	# CommonUI; task 5.7 owns the eventual consequence routing.
+	result.append(_definition(
+		GAME_WEAPON_CYCLE_CONTROLLER, "Weapon cycle (controller)", GAMEPLAY_CONTEXT,
+		&"gameplay/weapon_cycle/controller", CommonUIAction.PROTECTION_REQUIRED,
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_2, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_2", FAMILY_KEYBOARD_MOUSE),
 		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_GUIDE, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_generic", FAMILY_GENERIC_GAMEPAD)],
-		0.0, false,
-		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_1, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_1", FAMILY_KEYBOARD_MOUSE),
-		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_GUIDE, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_generic", FAMILY_GENERIC_GAMEPAD)]))
+		0.0, false))
 	result.append(_definition(
 		GAME_QUICK_USE, "Quick use", GAMEPLAY_CONTEXT, &"gameplay/survival", CommonUIAction.PROTECTION_REQUIRED,
 		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_5, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_5", FAMILY_KEYBOARD_MOUSE),
@@ -306,7 +379,7 @@ static func action_definitions() -> Array[Dictionary]:
 		0.0, false))
 	result.append(_definition(
 		GAME_EAT_DRINK, "Eat / drink", GAMEPLAY_CONTEXT, &"gameplay/survival", CommonUIAction.PROTECTION_REQUIRED,
-		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_H, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_h", FAMILY_KEYBOARD_MOUSE),
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F6, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_f6", FAMILY_KEYBOARD_MOUSE),
 		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_DPAD_DOWN, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_dpad_down", FAMILY_GENERIC_GAMEPAD)],
 		0.0, false))
 	result.append(_definition(
@@ -317,11 +390,9 @@ static func action_definitions() -> Array[Dictionary]:
 
 	result.append(_definition(
 		UI_OPEN_INVENTORY, "Inventory", UI_CONTEXT, &"ui/navigation", CommonUIAction.PROTECTION_REQUIRED,
-		# Tab is the established first-playable affordance for leaving a raid
-		# surface; controller Y occupies the second CommonUI slot.  The controls
-		# fixture's legacy I label is presentation-only until task 8.10 ports the
-		# rebinding rows to this registry.
-		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_TAB, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_tab", FAMILY_KEYBOARD_MOUSE),
+		# I is intentionally outside Godot's built-in ui_* focus set.  Tab is
+		# reserved by CommonUI navigation and must never be a game default.
+		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_I, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_i", FAMILY_KEYBOARD_MOUSE),
 		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_Y, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_y", FAMILY_GENERIC_GAMEPAD)],
 		0.0, false))
 	result.append(_definition(
@@ -360,6 +431,21 @@ static func build_input_config() -> CommonUIInputConfig:
 		var framework_action := config.find_action(framework_id)
 		if framework_action != null:
 			framework_action.set_conflict_context(&"ui")
+	# The addon reference defaults use E/Q, which Godot's text controls claim
+	# through ui_text_caret_* actions. Project-owned tab affordances use the
+	# collision-free F2/F3 pair declared in framework_action_definitions().
+	var tab_next := config.find_action(UI_TAB_NEXT)
+	if tab_next != null:
+		tab_next.set_default_bindings(_typed_bindings([
+			_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F2, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_f2", FAMILY_KEYBOARD_MOUSE),
+			_binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_RIGHT_SHOULDER, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_rb", FAMILY_GENERIC_GAMEPAD),
+		]))
+	var tab_previous := config.find_action(UI_TAB_PREVIOUS)
+	if tab_previous != null:
+		tab_previous.set_default_bindings(_typed_bindings([
+			_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F3, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_f3", FAMILY_KEYBOARD_MOUSE),
+			_binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_LEFT_SHOULDER, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_lb", FAMILY_GENERIC_GAMEPAD),
+		]))
 
 	var actions: Array[CommonUIAction] = []
 	for action_variant in config.get_actions():
@@ -407,6 +493,18 @@ static func _device_profiles() -> Array[CommonUIDeviceProfile]:
 		"2:%d" % JOY_BUTTON_RIGHT_SHOULDER: &"xbox_rb",
 		"2:%d" % JOY_BUTTON_BACK: &"xbox_back",
 		"2:%d" % JOY_BUTTON_START: &"xbox_start",
+		"2:%d" % JOY_BUTTON_DPAD_UP: &"xbox_dpad_up",
+		"2:%d" % JOY_BUTTON_DPAD_DOWN: &"xbox_dpad_down",
+		"2:%d" % JOY_BUTTON_DPAD_LEFT: &"xbox_dpad_left",
+		"2:%d" % JOY_BUTTON_DPAD_RIGHT: &"xbox_dpad_right",
+		"2:%d" % JOY_BUTTON_LEFT_STICK: &"xbox_ls",
+		"2:%d" % JOY_BUTTON_RIGHT_STICK: &"xbox_rs",
+		"3:%d" % JOY_AXIS_LEFT_X: &"xbox_ls",
+		"3:%d" % JOY_AXIS_LEFT_Y: &"xbox_ls",
+		"3:%d" % JOY_AXIS_RIGHT_X: &"xbox_rs",
+		"3:%d" % JOY_AXIS_RIGHT_Y: &"xbox_rs",
+		"3:%d" % JOY_AXIS_TRIGGER_LEFT: &"xbox_lt",
+		"3:%d" % JOY_AXIS_TRIGGER_RIGHT: &"xbox_rt",
 	}, &"xbox_generic"))
 	profiles.append(_profile(FAMILY_PLAYSTATION, ["dualshock", "dualsense", "playstation", "sony"], {
 		"2:%d" % JOY_BUTTON_A: &"ps_cross",
@@ -417,14 +515,47 @@ static func _device_profiles() -> Array[CommonUIDeviceProfile]:
 		"2:%d" % JOY_BUTTON_RIGHT_SHOULDER: &"ps_r1",
 		"2:%d" % JOY_BUTTON_BACK: &"ps_share",
 		"2:%d" % JOY_BUTTON_START: &"ps_options",
+		"2:%d" % JOY_BUTTON_DPAD_UP: &"ps_dpad_up",
+		"2:%d" % JOY_BUTTON_DPAD_DOWN: &"ps_dpad_down",
+		"2:%d" % JOY_BUTTON_DPAD_LEFT: &"ps_dpad_left",
+		"2:%d" % JOY_BUTTON_DPAD_RIGHT: &"ps_dpad_right",
+		"2:%d" % JOY_BUTTON_LEFT_STICK: &"ps_ls",
+		"2:%d" % JOY_BUTTON_RIGHT_STICK: &"ps_rs",
+		"3:%d" % JOY_AXIS_LEFT_X: &"ps_ls",
+		"3:%d" % JOY_AXIS_LEFT_Y: &"ps_ls",
+		"3:%d" % JOY_AXIS_RIGHT_X: &"ps_rs",
+		"3:%d" % JOY_AXIS_RIGHT_Y: &"ps_rs",
+		"3:%d" % JOY_AXIS_TRIGGER_LEFT: &"ps_lt",
+		"3:%d" % JOY_AXIS_TRIGGER_RIGHT: &"ps_rt",
 	}, &"playstation_generic"))
 	profiles.append(_profile(FAMILY_SWITCH, ["nintendo", "switch", "joy-con", "pro controller"], {
 		"2:%d" % JOY_BUTTON_A: &"switch_a",
 		"2:%d" % JOY_BUTTON_B: &"switch_b",
 		"2:%d" % JOY_BUTTON_X: &"switch_x",
 		"2:%d" % JOY_BUTTON_Y: &"switch_y",
+		"2:%d" % JOY_BUTTON_DPAD_UP: &"switch_dpad_up",
+		"2:%d" % JOY_BUTTON_DPAD_DOWN: &"switch_dpad_down",
+		"2:%d" % JOY_BUTTON_DPAD_LEFT: &"switch_dpad_left",
+		"2:%d" % JOY_BUTTON_DPAD_RIGHT: &"switch_dpad_right",
+		"2:%d" % JOY_BUTTON_LEFT_STICK: &"switch_ls",
+		"2:%d" % JOY_BUTTON_RIGHT_STICK: &"switch_rs",
+		"3:%d" % JOY_AXIS_LEFT_X: &"switch_ls",
+		"3:%d" % JOY_AXIS_LEFT_Y: &"switch_ls",
+		"3:%d" % JOY_AXIS_RIGHT_X: &"switch_rs",
+		"3:%d" % JOY_AXIS_RIGHT_Y: &"switch_rs",
+		"3:%d" % JOY_AXIS_TRIGGER_LEFT: &"switch_lt",
+		"3:%d" % JOY_AXIS_TRIGGER_RIGHT: &"switch_rt",
 	}, &"switch_generic"))
-	profiles.append(_profile(FAMILY_GENERIC_GAMEPAD, ["controller", "gamepad", "joypad"], {}, &"pad_generic"))
+	profiles.append(_profile(FAMILY_GENERIC_GAMEPAD, ["controller", "gamepad", "joypad"], {
+		"2:%d" % JOY_BUTTON_LEFT_STICK: &"pad_ls",
+		"2:%d" % JOY_BUTTON_RIGHT_STICK: &"pad_rs",
+		"3:%d" % JOY_AXIS_LEFT_X: &"pad_ls",
+		"3:%d" % JOY_AXIS_LEFT_Y: &"pad_ls",
+		"3:%d" % JOY_AXIS_RIGHT_X: &"pad_rs",
+		"3:%d" % JOY_AXIS_RIGHT_Y: &"pad_rs",
+		"3:%d" % JOY_AXIS_TRIGGER_LEFT: &"pad_lt",
+		"3:%d" % JOY_AXIS_TRIGGER_RIGHT: &"pad_rt",
+	}, &"pad_generic"))
 	return profiles
 
 
@@ -491,6 +622,15 @@ static func _family_glyph_map(family: StringName) -> Dictionary:
 				"2:%d" % JOY_BUTTON_LEFT_SHOULDER: &"xbox_lb",
 				"2:%d" % JOY_BUTTON_RIGHT_SHOULDER: &"xbox_rb",
 				"2:%d" % JOY_BUTTON_BACK: &"xbox_back", "2:%d" % JOY_BUTTON_START: &"xbox_start",
+				"2:%d" % JOY_BUTTON_DPAD_UP: &"xbox_dpad_up",
+				"2:%d" % JOY_BUTTON_DPAD_DOWN: &"xbox_dpad_down",
+				"2:%d" % JOY_BUTTON_DPAD_LEFT: &"xbox_dpad_left",
+				"2:%d" % JOY_BUTTON_DPAD_RIGHT: &"xbox_dpad_right",
+				"2:%d" % JOY_BUTTON_LEFT_STICK: &"xbox_ls",
+				"2:%d" % JOY_BUTTON_RIGHT_STICK: &"xbox_rs",
+				"3:%d" % JOY_AXIS_LEFT_X: &"xbox_ls", "3:%d" % JOY_AXIS_LEFT_Y: &"xbox_ls",
+				"3:%d" % JOY_AXIS_RIGHT_X: &"xbox_rs", "3:%d" % JOY_AXIS_RIGHT_Y: &"xbox_rs",
+				"3:%d" % JOY_AXIS_TRIGGER_LEFT: &"xbox_lt", "3:%d" % JOY_AXIS_TRIGGER_RIGHT: &"xbox_rt",
 			}
 		FAMILY_PLAYSTATION:
 			return {
@@ -499,9 +639,30 @@ static func _family_glyph_map(family: StringName) -> Dictionary:
 				"2:%d" % JOY_BUTTON_LEFT_SHOULDER: &"ps_l1",
 				"2:%d" % JOY_BUTTON_RIGHT_SHOULDER: &"ps_r1",
 				"2:%d" % JOY_BUTTON_BACK: &"ps_share", "2:%d" % JOY_BUTTON_START: &"ps_options",
+				"2:%d" % JOY_BUTTON_DPAD_UP: &"ps_dpad_up",
+				"2:%d" % JOY_BUTTON_DPAD_DOWN: &"ps_dpad_down",
+				"2:%d" % JOY_BUTTON_DPAD_LEFT: &"ps_dpad_left",
+				"2:%d" % JOY_BUTTON_DPAD_RIGHT: &"ps_dpad_right",
+				"2:%d" % JOY_BUTTON_LEFT_STICK: &"ps_ls",
+				"2:%d" % JOY_BUTTON_RIGHT_STICK: &"ps_rs",
+				"3:%d" % JOY_AXIS_LEFT_X: &"ps_ls", "3:%d" % JOY_AXIS_LEFT_Y: &"ps_ls",
+				"3:%d" % JOY_AXIS_RIGHT_X: &"ps_rs", "3:%d" % JOY_AXIS_RIGHT_Y: &"ps_rs",
+				"3:%d" % JOY_AXIS_TRIGGER_LEFT: &"ps_lt", "3:%d" % JOY_AXIS_TRIGGER_RIGHT: &"ps_rt",
 			}
 		FAMILY_SWITCH:
-			return {"2:%d" % JOY_BUTTON_A: &"switch_a", "2:%d" % JOY_BUTTON_B: &"switch_b", "2:%d" % JOY_BUTTON_X: &"switch_x", "2:%d" % JOY_BUTTON_Y: &"switch_y"}
+			return {
+				"2:%d" % JOY_BUTTON_A: &"switch_a", "2:%d" % JOY_BUTTON_B: &"switch_b",
+				"2:%d" % JOY_BUTTON_X: &"switch_x", "2:%d" % JOY_BUTTON_Y: &"switch_y",
+				"2:%d" % JOY_BUTTON_DPAD_UP: &"switch_dpad_up",
+				"2:%d" % JOY_BUTTON_DPAD_DOWN: &"switch_dpad_down",
+				"2:%d" % JOY_BUTTON_DPAD_LEFT: &"switch_dpad_left",
+				"2:%d" % JOY_BUTTON_DPAD_RIGHT: &"switch_dpad_right",
+				"2:%d" % JOY_BUTTON_LEFT_STICK: &"switch_ls",
+				"2:%d" % JOY_BUTTON_RIGHT_STICK: &"switch_rs",
+				"3:%d" % JOY_AXIS_LEFT_X: &"switch_ls", "3:%d" % JOY_AXIS_LEFT_Y: &"switch_ls",
+				"3:%d" % JOY_AXIS_RIGHT_X: &"switch_rs", "3:%d" % JOY_AXIS_RIGHT_Y: &"switch_rs",
+				"3:%d" % JOY_AXIS_TRIGGER_LEFT: &"switch_lt", "3:%d" % JOY_AXIS_TRIGGER_RIGHT: &"switch_rt",
+			}
 	return {}
 
 

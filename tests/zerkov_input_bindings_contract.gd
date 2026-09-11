@@ -15,6 +15,7 @@ var app: Control
 var service: ZerkovInputService
 var original_persistence_candidates: Dictionary = {}
 var persistence_path: String = "user://common_ui_bindings.json"
+var teardown_probe: ZerkovInputContextToken
 
 
 func _initialize() -> void:
@@ -58,6 +59,31 @@ func joypad_button(code: JoyButton) -> void:
 	await settle()
 
 
+func has_projected_binding(action_id: StringName, device_kind: int, code: int, axis_direction: int = -1) -> bool:
+	if not InputMap.has_action(action_id):
+		return false
+	for event in InputMap.action_get_events(action_id):
+		if device_kind == CommonUIBinding.DEVICE_KEYBOARD:
+			var key_event := event as InputEventKey
+			if key_event != null and int(key_event.physical_keycode if key_event.physical_keycode != 0 else key_event.keycode) == code:
+				return true
+		elif device_kind == CommonUIBinding.DEVICE_MOUSE:
+			var mouse_event := event as InputEventMouseButton
+			if mouse_event != null and int(mouse_event.button_index) == code:
+				return true
+		elif device_kind == CommonUIBinding.DEVICE_GAMEPAD_BUTTON:
+			var button_event := event as InputEventJoypadButton
+			if button_event != null and int(button_event.button_index) == code:
+				return true
+		elif device_kind == CommonUIBinding.DEVICE_GAMEPAD_AXIS:
+			var motion_event := event as InputEventJoypadMotion
+			if motion_event != null and int(motion_event.axis) == code \
+					and (axis_direction < 0 or (axis_direction == CommonUIBinding.AXIS_DIRECTION_NEGATIVE and motion_event.axis_value < 0.0) \
+						or (axis_direction == CommonUIBinding.AXIS_DIRECTION_POSITIVE and motion_event.axis_value > 0.0)):
+				return true
+	return false
+
+
 func write_persistence(text: String) -> void:
 	var file := FileAccess.open(persistence_path, FileAccess.WRITE)
 	check(file != null, "fixed persistence path can be opened for the corruption probe")
@@ -97,14 +123,33 @@ func make_binding(device_kind: int, code: int, glyph: StringName = &"") -> Commo
 	return binding
 
 
+func persistence_binding(device_kind: int, code: int, axis_direction: int, glyph: String, dead_zone: float = 0.25) -> Dictionary:
+	return {
+		"device_kind": device_kind,
+		"code": code,
+		"axis_direction": axis_direction,
+		"dead_zone": dead_zone,
+		"shift": false,
+		"ctrl": false,
+		"alt": false,
+		"meta": false,
+		"glyph": glyph,
+	}
+
+
 func run() -> void:
 	_catalog_contract()
 	await _runtime_contract()
 	_persistence_contract()
 	_context_contract()
-	if is_instance_valid(app):
+	if is_instance_valid(app) and service != null:
+		teardown_probe = service.activate_context(ZerkovInputActions.MODAL_CONTEXT, -1, &"teardown_probe")
 		app.queue_free()
 		await settle()
+	check(teardown_probe != null and not teardown_probe.is_active(),
+		"service teardown releases native context handles and invalidates retained capabilities")
+	check(teardown_probe == null or not teardown_probe.release(),
+		"a retained capability cannot release after service teardown")
 	restore_persistence()
 	print("ZERKOV_INPUT_BINDINGS_RESULT checks=", checks, " failures=", failures,
 		" definition_version=", ZerkovInputActions.CONFIG_DEFINITION_VERSION,
@@ -114,7 +159,7 @@ func run() -> void:
 
 func _catalog_contract() -> void:
 	var definitions := ZerkovInputActions.catalog_definitions()
-	check(definitions.size() == 26, "catalog has the five framework plus twenty-one game actions")
+	check(definitions.size() == 31, "catalog has the five framework plus twenty-six game actions and projections")
 	check(ZerkovInputActions.all_action_ids().size() == definitions.size(),
 		"stable action id list includes every catalog definition exactly once")
 	var ids: Dictionary = {}
@@ -136,8 +181,9 @@ func _catalog_contract() -> void:
 				"default glyph is declared: " + String(binding["glyph"]))
 		check(families.has(String(ZerkovInputActions.FAMILY_KEYBOARD_MOUSE)),
 			"keyboard/mouse default exists: " + String(action_id))
-		check(families.has(String(ZerkovInputActions.FAMILY_GENERIC_GAMEPAD)),
-			"controller default exists: " + String(action_id))
+		if action_id not in [ZerkovInputActions.GAME_WEAPON_CYCLE]:
+			check(families.has(String(ZerkovInputActions.FAMILY_GENERIC_GAMEPAD)),
+				"controller default exists: " + String(action_id))
 		check(definition["bindings"].size() <= ZerkovInputActions.MAX_BINDINGS_PER_ACTION,
 			"binding metadata stays bounded: " + String(action_id))
 	var config := ZerkovInputActions.build_input_config()
@@ -183,6 +229,39 @@ func _runtime_contract() -> void:
 	check(runtime != null and CommonUIActionValidator.is_ok(
 		CommonUIActionValidator.validate_runtime(runtime, false)),
 		"active CommonUI lifecycle registrations resolve to declared bound actions")
+	if runtime != null:
+		var runtime_findings := CommonUIActionValidator.validate(runtime.get_input_config(), true)
+		var unexpected_collisions := 0
+		for finding_variant in runtime_findings:
+			var finding: Dictionary = finding_variant
+			if finding.get("severity") == CommonUIActionValidator.SEVERITY_WARNING \
+					and not (finding.get("action") in [ZerkovInputActions.UI_BACK, ZerkovInputActions.UI_CONFIRM]):
+				unexpected_collisions += 1
+		check(unexpected_collisions == 0,
+			"installed defaults enforce ui_* collision findings except documented framework Back/Confirm overlap")
+	for movement_id in [ZerkovInputActions.GAME_MOVE_UP, ZerkovInputActions.GAME_MOVE_LEFT,
+			ZerkovInputActions.GAME_MOVE_DOWN, ZerkovInputActions.GAME_MOVE_RIGHT]:
+		check(has_projected_binding(movement_id, CommonUIBinding.DEVICE_KEYBOARD,
+				KEY_W if movement_id == ZerkovInputActions.GAME_MOVE_UP else KEY_A if movement_id == ZerkovInputActions.GAME_MOVE_LEFT else KEY_S if movement_id == ZerkovInputActions.GAME_MOVE_DOWN else KEY_D),
+			"every advertised movement direction projects its keyboard binding: " + String(movement_id))
+	check(has_projected_binding(ZerkovInputActions.GAME_MOVE_LEFT,
+		CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_X, CommonUIBinding.AXIS_DIRECTION_NEGATIVE),
+		"left-stick negative X movement is installed through CommonUI")
+	check(has_projected_binding(ZerkovInputActions.GAME_MOVE_UP,
+		CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_Y, CommonUIBinding.AXIS_DIRECTION_NEGATIVE),
+		"left-stick negative Y movement is installed through CommonUI")
+	check(has_projected_binding(ZerkovInputActions.GAME_MOVE_DOWN,
+		CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_Y, CommonUIBinding.AXIS_DIRECTION_POSITIVE),
+		"left-stick positive Y movement is installed through CommonUI")
+	check(has_projected_binding(ZerkovInputActions.GAME_MOVE_RIGHT,
+		CommonUIBinding.DEVICE_GAMEPAD_AXIS, JOY_AXIS_LEFT_X, CommonUIBinding.AXIS_DIRECTION_POSITIVE),
+		"left-stick positive X movement is installed through CommonUI")
+	check(has_projected_binding(ZerkovInputActions.GAME_WEAPON_CYCLE,
+		CommonUIBinding.DEVICE_MOUSE, MOUSE_BUTTON_WHEEL_UP),
+		"weapon-cycle wheel binding is installed through CommonUI")
+	check(has_projected_binding(ZerkovInputActions.GAME_WEAPON_CYCLE_CONTROLLER,
+		CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_GUIDE),
+		"controller weapon-cycle binding is installed through CommonUI")
 	var snapshot_one := service.active_bindings_snapshot()
 	var snapshot_two := service.active_bindings_snapshot()
 	check(snapshot_one == snapshot_two, "detached binding snapshots are deterministic")
@@ -215,6 +294,20 @@ func _runtime_contract() -> void:
 	check(service.resolve_glyph(ZerkovInputActions.UI_OPEN_MAP,
 		CommonUIBinding.SLOT_SECONDARY, ZerkovInputActions.FAMILY_XBOX) == &"xbox_back",
 		"controller glyph resolution follows the active device family")
+	if runtime != null:
+		var registry := runtime.get_binding_registry()
+		for glyph_probe in [
+			[ZerkovInputActions.GAME_FIRE, &"xbox_rt"],
+			[ZerkovInputActions.GAME_MOVE_UP, &"xbox_ls"],
+			[ZerkovInputActions.GAME_QUICK_USE, &"xbox_dpad_up"],
+			[ZerkovInputActions.GAME_MELEE, &"xbox_rs"],
+		]:
+			var probe_id: StringName = glyph_probe[0]
+			var expected: StringName = glyph_probe[1]
+			var native_glyph := registry.resolve_glyph(probe_id, CommonInputBindingRegistry.SLOT_SECONDARY, "xbox")
+			check(native_glyph == expected and service.resolve_glyph(probe_id,
+				CommonUIBinding.SLOT_SECONDARY, ZerkovInputActions.FAMILY_XBOX) == native_glyph,
+				"published glyph agrees with authoritative CommonUI resolver: " + String(probe_id))
 	var modality_events: Array = []
 	var modality_callback := func(modality: int, device: int) -> void:
 		modality_events.append([modality, device])
@@ -228,7 +321,7 @@ func _runtime_contract() -> void:
 	service.modality_changed.disconnect(modality_callback)
 	check(app.request_route("hud", false), "exact 1920x1080 HUD route is admitted")
 	await settle()
-	await key(KEY_TAB)
+	await key(KEY_I)
 	check(app.current_route == "inventory", "keyboard UI action opens inventory through CommonUI")
 	await key(KEY_M)
 	check(app.current_route == "maps", "keyboard UI action opens maps through CommonUI")
@@ -250,9 +343,29 @@ func _runtime_contract() -> void:
 	check(not service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
 		CommonUIBinding.SLOT_PRIMARY, forged_binding()).get("ok", false),
 		"forged glyph metadata is rejected")
+	var incompatible_glyph := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_Z, &"pad_a")
+	check(not service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
+		CommonUIBinding.SLOT_PRIMARY, incompatible_glyph).get("ok", false),
+		"known but device-incompatible glyph metadata is rejected")
 	check(not service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
 		CommonUIBinding.SLOT_PRIMARY, keyboard_candidate, 99).get("ok", false),
 		"unknown conflict policy is rejected")
+	var focus_collision := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_TAB)
+	var collision_result := service.rebind(ZerkovInputActions.UI_OPEN_MAP,
+		CommonUIBinding.SLOT_PRIMARY, focus_collision)
+	check(not collision_result.get("ok", false)
+			and str(collision_result.get("error", "")).contains("ui_"),
+		"rebinds that target a Godot ui_* focus key are rejected before registry mutation")
+	var high_godot_key := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_F24)
+	var high_key_result := service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
+		CommonUIBinding.SLOT_PRIMARY, high_godot_key,
+		CommonInputBindingRegistry.CONFLICT_REJECT, false, &"task_8_3_high_godot_key")
+	check(high_key_result.get("ok", false)
+			and service.effective_binding(ZerkovInputActions.UI_OPEN_TASKS,
+				CommonUIBinding.SLOT_PRIMARY).get_code() == KEY_F24,
+		"valid high Godot keyboard codes are accepted by device-specific validation")
+	check(service.restore_action_defaults(ZerkovInputActions.UI_OPEN_TASKS).get("ok", false),
+		"high-key validation probe restores the task default")
 	var protected_replace := service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
 		CommonUIBinding.SLOT_PRIMARY, keyboard_candidate,
 		CommonInputBindingRegistry.CONFLICT_REPLACE, true)
@@ -280,13 +393,29 @@ func _runtime_contract() -> void:
 	check(not conflict_reuse.get("ok", false)
 		and conflict_reuse.get("error") == "request_id_reuse_conflict",
 		"request id reuse with a different operation is rejected")
+	var nested_request_id: StringName = &"task_8_3_nested_reservation"
+	var nested_results: Array[Dictionary] = []
+	var nested_callback := func(_snapshot: Dictionary) -> void:
+		if nested_results.is_empty():
+			nested_results.append(service.restore_defaults(nested_request_id))
+	service.bindings_published.connect(nested_callback)
+	var nested_outer := service.restore_defaults(nested_request_id)
+	service.bindings_published.disconnect(nested_callback)
+	check(nested_outer.get("ok", false) and nested_results.size() == 1
+			and nested_results[0].get("error") == "request_id_in_flight",
+		"request ids are reserved before synchronous CommonUI publication prevents nested reuse")
+	check(service.restore_defaults(nested_request_id).get("replayed", false),
+		"completed reserved request replays deterministically")
 	var reload_candidate := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_Z)
 	var reload_result := service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
 		CommonUIBinding.SLOT_PRIMARY, reload_candidate,
 		CommonInputBindingRegistry.CONFLICT_REJECT, false, &"task_8_3_reload")
 	check(reload_result.get("ok", false), "a valid rebind persists through the fixed transaction")
+	var persisted_bytes := service.active_bindings_bytes()
 	check(registry_reload_succeeds_and_keeps(service),
 		"a valid persisted override reloads through the native registry")
+	check(service.active_bindings_bytes() == persisted_bytes,
+		"accepted rebind bytes round-trip without changing the canonical publication")
 	check(service.restore_defaults().get("ok", false),
 		"reload probe restores the complete default set")
 	check(service.persistence_descriptor().get("path") == "user://common_ui_bindings.json",
@@ -300,11 +429,7 @@ func forged_binding() -> CommonUIBinding:
 func registry_reload_succeeds_and_keeps(candidate_service: ZerkovInputService) -> bool:
 	if candidate_service == null:
 		return false
-	var runtime := root.get_node_or_null("CommonUI") as CommonUIRuntime
-	var registry := runtime.get_binding_registry() if runtime != null else null
-	if registry == null:
-		return false
-	var reloaded := registry.load_overrides()
+	var reloaded := candidate_service.reload_overrides()
 	var binding := candidate_service.effective_binding(
 		ZerkovInputActions.UI_OPEN_TASKS, CommonUIBinding.SLOT_PRIMARY)
 	return reloaded and binding != null and binding.get_code() == KEY_Z
@@ -320,19 +445,79 @@ func _persistence_contract() -> void:
 	var before := service.active_bindings_bytes()
 	remove_persistence_candidates()
 	write_persistence("{\"format_version\":999,\"definition_version\":803,\"overrides\":[]}")
-	check(not registry.load_overrides(), "unsupported persistence format is rejected")
+	check(not service.reload_overrides(), "unsupported persistence format is rejected")
 	check(service.active_bindings_bytes() == before,
 		"corrupt persistence leaves live bindings unchanged")
 	remove_persistence_candidates()
 	write_persistence("{\"format_version\":1,\"definition_version\":803,\"overrides\":[]}")
-	check(registry.load_overrides(), "known older persistence format is accepted without guessing")
+	check(service.reload_overrides(), "known older persistence format is accepted without guessing")
 	check(service.active_bindings_bytes() == before,
 		"known migration format leaves effective bindings deterministic")
 	remove_persistence_candidates()
 	write_persistence("{\"format_version\":2,\"definition_version\":1,\"overrides\":[]}")
-	check(not registry.load_overrides(), "stale definition version is rejected")
+	check(not service.reload_overrides(), "stale definition version is rejected")
 	check(service.active_bindings_bytes() == before,
 		"stale persistence leaves live bindings unchanged")
+	remove_persistence_candidates()
+	write_persistence(JSON.stringify({
+		"format_version": 2,
+		"definition_version": ZerkovInputActions.CONFIG_DEFINITION_VERSION,
+		"overrides": [{
+			"action": String(ZerkovInputActions.UI_OPEN_TASKS),
+			"slot": 0,
+			"cleared": false,
+			"binding": persistence_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_Z,
+				CommonUIBinding.AXIS_DIRECTION_NONE, "pad_forged"),
+		}],
+	}))
+	check(not service.reload_overrides(), "unknown persisted glyph metadata is rejected before install")
+	check(service.active_bindings_bytes() == before,
+		"forged glyph persistence leaves live bindings unchanged")
+	remove_persistence_candidates()
+	write_persistence(JSON.stringify({
+		"format_version": 2,
+		"definition_version": ZerkovInputActions.CONFIG_DEFINITION_VERSION,
+		"overrides": [{
+			"action": String(ZerkovInputActions.UI_OPEN_TASKS),
+			"slot": 0,
+			"cleared": false,
+			"binding": persistence_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_Z,
+				CommonUIBinding.AXIS_DIRECTION_NONE, "pad_a"),
+		}],
+	}))
+	check(not service.reload_overrides(), "known but incompatible persisted glyph metadata is rejected")
+	check(service.active_bindings_bytes() == before,
+		"incompatible persisted glyph leaves live bindings unchanged")
+	remove_persistence_candidates()
+	write_persistence(JSON.stringify({
+		"format_version": 2,
+		"definition_version": ZerkovInputActions.CONFIG_DEFINITION_VERSION,
+		"overrides": [{
+			"action": String(ZerkovInputActions.UI_OPEN_TASKS),
+			"slot": 0,
+			"cleared": false,
+			"binding": persistence_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_M,
+				CommonUIBinding.AXIS_DIRECTION_NONE, "key_m"),
+		}],
+	}))
+	check(not service.reload_overrides(), "persisted same-context collisions are rejected before install")
+	check(service.active_bindings_bytes() == before,
+		"persisted collision leaves live bindings unchanged")
+	remove_persistence_candidates()
+	write_persistence(JSON.stringify({
+		"format_version": 2,
+		"definition_version": ZerkovInputActions.CONFIG_DEFINITION_VERSION,
+		"overrides": [{
+			"action": String(ZerkovInputActions.UI_OPEN_TASKS),
+			"slot": 0,
+			"cleared": false,
+			"binding": persistence_binding(CommonUIBinding.DEVICE_MOUSE, KEY_F24,
+				CommonUIBinding.AXIS_DIRECTION_NONE, "mouse_left"),
+		}],
+	}))
+	check(not service.reload_overrides(), "device-specific persisted code bounds reject a mouse/key mismatch")
+	check(service.active_bindings_bytes() == before,
+		"device-mismatched persistence leaves live bindings unchanged")
 	remove_persistence_candidates()
 
 
@@ -341,21 +526,34 @@ func _context_contract() -> void:
 		return
 	var gameplay := service.activate_context(ZerkovInputActions.GAMEPLAY_CONTEXT)
 	var ui := service.activate_context(ZerkovInputActions.UI_CONTEXT)
-	check(gameplay != null and ui != null, "gameplay and UI contexts activate")
+	var gameplay_peer := service.activate_context(ZerkovInputActions.GAMEPLAY_CONTEXT, -1, &"peer")
+	var ui_peer := service.activate_context(ZerkovInputActions.UI_CONTEXT, -1, &"peer")
+	check(gameplay != null and ui != null and gameplay_peer != null and ui_peer != null,
+		"gameplay and UI contexts activate with caller-owned leases")
 	if gameplay == null or ui == null:
 		return
-	check(ui.is_active() and gameplay.is_active(), "context leases are active")
+	check(ui.is_active() and gameplay.is_active() and gameplay_peer != gameplay and ui_peer != ui
+			and gameplay_peer.capability_id != gameplay.capability_id
+			and ui_peer.capability_id != ui.capability_id,
+		"context leases are distinct capabilities for distinct callers")
 	check(not gameplay.snapshot().get("released", true), "context snapshot is detached")
 	var forged_token := ZerkovInputContextToken.new()
 	forged_token.context_id = ZerkovInputActions.UI_CONTEXT
 	forged_token.generation = ui.generation
+	forged_token.capability_id = ui.capability_id
 	check(not service.release_context_token(forged_token),
 		"forged context token identity cannot release a live context")
+	check(service.activate_context(ZerkovInputActions.GAMEPLAY_CONTEXT, ZerkovInputService.MODAL_PRIORITY) == null,
+		"caller cannot manufacture a project-owned modal priority for gameplay")
+	check(service.activate_context(ZerkovInputActions.UI_CONTEXT, -2) == null,
+		"only the documented -1 default sentinel is accepted for context priority")
 	var stale_ui := ui
 	check(ui.release(), "an active UI context can be released before replacement")
+	check(ui_peer.is_active(), "releasing one caller capability keeps the peer lease active")
 	var replacement_ui := service.activate_context(ZerkovInputActions.UI_CONTEXT)
-	check(replacement_ui != null and replacement_ui.generation != stale_ui.generation,
-		"replacement context receives a fresh generation")
+	check(replacement_ui != null and replacement_ui != stale_ui
+			and replacement_ui.capability_id != stale_ui.capability_id,
+		"replacement context receives a distinct caller capability")
 	check(not stale_ui.release() and replacement_ui != null and replacement_ui.is_active(),
 		"stale context token cannot release its replacement")
 	ui = replacement_ui
@@ -372,6 +570,8 @@ func _context_contract() -> void:
 			"modal priority suspends both lower context leases")
 		check(modal.release(), "modal lease releases cleanly")
 	check(gameplay.release(), "gameplay lease releases cleanly")
+	check(gameplay_peer.release(), "peer gameplay lease releases independently")
+	check(ui_peer.release(), "peer UI lease releases independently")
 	check(ui.release(), "UI lease releases cleanly")
 	check(not gameplay.release(), "stale context release is idempotently rejected")
 
