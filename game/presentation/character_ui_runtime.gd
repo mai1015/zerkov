@@ -35,32 +35,44 @@ func configure(
 	admission: ZSessionAdmission,
 	health_snapshot: HealthView
 ) -> bool:
-	var previous_actor_key := _admission.actor_id.canonical_key() \
-		if _admission != null and _admission.actor_id != null else ""
-	var previous_generation := _admission.generation if _admission != null else 0
+	var previous_actor := _admission.actor_id if _admission != null \
+		else (_health_view.actor_id() if _health_view != null else null)
+	var previous_actor_key := previous_actor.canonical_key() \
+		if previous_actor != null else ""
+	var previous_generation := _admission.generation if _admission != null \
+		else (_health_view.generation() if _health_view != null else 0)
+	var previous_health := _health_view
 	release(&"character_runtime_replaced", false)
 	last_error = &""
 	if owner == null or bridge == null or adapter == null \
 			or admission == null or not admission.is_usable():
-		return _fail(&"character_runtime_dependency_missing")
+		return _fail_configure(&"character_runtime_dependency_missing")
 	var admission_copy := admission.snapshot()
-	if admission_copy == null or not _health_snapshot_matches(
-			health_snapshot, admission_copy, false):
-		return _fail(&"health_view_binding_invalid")
+	if admission_copy == null:
+		return _fail_configure(&"character_runtime_dependency_missing")
+	var enforce_previous_health := previous_health != null \
+			and previous_health.is_ready() \
+			and not previous_actor_key.is_empty() \
+			and previous_actor_key == admission_copy.actor_id.canonical_key() \
+			and previous_generation == admission_copy.generation
+	var health_reason := _health_transition_error(
+		health_snapshot, admission_copy,
+		previous_health if enforce_previous_health else null)
+	if not health_reason.is_empty():
+		return _fail_configure(health_reason)
 	if not previous_actor_key.is_empty() and (
 			previous_actor_key != admission_copy.actor_id.canonical_key() \
 			or previous_generation != admission_copy.generation):
 		_sanitize_interaction_for_replacement()
 	if not _controller.bind(owner, bridge, adapter, admission_copy):
-		return _fail(_controller.last_error)
+		return _fail_configure(_controller.last_error)
 	_admission = admission_copy
 	_health_view = health_snapshot
 	_configured = true
 	_connect_controller()
 	_refresh_inventory_views()
 	if _profile_view == null or _raid_view == null:
-		release(&"inventory_view_projection_failed", false)
-		return _fail(&"inventory_view_projection_failed")
+		return _fail_configure(&"inventory_view_projection_failed")
 	# A retained Character screen can outlive an authority generation. Publish
 	# the fully configured replacement only after every immutable view and the
 	# intent controller point at the same admission generation.
@@ -72,13 +84,9 @@ func configure(
 
 
 func initialize_unavailable(reason: StringName) -> void:
-	release(reason, false)
-	last_error = reason if not reason.is_empty() else &"character_runtime_unavailable"
-	_profile_view = InventoryView.unavailable(
-		InventoryView.Scope.PROFILE, ZReadOnlyView.SyncState.UNBOUND, last_error)
-	_raid_view = InventoryView.unavailable(
-		InventoryView.Scope.RAID, ZReadOnlyView.SyncState.UNBOUND, last_error)
-	_health_view = HealthView.unavailable(ZReadOnlyView.SyncState.UNBOUND, last_error)
+	var diagnostic := reason if not reason.is_empty() \
+			else &"character_runtime_unavailable"
+	release(diagnostic, true)
 
 
 func is_configured() -> bool:
@@ -107,8 +115,15 @@ func publish_health_view(next_view: HealthView) -> bool:
 	last_error = &""
 	if not _configured or _admission == null:
 		return _fail(&"character_runtime_unavailable")
-	if not _health_snapshot_matches(next_view, _admission, true):
-		return _fail(&"health_view_stale_or_mismatched")
+	var transition_error := _health_transition_error(
+		next_view, _admission, _health_view)
+	if not transition_error.is_empty():
+		return _fail(transition_error)
+	if next_view.revision() == _health_view.revision() \
+			and next_view.source_tick() == _health_view.source_tick():
+		# Same-version, same-content delivery is an idempotent replay. Keep the
+		# exact immutable instance already observed by screens and emit nothing.
+		return true
 	_health_view = next_view
 	health_view_changed.emit(_health_view)
 	return true
@@ -123,18 +138,20 @@ func interaction_state() -> Dictionary:
 
 
 func release(reason: StringName = &"character_runtime_released", emit_signal: bool = true) -> void:
-	var had_binding := _configured
 	_disconnect_controller()
 	if _controller != null:
 		_controller.unbind()
 	_configured = false
-	var actor := _admission.actor_id if _admission != null else null
-	var generation := _admission.generation if _admission != null else 0
+	var actor := _admission.actor_id if _admission != null \
+		else (_health_view.actor_id() if _health_view != null else null)
+	var generation := _admission.generation if _admission != null \
+		else (_health_view.generation() if _health_view != null else 0)
 	var profile_revision := _profile_view.revision() if _profile_view != null else 0
 	var raid_revision := _raid_view.revision() if _raid_view != null else 0
 	var health_revision := _health_view.revision() if _health_view != null else 0
 	var health_tick := _health_view.source_tick() if _health_view != null else 0
 	var diagnostic := reason if not reason.is_empty() else &"character_runtime_released"
+	last_error = diagnostic
 	var state := ZReadOnlyView.SyncState.DISCONNECTED if actor != null \
 		else ZReadOnlyView.SyncState.UNBOUND
 	_profile_view = InventoryView.unavailable(
@@ -146,7 +163,10 @@ func release(reason: StringName = &"character_runtime_released", emit_signal: bo
 	_health_view = HealthView.unavailable(
 		state, diagnostic, generation, health_revision, health_tick, actor)
 	_admission = null
-	if emit_signal and had_binding:
+	if emit_signal:
+		inventory_view_changed.emit(SCOPE_PROFILE, _profile_view)
+		inventory_view_changed.emit(SCOPE_RAID, _raid_view)
+		health_view_changed.emit(_health_view)
 		binding_invalidated.emit(diagnostic)
 
 
@@ -196,6 +216,7 @@ func _on_controller_binding_invalidated(reason: StringName) -> void:
 		return
 	# The controller has already detached its dependencies. Preserve only typed
 	# unavailable snapshots associated with the exact former actor/generation.
+	last_error = reason
 	_configured = false
 	_disconnect_controller()
 	var actor := _admission.actor_id if _admission != null else null
@@ -218,32 +239,30 @@ func _on_controller_binding_invalidated(reason: StringName) -> void:
 	binding_invalidated.emit(reason)
 
 
-func _health_snapshot_matches(
+func _health_transition_error(
 	view: HealthView,
 	admission: ZSessionAdmission,
-	require_monotonic: bool
-) -> bool:
+	previous: HealthView
+) -> StringName:
 	if view == null or not view.is_initialized() or admission == null:
-		return false
+		return &"health_view_binding_invalid"
 	var actor := view.actor_id()
 	if actor != null and not actor.is_equal(admission.actor_id):
-		return false
+		return &"health_view_binding_invalid"
 	if view.generation() != admission.generation:
-		return false
+		return &"health_view_binding_invalid"
 	if view.is_ready() and actor == null:
-		return false
-	if not require_monotonic or _health_view == null:
-		return true
-	if view.generation() < _health_view.generation():
-		return false
-	if view.generation() == _health_view.generation() \
-			and view.revision() < _health_view.revision():
-		return false
-	if view.generation() == _health_view.generation() \
-			and view.revision() == _health_view.revision() \
-			and view.source_tick() < _health_view.source_tick():
-		return false
-	return true
+		return &"health_view_binding_invalid"
+	if previous == null or previous.generation() != view.generation():
+		return &""
+	if view.revision() < previous.revision() \
+			or view.source_tick() < previous.source_tick():
+		return &"health_view_version_regressed"
+	if view.revision() == previous.revision() \
+			and view.source_tick() == previous.source_tick() \
+			and view.content_digest() != previous.content_digest():
+		return &"health_view_version_divergent"
+	return &""
 
 
 func _sanitize_interaction_for_replacement() -> void:
@@ -261,4 +280,11 @@ func _sanitize_interaction_for_replacement() -> void:
 
 func _fail(reason: StringName) -> bool:
 	last_error = reason
+	return false
+
+
+func _fail_configure(reason: StringName) -> bool:
+	var diagnostic := reason if not reason.is_empty() \
+			else &"character_runtime_configure_failed"
+	initialize_unavailable(diagnostic)
 	return false

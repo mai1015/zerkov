@@ -236,6 +236,10 @@ var _effects: Array[StatusEffect] = []:
 	set(value):
 		if not _sealed_view:
 			_effects = value
+var _content_digest: String = "":
+	set(value):
+		if not _sealed_view:
+			_content_digest = value
 
 
 static func create(
@@ -302,6 +306,9 @@ static func create(
 	result._effects.assign(staged_effects)
 	result._body_parts.make_read_only()
 	result._effects.make_read_only()
+	result._content_digest = result._build_content_digest(SyncState.READY, &"")
+	if result._content_digest.is_empty():
+		return null
 	if not result._initialize_view(p_generation, p_revision, p_source_tick, SyncState.READY):
 		return null
 	return result
@@ -322,6 +329,10 @@ static func unavailable(
 		return null
 	var result := HealthView.new()
 	result._actor_key = p_actor_id.canonical_key() if p_actor_id != null else ""
+	result._content_digest = result._build_content_digest(
+		p_sync_state, p_diagnostic)
+	if result._content_digest.is_empty():
+		return null
 	return result if result._initialize_view(
 		p_generation, p_revision, p_source_tick, p_sync_state, p_diagnostic) else null
 
@@ -341,6 +352,13 @@ static func _life_state_is_valid(value: LifeState, aggregate_health: int) -> boo
 
 func actor_id() -> ZEntityId:
 	return ZEntityId.parse(_actor_key) if not _actor_key.is_empty() else null
+
+
+## Stable identity of the complete immutable ready payload. Version metadata is
+## deliberately excluded so equal content at a newer authoritative version is
+## still a new observation, while equal-version divergence is detectable.
+func content_digest() -> String:
+	return _content_digest
 
 
 func _ready_payload_is_valid() -> bool:
@@ -422,3 +440,46 @@ func effects() -> Array[StatusEffect]:
 		result.append(effect.snapshot())
 	result.make_read_only()
 	return result
+
+
+func _build_content_digest(
+	p_sync_state: SyncState,
+	p_diagnostic: StringName
+) -> String:
+	var chunks := PackedStringArray([
+		"actor=" + _digest_frame(_actor_key),
+		"sync=" + str(int(p_sync_state)),
+		"diagnostic=" + _digest_frame(String(p_diagnostic)),
+		"life=" + str(int(_life_state)),
+		"stamina=" + str(_stamina),
+		"maximum_stamina=" + str(_maximum_stamina),
+		"hydration=" + str(_hydration),
+		"maximum_hydration=" + str(_maximum_hydration),
+		"energy=" + str(_energy),
+		"maximum_energy=" + str(_maximum_energy),
+		"parts=" + str(_body_parts.size()),
+	])
+	for part in _body_parts:
+		chunks.append("part=" + _digest_frame(String(part.part_id()))
+			+ _digest_frame(part.display_name())
+			+ ":%d:%d:%d:%d:%d" % [
+				part.current_health(), part.maximum_health(), int(part.state()),
+				int(part.has_heavy_bleed()), int(part.is_fractured()),
+			])
+	chunks.append("effects=" + str(_effects.size()))
+	for effect in _effects:
+		chunks.append("effect=" + _digest_frame(String(effect.effect_id()))
+			+ _digest_frame(effect.display_name())
+			+ ":%d:%d:%d" % [
+				int(effect.severity()), effect.remaining_ticks(),
+				int(effect.is_beneficial()),
+			])
+	var context := HashingContext.new()
+	if context.start(HashingContext.HASH_SHA256) != OK \
+			or context.update("\n".join(chunks).to_utf8_buffer()) != OK:
+		return ""
+	return context.finish().hex_encode()
+
+
+static func _digest_frame(value: String) -> String:
+	return "%d:%s" % [value.to_utf8_buffer().size(), value]

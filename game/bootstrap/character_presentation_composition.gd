@@ -1,111 +1,74 @@
 class_name CharacterPresentationComposition
 extends Node
-## Production composition for the Character inventory/health workspace.
+## Injection-only production composition for the Character workspace.
 ##
-## The inventory owner, bridge, adapter and controller are real game-owned
-## runtime objects. No loot or item fixture is materialized here. Until the
-## health authority publishes a HealthView, the health surface receives an
-## explicit typed unavailable snapshot instead of authored values.
+## The app/profile/raid root retains ownership of inventory authority objects
+## and supplies the already-matched owner, projection bridge, intent adapter,
+## admission, and immutable health projection. This composition owns only the
+## presentation runtime. Starting without dependencies is a valid fail-closed
+## state and never manufactures a parallel gameplay authority or session.
 
-const MAX_TRANSFER_DISTANCE_RAW: int = 2_000_000
-const NATIVE_LOCAL_PLAYER_ID: int = 1
+const REASON_AUTHORITY_NOT_INJECTED: StringName = \
+		&"character_authority_not_injected"
 
 var last_error: StringName = &""
-var runtime: CharacterUIRuntime
 
-var _owner: RaidInventoryOwner
-var _bridge: InventoryProjectionBridge
-var _adapter: InventoryIntentAdapter
-var _identity: OfflineInventoryIdentity
-var _world_policy: ZInventoryWorldPolicyPort
-var _admission: ZSessionAdmission
+var _runtime: CharacterUIRuntime
 var _started: bool = false
 
 
-func start() -> bool:
+func start(
+	owner: RaidInventoryOwner = null,
+	bridge: InventoryProjectionBridge = null,
+	adapter: InventoryIntentAdapter = null,
+	admission: ZSessionAdmission = null,
+	health_snapshot: HealthView = null
+) -> bool:
 	last_error = &""
 	if _started:
 		return _reject(&"character_composition_already_started")
-	runtime = CharacterUIRuntime.new()
-	runtime.name = "CharacterUIRuntime"
-	add_child(runtime)
-
-	_owner = RaidInventoryOwner.new()
-	_owner.name = "RaidInventoryOwner"
-	add_child(_owner)
-	if not _owner.configure():
-		return _fail_start(_owner.last_error)
-
-	var raid_id := ZRaidId.from_parts(PackedStringArray([
-		"offline", "character", "workspace",
-	]))
-	_admission = SessionCoordinator.new().open_offline(
-		raid_id, &"local_profile", &"player")
-	if _admission == null or not _admission.is_usable():
-		return _fail_start(&"character_session_admission_failed")
-
-	_identity = OfflineInventoryIdentity.new()
-	if not _identity.configure(_admission, _owner, NATIVE_LOCAL_PLAYER_ID):
-		return _fail_start(&"character_inventory_identity_failed")
-	# World interaction facts are deliberately deny-by-default until the actual
-	# raid world policy is injected. Empty real world inventories remain visible
-	# as unavailable rather than being populated with prototype loot.
-	_world_policy = ZInventoryWorldPolicyPort.new()
-	_adapter = InventoryIntentAdapter.new()
-	if not _adapter.configure(
-		_owner, _admission, _identity, _world_policy,
-		MAX_TRANSFER_DISTANCE_RAW):
-		return _fail_start(_adapter.last_error)
-
-	_bridge = InventoryProjectionBridge.new()
-	_bridge.name = "InventoryProjectionBridge"
-	add_child(_bridge)
-	if not _bridge.bind_owner(_owner, _owner.generation()):
-		return _fail_start(_bridge.last_error)
-
-	var health_unavailable := HealthView.unavailable(
-		ZReadOnlyView.SyncState.UNBOUND,
-		&"health_authority_not_connected",
-		_admission.generation, 0, 0, _admission.actor_id)
-	if health_unavailable == null or not runtime.configure(
-		_owner, _bridge, _adapter, _admission, health_unavailable):
-		return _fail_start(runtime.last_error)
+	_ensure_runtime()
 	_started = true
-	return true
+	if owner == null and bridge == null and adapter == null \
+			and admission == null and health_snapshot == null:
+		_runtime.initialize_unavailable(REASON_AUTHORITY_NOT_INJECTED)
+		last_error = REASON_AUTHORITY_NOT_INJECTED
+		return true
+	return _bind_injected(owner, bridge, adapter, admission, health_snapshot)
+
+
+## Rebinds the same presentation runtime so a retained CommonUI screen observes
+## one atomic unavailable-or-rebound transition. Dependency ownership stays at
+## the game root; this method never releases or tears down injected authorities.
+func rebind(
+	owner: RaidInventoryOwner,
+	bridge: InventoryProjectionBridge,
+	adapter: InventoryIntentAdapter,
+	admission: ZSessionAdmission,
+	health_snapshot: HealthView
+) -> bool:
+	last_error = &""
+	if not _started or _runtime == null:
+		return _reject(&"character_composition_not_started")
+	return _bind_injected(owner, bridge, adapter, admission, health_snapshot)
 
 
 func is_started() -> bool:
 	return _started
 
 
-func owner() -> RaidInventoryOwner:
-	return _owner
-
-
-func bridge() -> InventoryProjectionBridge:
-	return _bridge
-
-
-func adapter() -> InventoryIntentAdapter:
-	return _adapter
-
-
-func admission() -> ZSessionAdmission:
-	return _admission.snapshot() if _admission != null else null
+## Narrow presentation-only handoff used by the app's typed route context.
+## Canonical owner/bridge/adapter/admission references are never exposed.
+func character_runtime() -> CharacterUIRuntime:
+	return _runtime
 
 
 func teardown() -> void:
-	if runtime != null:
-		runtime.release(&"character_composition_teardown", false)
-	if _adapter != null and _adapter.is_bound():
-		_adapter.release_binding(&"character_composition_teardown")
-	if _bridge != null and _bridge.is_bound():
-		_bridge.release_binding()
-	if _identity != null:
-		_identity.release()
-	if _owner != null and is_instance_valid(_owner) \
-			and _owner.lifecycle == RaidInventoryOwner.Lifecycle.ACTIVE:
-		_owner.teardown(_owner.generation())
+	if not _started:
+		return
+	last_error = &"character_composition_teardown"
+	if _runtime != null:
+		_runtime.release(last_error, true)
 	_started = false
 
 
@@ -113,19 +76,26 @@ func _exit_tree() -> void:
 	teardown()
 
 
-func _fail_start(reason: StringName) -> bool:
-	last_error = reason if not reason.is_empty() else &"character_composition_start_failed"
-	if runtime != null:
-		runtime.initialize_unavailable(last_error)
-	if _adapter != null and _adapter.is_bound():
-		_adapter.release_binding(last_error)
-	if _bridge != null and _bridge.is_bound():
-		_bridge.release_binding()
-	if _identity != null:
-		_identity.release()
-	if _owner != null and is_instance_valid(_owner) \
-			and _owner.lifecycle == RaidInventoryOwner.Lifecycle.ACTIVE:
-		_owner.teardown(_owner.generation())
+func _ensure_runtime() -> void:
+	if _runtime != null and is_instance_valid(_runtime):
+		return
+	_runtime = CharacterUIRuntime.new()
+	_runtime.name = "CharacterUIRuntime"
+	add_child(_runtime)
+
+
+func _bind_injected(
+	owner: RaidInventoryOwner,
+	bridge: InventoryProjectionBridge,
+	adapter: InventoryIntentAdapter,
+	admission: ZSessionAdmission,
+	health_snapshot: HealthView
+) -> bool:
+	if _runtime.configure(owner, bridge, adapter, admission, health_snapshot):
+		return true
+	last_error = _runtime.last_error \
+			if not _runtime.last_error.is_empty() \
+			else &"character_composition_bind_failed"
 	return false
 
 

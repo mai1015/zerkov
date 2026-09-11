@@ -670,6 +670,8 @@ func _bind_live_health(area: Control, live_notice: Label) -> void:
 	var ready := view != null and view.is_ready()
 	if live_notice != null:
 		live_notice.visible = true
+		live_notice.mouse_filter = Control.MOUSE_FILTER_STOP
+		live_notice.mouse_default_cursor_shape = Control.CURSOR_HELP
 		live_notice.text = "LIVE HEALTH · CONFIRMED" if ready else "LIVE HEALTH · %s" % (
 			String(view.sync_state_name()).to_upper() if view != null else "UNAVAILABLE")
 		live_notice.tooltip_text = "Immutable HealthView · generation %d · revision %d" % [
@@ -757,24 +759,106 @@ func _aggregate_health_parts(view: HealthView, identifiers: Array[StringName]) -
 
 
 func _set_health_effect_badges(area: Control, effects: Array) -> void:
+	var ordered := effects.duplicate()
+	ordered.sort_custom(_health_effect_precedes)
 	var badge_names := ["DehydratedBadge", "RadiationBadge"]
+	var body_wide := area.get_node_or_null("BodyWide") as Label
+	if body_wide != null:
+		body_wide.text = "BODY-WIDE · %d" % ordered.size() if not ordered.is_empty() \
+			else "BODY-WIDE"
+		body_wide.mouse_filter = Control.MOUSE_FILTER_STOP
+		body_wide.mouse_default_cursor_shape = Control.CURSOR_HELP
+		body_wide.tooltip_text = _health_effects_tooltip(ordered) \
+			if not ordered.is_empty() else "No body-wide effects"
 	for index in range(badge_names.size()):
 		var badge := area.get_node_or_null(badge_names[index]) as Panel
 		if badge == null:
 			continue
-		badge.visible = index < effects.size()
+		badge.visible = index < ordered.size()
+		badge.mouse_filter = Control.MOUSE_FILTER_STOP
+		badge.mouse_default_cursor_shape = Control.CURSOR_HELP
 		if not badge.visible:
+			badge.tooltip_text = ""
 			continue
-		var effect := effects[index] as HealthView.StatusEffect
+		var effect := ordered[index] as HealthView.StatusEffect
+		var displayed_effects: Array = [effect]
+		var aggregate := index == badge_names.size() - 1 \
+			and ordered.size() > badge_names.size()
+		if aggregate:
+			displayed_effects = ordered.slice(index)
+		var tooltip := _health_effects_tooltip(displayed_effects)
+		var color := _health_effect_aggregate_color(displayed_effects)
+		badge.tooltip_text = tooltip
+		badge.add_theme_stylebox_override(
+			"panel", U.style(U.PANEL.lerp(color, 0.08), color, 1))
 		var label := badge.get_node_or_null("Text") as Label
 		if label != null:
-			label.text = "■  %s" % effect.display_name().to_upper()
-			label.tooltip_text = "%s · %d ticks remaining" % [
-				effect.display_name(), effect.remaining_ticks()]
+			label.text = "■  %d MORE EFFECTS" % displayed_effects.size() if aggregate \
+				else "■  %s" % effect.display_name().to_upper()
+			label.tooltip_text = tooltip
+			label.mouse_filter = Control.MOUSE_FILTER_PASS
+			label.mouse_default_cursor_shape = Control.CURSOR_HELP
+			label.clip_text = true
+			label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			label.offset_right = badge.size.x - 8.0
+			label.add_theme_color_override("font_color", color)
 		var edge := badge.get_node_or_null("Edge") as ColorRect
 		if edge != null:
-			edge.color = U.GREEN if effect.is_beneficial() else (
-				U.RED if effect.severity() >= HealthView.Severity.MAJOR else U.YELLOW)
+			edge.color = color
+
+
+func _health_effect_precedes(left: HealthView.StatusEffect, right: HealthView.StatusEffect) -> bool:
+	if left.severity() != right.severity():
+		return left.severity() > right.severity()
+	if left.is_beneficial() != right.is_beneficial():
+		return not left.is_beneficial()
+	return String(left.effect_id()) < String(right.effect_id())
+
+
+func _health_effects_tooltip(effects: Array) -> String:
+	var lines: Array[String] = []
+	for value in effects:
+		var effect := value as HealthView.StatusEffect
+		if effect == null:
+			continue
+		lines.append("%s · %s · %d ticks remaining%s" % [
+			effect.display_name(),
+			_health_effect_severity_name(effect.severity()),
+			effect.remaining_ticks(),
+			" · beneficial" if effect.is_beneficial() else "",
+		])
+	return "\n".join(PackedStringArray(lines))
+
+
+func _health_effect_severity_name(severity: HealthView.Severity) -> String:
+	match severity:
+		HealthView.Severity.CRITICAL:
+			return "Critical"
+		HealthView.Severity.MAJOR:
+			return "Major"
+		HealthView.Severity.MINOR:
+			return "Minor"
+	return "Info"
+
+
+func _health_effect_aggregate_color(effects: Array) -> Color:
+	var has_beneficial := false
+	var harmful_severity := -1
+	for value in effects:
+		var effect := value as HealthView.StatusEffect
+		if effect == null:
+			continue
+		if effect.is_beneficial():
+			has_beneficial = true
+		else:
+			harmful_severity = maxi(harmful_severity, int(effect.severity()))
+	if harmful_severity >= HealthView.Severity.MAJOR:
+		return U.RED
+	if harmful_severity == HealthView.Severity.MINOR:
+		return U.YELLOW
+	if harmful_severity == HealthView.Severity.INFO:
+		return U.BLUE
+	return U.GREEN if has_beneficial else U.MUTED
 
 
 func _set_health_card(area: Control, card_name: String, limb: String, percent: String, detail: String, color: Color, value: float) -> void:

@@ -1222,6 +1222,11 @@ func _on_runtime_health_view_changed(view: HealthView) -> void:
 func _on_runtime_binding_invalidated(_reason: StringName) -> void:
     if _character_runtime == null:
         return
+    # Runtime-level teardown/configuration failure disconnects the controller
+    # before publishing this event, so invalidate the screen-local gesture lease
+    # here rather than relying on a controller signal that cannot arrive.
+    _active_binding_token = 0
+    _cancel_split_quantity()
     _health_view = _character_runtime.health_view()
     _refresh_body()
 

@@ -1,0 +1,2 @@
+PASS git diff --check
+PASS shasum -a 256 -c docs/qa/profile_store/implementation/frozen_sources.sha256 (13/13 files)

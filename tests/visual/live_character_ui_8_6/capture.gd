@@ -79,7 +79,11 @@ func run() -> void:
         return
     app = load("res://ui/main.tscn").instantiate()
     app.name = "LiveCharacterUI86CaptureHost"
-    app.character_runtime_override = runtime
+    check(app.inject_character_runtime(runtime),
+        "test-only runtime injection is accepted before tree entry")
+    if failures > 0:
+        _finish()
+        return
     root.add_child(app)
     await settle()
 
@@ -94,6 +98,16 @@ func run() -> void:
     await settle()
     screen = app.screen
     await _capture("health_ready", screen)
+    var aggregate_badge := screen._node("HealthColumn/RadiationBadge") as Panel
+    await _hover(aggregate_badge.get_global_rect().get_center())
+    var hovered := root.gui_get_hovered_control()
+    check(hovered != null
+        and (hovered == aggregate_badge or aggregate_badge.is_ancestor_of(hovered))
+        and hovered.tooltip_text.contains("Low radiation exposure")
+        and hovered.tooltip_text.contains("Dehydrated"),
+        "native hover reaches the truthful aggregate effect tooltip")
+    await create_timer(0.8).timeout
+    await _capture("health_effects_hover", screen)
 
     owner.teardown(owner.generation())
     await settle()
@@ -110,6 +124,9 @@ func _capture(state: String, screen: Control) -> void:
     check(image.save_png(OUTPUT + "/" + file_name) == OK, "save " + file_name)
     var stash_scroll := screen._node("DesktopStashScroll") as ScrollContainer
     var grid: Control = screen._grid_for_source("loot" if screen._loot_mode else "stash")
+    var first_badge := screen._node("HealthColumn/DehydratedBadge") as Panel
+    var aggregate_badge := screen._node("HealthColumn/RadiationBadge") as Panel
+    var first_label := first_badge.get_node("Text") as Label
     records.append({
         "image": file_name,
         "state": state,
@@ -124,6 +141,17 @@ func _capture(state: String, screen: Control) -> void:
         "grid_parent": str(grid.get_parent().name) if grid != null else "",
         "replacement_panel_present": screen.has_node("LootContainerPanel"),
         "quick_heal_disabled": bool((screen._node("HealthColumn/QuickHeal") as Button).disabled),
+        "effects": {
+            "count_label": str((screen._node("HealthColumn/BodyWide") as Label).text),
+            "first_text": first_label.text,
+            "first_tooltip": first_badge.tooltip_text,
+            "first_clip": first_label.clip_text,
+            "first_overrun": first_label.text_overrun_behavior,
+            "first_mouse_filter": first_badge.mouse_filter,
+            "aggregate_text": str((aggregate_badge.get_node("Text") as Label).text),
+            "aggregate_tooltip": aggregate_badge.tooltip_text,
+            "aggregate_mouse_filter": aggregate_badge.mouse_filter,
+        },
     })
 
 
@@ -175,8 +203,18 @@ func _health_view() -> HealthView:
     ]
     var effects: Array[HealthView.StatusEffect] = [
         HealthView.StatusEffect.create(
-            &"zerkov.effect.injury.heavy_bleed", "Heavy bleed",
+            &"zerkov.effect.survival.dehydrated", "Dehydrated",
+            HealthView.Severity.INFO, 900),
+        HealthView.StatusEffect.create(
+            &"zerkov.effect.environment.radiation_low", "Low radiation exposure",
+            HealthView.Severity.MINOR, 700),
+        HealthView.StatusEffect.create(
+            &"zerkov.effect.injury.systemic_response",
+            "Critical systemic inflammatory response",
             HealthView.Severity.CRITICAL, 300),
+        HealthView.StatusEffect.create(
+            &"zerkov.effect.treatment.coagulant", "Coagulant boost",
+            HealthView.Severity.MAJOR, 240, true),
     ]
     return HealthView.create(
         admission.generation, 1, 100, admission.actor_id,
@@ -197,6 +235,15 @@ func _root_container_id(authority: InventoryAuthority, inventory_id: int) -> int
 
 func _spatial(container_id: int, x: int, y: int) -> Dictionary:
     return {"kind": "spatial", "container": container_id, "x": x, "y": y, "rotated": false}
+
+
+func _hover(point: Vector2) -> void:
+    var motion := InputEventMouseMotion.new()
+    motion.position = point
+    motion.global_position = point
+    root.push_input(motion)
+    await process_frame
+    await process_frame
 
 
 func _finish() -> void:

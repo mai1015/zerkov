@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://addons/common_ui/runtime/common_ui_screen_root.tscn" id="2_common_ui"]
+[ext_resource type="Script" path="res://game/input/zerkov_input_service.gd" id="3_input"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -15,3 +16,8 @@ script = ExtResource("1")
 [node name="CommonUIScreenRoot" parent="." instance=ExtResource("2_common_ui")]
 layout_mode = 1
 show_action_bar = false
+install_default_config = false
+
+[node name="ZerkovInputService" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("3_input")

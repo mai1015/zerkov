@@ -1,5 +1,5 @@
 {
-	"checks": 8,
+	"checks": 12,
 	"dimensions": [
 		1920,
 		1080
@@ -23,6 +23,17 @@
 				1920,
 				1080
 			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "Coagulant boost · Major · 240 ticks remaining · beneficial\nLow radiation exposure · Minor · 700 ticks remaining\nDehydrated · Info · 900 ticks remaining",
+				"count_label": "BODY-WIDE · 4",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": "Critical systemic inflammatory response · Critical · 300 ticks remaining"
+			},
 			"grid_cell": 74,
 			"grid_parent": "DesktopStashScroll",
 			"health_sync": "ready",
@@ -41,6 +52,17 @@
 				1920,
 				1080
 			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "Coagulant boost · Major · 240 ticks remaining · beneficial\nLow radiation exposure · Minor · 700 ticks remaining\nDehydrated · Info · 900 ticks remaining",
+				"count_label": "BODY-WIDE · 4",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": "Critical systemic inflammatory response · Critical · 300 ticks remaining"
+			},
 			"grid_cell": 74,
 			"grid_parent": "DesktopStashScroll",
 			"health_sync": "ready",
@@ -59,6 +81,46 @@
 				1920,
 				1080
 			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "Coagulant boost · Major · 240 ticks remaining · beneficial\nLow radiation exposure · Minor · 700 ticks remaining\nDehydrated · Info · 900 ticks remaining",
+				"count_label": "BODY-WIDE · 4",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": "Critical systemic inflammatory response · Critical · 300 ticks remaining"
+			},
+			"grid_cell": 74,
+			"grid_parent": "DesktopStashScroll",
+			"health_sync": "ready",
+			"image": "1920x1080_health_effects_hover.png",
+			"inventory_content": "[P: (0.0, 0.0), S: (1920.0, 1080.0)]",
+			"inventory_sync": "ready",
+			"quick_heal_disabled": true,
+			"replacement_panel_present": false,
+			"route": "health",
+			"runtime_configured": true,
+			"stash_scroll": "[P: (1304.0, 225.0), S: (518.0, 740.0)]",
+			"state": "health_effects_hover"
+		},
+		{
+			"dimensions": [
+				1920,
+				1080
+			],
+			"effects": {
+				"aggregate_mouse_filter": 0,
+				"aggregate_text": "■  3 MORE EFFECTS",
+				"aggregate_tooltip": "",
+				"count_label": "BODY-WIDE",
+				"first_clip": true,
+				"first_mouse_filter": 0,
+				"first_overrun": 3,
+				"first_text": "■  CRITICAL SYSTEMIC INFLAMMATORY RESPONSE",
+				"first_tooltip": ""
+			},
 			"grid_cell": 74,
 			"grid_parent": "DesktopStashScroll",
 			"health_sync": "disconnected",

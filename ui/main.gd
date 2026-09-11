@@ -32,19 +32,22 @@ var qa_mode: bool = false
 ## Explicit developer/test gate for the historical authored state. Production
 ## Character routes never fall back to this fixture store.
 var prototype_fixture_mode: bool = false
-## Test/integration injection point. Production uses the game-owned composition
-## below; a supplied runtime must already own real view/intent dependencies.
-var character_runtime_override: CharacterUIRuntime
-var character_composition: CharacterPresentationComposition
+## Explicit pre-tree integration seam. The app/profile/raid root may inject a
+## presentation runtime backed by its actual authority dependencies. Raw
+## authority objects and the composition itself are never exposed to screens.
+var _character_runtime_override: CharacterUIRuntime
+var _character_composition: CharacterPresentationComposition
 var resize_timer: Timer
 var _last_window_size: Vector2i
 var _resize_pending: bool = false
 var _review_navigation_enabled: bool = false
 var ui_layout_mode: String = "auto"
 var common_ui_root: CommonUIScreenRoot
+var input_service: ZerkovInputService
 
 func _ready() -> void:
 	common_ui_root = get_node("CommonUIScreenRoot") as CommonUIScreenRoot
+	input_service = get_node_or_null("ZerkovInputService") as ZerkovInputService
 	navigator = ZUINavigator.new()
 	navigator.configure(self, common_ui_root)
 	add_child(navigator)
@@ -64,13 +67,14 @@ func _ready() -> void:
 			qa_mode = true
 		if arg == "--prototype-fixtures":
 			prototype_fixture_mode = true
-	if character_runtime_override == null and not qa_mode \
+	if _character_runtime_override == null and not qa_mode \
 			and not review_start and not prototype_fixture_mode:
-		character_composition = CharacterPresentationComposition.new()
-		character_composition.name = "CharacterPresentationComposition"
-		add_child(character_composition)
-		if not character_composition.start():
-			push_warning("Character presentation unavailable: %s" % character_composition.last_error)
+		_character_composition = CharacterPresentationComposition.new()
+		_character_composition.name = "CharacterPresentationComposition"
+		add_child(_character_composition)
+		# No product authority has been supplied at this UI-only bootstrap boundary.
+		# The injection-only composition publishes typed unavailable views.
+		_character_composition.start()
 	_sync_window_scale()
 	resize_timer = Timer.new()
 	resize_timer.one_shot = true
@@ -109,12 +113,22 @@ func character_runtime_for_route(
 			or origin != ZUIRouteIntent.Origin.PRODUCTION \
 			or qa_mode or prototype_fixture_mode:
 		return null
-	if character_runtime_override != null \
-			and is_instance_valid(character_runtime_override):
-		return character_runtime_override
-	if character_composition != null and is_instance_valid(character_composition):
-		return character_composition.runtime
+	if _character_runtime_override != null \
+			and is_instance_valid(_character_runtime_override):
+		return _character_runtime_override
+	if _character_composition != null and is_instance_valid(_character_composition):
+		return _character_composition.character_runtime()
 	return null
+
+
+## Test/integration callers must inject before this host enters the scene tree,
+## ensuring every Character route created by CommonUI receives one stable
+## presentation owner for its complete lifecycle.
+func inject_character_runtime(value: CharacterUIRuntime) -> bool:
+	if value == null or not is_instance_valid(value) or is_inside_tree():
+		return false
+	_character_runtime_override = value
+	return true
 
 func _sync_window_scale() -> void:
 	var window = get_window()
@@ -158,6 +172,8 @@ func _finish_window_resize() -> void:
 func _on_route_committed(route: String, view: Control) -> void:
 	current_route = route
 	screen = view
+	if input_service != null:
+		input_service.transition_for_route(route, ZRouteCatalog.role_for(route))
 
 
 func _on_route_rejected(_route: String, reason: String) -> void:
@@ -227,29 +243,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(modal) or is_instance_valid(picker):
 		return
-	# Pointer activation remains a direct pointer intent until task 8.3 defines
-	# project actions. Keyboard/controller confirmation is screen-scoped through
-	# CommonUI in title.gd, so it cannot bypass an in-flight layer transition.
+	# Pointer activation remains a direct pointer intent because it is a pointer
+	# affordance on the title surface. Keyboard/controller actions are owned by
+	# CommonUI screen registrations and cannot bypass an in-flight transition.
 	if current_route == "title" and event is InputEventMouseButton:
 		request_route("main_menu")
 		get_viewport().set_input_as_handled()
 		return
-	if not event is InputEventKey:
-		return
-	var focused = get_viewport().gui_get_focus_owner()
-	if focused is LineEdit or focused is TextEdit:
-		return
-	if current_route in ["hud", "hud_coop", "inventory", "health", "stats", "maps", "tasks", "bunker", "session"]:
-		match event.keycode:
-			KEY_TAB:
-				if current_route in ["inventory", "health", "stats"]:
-					back()
-				else:
-					request_route("inventory")
-			KEY_M:
-				request_route("maps")
-			KEY_J:
-				request_route("tasks")
 
 func _run_qa() -> void:
 	var capture_dir = ""

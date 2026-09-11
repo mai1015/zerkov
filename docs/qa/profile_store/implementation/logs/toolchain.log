@@ -1,0 +1,8 @@
+PASS Godot 4.7.2.stable.official.ed1daf0bf (/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot)
+PASS Python 3.14.6
+PASS SCons 4.10.1.055
+PASS Apple Clang 21.0.0
+PASS macOS SDK 26.4
+PASS Host architecture arm64
+PASS godot-cpp 5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731 shared by 6 add-ons
+TOOLCHAIN_RESULT checks=7 failures=0
