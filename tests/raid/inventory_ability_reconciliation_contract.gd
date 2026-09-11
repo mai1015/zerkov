@@ -217,6 +217,7 @@ func run() -> void:
 	await _test_real_phase_reconciliation()
 	await _test_binding_trust_boundaries()
 	await _test_lifecycle_orders()
+	await _test_persistence_generation_invalidation()
 	await _test_explicit_release_before_raid_terminal()
 	await _test_declared_destruction_and_external_revoke()
 	await _test_failure_and_quarantine_contracts()
@@ -949,18 +950,84 @@ func _test_explicit_release_before_raid_terminal() -> void:
 	check(bool(inserted.get("accepted", false))
 		and component.active_effect_handles().size() == 1,
 		"explicit-release fixture starts with a live equipment effect")
-	var released := adapter.release_binding(
-		&"raid_terminal_composition_release", adapter.current_tick())
-	check(bool(released.get("invalidated", false))
-		and adapter.lifecycle == InventoryAbilityAdapter.Lifecycle.INVALIDATED
+	var released := adapter.prepare_for_raid_terminalization(
+		raid, raid.generation(), adapter.current_tick())
+	check(released and adapter.lifecycle == InventoryAbilityAdapter.Lifecycle.INVALIDATED
 		and component.active_effect_handles().is_empty()
 		and component.active_executions().is_empty()
 		and is_zero_approx(component.get_attribute_current(String(
 			ZerkovEquipmentAbilityContent.ATTRIBUTE_READIED_WEAPON_COUNT))),
-		"composition explicitly releases ability binding before raid terminalization")
-	check(raid.teardown(raid.generation())
-		and raid.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN,
+		"explicit pre-terminal seam revokes the ability binding before raid terminalization")
+	var clean_tick := component.get_current_tick()
+	var clean_spec_count := component.granted_specs().size()
+	check(raid.transition(RaidAuthority.Lifecycle.SETTLING, raid.generation()) \
+		and raid.transition(RaidAuthority.Lifecycle.COMPLETED, raid.generation()) \
+		and raid.lifecycle == RaidAuthority.Lifecycle.COMPLETED,
 		"raid terminalization follows explicit equipment cleanup")
+	check(not adapter.prepare_for_raid_terminalization(
+		raid, raid.generation(), adapter.current_tick())
+		and adapter.last_error == &"raid_already_terminal"
+		and component.get_current_tick() == clean_tick
+		and component.granted_specs().size() == clean_spec_count
+		and component.active_effect_handles().is_empty()
+		and component.active_executions().is_empty()
+		and is_zero_approx(component.get_attribute_current(String(
+			ZerkovEquipmentAbilityContent.ATTRIBUTE_READIED_WEAPON_COUNT))),
+		"late pre-terminal callback cannot mutate after RaidAuthority terminalization " \
+		+ str({"tick": component.get_current_tick(), "clean_tick": clean_tick,
+			"specs": component.granted_specs().size(),
+			"effects": component.active_effect_handles().size(),
+			"executions": component.active_executions().size(),
+			"attribute": component.get_attribute_current(String(
+				ZerkovEquipmentAbilityContent.ATTRIBUTE_READIED_WEAPON_COUNT)),
+			"adapter_error": adapter.last_error}))
+	_cleanup_fixture(fixture)
+	await process_frame
+
+
+func _test_persistence_generation_invalidation() -> void:
+	var fixture := _build_fixture("persistence_generation")
+	if fixture.is_empty():
+		return
+	var owner := fixture["owner"] as RaidInventoryOwner
+	var raid := fixture["raid"] as RaidAuthority
+	var adapter := fixture["adapter"] as InventoryAbilityAdapter
+	var component := fixture["component"] as GameplayAbilityComponent
+	check(raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid.generation()),
+		"persistence-generation raid activates")
+	var inserted := _advance_action(fixture, func() -> Dictionary:
+		return owner.raid_authority().insert_item(
+			owner.raid_player_inventory_id,
+			String(ZerkovInventoryCatalog.ITEM_AKM), 1,
+			_slot(int(fixture["equipment"]),
+				ZerkovEquipmentAbilityContent.SLOT_PRIMARY),
+			RaidInventoryOwner.FIXTURE_ACTOR_ID, _next_command()))
+	check(bool(inserted.get("accepted", false)) \
+		and component.active_effect_handles().size() == 1,
+		"persistence-generation fixture starts with a live equipment contribution")
+	var record := owner.raid_authority().make_persistence_record(
+		owner.raid_player_inventory_id)
+	var invalidations: Array[StringName] = []
+	adapter.binding_invalidated.connect(func(reason: StringName) -> void:
+		invalidations.append(reason))
+	var replacement: Dictionary = owner.raid_authority().apply_persistence_record(
+		record, true)
+	check(bool(replacement.get("ok", false)) \
+		and adapter.lifecycle == InventoryAbilityAdapter.Lifecycle.INVALIDATED \
+		and invalidations == [&"raid_player_inventory_generation_changing"],
+		"same-id persistence generation synchronously invalidates the ability adapter")
+	check(component.active_effect_handles().is_empty() \
+		and component.active_executions().is_empty() \
+		and is_zero_approx(component.get_attribute_current(String(
+			ZerkovEquipmentAbilityContent.ATTRIBUTE_READIED_WEAPON_COUNT))),
+		"ability contributions are revoked before the replacement becomes usable")
+	var clean_tick := component.get_current_tick()
+	var clean_specs := component.granted_specs().size()
+	check(_advance(fixture) \
+		and component.get_current_tick() == clean_tick \
+		and component.granted_specs().size() == clean_specs \
+		and component.active_effect_handles().is_empty(),
+		"retained phase callback is a no-op after persistence invalidation")
 	_cleanup_fixture(fixture)
 	await process_frame
 

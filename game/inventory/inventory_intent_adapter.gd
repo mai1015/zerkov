@@ -6,6 +6,8 @@ extends RefCounted
 ## trusted port, validates current inventory/world facts, and performs exactly
 ## one synchronous InventoryAuthority command. It owns no canonical state.
 
+signal binding_invalidated(reason: StringName)
+
 const INTENT_KIND_TRANSFER: StringName = &"inventory_transfer"
 const INTENT_KIND_LOOT: StringName = &"inventory_loot"
 const INTENT_KIND_MOVE: StringName = &"inventory_move"
@@ -128,6 +130,13 @@ var _command_bindings: Dictionary = {}
 var _submission_active: bool = false
 var _native_call_active: bool = false
 var _raid_authority_instance_id: int = 0
+var _invalidated: bool = false
+var _invalidation_emitted: bool = false
+var _deferred_invalidation_reason: StringName = &""
+var _clear_replay_on_invalidation: bool = false
+var _inventory_unloaded_callback: Callable
+var _inventory_generation_callback: Callable
+var _owner_tree_exiting_callback: Callable
 
 
 func configure(
@@ -169,6 +178,38 @@ func configure(
 	_owner_generation = captured_owner_generation
 	_max_transfer_distance_raw = max_transfer_distance_raw
 	_configured = true
+	_connect_lifecycle_signals()
+	return true
+
+
+func is_bound() -> bool:
+	return _configured and not _invalidated and _owner_is_current()
+
+
+func owner_generation() -> int:
+	return _owner_generation
+
+
+func matches_binding(
+	owner: RaidInventoryOwner,
+	admission: ZSessionAdmission
+) -> bool:
+	return is_bound() and owner != null and admission != null \
+		and _owner == owner and _authority == owner.raid_authority() \
+		and _owner_generation == owner.generation() \
+		and _admissions_match(_admission, admission)
+
+
+## The registered raid phase handler intentionally remains a stable no-op
+## after release. RaidAuthority owns that Callable until its own terminal edge.
+func release_binding(reason: StringName = &"inventory_intent_adapter_released") -> bool:
+	last_error = &""
+	if not _configured or _invalidated:
+		return _reject_configuration(&"adapter_not_bound")
+	if _submission_active or _native_call_active:
+		return _reject_configuration(&"reentrant_binding_change")
+	_request_invalidation(reason if not reason.is_empty() \
+		else &"inventory_intent_adapter_released", true)
 	return true
 
 
@@ -178,7 +219,7 @@ func register_with_raid_authority(
 	handler_id: StringName = DEFAULT_PHASE_HANDLER_ID
 ) -> bool:
 	last_error = &""
-	if not _configured:
+	if not _configured or _invalidated:
 		return _reject_configuration(&"adapter_not_configured")
 	if raid_authority == null or not is_instance_valid(raid_authority):
 		return _reject_configuration(&"raid_authority_invalid")
@@ -214,6 +255,8 @@ func handle_raid_phase(
 	if phase != RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS:
 		last_error = &"handler_phase_invalid"
 		return false
+	if _invalidated:
+		return true
 	for intent in intents:
 		if intent == null or not SUPPORTED_INTENT_KINDS.has(intent.kind):
 			continue
@@ -221,6 +264,8 @@ func handle_raid_phase(
 			last_error = &"handler_tick_invalid"
 			return false
 		var result := submit_intent(intent)
+		if _invalidated:
+			return true
 		var reason := StringName(result.get("reason", &""))
 		if _INTERNAL_HANDLER_FAILURES.has(reason):
 			last_error = reason
@@ -240,6 +285,7 @@ func submit_intent(intent: ZRaidIntent) -> Dictionary:
 	_submission_active = true
 	var result := _submit_intent_once(intent)
 	_submission_active = false
+	_finish_deferred_invalidation()
 	return result
 
 
@@ -283,6 +329,8 @@ func _submit_intent_once(intent: ZRaidIntent) -> Dictionary:
 	# visibility, access, distance, and policy facts.
 	if _request_ledger.has(request_key):
 		return _replay_or_conflict(request_key, fingerprint)
+	if _invalidated:
+		return _result(false, false, &"stale_generation", request_key)
 	if _request_ledger.size() >= MAX_TRACKED_REQUESTS:
 		return _result(false, false, &"request_history_full", request_key)
 
@@ -695,13 +743,123 @@ func _revision_rejection_for(
 
 func _owner_is_current() -> bool:
 	return (
-		_owner != null
+		not _invalidated
+		and _owner != null
 		and is_instance_valid(_owner)
 		and _owner.is_current_generation(_owner_generation)
 		and _authority != null
 		and is_instance_valid(_authority)
 		and _owner.raid_authority() == _authority
 	)
+
+
+func _connect_lifecycle_signals() -> void:
+	_inventory_unloaded_callback = Callable(self, "_on_inventory_unloaded").bind(
+		_authority.get_instance_id())
+	_inventory_generation_callback = Callable(
+		self, "_on_inventory_generation_changing").bind(
+		_authority.get_instance_id())
+	_owner_tree_exiting_callback = Callable(self, "_on_owner_tree_exiting")
+	_authority.inventory_unloaded.connect(_inventory_unloaded_callback)
+	_authority.inventory_generation_changing.connect(_inventory_generation_callback)
+	_owner.tree_exiting.connect(_owner_tree_exiting_callback)
+
+
+func _disconnect_lifecycle_signals() -> void:
+	if _authority != null and is_instance_valid(_authority):
+		if _inventory_unloaded_callback.is_valid() \
+				and _authority.inventory_unloaded.is_connected(
+					_inventory_unloaded_callback):
+			_authority.inventory_unloaded.disconnect(_inventory_unloaded_callback)
+		if _inventory_generation_callback.is_valid() \
+				and _authority.inventory_generation_changing.is_connected(
+					_inventory_generation_callback):
+			_authority.inventory_generation_changing.disconnect(
+				_inventory_generation_callback)
+	if _owner != null and is_instance_valid(_owner) \
+			and _owner_tree_exiting_callback.is_valid() \
+			and _owner.tree_exiting.is_connected(_owner_tree_exiting_callback):
+		_owner.tree_exiting.disconnect(_owner_tree_exiting_callback)
+	_inventory_unloaded_callback = Callable()
+	_inventory_generation_callback = Callable()
+	_owner_tree_exiting_callback = Callable()
+
+
+func _on_inventory_unloaded(inventory_id: int, expected_authority_id: int) -> void:
+	if _lifecycle_callback_is_current(inventory_id, expected_authority_id):
+		# A completed receipt remains a safe immutable answer after teardown; no
+		# new request can pass the invalidated binding gate below it.
+		_request_invalidation(&"inventory_unloaded", false)
+
+
+func _on_inventory_generation_changing(
+	inventory_id: int,
+	expected_authority_id: int
+) -> void:
+	if _lifecycle_callback_is_current(inventory_id, expected_authority_id):
+		# Same-id replacement resets the add-on's scoped idempotency journal. The
+		# game-owned receipt/command ledgers must cross the generation edge too.
+		_request_invalidation(&"inventory_generation_changing", true)
+
+
+func _on_owner_tree_exiting() -> void:
+	_request_invalidation(&"inventory_owner_tree_exiting", false)
+
+
+func _lifecycle_callback_is_current(
+	inventory_id: int,
+	expected_authority_id: int
+) -> bool:
+	return not _invalidated and _owner != null and is_instance_valid(_owner) \
+		and _authority != null and is_instance_valid(_authority) \
+		and _authority.get_instance_id() == expected_authority_id \
+		and inventory_id in [
+			_owner.raid_player_inventory_id,
+			_owner.world_crate_inventory_id,
+			_owner.corpse_inventory_id,
+		]
+
+
+func _request_invalidation(reason: StringName, clear_replay: bool) -> void:
+	if not _configured or _invalidation_emitted or _invalidated:
+		return
+	_invalidated = true
+	_clear_replay_on_invalidation = _clear_replay_on_invalidation or clear_replay
+	if clear_replay:
+		_request_ledger.clear()
+		_command_bindings.clear()
+	last_error = reason
+	if _submission_active or _native_call_active:
+		_deferred_invalidation_reason = reason
+		return
+	_finalize_invalidation(reason)
+
+
+func _finish_deferred_invalidation() -> void:
+	if _deferred_invalidation_reason.is_empty() or _invalidation_emitted:
+		return
+	var reason := _deferred_invalidation_reason
+	_deferred_invalidation_reason = &""
+	_finalize_invalidation(reason)
+
+
+func _finalize_invalidation(reason: StringName) -> void:
+	if _invalidation_emitted:
+		return
+	_disconnect_lifecycle_signals()
+	if _clear_replay_on_invalidation:
+		# A submission interrupted by the generation signal can construct a local
+		# rejection while it unwinds. Clear again at the final boundary so neither
+		# that result nor any pre-generation receipt survives replacement.
+		_request_ledger.clear()
+		_command_bindings.clear()
+	_invalidation_emitted = true
+	last_error = reason
+	_owner = null
+	_authority = null
+	_identity_port = null
+	_world_policy_port = null
+	binding_invalidated.emit(reason)
 
 
 func _normalize_payload(kind: StringName, payload: Dictionary) -> Dictionary:

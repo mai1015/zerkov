@@ -186,6 +186,7 @@ func bind(owner: RaidInventoryOwner, bridge: InventoryProjectionBridge, adapter:
 	_configure_source_bindings()
 	_active = true
 	_connect_bridge()
+	_connect_adapter()
 
 	if not bridge.is_bound():
 		if not bridge.bind_owner(owner, _owner_generation):
@@ -207,6 +208,8 @@ func unbind() -> void:
 	_binding_serial += 1
 	if _bridge != null:
 		_disconnect_bridge()
+	if _adapter != null:
+		_disconnect_adapter()
 	for scope in _model_connections.keys():
 		_disconnect_model(StringName(scope))
 	_model_connections.clear()
@@ -1156,19 +1159,8 @@ func _bridge_matches_owner() -> bool:
 
 
 func _adapter_matches(owner: RaidInventoryOwner, adapter: InventoryIntentAdapter, admission: ZSessionAdmission) -> bool:
-	if owner == null or adapter == null or admission == null:
-		return false
-	if not bool(adapter.get("_configured")) \
-			or adapter.get("_owner") != owner \
-			or adapter.get("_authority") != owner.raid_authority() \
-			or int(adapter.get("_owner_generation")) != owner.generation():
-		return false
-	var adapter_admission := adapter.get("_admission") as ZSessionAdmission
-	return adapter_admission != null and adapter_admission.is_usable() \
-		and adapter_admission.session_id.is_equal(admission.session_id) \
-		and adapter_admission.actor_id.is_equal(admission.actor_id) \
-		and adapter_admission.authority_epoch == admission.authority_epoch \
-		and adapter_admission.generation == admission.generation
+	return owner != null and adapter != null and admission != null \
+		and adapter.matches_binding(owner, admission)
 
 
 func _connect_bridge() -> void:
@@ -1193,6 +1185,17 @@ func _disconnect_bridge() -> void:
 		_bridge.binding_invalidated.disconnect(_on_binding_invalidated)
 	if _bridge.snapshot_projected.is_connected(_on_snapshot_projected):
 		_bridge.snapshot_projected.disconnect(_on_snapshot_projected)
+
+
+func _connect_adapter() -> void:
+	if not _adapter.binding_invalidated.is_connected(_on_binding_invalidated):
+		_adapter.binding_invalidated.connect(_on_binding_invalidated)
+
+
+func _disconnect_adapter() -> void:
+	if _adapter != null \
+			and _adapter.binding_invalidated.is_connected(_on_binding_invalidated):
+		_adapter.binding_invalidated.disconnect(_on_binding_invalidated)
 
 
 func _bind_model(scope: StringName, model: InventoryPresentationModel) -> void:
@@ -1282,11 +1285,19 @@ func _on_binding_invalidated(reason: StringName) -> void:
 	if not _active:
 		return
 	last_error = reason
+	_binding_serial += 1
 	_active = false
 	_disconnect_bridge()
+	_disconnect_adapter()
 	for scope in _model_connections.keys():
 		_disconnect_model(StringName(scope))
 	_model_connections.clear()
+	_owner = null
+	_bridge = null
+	_adapter = null
+	_admission = null
+	_owner_generation = 0
+	_source_bindings.clear()
 	binding_invalidated.emit(reason)
 
 
