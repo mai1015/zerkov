@@ -38,6 +38,7 @@ func key(code: Key):
 func run():
 	root.size = Vector2i(1920, 1080)
 	app = load("res://ui/main.tscn").instantiate()
+	app.prototype_fixture_mode = true
 	root.add_child(app)
 	app.qa_mode = true
 	await settle()
@@ -52,21 +53,28 @@ func run():
 	check(app.screen._recipe_data()[0] == "Splint", "Recipe selection updates detail data")
 	app.screen._on_collect_queue("splint")
 	await settle()
-	check(app.state.bunker_craft_queue.size() == 1, "Ready craft collection frees a slot")
-	check(app.state.bunker_collected.has("Splint ×1"), "Collection records stash receipt")
+	check(app.fixture_state_for_test().bunker_craft_queue.size() == 1,
+		"Ready craft collection frees a slot")
+	check(app.fixture_state_for_test().bunker_collected.has("Splint ×1"),
+		"Collection records stash receipt")
 	app.screen._on_craft_now()
 	await settle()
-	check(app.state.bunker_craft_queue.size() == 2, "Selected recipe queues after collection")
-	check(app.state.bunker_craft_queue[1].name.begins_with("Splint"), "Queued output matches selected recipe")
+	check(app.fixture_state_for_test().bunker_craft_queue.size() == 2,
+		"Selected recipe queues after collection")
+	check(app.fixture_state_for_test().bunker_craft_queue[1].name.begins_with("Splint"),
+		"Queued output matches selected recipe")
 	app.screen._on_craft_now()
-	check(app.state.bunker_craft_queue.size() == 2, "Full queue rejects additional craft")
-	app.state.bunker_craft_queue[0].finish_at = Time.get_ticks_msec() - 1
+	check(app.fixture_state_for_test().bunker_craft_queue.size() == 2,
+		"Full queue rejects additional craft")
+	app.fixture_state_for_test().bunker_craft_queue[0].finish_at = Time.get_ticks_msec() - 1
 	await settle()
 	await settle()
 	check(app.screen._craft_status_labels[0].text == "READY", "Timer completion updates ready state")
-	app.screen._on_collect_queue(str(app.state.bunker_craft_queue[0].id))
+	app.screen._on_collect_queue(str(
+		app.fixture_state_for_test().bunker_craft_queue[0].id))
 	await settle()
-	check(app.state.bunker_craft_queue.size() == 1, "Newly finished craft can be collected")
+	check(app.fixture_state_for_test().bunker_craft_queue.size() == 1,
+		"Newly finished craft can be collected")
 	app.navigate("build_mode")
 	await settle()
 	await key(KEY_R)
@@ -79,7 +87,8 @@ func run():
 	await settle()
 	app.screen._confirm_place_building()
 	await settle()
-	check(app.state.bunker_placed == 8, "Placement increments visible placed count")
+	check(app.fixture_state_for_test().bunker_placed == 8,
+		"Placement increments visible placed count")
 	await key(KEY_ESCAPE)
 	check(app.current_route == "bunker", "Escape exits build mode to bunker")
 	await key(KEY_B)
@@ -87,24 +96,32 @@ func run():
 	app.navigate("session")
 	await settle()
 	await click_at(Vector2(1460, 170))
-	check(app.state.bunker_privacy == "CLOSED", "Session privacy survives rebuild")
-	var original_code = app.state.bunker_code
+	check(app.fixture_state_for_test().bunker_privacy == "CLOSED",
+		"Session privacy survives rebuild")
+	var original_code = app.fixture_state_for_test().bunker_code
 	app.screen._on_new_code()
 	await settle()
-	check(app.state.bunker_code != original_code, "New code changes world code")
+	check(app.fixture_state_for_test().bunker_code != original_code,
+		"New code changes world code")
 	app.screen._on_invite("DENZ")
 	await settle()
-	check(app.state.bunker_invited.has("DENZ"), "Mock invite has persistent visible state")
+	check(app.fixture_state_for_test().bunker_invited.has("DENZ"),
+		"Mock invite has persistent visible state")
 	app.screen._confirm_kick_guest()
 	await settle()
-	check(not app.state.bunker_guest_present, "Kick removes guest and updates world occupancy")
-	app.state["frontflow_worlds"] = [{"name": "QA World", "privacy": "FRIENDS", "max_players": 3}]
-	app.state["frontflow_selected_world"] = 0
+	check(not app.fixture_state_for_test().bunker_guest_present,
+		"Kick removes guest and updates world occupancy")
+	app.fixture_state_for_test()["frontflow_worlds"] = [
+		{"name": "QA World", "privacy": "FRIENDS", "max_players": 3}]
+	app.fixture_state_for_test()["frontflow_selected_world"] = 0
 	app.navigate("session")
 	await settle()
-	check(app.state.bunker_privacy == "FRIENDS" and app.screen._max_players() == 3, "Session reads selected world settings")
+	check(app.fixture_state_for_test().bunker_privacy == "FRIENDS" \
+			and app.screen._max_players() == 3,
+		"Session reads selected world settings")
 	app.screen._on_privacy("CLOSED")
 	await settle()
-	check(app.state.frontflow_worlds[0].privacy == "CLOSED", "Privacy updates selected world metadata")
+	check(app.fixture_state_for_test().frontflow_worlds[0].privacy == "CLOSED",
+		"Privacy updates selected world metadata")
 	print("BUNKER_TEST_COMPLETE failures=", failures)
 	quit(failures)

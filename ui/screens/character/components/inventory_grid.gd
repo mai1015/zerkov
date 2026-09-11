@@ -2,8 +2,8 @@ extends Control
 ## A small, native Control inventory grid used by the character screens.
 ##
 ## The grid deliberately owns only presentation and pointer/drag semantics.  The
-## screen that owns it keeps the actual item arrays in app.state and decides what
-## a move means.  This keeps the mock easy to navigate without introducing game
+## screen that owns it keeps fixture arrays behind an explicit preview provider
+## and decides what a move means. This keeps the mock easy to navigate without introducing game
 ## or economy logic.
 
 signal item_hovered(item: Dictionary, hovering: bool)

@@ -37,6 +37,7 @@ func texts() -> Array[String]:
 func run() -> void:
     root.size = FIRST_PLAYABLE_SIZE
     app = load("res://ui/main.tscn").instantiate()
+    app.prototype_fixture_mode = true
     root.add_child(app)
     app.qa_mode = true
     await settle()
@@ -46,15 +47,18 @@ func run() -> void:
     check(not texts().has("SQUAD · 3 / 4"), "Solo HUD omits squad")
     check(texts().has("24"), "Exact ammo renders initial 24 rounds")
     await press_key(KEY_H)
-    check(app.state.raid_low_health and texts().has("BLEEDING"), "H renders low health effects")
+    check(app.fixture_state_for_test().raid_low_health and texts().has("BLEEDING"),
+        "H renders low health effects")
     await press_key(KEY_Y)
-    check(not app.state.raid_low_health and not texts().has("BLEEDING"), "Y clears bleeding preview")
+    check(not app.fixture_state_for_test().raid_low_health \
+        and not texts().has("BLEEDING"), "Y clears bleeding preview")
     await press_key(KEY_R)
     check(app.screen._reload_active and app.screen._ring_nodes.size() == 1, "R starts overhead ring")
     check(texts().has("--"), "Reload dims ammo counter")
     await create_timer(2.6).timeout
     check(not app.screen._reload_active and app.screen._ring_nodes.is_empty(), "Reload completes and removes ring")
-    check(app.state.raid_ammo == 30 and texts().has("30"), "Reload refills mock magazine")
+    check(app.fixture_state_for_test().raid_ammo == 30 and texts().has("30"),
+        "Reload refills mock magazine")
     var shot = InputEventMouseButton.new()
     shot.button_index = MOUSE_BUTTON_LEFT
     shot.position = Vector2(FIRST_PLAYABLE_SIZE) / 2.0
@@ -64,12 +68,13 @@ func run() -> void:
     shot.pressed = false
     root.push_input(shot)
     await settle()
-    check(app.state.raid_ammo == 29 and app.screen._crosshair.hit, "Click animates mock shot and hit marker")
+    check(app.fixture_state_for_test().raid_ammo == 29 and app.screen._crosshair.hit,
+        "Click animates mock shot and hit marker")
     app.navigate("settings", false)
     await settle()
     for pair in [["hud_scale", 120.0], ["hud_opacity", 60.0], ["hud_safe_zone", 80.0], ["hud_crosshair_shape", "RING"], ["hud_crosshair_color", "BLUE"], ["hud_health_readout", "BAR + NUMBER"], ["hud_ammo_counter", "ROUGH"], ["hud_status_icons", "ICON"], ["hud_idle_fade", "3 S"], ["hud_squad_tags", false], ["hud_loot_feed", "OFF"]]:
         app.screen._set_setting(pair[0], pair[1])
-    app.state.raid_low_health = true
+    app.fixture_state_for_test().raid_low_health = true
     app.navigate("hud_coop", false)
     await settle()
     check(app.screen._crosshair.shape == "RING" and app.screen._crosshair.tint == Color("#4c8dff"), "Saved crosshair shape/color reach raid renderer")
@@ -110,7 +115,8 @@ func run() -> void:
     for button in app.modal.find_children("*", "Button", true, false):
         if button.text == "CONFIRM": button.pressed.emit()
     await settle()
-    check(app.state.get("raid_loadout_insured", false), "Confirm records insurance sample state")
+    check(app.fixture_state_for_test().get("raid_loadout_insured", false),
+        "Confirm records insurance sample state")
     await press_key(KEY_ENTER)
     check(app.current_route == "bunker", "Enter returns solo summary to bunker")
     print("RAID_TEST_COMPLETE checks=", checks, " failures=", failures)

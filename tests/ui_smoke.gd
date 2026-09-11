@@ -45,6 +45,7 @@ func press_key(code: Key) -> void:
 func run() -> void:
 	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate()
+	app.prototype_fixture_mode = true
 	root.add_child(app)
 	app.qa_mode = true
 	await settle()
@@ -62,8 +63,10 @@ func run() -> void:
 	await press_key(KEY_ESCAPE)
 	app.screen._privacy_friends()
 	await settle()
-	check(app.state.get("bunker_privacy") == "FRIENDS", "Pause privacy updates session state")
-	check(app.state.get("frontflow_worlds", [])[0].get("privacy") == "FRIENDS", "Pause privacy updates selected world")
+	check(app.fixture_state_for_test().get("bunker_privacy") == "FRIENDS",
+		"Pause privacy updates session preview state")
+	check(app.fixture_state_for_test().get("frontflow_worlds", [])[0].get(
+		"privacy") == "FRIENDS", "Pause privacy updates selected world")
 	await press_key(KEY_ESCAPE)
 	check(app.current_route == "session", "Privacy changes preserve pause return context")
 	app.navigate("main_menu", false)
@@ -129,27 +132,32 @@ func run() -> void:
 	check(result.accepted, "Confirm executes local action")
 	check(not is_instance_valid(app.modal), "Confirm closes confirmation")
 
-	app.state["smoke_sentinel"] = 42
+	app.fixture_state_for_test()["smoke_sentinel"] = 42
 	app.navigate("inventory")
 	app.navigate("maps")
 	app.navigate("inventory")
-	check(app.state.get("smoke_sentinel") == 42, "Local mock state persists across navigation")
+	check(app.fixture_state_for_test().get("smoke_sentinel") == 42,
+		"Explicit local preview state persists across navigation")
 	app.navigate("saves")
 	await settle()
-	var world_count: int = app.state.frontflow_worlds.size()
+	var world_count: int = app.fixture_state_for_test().frontflow_worlds.size()
 	app.screen._duplicate_world()
 	await settle()
-	check(app.state.frontflow_worlds.size() == world_count + 1, "Duplicate world creates another local card")
+	check(app.fixture_state_for_test().frontflow_worlds.size() == world_count + 1,
+		"Duplicate world creates another local card")
 	app.screen._rename_world()
 	await settle()
 	var rename_fields: Array[Node] = app.modal.find_children("*", "LineEdit", true, false)
 	rename_fields[0].text = "QA WORLD"
 	rename_fields[0].text_submitted.emit("QA WORLD")
 	await settle()
-	check(app.state.frontflow_worlds[app.state.frontflow_selected_world].name == "QA WORLD", "Rename updates selected world")
+	check(app.fixture_state_for_test().frontflow_worlds[
+		app.fixture_state_for_test().frontflow_selected_world].name == "QA WORLD",
+		"Rename updates selected world")
 	app.screen._delete_world_confirmed()
 	await settle()
-	check(app.state.frontflow_worlds.size() == world_count, "Deleting a duplicate removes only that local world")
+	check(app.fixture_state_for_test().frontflow_worlds.size() == world_count,
+		"Deleting a duplicate removes only that local world")
 	app.navigate("join_friend")
 	await settle()
 	app.screen._submit_friend_code("bad code")
@@ -157,13 +165,16 @@ func run() -> void:
 	app.screen._submit_friend_code("ZK-4A91-KX")
 	await settle()
 	check(app.current_route == "session", "Valid mock invitation enters session")
-	app.state["frontflow_worlds"] = []
+	app.fixture_state_for_test()["frontflow_worlds"] = []
 	app.navigate("saves")
 	await settle()
-	check(app.state.frontflow_worlds.is_empty(), "An empty world list must not recreate deleted defaults")
+	check(app.fixture_state_for_test().frontflow_worlds.is_empty(),
+		"An empty world list must not recreate deleted defaults")
 	app.screen._create_world_confirmed("FRESH START")
 	await settle()
-	check(app.state.frontflow_worlds.size() == 1 and app.state.frontflow_worlds[0].name == "FRESH START", "Create world works from the empty state")
+	check(app.fixture_state_for_test().frontflow_worlds.size() == 1 \
+			and app.fixture_state_for_test().frontflow_worlds[0].name == "FRESH START",
+		"Create world works from the empty state")
 	print("UI_TEST_COMPLETE checks=", checks, " failures=", failures)
 	app.queue_free()
 	await settle()

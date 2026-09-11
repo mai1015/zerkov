@@ -5,7 +5,7 @@ const KIT = preload("res://ui/theme/tokens.gd")
 ## Shared raid-screen runtime.
 ##
 ## Raid-family scenes own their authored UI hierarchy. This script retains the
-## shared mock state, input, animation, and compact reflow behavior.
+## shared fixture-provider state, input, animation, and compact reflow behavior.
 
 const W: float = 1920.0
 const H: float = 1080.0
@@ -297,19 +297,14 @@ func _state_get(key: String, fallback: Variant) -> Variant:
 	var main: ZUIContext = _main()
 	if main == null:
 		return fallback
-	var value: Variant = main.get("state")
-	if value is Dictionary:
-		return (value as Dictionary).get(key, fallback)
-	return fallback
+	return main.fixture_get(key, fallback)
 
 
 func _state_set(key: String, value: Variant) -> void:
 	var main: ZUIContext = _main()
 	if main == null:
 		return
-	var state_value: Variant = main.get("state")
-	if state_value is Dictionary:
-		(state_value as Dictionary)[key] = value
+	main.fixture_set(key, value)
 
 
 func _setting_bool(key: String, fallback: bool) -> bool:

@@ -21,12 +21,12 @@ func build() -> void:
 
 
 func _initialize_deployment_state() -> void:
-	var initial: float = float(app.state.get("frontflow_deploy_percent", 68.0))
+	var initial: float = float(app.fixture_get("frontflow_deploy_percent", 68.0))
 	if initial < 1.0 or initial >= 100.0:
 		initial = 68.0
 	deploy_bar.value = initial
 	deploy_value_label.text = "%d%%" % int(initial)
-	app.state["frontflow_deploy_percent"] = initial
+	app.fixture_set("frontflow_deploy_percent", initial)
 
 
 func _wire_deployment_timer() -> void:

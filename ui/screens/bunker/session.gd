@@ -21,13 +21,13 @@ func build() -> void:
 
 
 func _bind_dynamic_data() -> void:
-	var worlds: Array = app.state.get("frontflow_worlds", [])
-	var selected: int = int(app.state.get("frontflow_selected_world", 0))
+	var worlds: Array = app.fixture_get("frontflow_worlds", [])
+	var selected: int = int(app.fixture_get("frontflow_selected_world", 0))
 	var world_name: String = "OAK'S BUNKER"
 	if selected >= 0 and selected < worlds.size():
 		world_name = str(worlds[selected].get("name", world_name)).to_upper()
-	var privacy: String = str(app.state.get("bunker_privacy", "INVITE ONLY")).to_upper()
-	var guest_present: bool = bool(app.state.get("bunker_guest_present", true))
+	var privacy: String = str(app.fixture_get("bunker_privacy", "INVITE ONLY")).to_upper()
+	var guest_present: bool = bool(app.fixture_get("bunker_guest_present", true))
 	var max_players: int = _max_players()
 	var player_count: int = 2 if guest_present else 1
 
@@ -56,9 +56,9 @@ func _bind_dynamic_data() -> void:
 	(panel.get_node("Occupancy") as Label).text = "IN THIS WORLD · %d / %d" % [player_count, max_players]
 	(panel.get_node("Players/Guest") as Control).visible = guest_present
 	(panel.get_node("Players/EmptySlot/Label") as Label).text = "□  %d EMPTY SLOTS · INVITE" % maxi(0, max_players - player_count)
-	(panel.get_node("CodeRow/Code") as Label).text = str(app.state.get("bunker_code", "ZK-7F2Q"))
+	(panel.get_node("CodeRow/Code") as Label).text = str(app.fixture_get("bunker_code", "ZK-7F2Q"))
 
-	var invited: Array = app.state.get("bunker_invited", [])
+	var invited: Array = app.fixture_get("bunker_invited", [])
 	for friend in [["Denz", "DENZ"], ["Pilgrim", "PILGRIM_88"], ["Soot", "SOOT"]]:
 		var invite: Button = panel.get_node("FriendsBox/%s/Invite" % friend[0]) as Button
 		invite.text = "INVITED" if invited.has(friend[1]) else "INVITE"
@@ -143,4 +143,3 @@ func _wire_button(button: Button, callback: Callable) -> void:
 
 func _on_world_back() -> void:
 	go("bunker")
-

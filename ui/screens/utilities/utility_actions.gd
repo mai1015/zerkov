@@ -67,18 +67,36 @@ const SETTINGS_DEFAULTS := {
 	"controller_invert_y": false
 }
 
-const Fixture = preload("res://ui/dev/fixtures/utility_fixture.gd")
-const ZONES = Fixture.ZONES
-const TASKS = Fixture.TASKS
-const TRADERS = Fixture.TRADERS
-const CONTROL_GROUPS = Fixture.CONTROL_GROUPS
-const DEFAULT_BINDINGS = Fixture.DEFAULT_BINDINGS
+var ZONES: Array = []
+var TASKS: Array = []
+var TRADERS: Array = []
+var CONTROL_GROUPS: Array = []
+var DEFAULT_BINDINGS: Dictionary = {}
 
 var route: String = ""
 var capture_action: String = ""
 var capture_column: String = ""
 var _skip_next_input: bool = false
 var _compact_scroll: Dictionary = {}
+
+
+func _prepare_fixture_preview() -> bool:
+	if not super._prepare_fixture_preview():
+		return false
+	var zones: Variant = app.fixture_catalog(&"zones")
+	var tasks: Variant = app.fixture_catalog(&"tasks")
+	var traders: Variant = app.fixture_catalog(&"traders")
+	var control_groups: Variant = app.fixture_catalog(&"control_groups")
+	var default_bindings: Variant = app.fixture_catalog(&"default_bindings")
+	if not zones is Array or not tasks is Array or not traders is Array \
+			or not control_groups is Array or not default_bindings is Dictionary:
+		return false
+	ZONES = zones
+	TASKS = tasks
+	TRADERS = traders
+	CONTROL_GROUPS = control_groups
+	DEFAULT_BINDINGS = default_bindings
+	return true
 
 
 # Authored utility scenes expose their route through scene metadata when a
@@ -105,25 +123,25 @@ func _compact_tab(key: String, value: String) -> void:
 
 
 func _state_value(key: String, fallback: Variant) -> Variant:
-	if app == null:
+	if app == null or not app.has_fixture_provider():
 		return fallback
-	return app.state.get(key, fallback)
+	return app.fixture_get(key, fallback)
 
 
 func _set_state(key: String, value: Variant) -> void:
 	if app != null:
-		app.state[key] = value
+		app.fixture_set(key, value)
 
 
 func _dictionary_state(key: String) -> Dictionary:
 	var result: Dictionary = {}
 	if app == null:
 		return result
-	var raw = app.state.get(key, {})
+	var raw: Variant = app.fixture_get(key, {})
 	if raw is Dictionary:
 		result = raw
 	else:
-		app.state[key] = result
+		app.fixture_set(key, result)
 	return result
 
 
@@ -133,7 +151,7 @@ func _settings_state() -> Dictionary:
 		if not result.has(key):
 			result[key] = SETTINGS_DEFAULTS[key]
 	if app != null:
-		app.state["utility_settings"] = result
+		app.fixture_set("utility_settings", result)
 	return result
 
 
@@ -141,12 +159,12 @@ func _set_setting(key: String, value: Variant) -> void:
 	var settings: Dictionary = _settings_state()
 	settings[key] = value
 	if app != null:
-		app.state["utility_settings"] = settings
+		app.fixture_set("utility_settings", settings)
 		if key.begins_with("hud_"):
-			app.state[key] = value
+			app.fixture_set(key, value)
 			var hud: Dictionary = _dictionary_state("hud_settings")
 			hud[key] = value
-			app.state["hud_settings"] = hud
+			app.fixture_set("hud_settings", hud)
 
 
 func _get_setting(key: String) -> Variant:
@@ -544,7 +562,7 @@ func _bindings_state() -> Dictionary:
 			var defaults: Dictionary = DEFAULT_BINDINGS[key]
 			bindings[key] = defaults.duplicate(true)
 	if app != null:
-		app.state["utility_bindings"] = bindings
+		app.fixture_set("utility_bindings", bindings)
 	return bindings
 
 

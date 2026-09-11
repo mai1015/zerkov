@@ -1,6 +1,8 @@
 extends SceneTree
 ## Captures one lifecycle-active shared screen without re-opening the initial route.
 
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var failures: int = 0
 
 
@@ -20,6 +22,12 @@ func settle() -> void:
 
 
 func run() -> void:
+	root.size = FIRST_PLAYABLE_SIZE
+	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		"capture is gated to exact 1920x1080")
+	if root.get_visible_rect().size != Vector2(FIRST_PLAYABLE_SIZE):
+		quit(2)
+		return
 	var capture_path := "res://screen_lifecycle_capture.png"
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture-path="):
@@ -44,6 +52,13 @@ func run() -> void:
 
 	await RenderingServer.frame_post_draw
 	var image := get_root().get_texture().get_image()
+	var exact_capture_size := image.get_size() == FIRST_PLAYABLE_SIZE
+	check(exact_capture_size,
+		"framebuffer is exact 1920x1080 immediately before capture")
+	if not exact_capture_size:
+		capture_path = ""
+		quit(2)
+		return
 	var absolute_path := ProjectSettings.globalize_path(capture_path)
 	DirAccess.make_dir_recursive_absolute(absolute_path.get_base_dir())
 	var save_error := image.save_png(absolute_path)

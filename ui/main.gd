@@ -7,11 +7,10 @@ const DESKTOP_CANVAS = Vector2i(1920, 1080)
 const DESKTOP_MIN_WINDOW = Vector2i(1280, 720)
 var ROUTES: Dictionary = RouteCatalog.labels()
 @export var initial_route: String = "title"
-var fixtures := ZUIFixtureStore.new()
-
-var state: Dictionary:
-	get: return fixtures.state
-	set(value): fixtures.state = value
+var _fixture_provider: ZUIFixtureProvider
+var _presentation_provider_override: ZUIPresentationProvider
+var _presentation_provider: ZUIPresentationProvider
+var _owns_presentation_provider: bool = false
 var current_route: String = ""
 var navigator: ZUINavigator
 var history: Array[String]:
@@ -45,7 +44,36 @@ var ui_layout_mode: String = "auto"
 var common_ui_root: CommonUIScreenRoot
 var input_service: ZerkovInputService
 
+
+## QA/review entry points may omit an explicit resolution because this host
+## pins the window below. If they do provide resolution/layout arguments, they
+## must still describe the one approved 1920x1080 desktop canvas. This parser is
+## pure so the non-visual contract can prove rejection without opening a
+## forbidden viewport.
+static func review_cli_uses_exact_canvas(arguments: PackedStringArray) -> bool:
+	var index := 0
+	while index < arguments.size():
+		var argument := arguments[index]
+		if argument == "--resolution":
+			index += 1
+			if index >= arguments.size() \
+					or arguments[index].to_lower() != "1920x1080":
+				return false
+		elif argument.begins_with("--resolution="):
+			if argument.trim_prefix("--resolution=").to_lower() != "1920x1080":
+				return false
+		elif argument == "--layout":
+			return false
+		elif argument.begins_with("--layout="):
+			var requested_layout := argument.trim_prefix("--layout=")
+			if requested_layout not in ["auto", "desktop"]:
+				return false
+		index += 1
+	return true
+
+
 func _ready() -> void:
+	_configure_presentation_provider()
 	common_ui_root = get_node("CommonUIScreenRoot") as CommonUIScreenRoot
 	input_service = get_node_or_null("ZerkovInputService") as ZerkovInputService
 	navigator = ZUINavigator.new()
@@ -55,11 +83,13 @@ func _ready() -> void:
 	navigator.rejected.connect(_on_route_rejected)
 	var start := initial_route
 	var review_start := initial_route != "title"
-	for arg in OS.get_cmdline_user_args():
+	var requested_layout := ui_layout_mode
+	var user_arguments := OS.get_cmdline_user_args()
+	for arg in user_arguments:
 		if arg.begins_with("--layout="):
 			var requested = arg.trim_prefix("--layout=")
 			if requested in ["auto", "desktop", "compact"]:
-				ui_layout_mode = requested
+				requested_layout = requested
 		if arg.begins_with("--screen="):
 			start = arg.trim_prefix("--screen=")
 			review_start = true
@@ -67,6 +97,28 @@ func _ready() -> void:
 			qa_mode = true
 		if arg == "--prototype-fixtures":
 			prototype_fixture_mode = true
+	# CLI smoke/review entry points are current UI runners. Pin their window
+	# before any route is constructed so they can never exercise a retained
+	# smaller-output path accidentally.
+	if qa_mode or review_start:
+		if not review_cli_uses_exact_canvas(OS.get_cmdline_args()) \
+				or not review_cli_uses_exact_canvas(user_arguments):
+			push_error("QA/review UI accepts only exact 1920x1080 desktop output")
+			get_tree().quit(2)
+			return
+		var window := get_window()
+		var root_size := get_tree().root.get_visible_rect().size
+		var headless_display := DisplayServer.get_name() == "headless"
+		if root_size != Vector2(DESKTOP_CANVAS) \
+				or (not headless_display and window.size != DESKTOP_CANVAS):
+			push_error("QA/review UI could not establish exact 1920x1080 output " \
+					+ "(window=%s root=%s)" % [window.size, root_size])
+			get_tree().quit(2)
+			return
+		window.size = DESKTOP_CANVAS
+		ui_layout_mode = "desktop"
+	else:
+		ui_layout_mode = requested_layout
 	if _character_runtime_override == null and not qa_mode \
 			and not review_start and not prototype_fixture_mode:
 		_character_composition = CharacterPresentationComposition.new()
@@ -129,6 +181,99 @@ func inject_character_runtime(value: CharacterUIRuntime) -> bool:
 		return false
 	_character_runtime_override = value
 	return true
+
+
+## The game/profile/raid root may inject one already-started typed provider
+## before this host enters the tree. No production authority is constructed by
+## the UI host itself.
+func inject_presentation_provider(value: ZUIPresentationProvider) -> bool:
+	if value == null or not is_instance_valid(value) or is_inside_tree() \
+			or not value.is_initialized() or not value.is_active():
+		return false
+	_presentation_provider_override = value
+	return true
+
+
+func presentation_provider_for_route(
+	_origin: ZUIRouteIntent.Origin
+) -> ZUIPresentationProvider:
+	return _presentation_provider
+
+
+func fixture_provider_for_route(
+	_route: String,
+	origin: ZUIRouteIntent.Origin
+) -> ZUIFixtureProvider:
+	var explicit := origin in [
+		ZUIRouteIntent.Origin.REVIEW,
+		ZUIRouteIntent.Origin.DEVELOPER_CATALOG,
+	] or qa_mode or prototype_fixture_mode or _review_navigation_enabled
+	if not explicit:
+		return null
+	return _ensure_fixture_provider()
+
+
+func fixture_state_for_test() -> Dictionary:
+	var provider := fixture_provider_for_test()
+	if provider == null:
+		return {}
+	var value: Variant = provider.state(provider.generation())
+	return value as Dictionary if value is Dictionary else {}
+
+
+func fixture_provider_for_test() -> ZUIFixtureProvider:
+	if not (qa_mode or prototype_fixture_mode or _review_navigation_enabled):
+		return null
+	return _ensure_fixture_provider()
+
+
+func _ensure_fixture_provider() -> ZUIFixtureProvider:
+	if _fixture_provider != null and _fixture_provider.is_active():
+		return _fixture_provider
+	_fixture_provider = ZUIFixtureProvider.new()
+	if not _fixture_provider.start(1):
+		push_error("Unable to start explicit UI fixture provider: " \
+				+ String(_fixture_provider.last_error))
+		return null
+	return _fixture_provider
+
+
+func _configure_presentation_provider() -> void:
+	if _presentation_provider_override != null \
+			and is_instance_valid(_presentation_provider_override):
+		_presentation_provider = _presentation_provider_override
+		_owns_presentation_provider = false
+	else:
+		_presentation_provider = ZUIPresentationProvider.new()
+		_presentation_provider.name = "UnavailableUIPresentationProvider"
+		add_child(_presentation_provider)
+		_owns_presentation_provider = true
+		if not _presentation_provider.start_unavailable():
+			push_error("Unable to publish locked UI service truth: " \
+					+ String(_presentation_provider.last_error))
+	if _presentation_provider != null:
+		_presentation_provider.published.connect(_on_presentation_provider_changed)
+		_presentation_provider.invalidated.connect(_on_presentation_provider_invalidated)
+
+
+func _on_presentation_provider_changed(_generation: int) -> void:
+	_refresh_unbound_production_screen()
+
+
+func _on_presentation_provider_invalidated(
+	_generation: int,
+	_reason: StringName
+) -> void:
+	_refresh_unbound_production_screen()
+
+
+func _refresh_unbound_production_screen() -> void:
+	if is_queued_for_deletion() or screen == null \
+			or not is_instance_valid(screen) or not screen is ZScreen:
+		return
+	if current_route in ["title", "controls", "inventory", "health", "stats"]:
+		return
+	(screen as ZScreen).refresh_view()
 
 func _sync_window_scale() -> void:
 	var window = get_window()
@@ -311,3 +456,15 @@ func toggle_picker() -> bool:
 
 func _close_overlay(control: Control) -> void:
 	feedback._close_overlay(control)
+
+
+func _exit_tree() -> void:
+	if _fixture_provider != null:
+		_fixture_provider.teardown(_fixture_provider.generation())
+	if _presentation_provider != null:
+		if _presentation_provider.published.is_connected(_on_presentation_provider_changed):
+			_presentation_provider.published.disconnect(_on_presentation_provider_changed)
+		if _presentation_provider.invalidated.is_connected(_on_presentation_provider_invalidated):
+			_presentation_provider.invalidated.disconnect(_on_presentation_provider_invalidated)
+		if _owns_presentation_provider:
+			_presentation_provider.teardown(_presentation_provider.generation())
