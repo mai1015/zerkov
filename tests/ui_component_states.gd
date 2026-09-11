@@ -24,7 +24,16 @@ func capture(label: String) -> void:
 	await settle()
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
-		check(root.get_texture().get_image().save_png(output.path_join(label + ".png")) == OK, "capture " + label)
+		var rendered := root.get_texture().get_image()
+		var exact_frame := rendered != null \
+			and rendered.get_size() == FIRST_PLAYABLE_SIZE \
+			and root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)
+		check(exact_frame, "exact 1920x1080 framebuffer before capture " + label)
+		if not exact_frame:
+			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before write")
+			quit(2)
+			return
+		check(rendered.save_png(output.path_join(label + ".png")) == OK, "capture " + label)
 
 func mouse(position: Vector2, pressed: bool) -> void:
 	var event := InputEventMouseButton.new()
@@ -39,8 +48,19 @@ func mouse(position: Vector2, pressed: bool) -> void:
 func run() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture-dir="): output = arg.trim_prefix("--capture-dir=")
-	DirAccess.make_dir_recursive_absolute(output)
 	root.size = FIRST_PLAYABLE_SIZE
+	await process_frame
+	if DisplayServer.get_name() != "headless":
+		RenderingServer.force_draw(true)
+		var preflight := root.get_texture().get_image()
+		var exact_preflight := root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE) \
+			and preflight != null and preflight.get_size() == FIRST_PLAYABLE_SIZE
+		check(exact_preflight, "exact 1920x1080 framebuffer before paths or component setup")
+		if not exact_preflight:
+			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before paths or writes")
+			quit(2)
+			return
+	DirAccess.make_dir_recursive_absolute(output)
 	app = load("res://ui/main.tscn").instantiate()
 	root.add_child(app)
 	app.qa_mode = true
@@ -103,6 +123,10 @@ func run() -> void:
 		await capture(prefix + "pressed")
 		if DisplayServer.get_name() != "headless":
 			var rendered := root.get_texture().get_image()
+			if rendered.get_size() != FIRST_PLAYABLE_SIZE:
+				push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before pixel sampling")
+				quit(2)
+				return
 			check(rendered.get_pixel(30, 100).r > ZKit.BG.r + 0.08, prefix + "pressed background is visibly rendered")
 		await mouse(motion.position, false)
 		check(activations == ["card"], prefix + "card click activates once: " + str(activations))

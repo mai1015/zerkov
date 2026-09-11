@@ -1,6 +1,7 @@
 extends SceneTree
-## Native GPU evidence and regression harness for the exact first-playable output.
-## Run without --headless.
+## DEFERRED / HISTORICAL SUITE. The retained comparison code includes
+## non-selected internal surfaces and must not execute until task 11.8 or a
+## later approved display-support proposal reopens the matrix.
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
 
 const Policy = preload("res://game/presentation/render_scale_spike/surface_policy.gd")
@@ -19,10 +20,10 @@ var camera: Camera2D
 var caption: Label
 
 func _initialize() -> void:
-	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--capture-dir="):
-			output = argument.trim_prefix("--capture-dir=")
-	run.call_deferred()
+	# Fail before argument handling, viewport setup, renderer work, directory
+	# creation, or image writes.
+	push_error("DEFERRED_DISPLAY_SUITE: render_scale/capture.gd is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 func check(ok: bool, message: String) -> void:
 	checks += 1

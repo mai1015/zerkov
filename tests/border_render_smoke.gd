@@ -22,7 +22,16 @@ func frame_image() -> Image:
 	for frame in range(4):
 		await process_frame
 	await RenderingServer.frame_post_draw
-	return root.get_texture().get_image()
+	var rendered := root.get_texture().get_image()
+	if rendered == null or rendered.get_size() != FIRST_PLAYABLE_SIZE \
+			or root.get_visible_rect().size != Vector2(FIRST_PLAYABLE_SIZE):
+		push_error("BORDER_RENDER_TEST: nonexact framebuffer rejected before pixel sampling")
+		failures += 1
+		quit(2)
+		# Keep the async caller type-safe while the queued quit takes effect. This
+		# sentinel is never accepted as evidence.
+		return Image.create(FIRST_PLAYABLE_SIZE.x, FIRST_PLAYABLE_SIZE.y, false, Image.FORMAT_RGBA8)
+	return rendered
 
 func bounds(control: Control) -> Rect2i:
 	return Rect2i(PixelStyle.snapped_rect(PixelStyle.output_transform(control) * Rect2(Vector2.ZERO, control.size)))
@@ -100,6 +109,17 @@ func run() -> void:
 	if DisplayServer.get_name() == "headless":
 		push_error("Border pixel regression requires a graphical renderer.")
 		quit(1)
+		return
+	root.size = FIRST_PLAYABLE_SIZE
+	await process_frame
+	RenderingServer.force_draw(true)
+	var preflight := root.get_texture().get_image()
+	var exact_preflight := root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE) \
+		and preflight != null and preflight.get_size() == FIRST_PLAYABLE_SIZE
+	check(exact_preflight, "root and framebuffer exact 1920x1080 before mounting UI")
+	if not exact_preflight:
+		push_error("BORDER_RENDER_TEST: nonexact framebuffer rejected before UI or sampling")
+		quit(2)
 		return
 	app = load("res://ui/main.tscn").instantiate()
 	app.ui_layout_mode = "desktop"
