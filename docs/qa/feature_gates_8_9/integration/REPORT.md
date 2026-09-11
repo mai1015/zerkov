@@ -1,7 +1,7 @@
 # Task 8.9 integration verification
 
-Status: clean integration candidate for post-integration review. Task 8.9
-remains unchecked and `human_approval` remains false.
+Status: accepted after independent Astra candidate review and independent
+post-integration review. Task 8.9 is checked; `human_approval` remains false.
 
 ## Integration boundary
 
@@ -103,8 +103,10 @@ the adjacent exact-1080 headless regression sweep.
 This integration adds no meta-system service and makes no human-navigation,
 controller, broader real-data screen, whole-game, multiplayer, or release
 claim. Bunker, crafting, friends, insurance, and marketplace remain visibly
-prototype/locked and unable to commit production profile state. Task 8.9 is
-deliberately left unchecked for the requested post-integration review.
+prototype/locked and unable to commit production profile state. The
+post-integration reviewer accepted commit
+`5c9cb52dae26e9503bb9589da3445e91617766d4` with no P0/P1/P2 findings; Task
+8.9 alone is now accepted and human approval remains false.
 
 Exact observed output and personally run commands are recorded in
 `verification.log`.

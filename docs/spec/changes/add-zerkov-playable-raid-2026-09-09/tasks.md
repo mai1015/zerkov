@@ -485,7 +485,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   feature-gate unavailable zones and persistent task functions.
 - [ ] 8.8 `[LUNA]` Bind deployment and summary screens to real raid lifecycle and
   settlement receipts.
-- [ ] 8.9 `[LUNA]` Mark bunker, crafting, friends, insurance and marketplace
+- [x] 8.9 `[LUNA]` Mark bunker, crafting, friends, insurance and marketplace
   actions as explicit prototype/locked features until their services exist.
 - [x] 8.10 `[LUNA]` Port modal, focus and action routing plus rebinding
   regression coverage to CommonUI-backed screens. Keep any retained adaptive
@@ -532,6 +532,18 @@ import, diagnostics, frozen hashes and diff checks passed. Tasks 8.3 and 8.10
 retain binding/glyph/device and exhaustive adaptive coverage respectively; the
 smaller-layout runs are historical information, not first-playable gates. See
 `docs/qa/common_ui_navigation/implementation/REPORT.md`.
+
+Completed task evidence (8.9, 2026-09-11): independent Astra review accepted
+candidate `14463e2296ab021aa3ebbec88a3b36752aee3f6e` with no P0/P1/P2
+findings, and an independent post-integration review accepted merge
+`5c9cb52dae26e9503bb9589da3445e91617766d4` with no findings. The native
+provider and real-input gates passed `163/0` and `713/0` only after proving the
+physical window, root viewport, root texture and raw readback were all exactly
+1920x1080 before UI mount. All seven PNGs remained exact 1920x1080 and
+byte-identical. The existing Character inventory and typed real-data provider
+remain intact; no production sample inventory or meta service was added.
+Human approval remains false, and no smaller-output suite ran. See
+`docs/qa/feature_gates_8_9/integration/REPORT.md`.
 
 ## 9. Art, animation, VFX and audio
 
