@@ -1,6 +1,7 @@
 extends "res://ui/screens/character/inventory_actions.gd"
 ## One authored workspace shared by inventory, health and stats.
 const CompactLayout = preload("res://ui/screens/character/components/character_layout.gd")
+const InventoryPresentationModel = preload("res://addons/inventory_system/runtime/inventory_presentation_model.gd")
 var _nodes: Dictionary = {}
 var _bound := false
 var _compact_reflow_queued := false
@@ -343,17 +344,23 @@ func _bind_loadout() -> void:
 func _bind_stash() -> void:
 	var stash_tab: Button = _node("StashTab") as Button
 	var loot_tab: Button = _node("LootTab") as Button
+	var loot_close: Button = _node("LootClose") as Button
 	# Both callbacks rebuild the retained grid and compact geometry. Dispatch
 	# them only after Button has completed its native release bookkeeping; doing
 	# that work from inside `pressed` can strand GUI mouse capture on the tab.
 	_wire_button_deferred(stash_tab, Callable(self, "_set_loot_mode").bind(false))
 	_wire_button_deferred(loot_tab, Callable(self, "_set_loot_mode").bind(true))
+	_wire_button_deferred(loot_close, Callable(self, "_close_loot_container"))
+	if loot_close != null:
+		loot_close.visible = _loot_mode
+		loot_close.tooltip_text = "Close the current loot container; canonical inventory remains unchanged."
 	_apply_mode_style(stash_tab, not _loot_mode)
 	_apply_mode_style(loot_tab, _loot_mode)
 
 	var search: LineEdit = _node("StashSearch") as LineEdit
 	if search != null:
 		if search.text != _search_query: search.text = _search_query
+		search.placeholder_text = "Search loot…" if _loot_mode else "Search stash…"
 		if not search.text_changed.is_connected(Callable(self, "_on_search_changed")):
 			search.text_changed.connect(Callable(self, "_on_search_changed"))
 	_wire_button(_node("SortStash") as Button, Callable(self, "_sort_stash"))
@@ -362,9 +369,18 @@ func _bind_stash() -> void:
 	_set_live_unavailable(_node("OrganizeStash") as Button, "Organize the fixture stash")
 	var source_key := "loot" if _loot_mode else "stash"
 	var source_size := _inventory_controller.grid_size(StringName(source_key)) if _live_inventory_binding and _inventory_controller != null else Vector2i(7, 10)
+	var stash_title := _node("StashTitle") as Label
+	if stash_title != null:
+		# Keep the authored 70px title column intact. The selected crate/corpse is
+		# named in the adjacent status label, so the retained title never collides
+		# with the summary or the header close affordance.
+		stash_title.text = "LOOT" if _loot_mode else "STASH"
+	var compatible := _node("StashCompatible") as Label
+	if compatible != null:
+		compatible.offset_right = 1774.0 if _loot_mode else 1872.0
 	var summary := _node("StashSummary") as Label
 	if summary != null:
-		summary.text = "%d×%d · %s" % [source_size.x, source_size.y, "LIVE" if _loot_mode else "READ-ONLY"] if _live_inventory_binding else "LV 2 · 61 / 70"
+		summary.text = "%d×%d · %s" % [source_size.x, source_size.y, ("LIVE" if _loot_mode else "READ-ONLY")] if _live_inventory_binding else ("LOOT · OPEN" if _loot_mode else "LV 2 · 61 / 70")
 
 	var filter_names: Array[String] = ["all", "guns", "ammo", "armor", "clothing", "food", "util"]
 	var filter_nodes: Array[String] = ["All", "Guns", "Ammo", "Armor", "Cloth", "Food", "Util"]
@@ -400,9 +416,10 @@ func _bind_grid(grid: Control, columns: int, rows: int, source_key: String, data
 	grid.set_items(values, _items_for(data_key))
 	grid.set_compatibility(_compatibility_key)
 	if grid.has_method("set_mutation_enabled"):
-		grid.set_mutation_enabled(not _live_inventory_binding or (_inventory_controller != null and _inventory_controller.mutation_available(StringName(source_key))))
+		var mutations_available := not _live_inventory_binding or (_inventory_controller != null and (_inventory_controller.loot_mutation_available() if source_key == "loot" else _inventory_controller.mutation_available(StringName(source_key))))
+		grid.set_mutation_enabled(mutations_available)
 	if grid.has_method("set_operation_availability"):
-		var quick_available := not _live_inventory_binding or (_inventory_controller != null and _inventory_controller.quick_transfer_available(StringName(source_key)))
+		var quick_available := not _live_inventory_binding or (_inventory_controller != null and (_inventory_controller.quick_transfer_available(StringName(source_key))))
 		var split_available := not _live_inventory_binding or (_inventory_controller != null and _inventory_controller.split_available(StringName(source_key), StringName(source_key)))
 		grid.set_operation_availability(quick_available, split_available)
 	var hover := Callable(self, "_on_grid_hovered").bind(grid)
@@ -443,12 +460,47 @@ func _bind_live_status() -> void:
 			status_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 			status_label.tooltip_text = "FIXTURE PREVIEW · local authored inventory; authority state is not connected."
 			status_label.add_theme_color_override("font_color", U.YELLOW)
+			status_label.remove_theme_font_size_override("font_size")
 		if compact_hint != null:
 			compact_hint.text = "FIXTURE PREVIEW · LOCAL INVENTORY"
 			compact_hint.clip_text = false
 			compact_hint.autowrap_mode = TextServer.AUTOWRAP_OFF
 			compact_hint.tooltip_text = "FIXTURE PREVIEW · local authored inventory; authority state is not connected."
 			compact_hint.add_theme_color_override("font_color", U.YELLOW)
+		return
+	if _loot_mode:
+		var loot_status_text := _inventory_controller.loot_status_text()
+		var loot_status_detail := _inventory_controller.loot_status_detail()
+		var loot_status_color := U.GREEN
+		var loot_state := _inventory_controller.loot_container_state()
+		if _loot_container_open and not _inventory_controller.is_bound():
+			loot_status_text = "DISCONNECTED"
+			loot_status_detail = "Inventory authority is disconnected; existing loot data is informational only."
+			loot_status_color = U.RED
+		else:
+			match loot_state:
+				InventoryPresentationModel.STATE_NORMAL:
+					loot_status_text = "READY · %s" % String(_inventory_controller.loot_container()).to_upper()
+				InventoryPresentationModel.STATE_INACCESSIBLE, InventoryPresentationModel.STATE_STALE_CORRECTED, InventoryPresentationModel.STATE_OVERWEIGHT:
+					loot_status_color = U.YELLOW
+					loot_status_text = "INACCESSIBLE" if loot_state == InventoryPresentationModel.STATE_INACCESSIBLE else ("STALE" if loot_state == InventoryPresentationModel.STATE_STALE_CORRECTED else "OVERWEIGHT")
+				InventoryPresentationModel.STATE_RESYNCHRONIZING, InventoryPresentationModel.STATE_DISCONNECTED:
+					loot_status_color = U.RED
+					loot_status_text = "RESYNC · MUTATIONS DISABLED" if loot_state == InventoryPresentationModel.STATE_RESYNCHRONIZING else "DISCONNECTED"
+				InventoryPresentationModel.STATE_LOADING:
+					loot_status_text = "LOADING"
+		if status_label != null:
+			status_label.add_theme_font_size_override("font_size", 9)
+		if status_label != null:
+			status_label.text = loot_status_text
+			status_label.clip_text = true
+			status_label.tooltip_text = loot_status_detail
+			status_label.add_theme_color_override("font_color", loot_status_color)
+		if compact_hint != null:
+			compact_hint.text = loot_status_text + "   ·   SEARCH / INSPECT READ-ONLY"
+			compact_hint.clip_text = true
+			compact_hint.tooltip_text = loot_status_detail
+			compact_hint.add_theme_color_override("font_color", loot_status_color)
 		return
 	var raid_ready := _inventory_controller.mutation_available(&"pockets")
 	var profile_ready := _inventory_controller.scope_ready(&"stash")
@@ -479,6 +531,7 @@ func _bind_live_status() -> void:
 		status_label.clip_text = true
 		status_label.tooltip_text = status_detail
 		status_label.add_theme_color_override("font_color", status_color)
+		status_label.remove_theme_font_size_override("font_size")
 	if compact_hint != null:
 		compact_hint.text = status_text + "   ·   FILTER / SEARCH / TOOLTIP READ-ONLY"
 		compact_hint.clip_text = true
@@ -544,7 +597,7 @@ func _apply_mode_style(button: Button, active: bool) -> void:
 
 func _build_focus_graph() -> void:
 	var focus_nodes: Array[Button] = []
-	for path in ["HealthTab", "GearTab", "StatsTab", "StashTab", "LootTab", "SortStash", "OrganizeStash"]:
+	for path in ["HealthTab", "GearTab", "StatsTab", "StashTab", "LootTab", "LootClose", "SortStash", "OrganizeStash"]:
 		var button: Button = _node(path) as Button
 		if button != null and not button.disabled:
 			focus_nodes.append(button)

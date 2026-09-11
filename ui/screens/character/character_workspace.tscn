@@ -932,12 +932,28 @@ offset_left = 1628.0
 offset_top = 133.0
 offset_right = 1872.0
 offset_bottom = 156.0
+mouse_filter = 1
+focus_mode = 0
 theme_override_colors/font_color = Color(0.37254903, 0.827451, 0.41960785, 1)
 theme_override_fonts/font = ExtResource("6_b15tx")
 theme_override_font_sizes/font_size = 11
 text = "5 compatible with AKM"
 horizontal_alignment = 2
 vertical_alignment = 1
+
+[node name="LootClose" type="Button" parent="InventoryContent"]
+layout_mode = 0
+offset_left = 1780.0
+offset_top = 130.0
+offset_right = 1872.0
+offset_bottom = 158.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
+theme_override_colors/font_hover_color = Color(1, 0.7529412, 0.2509804, 1)
+theme_override_fonts/font = ExtResource("5_n753q")
+theme_override_font_sizes/font_size = 9
+text = "CLOSE LOOT"
+visible = false
 
 [node name="StashRule" type="ColorRect" parent="InventoryContent" unique_id=1600016047]
 layout_mode = 0
