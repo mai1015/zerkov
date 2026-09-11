@@ -228,7 +228,7 @@ func run() -> void:
 		" entries=", entries.size(), " imported=", imported_count,
 		" pending=", pending_count, " atlases=", atlas_count,
 		" warnings=", registry.validation_warnings().size(),
-		" negative_probes=13")
+		" negative_probes=21")
 	quit(0 if failures == 0 else 1)
 
 
@@ -267,6 +267,44 @@ func _run_negative_probes(registry: ZerkovAssetRegistry) -> void:
 	candidate = registry.manifest()
 	candidate["schema_version"] = 1.0
 	_expect_rejection(candidate, "schema_version_type", "schema version must be an integer")
+
+	candidate = registry.manifest()
+	candidate["schema_version"] = 1.000001
+	_expect_rejection(candidate, "schema_version_type", "near-integer schema version must be rejected")
+
+	candidate = registry.manifest()
+	candidate["content_version"] = 1.000001
+	_expect_rejection(candidate, "content_version", "near-integer content version must be rejected")
+
+	candidate = registry.manifest()
+	var near_source_size := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+	near_source_size["source_size"] = [384.000001, 64]
+	_expect_rejection(candidate, "atlas_size", "near-integer atlas source dimensions must be rejected")
+
+	candidate = registry.manifest()
+	var near_cell_size := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+	near_cell_size["cell_size"] = [64.000001, 64]
+	_expect_rejection(candidate, "atlas_size", "near-integer atlas cell dimensions must be rejected")
+
+	candidate = registry.manifest()
+	var near_columns := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+	near_columns["columns"] = 6.000001
+	_expect_rejection(candidate, "atlas_frames", "near-integer atlas columns must be rejected")
+
+	candidate = registry.manifest()
+	var near_rows := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+	near_rows["rows"] = 1.000001
+	_expect_rejection(candidate, "atlas_frames", "near-integer atlas rows must be rejected")
+
+	candidate = registry.manifest()
+	var near_frame_count := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+	near_frame_count["frame_count"] = 6.000001
+	_expect_rejection(candidate, "atlas_frames", "near-integer atlas frame count must be rejected")
+
+	candidate = registry.manifest()
+	var near_frame_order := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+	near_frame_order["frame_order"] = [0.000001, 1, 2, 3, 4, 5]
+	_expect_rejection(candidate, "atlas_frame_order_type", "near-integer frame order values must be rejected")
 
 	candidate = registry.manifest()
 	_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["availability"] = true

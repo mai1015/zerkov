@@ -1235,8 +1235,13 @@ func _normalize_json_numbers(value: Variant) -> Variant:
 		for item in value:
 			result_array.append(_normalize_json_numbers(item))
 		return result_array
-	if typeof(value) == TYPE_FLOAT and is_finite(float(value)) and is_equal_approx(float(value), round(float(value))):
-		return int(value)
+	if typeof(value) == TYPE_FLOAT:
+		var numeric := float(value)
+		# Godot may materialize a JSON integer token as an exact integral float.
+		# Normalize only exact integral values; approximate equality would turn
+		# malformed values such as 1.000001 into accepted integer fields.
+		if is_finite(numeric) and numeric == round(numeric):
+			return int(numeric)
 	return value
 
 

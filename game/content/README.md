@@ -24,6 +24,10 @@ The six UI background rows preserve the source root and exact `Background UI/`
 relative paths. The Sawmill source is a 1000x800 pixel-art prop sheet with
 nearest filtering and no mipmaps; slicing remains task 9.3.
 
+Schema, version, atlas-grid, frame-count, and frame-order fields accept only
+integer values; near-integer floats are rejected while the checked-in JSON's
+integer tokens remain valid after loading.
+
 The manifest intentionally keeps the current add-on/art distribution blockers
 visible. Registry presence is not license clearance. Import presets and
 runtime slicing remain the responsibility of tasks 9.2 and 9.3.
