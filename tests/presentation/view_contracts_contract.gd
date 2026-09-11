@@ -193,6 +193,32 @@ func _test_health_view() -> void:
 	view._body_parts[1]._current_health = 0
 	check(view.body_parts()[1].current_health() == 60,
 		"retained health child state is sealed")
+	var replay := HealthViewContract.create(
+		9, 4, 300, actor_id, HealthViewContract.LifeState.ALIVE,
+		80, 100, 70, 100, 65, 100, parts, effects)
+	var newer_same_content := HealthViewContract.create(
+		9, 5, 301, actor_id, HealthViewContract.LifeState.ALIVE,
+		80, 100, 70, 100, 65, 100, parts, effects)
+	var divergent := HealthViewContract.create(
+		9, 4, 300, actor_id, HealthViewContract.LifeState.ALIVE,
+		80, 100, 69, 100, 65, 100, parts, effects)
+	check(view.content_digest().length() == 64
+		and replay.content_digest() == view.content_digest()
+		and newer_same_content.content_digest() == view.content_digest(),
+		"health content digest is stable and independent of version metadata")
+	check(divergent.content_digest() != view.content_digest(),
+		"health content digest identifies same-version payload divergence")
+	var sealed_digest := view.content_digest()
+	view._content_digest = "forged"
+	check(view.content_digest() == sealed_digest,
+		"health content identity is immutable after construction")
+	var unavailable_a := HealthViewContract.unavailable(
+		ZReadOnlyView.SyncState.DISCONNECTED, &"authority_a", 9, 4, 300, actor_id)
+	var unavailable_b := HealthViewContract.unavailable(
+		ZReadOnlyView.SyncState.DISCONNECTED, &"authority_b", 9, 4, 300, actor_id)
+	check(not unavailable_a.content_digest().is_empty()
+		and unavailable_a.content_digest() != unavailable_b.content_digest(),
+		"health content identity includes unavailable state and diagnostic truth")
 
 
 func _test_task_view() -> void:

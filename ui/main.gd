@@ -29,6 +29,14 @@ var picker: Control:
 var modal: Control:
 	get: return feedback.modal if feedback != null else null
 var qa_mode: bool = false
+## Explicit developer/test gate for the historical authored state. Production
+## Character routes never fall back to this fixture store.
+var prototype_fixture_mode: bool = false
+## Explicit pre-tree integration seam. The app/profile/raid root may inject a
+## presentation runtime backed by its actual authority dependencies. Raw
+## authority objects and the composition itself are never exposed to screens.
+var _character_runtime_override: CharacterUIRuntime
+var _character_composition: CharacterPresentationComposition
 var resize_timer: Timer
 var _last_window_size: Vector2i
 var _resize_pending: bool = false
@@ -45,11 +53,28 @@ func _ready() -> void:
 	add_child(navigator)
 	navigator.committed.connect(_on_route_committed)
 	navigator.rejected.connect(_on_route_rejected)
+	var start := initial_route
+	var review_start := initial_route != "title"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--layout="):
 			var requested = arg.trim_prefix("--layout=")
 			if requested in ["auto", "desktop", "compact"]:
 				ui_layout_mode = requested
+		if arg.begins_with("--screen="):
+			start = arg.trim_prefix("--screen=")
+			review_start = true
+		if arg == "--qa" or arg == "--smoke":
+			qa_mode = true
+		if arg == "--prototype-fixtures":
+			prototype_fixture_mode = true
+	if _character_runtime_override == null and not qa_mode \
+			and not review_start and not prototype_fixture_mode:
+		_character_composition = CharacterPresentationComposition.new()
+		_character_composition.name = "CharacterPresentationComposition"
+		add_child(_character_composition)
+		# No product authority has been supplied at this UI-only bootstrap boundary.
+		# The injection-only composition publishes typed unavailable views.
+		_character_composition.start()
 	_sync_window_scale()
 	resize_timer = Timer.new()
 	resize_timer.one_shot = true
@@ -63,14 +88,6 @@ func _ready() -> void:
 	feedback = preload("res://ui/core/feedback.tscn").instantiate()
 	feedback.configure(self, common_ui_root)
 	add_child(feedback)
-	var start := initial_route
-	var review_start := initial_route != "title"
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--screen="):
-			start = arg.trim_prefix("--screen=")
-			review_start = true
-		if arg == "--qa" or arg == "--smoke":
-			qa_mode = true
 	_review_navigation_enabled = review_start or qa_mode
 	var start_origin := ZUIRouteIntent.Origin.REVIEW \
 			if review_start or qa_mode else ZUIRouteIntent.Origin.PRODUCTION
@@ -82,6 +99,36 @@ func _ready() -> void:
 	))
 	if qa_mode:
 		call_deferred("_run_qa")
+
+
+## Called only while constructing a typed route context. Review/developer
+## routes stay on the explicitly labelled fixture provider; production
+## Character routes receive the real game-owned runtime or its unavailable
+## typed state.
+func character_runtime_for_route(
+	route: String,
+	origin: ZUIRouteIntent.Origin
+) -> CharacterUIRuntime:
+	if route not in ["inventory", "health", "stats"] \
+			or origin != ZUIRouteIntent.Origin.PRODUCTION \
+			or qa_mode or prototype_fixture_mode:
+		return null
+	if _character_runtime_override != null \
+			and is_instance_valid(_character_runtime_override):
+		return _character_runtime_override
+	if _character_composition != null and is_instance_valid(_character_composition):
+		return _character_composition.character_runtime()
+	return null
+
+
+## Test/integration callers must inject before this host enters the scene tree,
+## ensuring every Character route created by CommonUI receives one stable
+## presentation owner for its complete lifecycle.
+func inject_character_runtime(value: CharacterUIRuntime) -> bool:
+	if value == null or not is_instance_valid(value) or is_inside_tree():
+		return false
+	_character_runtime_override = value
+	return true
 
 func _sync_window_scale() -> void:
 	var window = get_window()

@@ -132,6 +132,12 @@ func _open(intent: ZUIRouteIntent) -> void:
 	if scene == null:
 		_reject(route, "Unable to load UI screen: " + route)
 		return
+	# Character workspace routes replace one another on the CommonUI menu
+	# layer. Capture presentation-only selection/focus/caret/scroll coordinates
+	# before staging the replacement so the new screen can restore them from the
+	# injected runtime without touching app.state.
+	if host.screen != null and host.screen.has_method("stash_character_interaction_state"):
+		host.screen.call("stash_character_interaction_state")
 	if host.current_route == route and host.screen is ZScreen:
 		host.screen.refresh_view()
 		return
@@ -147,7 +153,8 @@ func _open(intent: ZUIRouteIntent) -> void:
 		host.fixtures,
 		intent.origin == ZUIRouteIntent.Origin.DEVELOPER_CATALOG \
 				or ZRouteCatalog.is_developer_only(route),
-		intent.payload
+		intent.payload,
+		host.character_runtime_for_route(route, intent.origin)
 	)
 	if not next.app._bind_feedback_owner(next):
 		next.free()

@@ -587,32 +587,112 @@ func status_reason(source: StringName) -> StringName:
 	return _status_reason(_bridge.scope_status(scope))
 
 
-func items_for(source: StringName) -> Array[Dictionary]:
+## Builds the typed immutable view consumed by the character workspace. The
+## accepted native bridge remains the source of confirmed snapshots; this is a
+## projection step only and never writes back into Inventory System.
+func inventory_view(scope: StringName) -> InventoryView:
+	var view_scope := InventoryView.Scope.PROFILE if scope == SCOPE_PROFILE \
+		else InventoryView.Scope.RAID
+	if scope != SCOPE_PROFILE and scope != SCOPE_RAID:
+		return InventoryView.unavailable(
+			view_scope, ZReadOnlyView.SyncState.UNBOUND, &"inventory_scope_invalid")
+	var actor := _admission.actor_id if _admission != null else null
+	var view_generation := _admission.generation if _admission != null else 0
+	if not is_bound() or _bridge == null:
+		return InventoryView.unavailable(
+			view_scope, ZReadOnlyView.SyncState.UNBOUND,
+			&"inventory_runtime_unbound", 0, 0, 0, actor)
+	var status := _bridge.scope_status(scope)
+	if status != InventoryProjectionBridge.ProjectionStatus.READY:
+		return InventoryView.unavailable(
+			view_scope, _view_sync_state(status), _status_reason(status),
+				view_generation, _scope_revision(scope), 0, actor)
+
+	var containers: Array[InventoryView.ContainerRecord] = []
+	for source_value in _sources_for_scope(scope):
+		var source := StringName(source_value)
+		var desc := descriptor(source)
+		if int(desc.get("inventory_id", 0)) <= 0 \
+				or int(desc.get("container_id", 0)) <= 0:
+			continue
+		var snapshot := _bridge.confirmed_snapshot(scope, int(desc.inventory_id))
+		if snapshot == null:
+			return InventoryView.unavailable(
+				view_scope, ZReadOnlyView.SyncState.STALE,
+					&"inventory_snapshot_missing", view_generation,
+				_scope_revision(scope), 0, actor)
+		var item_records: Array[InventoryView.ItemRecord] = []
+		for item_value in _snapshot_items_for_descriptor(snapshot, desc):
+			var item := item_value as Dictionary
+			var definition := String(item.get("item_definition_identifier", ""))
+			var meta := _presentation_for(definition)
+			var location := item.get("location", {}) as Dictionary
+			var rotated := bool(location.get("rotated", false))
+			var base_size := Vector2i(
+				int(meta.get("w", 1)), int(meta.get("h", 1)))
+			var footprint := Vector2i(base_size.y, base_size.x) if rotated else base_size
+			var record := InventoryView.ItemRecord.create(
+				int(item.get("id", 0)), StringName(definition),
+				String(meta.get("name", definition)), int(item.get("quantity", 1)),
+				Vector2i(int(location.get("x", 0)), int(location.get("y", 0))),
+				footprint, rotated, StringName(meta.get("icon", _ICON_FALLBACK)),
+				StringName(meta.get("category", "item")),
+				bool(meta.get("icon_placeholder", false)))
+			if record == null:
+				return InventoryView.unavailable(
+					view_scope, ZReadOnlyView.SyncState.STALE,
+					&"inventory_item_projection_invalid", view_generation,
+					_scope_revision(scope), 0, actor)
+			item_records.append(record)
+		var grid_size := Vector2i(int(desc.columns), int(desc.rows))
+		var container := InventoryView.ContainerRecord.create(
+			int(desc.inventory_id), int(desc.container_id),
+			_bridge.confirmed_revision(scope, int(desc.inventory_id)),
+			_container_kind_for_source(source),
+			StringName(desc.container_definition_identifier),
+			_container_display_name(source), grid_size,
+			scope == SCOPE_PROFILE, item_records)
+		if container == null:
+			return InventoryView.unavailable(
+				view_scope, ZReadOnlyView.SyncState.STALE,
+				&"inventory_container_projection_invalid", view_generation,
+				_scope_revision(scope), 0, actor)
+		containers.append(container)
+	return InventoryView.create(
+		view_generation, _scope_revision(scope), 0, view_scope, actor, containers)
+
+
+## Converts only a supplied immutable view into detached widget records. The
+## exact descriptor/generation/revision tuple must still match the currently
+## injected controller seam before any record can become interactive.
+func items_for_view(source: StringName, view: InventoryView) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var desc := descriptor(source)
-	if not bool(desc.available) and int(desc.container_id) <= 0:
+	if view == null or not view.is_ready() or not bool(desc.available) \
+			or _admission == null or view.generation() != _admission.generation:
 		return result
-	var scope: StringName = desc.scope
-	var inventory_id := int(desc.inventory_id)
-	var snapshot: InventorySnapshotResource = _bridge.confirmed_snapshot(scope, inventory_id)
-	if snapshot == null:
+	var expected_scope := InventoryView.Scope.PROFILE if desc.scope == SCOPE_PROFILE \
+		else InventoryView.Scope.RAID
+	if view.scope() != expected_scope:
 		return result
-	var model := _bridge.presentation_model(scope)
-	for raw_item in snapshot.get_items():
-		if not raw_item is Dictionary:
-			continue
-		var raw: Dictionary = raw_item
-		var item_id := int(raw.get("id", 0))
-		var location: Dictionary = raw.get("location", {})
-		if item_id <= 0 or String(location.get("kind", "")) != "spatial":
-			continue
-		if int(location.get("container", 0)) != int(desc.container_id):
-			continue
-		var definition := String(raw.get("item_definition_identifier", ""))
+	var projected_container: InventoryView.ContainerRecord
+	for candidate in view.containers():
+		if candidate.inventory_id() == int(desc.inventory_id) \
+				and candidate.container_id() == int(desc.container_id) \
+				and candidate.inventory_revision() == _bridge.confirmed_revision(
+					StringName(desc.scope), int(desc.inventory_id)):
+			projected_container = candidate
+			break
+	if projected_container == null:
+		return result
+	var model := _bridge.presentation_model(StringName(desc.scope))
+	for projected_item in projected_container.items():
+		var item_id := projected_item.instance_id()
+		var definition := String(projected_item.content_id())
 		var meta := _presentation_for(definition)
-		var rotated := bool(location.get("rotated", false))
-		var base_size := Vector2i(int(meta.get("w", 1)), int(meta.get("h", 1)))
-		var footprint := Vector2i(base_size.y, base_size.x) if rotated else base_size
+		var rotated := projected_item.rotated()
+		var footprint := projected_item.size()
+		var base_size := Vector2i(footprint.y, footprint.x) if rotated else footprint
 		var kind := String(meta.get("kind", "item"))
 		var category := String(meta.get("category", "item"))
 		if kind == "weapon":
@@ -624,12 +704,13 @@ func items_for(source: StringName) -> Array[Dictionary]:
 			# fixture UI used strings, but those are never valid in this path.
 			"id": item_id,
 			"item_id": item_id,
-			"inventory_id": inventory_id,
+			"inventory_id": int(desc.inventory_id),
 			"container_id": int(desc.container_id),
-			"scope": scope,
+			"scope": StringName(desc.scope),
 			"owner_generation": _owner_generation,
 			"scope_generation": int(desc.scope_generation),
-			"mapping_key": _mapping_key(scope, _owner_generation, inventory_id, int(desc.container_id)),
+			"mapping_key": _mapping_key(StringName(desc.scope), _owner_generation,
+				int(desc.inventory_id), int(desc.container_id)),
 			"item_definition_identifier": definition,
 			"definition_id": definition,
 			# Artwork is resolved from the presentation registry above; canonical
@@ -637,10 +718,10 @@ func items_for(source: StringName) -> Array[Dictionary]:
 			"icon": String(meta.get("icon", _ICON_FALLBACK)),
 			"icon_placeholder": bool(meta.get("icon_placeholder", false)),
 			"icon_accessibility_label": String(meta.get("icon_accessibility_label", "")),
-			"quantity": int(raw.get("quantity", 1)),
-			"count": int(raw.get("quantity", 1)),
-			"x": int(location.get("x", 0)),
-			"y": int(location.get("y", 0)),
+			"quantity": projected_item.quantity(),
+			"count": projected_item.quantity(),
+			"x": projected_item.position().x,
+			"y": projected_item.position().y,
 			"rotated": rotated,
 			"width": footprint.x,
 			"height": footprint.y,
@@ -659,15 +740,97 @@ func items_for(source: StringName) -> Array[Dictionary]:
 			"location": {
 				"kind": "spatial",
 				"container": int(desc.container_id),
-				"x": int(location.get("x", 0)),
-				"y": int(location.get("y", 0)),
+				"x": projected_item.position().x,
+				"y": projected_item.position().y,
 				"rotated": rotated,
 			},
 		}
 		if model != null:
-			item["state"] = model.item_state(inventory_id, item_id)
+			item["state"] = model.item_state(int(desc.inventory_id), item_id)
 		result.append(item)
 	return result
+
+
+func items_for(source: StringName) -> Array[Dictionary]:
+	var scope := scope_for_source(source)
+	return items_for_view(source, inventory_view(scope)) if not scope.is_empty() else []
+
+
+func _sources_for_scope(scope: StringName) -> Array[StringName]:
+	if scope == SCOPE_PROFILE:
+		return [SOURCE_STASH]
+	if scope == SCOPE_RAID:
+		return [SOURCE_POCKETS, SOURCE_RIG, SOURCE_BACKPACK, SOURCE_CRATE, SOURCE_CORPSE]
+	return []
+
+
+func _snapshot_items_for_descriptor(
+	snapshot: InventorySnapshotResource,
+	desc: Dictionary
+) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for value in snapshot.get_items():
+		if not value is Dictionary:
+			continue
+		var item := value as Dictionary
+		var location := item.get("location", {}) as Dictionary
+		if int(item.get("id", 0)) > 0 \
+				and String(location.get("kind", "")) == "spatial" \
+				and int(location.get("container", 0)) == int(desc.container_id):
+			result.append(item.duplicate(true))
+	return result
+
+
+func _container_kind_for_source(source: StringName) -> InventoryView.ContainerKind:
+	match source:
+		SOURCE_POCKETS:
+			return InventoryView.ContainerKind.POCKETS
+		SOURCE_RIG:
+			return InventoryView.ContainerKind.RIG
+		SOURCE_BACKPACK:
+			return InventoryView.ContainerKind.BACKPACK
+		SOURCE_STASH:
+			return InventoryView.ContainerKind.STASH
+		SOURCE_CORPSE:
+			return InventoryView.ContainerKind.CORPSE
+	return InventoryView.ContainerKind.CRATE
+
+
+func _container_display_name(source: StringName) -> String:
+	match source:
+		SOURCE_POCKETS:
+			return "Pockets"
+		SOURCE_RIG:
+			return "Rig"
+		SOURCE_BACKPACK:
+			return "Backpack"
+		SOURCE_STASH:
+			return "Stash"
+		SOURCE_CORPSE:
+			return "Corpse"
+	return "Crate"
+
+
+func _scope_revision(scope: StringName) -> int:
+	if _bridge == null:
+		return 0
+	var revision := 0
+	for inventory_id in _bridge.inventory_ids(scope):
+		revision = maxi(revision, _bridge.confirmed_revision(scope, inventory_id))
+	return revision
+
+
+func _view_sync_state(status: int) -> ZReadOnlyView.SyncState:
+	match status:
+		InventoryProjectionBridge.ProjectionStatus.LOADING:
+			return ZReadOnlyView.SyncState.LOADING
+		InventoryProjectionBridge.ProjectionStatus.RESYNCHRONIZING:
+			return ZReadOnlyView.SyncState.RESYNCHRONIZING
+		InventoryProjectionBridge.ProjectionStatus.STALE:
+			return ZReadOnlyView.SyncState.STALE
+		InventoryProjectionBridge.ProjectionStatus.DISCONNECTED:
+			return ZReadOnlyView.SyncState.DISCONNECTED
+	return ZReadOnlyView.SyncState.UNBOUND
 
 
 func select(source: StringName, item_id: int) -> bool:
