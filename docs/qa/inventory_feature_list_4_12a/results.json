@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-11T00:19:37Z",
+  "task": "4.12a",
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "human_approval": false,
+  "independent_review": "pending",
+  "diagnostic_count": 0,
+  "assertion_totals": {
+    "checks": 2147,
+    "failures": 0
+  },
+  "runs": [
+    {
+      "name": "combined_addons_smoke",
+      "checks": 155,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_catalog_contract",
+      "checks": 543,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_nested_magazine_contract",
+      "checks": 258,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_authority_contract",
+      "checks": 79,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_intent_adapter_contract",
+      "checks": 162,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_mutation_routing_contract",
+      "checks": 146,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_projection_contract",
+      "checks": 99,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_weapon_reload_contract",
+      "checks": 159,
+      "failures": 0,
+      "exit_code": 0
+    },
+    {
+      "name": "inventory_ability_reconciliation_contract",
+      "checks": 546,
+      "failures": 0,
+      "exit_code": 0
+    }
+  ],
+  "non_assertion_gates": {
+    "editor_import": "exit 0; diagnostics 0",
+    "spec_strict": "Valid",
+    "vendor_destination": "6 passed; 0 failed",
+    "diff_check": "exit 0"
+  }
+}

@@ -196,6 +196,16 @@ func run() -> void:
 		and player_profile.enabled_features.has(ZerkovInventoryCatalog.FEATURE_MASS)
 		and player_profile.enabled_features.has(ZerkovInventoryCatalog.FEATURE_NESTING),
 		"player profile reports the nested ordered-list and mass capabilities it materializes")
+	for nested_profile_id in [
+		ZerkovInventoryCatalog.PROFILE_STASH,
+		ZerkovInventoryCatalog.PROFILE_WORLD_CRATE,
+		ZerkovInventoryCatalog.PROFILE_CORPSE,
+	]:
+		var nested_profile := _profile(resource, nested_profile_id)
+		check(nested_profile != null
+			and nested_profile.enabled_features.has(ZerkovInventoryCatalog.FEATURE_LIST),
+			String(nested_profile_id)
+				+ " reports the ordered-list capability of carried magazine children")
 	if catalog != null:
 		_run_live_magazine_contract(catalog)
 

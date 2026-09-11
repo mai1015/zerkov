@@ -437,7 +437,6 @@ static func _profile(
 static func _player_features() -> PackedStringArray:
 	var features := _grid_features(true, false)
 	features.append(FEATURE_SLOTS)
-	features.append(FEATURE_LIST)
 	features.append(FEATURE_FILTER)
 	features.append(FEATURE_RETENTION)
 	return features
@@ -455,6 +454,10 @@ static func _grid_features(include_nesting: bool, include_discovery: bool) -> Pa
 	])
 	if include_nesting:
 		features.append(FEATURE_NESTING)
+		# Every nesting-enabled first-playable grid can receive the AKM
+		# magazine and therefore materialize its ordered-list child. Keep the
+		# profile capability query closed over that canonical child layout.
+		features.append(FEATURE_LIST)
 	if include_discovery:
 		features.append(FEATURE_DISCOVERY)
 	return features
