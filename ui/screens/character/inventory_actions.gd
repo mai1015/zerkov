@@ -23,6 +23,12 @@ var _compact_section: String = "loadout"
 var _compact_scroll: Dictionary = {}
 var _inventory_controller: InventoryPresentationController
 var _live_inventory_binding := false
+var _character_runtime: CharacterUIRuntime
+var _shared_inventory_controller := false
+var _live_health_binding := false
+var _health_view: HealthView
+var _pending_runtime_interaction: Dictionary = {}
+var _activation_runtime_interaction: Dictionary = {}
 var _selected_live_item: Dictionary = {}
 var _selected_live_source: String = ""
 var _live_inventory_tab: String = "gear"
@@ -38,6 +44,8 @@ var _active_binding_token: int = 0
 var _interaction_restore_serial: int = 0
 var _tearing_down: bool = false
 var _local_presentation_refresh_depth: int = 0
+var _drag_refresh_pending: bool = false
+var _drag_refresh_serial: int = 0
 
 
 func _tab_name() -> String:
@@ -86,6 +94,8 @@ func _inventory_data() -> Dictionary:
 
 
 func _items_for(key: String) -> Array:
+    if _character_runtime != null and is_instance_valid(_character_runtime):
+        return _character_runtime.items_for(StringName(key))
     if _live_inventory_binding and _inventory_controller != null:
         return _inventory_controller.items_for(StringName(key))
     var source: Array = _inventory_data().get(key, [])
@@ -131,6 +141,16 @@ func _on_search_changed(_text: String) -> void:
 func _refresh_body() -> void:
     if _tearing_down or not is_inside_tree():
         return
+    # Keep the native source slot and drag preview alive until Godot completes
+    # the gesture. A newer immutable projection may make the payload stale, but
+    # the binding token/controller validation will then reject it without ever
+    # rebuilding the grid out from under the pointer.
+    if get_viewport().gui_is_dragging():
+        if not _drag_refresh_pending:
+            _drag_refresh_pending = true
+            _drag_refresh_serial += 1
+            _refresh_after_drag.call_deferred(_drag_refresh_serial)
+        return
     _interaction_restore_serial += 1
     var restore_serial := _interaction_restore_serial
     var interaction := _capture_inventory_interaction()
@@ -140,6 +160,16 @@ func _refresh_body() -> void:
     # frame. A deferred second pass keeps offsets/caret/focus stable after
     # that native layout pass as well.
     call_deferred("_restore_inventory_interaction_deferred", interaction, restore_serial)
+
+
+func _refresh_after_drag(serial: int) -> void:
+    while not _tearing_down and serial == _drag_refresh_serial \
+            and is_inside_tree() and get_viewport().gui_is_dragging():
+        await get_tree().process_frame
+    if _tearing_down or serial != _drag_refresh_serial or not is_inside_tree():
+        return
+    _drag_refresh_pending = false
+    _refresh_body()
 
 
 func _restore_inventory_interaction_deferred(state: Dictionary, restore_serial: int) -> void:
@@ -183,6 +213,7 @@ func _capture_inventory_interaction() -> Dictionary:
         "focus_source": "",
         "focus_item_id": 0,
         "focus_identity": {},
+        "focus_path": "",
         "tooltip": is_instance_valid(_tooltip),
         "tooltip_item": _tip_item.duplicate(true),
         "tooltip_source": _tip_source,
@@ -195,6 +226,8 @@ func _capture_inventory_interaction() -> Dictionary:
     var focus := get_viewport().gui_get_focus_owner()
     if focus != null and is_instance_valid(focus) and is_ancestor_of(focus):
         state.focus = focus
+        if _surface != null and _surface.is_ancestor_of(focus):
+            state.focus_path = str(_surface.get_path_to(focus))
         if focus is LineEdit:
             state.caret = (focus as LineEdit).caret_column
         var focused_grid := focus.get("owner_grid") as Control
@@ -235,6 +268,10 @@ func _restore_inventory_interaction(state: Dictionary) -> void:
             focus = _slot_for_item(focus_grid, focus_item_id) if focus_grid != null else null
         if not is_instance_valid(focus) and _live_inventory_binding:
             focus = _slot_for_live_identity(state.get("focus_identity", {}) as Dictionary)
+        if not is_instance_valid(focus):
+            var focus_path := str(state.get("focus_path", ""))
+            if not focus_path.is_empty():
+                focus = _surface.get_node_or_null(focus_path)
     if is_instance_valid(focus) and focus.is_visible_in_tree() and focus.focus_mode != Control.FOCUS_NONE:
         focus.grab_focus()
         if focus is LineEdit and int(state.get("caret", -1)) >= 0:
@@ -931,7 +968,13 @@ func _organize_stash() -> void:
 
 
 func _notify(message: String) -> void:
-    if app != null and app.has_method("toast"):
+    # Authority teardown can race the host's CommonUI teardown during process
+    # exit. Never ask a detached feedback timer to render a late diagnostic.
+    var host := app._service() if app != null else null
+    var feedback := host.get("feedback") as Node if host != null else null
+    if is_inside_tree() and host != null and host.is_inside_tree() \
+            and feedback != null and feedback.is_inside_tree() \
+            and app.has_method("toast"):
         app.toast(message)
 
 
@@ -954,27 +997,98 @@ func _unhandled_input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
 
 
-func bind_inventory_runtime(owner, bridge, adapter, admission) -> bool:
-    if _inventory_controller == null:
-        _inventory_controller = InventoryPresentationController.new()
-    # An attempted production bind is itself a fail-closed boundary. Never
-    # leave fixture content interactive if dependency validation rejects it.
-    _interaction_restore_serial += 1
-    _active_binding_token = 0
-    _live_inventory_binding = true
-    _loot_mode = false
-    _loot_container_open = false
-    _selected_live_item = {}
-    _selected_live_source = ""
-    _close_tip()
-    _cancel_split_quantity()
-    if not _inventory_controller.bind(owner, bridge, adapter, admission):
-        _notify("Inventory live binding unavailable · " + str(_inventory_controller.last_error))
-        if not _tearing_down and is_inside_tree():
-            _refresh_body()
+func attach_injected_character_runtime() -> bool:
+    if app == null or not app.has_method("character_runtime"):
         return false
+    var runtime := app.character_runtime() as CharacterUIRuntime
+    if runtime == null or not is_instance_valid(runtime):
+        return false
+    _character_runtime = runtime
+    _inventory_controller = runtime.inventory_controller()
+    _shared_inventory_controller = true
+    _live_inventory_binding = true
+    _live_health_binding = true
+    _health_view = runtime.health_view()
     _binding_token_serial += 1
     _active_binding_token = _binding_token_serial
+    _connect_inventory_controller_signals()
+    if not runtime.health_view_changed.is_connected(_on_runtime_health_view_changed):
+        runtime.health_view_changed.connect(_on_runtime_health_view_changed)
+    if not runtime.binding_invalidated.is_connected(_on_runtime_binding_invalidated):
+        runtime.binding_invalidated.connect(_on_runtime_binding_invalidated)
+    if not runtime.binding_rebound.is_connected(_on_runtime_binding_rebound):
+        runtime.binding_rebound.connect(_on_runtime_binding_rebound)
+    _apply_runtime_interaction_state(runtime.interaction_state())
+    return true
+
+
+func stash_character_interaction_state() -> void:
+    if _character_runtime == null or not is_instance_valid(_character_runtime):
+        return
+    var interaction := _capture_inventory_interaction()
+    # Control references belong to this soon-to-be-replaced scene. Retain only
+    # semantic focus identity/path plus the exact caret and scroll coordinates.
+    interaction.erase("focus")
+    interaction["current_filter"] = _current_filter
+    interaction["search_query"] = _search_query
+    interaction["loot_mode"] = _loot_mode
+    interaction["loot_open"] = _loot_container_open
+    interaction["selected_container"] = _selected_container
+    interaction["selected_item"] = _selected_live_item.duplicate(true)
+    interaction["selected_source"] = _selected_live_source
+    interaction["live_tab"] = _live_inventory_tab
+    interaction["compatibility_key"] = _compatibility_key
+    _character_runtime.save_interaction_state(interaction)
+
+
+func _apply_runtime_interaction_state(state: Dictionary) -> void:
+    if state.is_empty():
+        return
+    _current_filter = str(state.get("current_filter", _current_filter))
+    _search_query = str(state.get("search_query", _search_query))
+    _loot_mode = bool(state.get("loot_mode", _loot_mode))
+    _loot_container_open = bool(state.get("loot_open", _loot_container_open))
+    _selected_container = str(state.get("selected_container", _selected_container))
+    _selected_live_item = (state.get("selected_item", {}) as Dictionary).duplicate(true)
+    _selected_live_source = str(state.get("selected_source", ""))
+    _live_inventory_tab = str(state.get("live_tab", _live_inventory_tab))
+    _compatibility_key = str(state.get("compatibility_key", _compatibility_key))
+    _pending_runtime_interaction = state.duplicate(true)
+    _activation_runtime_interaction = state.duplicate(true)
+
+
+func restore_injected_character_interaction() -> void:
+    if _pending_runtime_interaction.is_empty():
+        return
+    var interaction := _pending_runtime_interaction
+    _pending_runtime_interaction = {}
+    _restore_inventory_interaction(interaction)
+    _interaction_restore_serial += 1
+    call_deferred(
+        "_restore_inventory_interaction_deferred",
+        interaction,
+        _interaction_restore_serial)
+
+
+func restore_injected_character_interaction_on_activation() -> void:
+    if _activation_runtime_interaction.is_empty():
+        return
+    # CommonUI establishes its default focus during activation. Restore the
+    # semantic Character focus after that lifecycle step so a route replacement
+    # cannot replace an injected search caret with the workspace default.
+    var interaction := _activation_runtime_interaction
+    _activation_runtime_interaction = {}
+    _restore_inventory_interaction(interaction)
+    _interaction_restore_serial += 1
+    call_deferred(
+        "_restore_inventory_interaction_deferred",
+        interaction,
+        _interaction_restore_serial)
+
+
+func _connect_inventory_controller_signals() -> void:
+    if _inventory_controller == null:
+        return
     var projection := Callable(self, "_on_live_projection_changed")
     var pending := Callable(self, "_on_live_pending_changed")
     var status := Callable(self, "_on_live_status_changed")
@@ -993,16 +1107,11 @@ func bind_inventory_runtime(owner, bridge, adapter, admission) -> bool:
         _inventory_controller.accepted_feedback.connect(accepted)
     if not _inventory_controller.binding_invalidated.is_connected(invalidated):
         _inventory_controller.binding_invalidated.connect(invalidated)
-    _refresh_body()
-    return true
 
 
-func unbind_inventory_runtime() -> void:
+func _disconnect_inventory_controller_signals() -> void:
     if _inventory_controller == null:
         return
-    var was_live := _live_inventory_binding
-    _interaction_restore_serial += 1
-    _active_binding_token = 0
     for pair in [
         ["projection_changed", Callable(self, "_on_live_projection_changed")],
         ["pending_changed", Callable(self, "_on_live_pending_changed")],
@@ -1015,7 +1124,60 @@ func unbind_inventory_runtime() -> void:
         var callback: Callable = pair[1]
         if _inventory_controller.is_connected(signal_name, callback):
             _inventory_controller.disconnect(signal_name, callback)
-    _inventory_controller.unbind()
+
+
+func _detach_character_runtime() -> void:
+    if _character_runtime != null and is_instance_valid(_character_runtime):
+        if _character_runtime.health_view_changed.is_connected(_on_runtime_health_view_changed):
+            _character_runtime.health_view_changed.disconnect(_on_runtime_health_view_changed)
+        if _character_runtime.binding_invalidated.is_connected(_on_runtime_binding_invalidated):
+            _character_runtime.binding_invalidated.disconnect(_on_runtime_binding_invalidated)
+        if _character_runtime.binding_rebound.is_connected(_on_runtime_binding_rebound):
+            _character_runtime.binding_rebound.disconnect(_on_runtime_binding_rebound)
+    _character_runtime = null
+    _shared_inventory_controller = false
+    _live_health_binding = false
+    _health_view = null
+
+
+func bind_inventory_runtime(owner, bridge, adapter, admission) -> bool:
+    if _character_runtime != null:
+        _disconnect_inventory_controller_signals()
+        _detach_character_runtime()
+    if _inventory_controller == null:
+        _inventory_controller = InventoryPresentationController.new()
+    # An attempted production bind is itself a fail-closed boundary. Never
+    # leave fixture content interactive if dependency validation rejects it.
+    _interaction_restore_serial += 1
+    _active_binding_token = 0
+    _live_inventory_binding = true
+    _loot_mode = false
+    _loot_container_open = false
+    _close_tip()
+    _cancel_split_quantity()
+    if not _inventory_controller.bind(owner, bridge, adapter, admission):
+        _notify("Inventory live binding unavailable · " + str(_inventory_controller.last_error))
+        if not _tearing_down and is_inside_tree():
+            _refresh_body()
+        return false
+    _binding_token_serial += 1
+    _active_binding_token = _binding_token_serial
+    _connect_inventory_controller_signals()
+    _refresh_body()
+    return true
+
+
+func unbind_inventory_runtime() -> void:
+    if _inventory_controller == null:
+        return
+    var was_live := _live_inventory_binding
+    _interaction_restore_serial += 1
+    _active_binding_token = 0
+    _disconnect_inventory_controller_signals()
+    if _shared_inventory_controller:
+        _detach_character_runtime()
+    else:
+        _inventory_controller.unbind()
     _live_inventory_binding = false
     _loot_container_open = false
     _selected_live_item = {}
@@ -1038,6 +1200,7 @@ func unbind_inventory_runtime() -> void:
 func _exit_tree() -> void:
     _tearing_down = true
     _interaction_restore_serial += 1
+    stash_character_interaction_state()
     # Free transient native widgets immediately while the screen still owns them;
     # queue_free here can leave popup CanvasItems alive until process exit.
     if is_instance_valid(_tooltip):
@@ -1047,6 +1210,32 @@ func _exit_tree() -> void:
     _cancel_split_quantity()
     unbind_inventory_runtime()
     super._exit_tree()
+
+
+func _on_runtime_health_view_changed(view: HealthView) -> void:
+    if not _live_health_binding:
+        return
+    _health_view = view
+    _refresh_body()
+
+
+func _on_runtime_binding_invalidated(_reason: StringName) -> void:
+    if _character_runtime == null:
+        return
+    _health_view = _character_runtime.health_view()
+    _refresh_body()
+
+
+func _on_runtime_binding_rebound(_generation: int) -> void:
+    if _character_runtime == null or not _character_runtime.is_configured():
+        return
+    # Tokens are screen-local presentation leases. A newly injected authority
+    # must never accept a drag payload captured from the former generation.
+    _binding_token_serial += 1
+    _active_binding_token = _binding_token_serial
+    _health_view = _character_runtime.health_view()
+    _apply_runtime_interaction_state(_character_runtime.interaction_state())
+    _refresh_body()
 
 
 func _on_live_projection_changed(_scope: StringName) -> void:

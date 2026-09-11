@@ -7,9 +7,15 @@ var _bound := false
 var _compact_reflow_queued := false
 var _compact_scroll_release_queued := false
 
+
+func _on_activated() -> void:
+	super._on_activated()
+	restore_injected_character_interaction_on_activation()
+
 func build() -> void:
 	_surface = $InventoryContent
 	if not _bound:
+		attach_injected_character_runtime()
 		if not _live_inventory_binding:
 			_ensure_inventory_state()
 			var persisted := _state()
@@ -31,6 +37,7 @@ func build() -> void:
 	ZThemeAdapter.apply_controls(self)
 	_bind_header()
 	_bind_content()
+	restore_injected_character_interaction()
 	queue_adaptive_layout()
 
 func _node(path: String) -> Control:
@@ -640,6 +647,9 @@ func _bind_health() -> void:
 	if area == null:
 		return
 	var live_notice := area.get_node_or_null("LiveFixtureNotice") as Label
+	if _live_health_binding:
+		_bind_live_health(area, live_notice)
+		return
 	if live_notice != null:
 		live_notice.visible = _live_inventory_binding
 	var treated: bool = bool(_state().get("quick_healed", false))
@@ -653,6 +663,118 @@ func _bind_health() -> void:
 	var quick_heal := _node("HealthColumn/QuickHeal") as Button
 	_wire_button(quick_heal, Callable(self, "_quick_heal"))
 	_set_live_unavailable(quick_heal, "Use the fixture quick-heal preview")
+
+
+func _bind_live_health(area: Control, live_notice: Label) -> void:
+	var view := _health_view
+	var ready := view != null and view.is_ready()
+	if live_notice != null:
+		live_notice.visible = true
+		live_notice.text = "LIVE HEALTH · CONFIRMED" if ready else "LIVE HEALTH · %s" % (
+			String(view.sync_state_name()).to_upper() if view != null else "UNAVAILABLE")
+		live_notice.tooltip_text = "Immutable HealthView · generation %d · revision %d" % [
+			view.generation(), view.revision()] if ready else (
+			String(view.diagnostic()).replace("_", " ") if view != null else "Health projection unavailable")
+		live_notice.add_theme_color_override("font_color", U.GREEN if ready else U.RED)
+	var quick_heal := area.get_node_or_null("QuickHeal") as Button
+	if quick_heal != null:
+		quick_heal.disabled = true
+		quick_heal.tooltip_text = "Unavailable · task 5.7 has not connected a quick-heal intent"
+	if not ready:
+		var reason := String(view.sync_state_name()).to_upper() if view != null else "UNAVAILABLE"
+		for card in ["HeadCard", "TorsoCard", "ArmsCard", "LegsCard"]:
+			_set_health_card(area, card, card.trim_suffix("Card").to_upper(), "—", reason, U.RED, 0.0)
+		_set_meter(area, "Health", "HEALTH", "—/—", 0.0, U.RED)
+		_set_meter(area, "Energy", "ENERGY", "—/—", 0.0, U.YELLOW)
+		_set_meter(area, "Hydration", "HYDRATION", "—/—", 0.0, U.BLUE)
+		_set_health_effect_badges(area, [])
+		return
+
+	var groups := {
+		"HeadCard": _aggregate_health_parts(view, [&"head"]),
+		"TorsoCard": _aggregate_health_parts(view, [&"thorax", &"abdomen"]),
+		"ArmsCard": _aggregate_health_parts(view, [&"left_arm", &"right_arm"]),
+		"LegsCard": _aggregate_health_parts(view, [&"left_leg", &"right_leg"]),
+	}
+	var labels := {
+		"HeadCard": "HEAD",
+		"TorsoCard": "TORSO",
+		"ArmsCard": "ARMS",
+		"LegsCard": "LEGS",
+	}
+	for card in groups:
+		var group := groups[card] as Dictionary
+		var maximum := int(group.get("maximum", 0))
+		var current := int(group.get("current", 0))
+		var percent := 100.0 * float(current) / float(maximum) if maximum > 0 else 0.0
+		var color := U.RED if percent < 30.0 else (U.YELLOW if percent < 70.0 else U.GREEN)
+		_set_health_card(
+			area, card, labels[card], "%d%%" % roundi(percent),
+			str(group.get("detail", "No effects")), color, percent)
+	var total_percent := 100.0 * float(view.current_health()) / float(view.maximum_health())
+	_set_meter(area, "Health", "HEALTH", "%d/%d" % [
+		view.current_health(), view.maximum_health()], total_percent,
+		U.RED if total_percent < 30.0 else (U.YELLOW if total_percent < 70.0 else U.GREEN))
+	var energy_percent := 100.0 * float(view.energy()) / float(view.maximum_energy())
+	_set_meter(area, "Energy", "ENERGY", "%d/%d" % [
+		view.energy(), view.maximum_energy()], energy_percent, U.YELLOW)
+	var hydration_percent := 100.0 * float(view.hydration()) / float(view.maximum_hydration())
+	_set_meter(area, "Hydration", "HYDRATION", "%d/%d" % [
+		view.hydration(), view.maximum_hydration()], hydration_percent, U.BLUE)
+	_set_health_effect_badges(area, view.effects())
+
+
+func _aggregate_health_parts(view: HealthView, identifiers: Array[StringName]) -> Dictionary:
+	var current := 0
+	var maximum := 0
+	var heavy_bleed := false
+	var fractured := false
+	var destroyed := false
+	var injured := false
+	for part in view.body_parts():
+		if not identifiers.has(part.part_id()):
+			continue
+		current += part.current_health()
+		maximum += part.maximum_health()
+		heavy_bleed = heavy_bleed or part.has_heavy_bleed()
+		fractured = fractured or part.is_fractured()
+		destroyed = destroyed or part.state() == HealthView.BodyPartState.DESTROYED
+		injured = injured or part.state() == HealthView.BodyPartState.INJURED
+	var details: Array[String] = []
+	if destroyed:
+		details.append("Destroyed")
+	if heavy_bleed:
+		details.append("Heavy bleed")
+	if fractured:
+		details.append("Fracture")
+	if injured and details.is_empty():
+		details.append("Injured")
+	return {
+		"current": current,
+		"maximum": maximum,
+		"detail": " · ".join(PackedStringArray(details)) if not details.is_empty() else "No effects",
+	}
+
+
+func _set_health_effect_badges(area: Control, effects: Array) -> void:
+	var badge_names := ["DehydratedBadge", "RadiationBadge"]
+	for index in range(badge_names.size()):
+		var badge := area.get_node_or_null(badge_names[index]) as Panel
+		if badge == null:
+			continue
+		badge.visible = index < effects.size()
+		if not badge.visible:
+			continue
+		var effect := effects[index] as HealthView.StatusEffect
+		var label := badge.get_node_or_null("Text") as Label
+		if label != null:
+			label.text = "■  %s" % effect.display_name().to_upper()
+			label.tooltip_text = "%s · %d ticks remaining" % [
+				effect.display_name(), effect.remaining_ticks()]
+		var edge := badge.get_node_or_null("Edge") as ColorRect
+		if edge != null:
+			edge.color = U.GREEN if effect.is_beneficial() else (
+				U.RED if effect.severity() >= HealthView.Severity.MAJOR else U.YELLOW)
 
 
 func _set_health_card(area: Control, card_name: String, limb: String, percent: String, detail: String, color: Color, value: float) -> void:

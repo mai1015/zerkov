@@ -29,6 +29,13 @@ var picker: Control:
 var modal: Control:
 	get: return feedback.modal if feedback != null else null
 var qa_mode: bool = false
+## Explicit developer/test gate for the historical authored state. Production
+## Character routes never fall back to this fixture store.
+var prototype_fixture_mode: bool = false
+## Test/integration injection point. Production uses the game-owned composition
+## below; a supplied runtime must already own real view/intent dependencies.
+var character_runtime_override: CharacterUIRuntime
+var character_composition: CharacterPresentationComposition
 var resize_timer: Timer
 var _last_window_size: Vector2i
 var _resize_pending: bool = false
@@ -43,11 +50,27 @@ func _ready() -> void:
 	add_child(navigator)
 	navigator.committed.connect(_on_route_committed)
 	navigator.rejected.connect(_on_route_rejected)
+	var start := initial_route
+	var review_start := initial_route != "title"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--layout="):
 			var requested = arg.trim_prefix("--layout=")
 			if requested in ["auto", "desktop", "compact"]:
 				ui_layout_mode = requested
+		if arg.begins_with("--screen="):
+			start = arg.trim_prefix("--screen=")
+			review_start = true
+		if arg == "--qa" or arg == "--smoke":
+			qa_mode = true
+		if arg == "--prototype-fixtures":
+			prototype_fixture_mode = true
+	if character_runtime_override == null and not qa_mode \
+			and not review_start and not prototype_fixture_mode:
+		character_composition = CharacterPresentationComposition.new()
+		character_composition.name = "CharacterPresentationComposition"
+		add_child(character_composition)
+		if not character_composition.start():
+			push_warning("Character presentation unavailable: %s" % character_composition.last_error)
 	_sync_window_scale()
 	resize_timer = Timer.new()
 	resize_timer.one_shot = true
@@ -61,14 +84,6 @@ func _ready() -> void:
 	feedback = preload("res://ui/core/feedback.tscn").instantiate()
 	feedback.configure(self, common_ui_root)
 	add_child(feedback)
-	var start := initial_route
-	var review_start := initial_route != "title"
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--screen="):
-			start = arg.trim_prefix("--screen=")
-			review_start = true
-		if arg == "--qa" or arg == "--smoke":
-			qa_mode = true
 	_review_navigation_enabled = review_start or qa_mode
 	var start_origin := ZUIRouteIntent.Origin.REVIEW \
 			if review_start or qa_mode else ZUIRouteIntent.Origin.PRODUCTION
@@ -80,6 +95,26 @@ func _ready() -> void:
 	))
 	if qa_mode:
 		call_deferred("_run_qa")
+
+
+## Called only while constructing a typed route context. Review/developer
+## routes stay on the explicitly labelled fixture provider; production
+## Character routes receive the real game-owned runtime or its unavailable
+## typed state.
+func character_runtime_for_route(
+	route: String,
+	origin: ZUIRouteIntent.Origin
+) -> CharacterUIRuntime:
+	if route not in ["inventory", "health", "stats"] \
+			or origin != ZUIRouteIntent.Origin.PRODUCTION \
+			or qa_mode or prototype_fixture_mode:
+		return null
+	if character_runtime_override != null \
+			and is_instance_valid(character_runtime_override):
+		return character_runtime_override
+	if character_composition != null and is_instance_valid(character_composition):
+		return character_composition.runtime
+	return null
 
 func _sync_window_scale() -> void:
 	var window = get_window()
