@@ -1,0 +1,27 @@
+TASK 5.3 REFLECTIVE CAPABILITY ESCAPE — FAIL BEFORE
+recorded_at=2026-09-11T05:00:00Z
+reproduced_source_commit=c265d3a4efd9b49f840b87e201ceb8f4b661d26b
+reproduced_source_blob=a61086aa382b0bde7c7f5365feb1fb315afcd0b4
+docs_reopen_commit=4accbd8a92e9ad66900b3398fe97ab5b8fa47bb6
+docs_reopen_source_blob=a61086aa382b0bde7c7f5365feb1fb315afcd0b4
+
+The permanent 14-check contract was added before production was changed and
+run against the vulnerable source. It calls get_property_list(), then the
+standard Object.get("_active_binding_capability") operation when that property
+is present. The recovered exact replacement object was then exercised against
+metadata, query, duplicate snapshot publication, and release.
+
+command=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3-capability-repair --audio-driver Dummy --script res://tests/combat/body_hitbox_capability_encapsulation_contract.gd
+exit=1
+result=BODY_HITBOX_CAPABILITY_ENCAPSULATION_RESULT checks=14 failures=8
+
+failed_security_assertions:
+- property discovery exposed the former live active-bearer member
+- Object.get recovered the exact replacement bearer
+- recursive reflected world state contained the exact bearer
+- binding provenance and snapshot metadata published its instance ID
+- recovered bearer read replacement metadata and queried replacement state
+- recovered bearer published and released replacement state
+- legitimate owner subsequently found its replacement binding destroyed
+
+scope=headless domain-only; no UI, viewport, screen, visual, responsive, compact, or runtime-capture test
