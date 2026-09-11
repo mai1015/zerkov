@@ -158,3 +158,20 @@ required compatibility reruns, the final execution total is 21,004/0.
 
 frozen_sources.sha256 seals changed production/contracts and exact approved
 inputs. packet.sha256 seals this report, results, and the source manifest.
+
+## Independent acceptance — 2026-09-11
+
+Fresh detached review accepted exact candidate
+`2d6f0f46b5d31fa55e0784b850edab872ea21baf` with no P0, P1, or P2
+findings. The reviewer reran `21004/0` headless assertions: focused weapon
+adapter `368/0`, adjacent gameplay and Task 5.3 contracts `20026/0`, and the
+accepted Task 6.1 Vision contract `305/0` twice.
+
+The focused review explicitly covered the three previously rejected outcomes:
+captured callback handles cannot recover or authorize with the Task 5.3 bearer;
+removing a handler after a committed shot cannot leave a successful tick with
+pending work and no result; and replacing a relay connection cannot resolve
+under the old registration. Normal hit, miss, occlusion, one-round fire,
+replay, cleanup/rebind, and capacity behavior also passed. Clean import, strict
+spec validation, source/packet hashes, and diff/clean-tree gates passed. No UI,
+screen, viewport, visual, capture, compact, or responsive test ran.
