@@ -1,0 +1,8 @@
+ACCEPTED_OUTPUTS: final c08a39b editor import plus 6 focused Godot domain contracts
+EXCLUDED_OUTPUTS: two intentional rejected-commit fail-before reproductions
+PATTERNS: SCRIPT ERROR|Parse Error|ERROR:|Invalid call|assertion failure
+MATCHES: 0
+PROCESS_EXIT_FAILURES: 0
+NAMED_RESULT_FAILURES: 0
+RAW_ASSERTION_EXECUTIONS: 754
+SCREEN_OR_VIEWPORT_EXECUTIONS: 0

@@ -1,0 +1,20 @@
+BASE_SOURCE_HEAD: 758eef077c80b0b0bca5efb0bc3c12b5b51699ca
+TEST_STATE: same-world replacement metadata regression added before production repair
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-5-3 --audio-driver Dummy --script res://tests/combat/body_hitbox_review_regression_contract.gd
+EXIT_CODE: 1
+BODY_HITBOX_REVIEW_REGRESSION_RESULT checks=72 failures=6
+
+EXPECTED FAILURE FINDINGS:
+- redundant unauthenticated public metadata getter remained: is_bound
+- redundant unauthenticated public metadata getter remained: binding_token
+- redundant unauthenticated public metadata getter remained: authority_generation
+- redundant unauthenticated public metadata getter remained: snapshot_tick
+- redundant unauthenticated public metadata getter remained: snapshot_revision
+- redundant unauthenticated public metadata getter remained: snapshot_digest
+
+The fixture releases raid A, reuses the exact BodyHitboxWorld2D object for a
+distinct raid B, publishes distinct B geometry, and retains raid A's capability.
+The capability-guarded aggregate metadata readers already rejected the stale
+bearer, but the six scalar methods required no bearer and exposed B metadata.
+ERROR lines were the test's expected fail-before assertions and are excluded
+from accepted diagnostics. The repaired permanent contract passes 72/0.
