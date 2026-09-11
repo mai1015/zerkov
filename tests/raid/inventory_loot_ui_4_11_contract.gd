@@ -6,6 +6,7 @@ const Controller = preload("res://game/inventory/presentation/inventory_presenta
 const Bridge = preload("res://game/inventory/presentation/inventory_projection_bridge.gd")
 const Adapter = preload("res://game/inventory/inventory_intent_adapter.gd")
 const Model = preload("res://addons/inventory_system/runtime/inventory_presentation_model.gd")
+const Catalog = preload("res://game/content/zerkov_inventory_catalog.gd")
 
 const MAX_TRANSFER_DISTANCE_RAW := 2_000_000
 
@@ -32,24 +33,46 @@ class BindingWorldPolicyPort extends ZInventoryWorldPolicyPort:
     var generation := 0
     var world_ids: Dictionary = {}
     var access_blocked := false
+    var reentrant_stage: StringName = &""
+    var reentrant_callback: Callable = Callable()
 
     func is_world_inventory(actor: ZEntityId, inventory_id: int, p_generation: int) -> bool:
-        return _matches(actor, p_generation) and world_ids.get(inventory_id, false)
+        var result: bool = _matches(actor, p_generation) and bool(world_ids.get(inventory_id, false))
+        _fire_reentrant(&"is_world_inventory")
+        return result
 
     func authoritative_distance_raw(actor: ZEntityId, inventory_id: int, p_generation: int) -> int:
-        return 1_000_000 if is_world_inventory(actor, inventory_id, p_generation) else -1
+        var result := 1_000_000 if _matches(actor, p_generation) and world_ids.get(inventory_id, false) else -1
+        _fire_reentrant(&"authoritative_distance_raw")
+        return result
 
     func is_currently_visible(actor: ZEntityId, inventory_id: int, p_generation: int) -> bool:
-        return is_world_inventory(actor, inventory_id, p_generation)
+        var result: bool = _matches(actor, p_generation) and bool(world_ids.get(inventory_id, false))
+        _fire_reentrant(&"is_currently_visible")
+        return result
 
     func access_state(actor: ZEntityId, inventory_id: int, p_generation: int) -> StringName:
-        return ACCESS_UNAVAILABLE if access_blocked else (ACCESS_OPEN if is_world_inventory(actor, inventory_id, p_generation) else ACCESS_UNAVAILABLE)
+        var result := ACCESS_UNAVAILABLE if access_blocked else (ACCESS_OPEN if _matches(actor, p_generation) and world_ids.get(inventory_id, false) else ACCESS_UNAVAILABLE)
+        _fire_reentrant(&"access_state")
+        return result
 
     func allows_transfer(actor: ZEntityId, source_inventory_id: int, destination_inventory_id: int, item_id: int, p_generation: int) -> bool:
         return is_world_inventory(actor, source_inventory_id, p_generation) and destination_inventory_id > 0 and item_id > 0 and not access_blocked
 
     func _matches(actor: ZEntityId, p_generation: int) -> bool:
         return actor != null and actor.canonical_key() == actor_key and p_generation == generation
+
+    func arm_reentrant(stage: StringName, callback: Callable) -> void:
+        reentrant_stage = stage
+        reentrant_callback = callback
+
+    func _fire_reentrant(stage: StringName) -> void:
+        if stage != reentrant_stage or not reentrant_callback.is_valid():
+            return
+        var callback := reentrant_callback
+        reentrant_stage = &""
+        reentrant_callback = Callable()
+        callback.call()
 
 
 class LootStateProbeController extends Controller:
@@ -162,6 +185,9 @@ func run() -> void:
     var shell_parent := stash_grid.get_parent().name
     check(shell_size.is_equal_approx(Vector2(1920, 1080)) and shell_parent == "DesktopStashScroll", "loot reuses the authored 1920x1080 workspace and bounded right-hand scroll pane")
     check(screen._node("LootClose").visible and screen._node("LootTab").visible and not screen.has_node("LootContainerPanel"), "loot presentation adds only the retained header close affordance")
+    var loot_status := screen._node("StashCompatible") as Label
+    check(loot_status != null and loot_status.mouse_filter == Control.MOUSE_FILTER_PASS and loot_status.focus_mode == Control.FOCUS_NONE, "loot status detail accepts pointer hover without becoming a focus target")
+    check(loot_status != null and loot_status.get_global_rect().has_point(Vector2(1701, 144)) and loot_status.tooltip_text == controller.loot_status_detail(), "exact 1920 status hit point exposes the full presentation detail")
 
     var search := screen._node("StashSearch") as LineEdit
     var before_search_revision := bridge.confirmed_revision(Bridge.SCOPE_RAID, owner.world_crate_inventory_id)
@@ -234,6 +260,150 @@ func run() -> void:
     check(not stale_result.accepted and stale_result.reason == Controller.REASON_LOOT_STALE, "stale intent is rejected before native submission")
     controller.clear_forced_loot_state()
 
+    # Real native capacity rejection: five authored 5 kg supply crates leave
+    # the 25 kg backpack below its 28 kg limit, so an AKM loot attempt is
+    # rejected synchronously by InventoryAuthority without mutating either
+    # inventory.  The controller must retain the causal hint across a
+    # close/open cycle, but clear it when only the destination advances.
+    var backpack_desc := controller.descriptor(&"backpack")
+    var backpack_container_id := int(backpack_desc.get("container_id", 0))
+    var capacity_positions := [
+        Vector2i(0, 0), Vector2i(2, 0), Vector2i(4, 0),
+        Vector2i(6, 0), Vector2i(0, 2),
+    ]
+    var inserted_capacity_ids: Array[int] = []
+    var capacity_fixture_ok := backpack_container_id > 0
+    for index in range(capacity_positions.size()):
+        var capacity_insert: Dictionary = owner.raid_authority().insert_item(
+            owner.raid_player_inventory_id,
+            String(Catalog.ITEM_SUPPLY_CRATE),
+            1,
+            _spatial(backpack_container_id, capacity_positions[index].x, capacity_positions[index].y),
+            RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+            9_100 + index
+        )
+        if bool(capacity_insert.get("accepted", false)):
+            inserted_capacity_ids.append(int(capacity_insert.get("new_item_id", 0)))
+        else:
+            capacity_fixture_ok = false
+    await process_frame
+    var backpack_mass := owner.raid_authority().container_mass(
+        owner.raid_player_inventory_id, backpack_container_id)
+    var backpack_capacity := owner.raid_authority().container_mass_capacity(
+        owner.raid_player_inventory_id, backpack_container_id)
+    check(capacity_fixture_ok and inserted_capacity_ids.size() == 5
+        and int(backpack_mass.get("mass_mg", -1)) == 25_000_000
+        and int(backpack_capacity.get("mass_capacity_mg", -1)) == 28_000_000,
+        "real capacity fixture establishes a 25 kg backpack against the authored 28 kg limit")
+
+    world.access_blocked = false
+    check(controller.set_loot_container(&"corpse"), "corpse becomes the exact live loot source for capacity proof")
+    check(controller.open_loot_container(), "capacity proof opens the selected corpse without clearing canonical state")
+    var akm_item := _first_definition(controller.items_for(&"loot"), String(Catalog.ITEM_AKM))
+    var capacity_destination := _first_fit(controller.items_for(&"backpack"), akm_item, 8, 5)
+    var capacity_source_revision := bridge.confirmed_revision(
+        Bridge.SCOPE_RAID, owner.corpse_inventory_id)
+    var capacity_destination_revision := bridge.confirmed_revision(
+        Bridge.SCOPE_RAID, owner.raid_player_inventory_id)
+    var capacity_source_bytes := bridge.confirmed_snapshot(
+        Bridge.SCOPE_RAID, owner.corpse_inventory_id).canonical_bytes()
+    var capacity_destination_bytes := bridge.confirmed_snapshot(
+        Bridge.SCOPE_RAID, owner.raid_player_inventory_id).canonical_bytes()
+    var capacity_rejection := controller.submit_drop(
+        &"loot", &"backpack", akm_item, capacity_destination)
+    await process_frame
+    var capacity_receipt_revisions := capacity_rejection.get("revisions", []) as Array
+    check(not bool(capacity_rejection.get("accepted", true))
+        and int(capacity_rejection.get("status", {}).get("diagnostic", 0)) == 123
+        and int(capacity_rejection.get("source_predecessor_revision", -1)) == capacity_source_revision
+        and int(capacity_rejection.get("destination_predecessor_revision", -1)) == capacity_destination_revision
+        and _receipt_revision(capacity_receipt_revisions, owner.corpse_inventory_id) == capacity_source_revision
+        and _receipt_revision(capacity_receipt_revisions, owner.raid_player_inventory_id) == capacity_destination_revision
+        and bridge.confirmed_snapshot(Bridge.SCOPE_RAID, owner.corpse_inventory_id).canonical_bytes() == capacity_source_bytes
+        and bridge.confirmed_snapshot(Bridge.SCOPE_RAID, owner.raid_player_inventory_id).canonical_bytes() == capacity_destination_bytes,
+        "native capacity receipt preserves source/destination causal revisions and no-loss canonical bytes")
+    check(controller.loot_container_state() == Model.STATE_OVERWEIGHT,
+        "native capacity rejection latches overweight only for its exact causal pair")
+    var captured_causal := controller.get("_loot_state_hint_causal") as Dictionary
+    var captured_causal_revisions := captured_causal.get("revisions", {}) as Dictionary
+    check(int(captured_causal.get("source_inventory_id", 0)) == owner.corpse_inventory_id
+        and int(captured_causal.get("destination_inventory_id", 0)) == owner.raid_player_inventory_id
+        and int(captured_causal_revisions.get(owner.corpse_inventory_id, -1)) == capacity_source_revision
+        and int(captured_causal_revisions.get(owner.raid_player_inventory_id, -1)) == capacity_destination_revision
+        and int(captured_causal.get("owner_generation", 0)) == owner.generation()
+        and int(captured_causal.get("scope_generation", 0)) == bridge.scope_generation(Bridge.SCOPE_RAID)
+        and int(captured_causal.get("binding_serial", 0)) == int(controller.get("_binding_serial")),
+        "persistent hint stores exact source/destination ids, revisions, binding serial, and scope generation")
+    controller._on_model_rejection({
+        "inventory_id": owner.corpse_inventory_id,
+        "items": [int(akm_item.get("item_id", 0))],
+        "reason_token": "inventory.presentation.reason.overweight",
+        "status": {"reason": "overweight"},
+    }, Bridge.SCOPE_RAID)
+    check(controller.loot_container_state() == Model.STATE_OVERWEIGHT,
+        "generic model rejection feedback cannot replace the native causal hint")
+
+    screen._set_loot_mode(false)
+    await process_frame
+    screen._set_loot_mode(true)
+    await process_frame
+    check(controller.loot_container_state() == Model.STATE_OVERWEIGHT,
+        "close/open of the unchanged loot source retains a still-causal rejection hint")
+
+    world.access_blocked = true
+    var policy_blocked_requests := adapter.tracked_request_count()
+    check(controller.loot_container_state() == Model.STATE_INACCESSIBLE,
+        "live inaccessible policy outranks a causal overweight hint")
+    var policy_blocked_retry := controller.submit_quick(&"loot", akm_item)
+    check(not bool(policy_blocked_retry.get("accepted", true))
+        and policy_blocked_retry.get("reason", &"") == Controller.REASON_LOOT_INACCESSIBLE
+        and adapter.tracked_request_count() == policy_blocked_requests,
+        "inaccessible policy prevents a retry without creating a request")
+    world.access_blocked = false
+
+    check(controller.set_loot_container(&"crate"), "switching loot source discards only the old source hint")
+    check(controller.open_loot_container() and controller.loot_container_state() == Model.STATE_NORMAL,
+        "switched crate source is evaluated from its live projection")
+    check(controller.set_loot_container(&"corpse"), "switching back selects the exact corpse source")
+    check(controller.open_loot_container() and controller.loot_container_state() == Model.STATE_NORMAL,
+        "discarded source hint does not reappear after a source switch")
+
+    # Recreate the rejection so a destination-only revision can prove the
+    # causal tuple is not source-only.  Removing one crate advances the player
+    # projection while corpse revision stays unchanged and must clear the hint.
+    var second_capacity_destination := _first_fit(controller.items_for(&"backpack"), akm_item, 8, 5)
+    var second_rejection := controller.submit_drop(
+        &"loot", &"backpack", akm_item, second_capacity_destination)
+    await process_frame
+    check(not bool(second_rejection.get("accepted", true))
+        and controller.loot_container_state() == Model.STATE_OVERWEIGHT,
+        "second native capacity rejection restores the exact causal hint")
+    var destination_only_source_revision := bridge.confirmed_revision(
+        Bridge.SCOPE_RAID, owner.corpse_inventory_id)
+    var destination_only_revision := bridge.confirmed_revision(
+        Bridge.SCOPE_RAID, owner.raid_player_inventory_id)
+    var removed_capacity := owner.raid_authority().remove_item(
+        owner.raid_player_inventory_id,
+        inserted_capacity_ids[0],
+        RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+        9_200)
+    await process_frame
+    check(bool(removed_capacity.get("accepted", false))
+        and bridge.confirmed_revision(Bridge.SCOPE_RAID, owner.raid_player_inventory_id) > destination_only_revision
+        and bridge.confirmed_revision(Bridge.SCOPE_RAID, owner.corpse_inventory_id) == destination_only_source_revision
+        and controller.loot_container_state() == Model.STATE_NORMAL,
+        "destination-only revision advancement clears the stale overweight hint and recomputes live policy")
+    var retry_after_destination_revision := controller.submit_drop(
+        &"loot", &"backpack", akm_item, second_capacity_destination)
+    await process_frame
+    check(bool(retry_after_destination_revision.get("accepted", false)),
+        "retry after destination-only advancement reaches native authority with current revisions")
+
+    check(controller.set_loot_container(&"crate") and controller.open_loot_container(),
+        "capacity proof restores the crate source before resynchronization")
+
+    await _run_reentrant_policy_state_probes()
+
     var raid_generation := bridge.scope_generation(Bridge.SCOPE_RAID)
     check(bridge.begin_resynchronization(Bridge.SCOPE_RAID, owner.generation(), raid_generation), "resynchronization begins on the existing projection")
     await process_frame
@@ -256,6 +426,79 @@ func run() -> void:
 
 func _first_item(items: Array[Dictionary]) -> Dictionary:
     return items[0].duplicate(true) if not items.is_empty() else {}
+
+
+func _first_definition(items: Array[Dictionary], definition_id: String) -> Dictionary:
+    for item in items:
+        if str(item.get("definition_id", item.get("item_definition_identifier", ""))) == definition_id:
+            return item.duplicate(true)
+    return {}
+
+
+func _spatial(container_id: int, x: int, y: int, rotated: bool = false) -> Dictionary:
+    return {
+        "kind": "spatial",
+        "container": container_id,
+        "x": x,
+        "y": y,
+        "rotated": rotated,
+    }
+
+
+func _receipt_revision(revisions: Array, inventory_id: int) -> int:
+    for value in revisions:
+        if not value is Dictionary:
+            continue
+        var revision := value as Dictionary
+        if int(revision.get("inventory", 0)) == inventory_id:
+            return int(revision.get("predecessor", -1))
+    return -1
+
+
+func _run_reentrant_policy_state_probes() -> void:
+    for stage in [&"is_world_inventory", &"authoritative_distance_raw", &"is_currently_visible", &"access_state"]:
+        var probe_owner := RaidInventoryOwner.new()
+        probe_owner.name = "InventoryLootUI411PolicyProbe_%s" % String(stage)
+        root.add_child(probe_owner)
+        var configured := probe_owner.configure()
+        check(configured, "reentrant policy %s owner configures" % String(stage))
+        if not configured:
+            probe_owner.queue_free()
+            await process_frame
+            continue
+        var stage_key := String(stage)
+        var raid_id := ZRaidId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key]))
+        var session_id := ZSessionId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "session"]))
+        var actor_id := ZEntityId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "actor"]))
+        var admission_request := ZSessionRequest.create_offline(
+            ZRequestId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "admission"])),
+            raid_id, &"ui_loot_policy_profile", &"player", 7)
+        var admission := ZSessionAdmission.accept_local(admission_request, session_id, actor_id)
+        var identity := BindingIdentityPort.new()
+        identity.session_key = session_id.canonical_key()
+        identity.actor_key = actor_id.canonical_key()
+        identity.epoch = admission.authority_epoch
+        identity.generation = admission.generation
+        identity.native_actor = RaidInventoryOwner.FIXTURE_ACTOR_ID
+        identity.owned[probe_owner.raid_player_inventory_id] = true
+        var world := BindingWorldPolicyPort.new()
+        world.actor_key = actor_id.canonical_key()
+        world.generation = admission.generation
+        world.world_ids[probe_owner.world_crate_inventory_id] = true
+        var probe_adapter := Adapter.new()
+        check(probe_adapter.configure(probe_owner, admission, identity, world, MAX_TRANSFER_DISTANCE_RAW),
+            "reentrant policy %s adapter configures" % String(stage))
+        var captured_owner := probe_owner
+        var captured_generation := probe_owner.generation()
+        world.arm_reentrant(stage, func() -> void:
+            captured_owner.teardown(captured_generation)
+        )
+        var policy := probe_adapter.world_policy_state(probe_owner.world_crate_inventory_id)
+        check(not bool(policy.get("available", true))
+            and policy.get("reason", &"") == &"inventory_runtime_stale_binding",
+            "policy %s callback fails closed without dereferencing invalidated ports" % String(stage))
+        probe_owner.queue_free()
+        await process_frame
 
 
 func _find_item(items: Array[Dictionary], item_id: int) -> Dictionary:

@@ -62,6 +62,13 @@ const REASON_LOOT_STALE: StringName = &"loot_container_stale"
 const REASON_LOOT_OVERWEIGHT: StringName = &"loot_container_overweight"
 const REASON_LOOT_RESYNCHRONIZING: StringName = &"loot_container_resynchronizing"
 
+# Native Inventory System diagnostics are stable protocol values.  Keep the
+# causal classification here at the adapter receipt boundary; presentation
+# model feedback intentionally strips these native fields.
+const _NATIVE_STATUS_REVISION_STALE: int = 60
+const _NATIVE_DIAGNOSTIC_MASS_CAPACITY_EXCEEDED: int = 123
+const _NATIVE_DIAGNOSTIC_STALE: Array[int] = [161, 163, 166]
+
 ## `closed` is a presentation-only state.  The remaining states are the
 ## add-on's stable container/item vocabulary, projected through this game-owned
 ## controller so the retained character workspace never needs to know about
@@ -167,7 +174,7 @@ var _binding_serial: int = 0
 var _submission_active := false
 var _loot_open := false
 var _loot_state_hint: StringName = &""
-var _loot_state_hint_revision: int = -1
+var _loot_state_hint_causal: Dictionary = {}
 
 var last_error: StringName = &""
 
@@ -220,8 +227,7 @@ func bind(owner: RaidInventoryOwner, bridge: InventoryProjectionBridge, adapter:
 
 func unbind() -> void:
 	_loot_open = false
-	_loot_state_hint = &""
-	_loot_state_hint_revision = -1
+	_clear_loot_state_hint()
 	_binding_serial += 1
 	if _bridge != null:
 		_disconnect_bridge()
@@ -250,8 +256,14 @@ func current_owner_generation() -> int:
 func set_loot_container(source: StringName) -> bool:
 	if source != SOURCE_CRATE and source != SOURCE_CORPSE:
 		return false
-	if _loot_source != source and _loot_open:
+	var source_changed := _loot_source != source
+	if source_changed and _loot_open:
 		close_loot_container()
+	if source_changed:
+		# A hint is causal to one exact world inventory/generation.  Switching
+		# sources is the only presentation action allowed to discard it; closing
+		# and reopening the same source must retain an unchanged rejection.
+		_clear_loot_state_hint()
 	_loot_source = source
 	projection_changed.emit(SCOPE_RAID)
 	return true
@@ -274,8 +286,6 @@ func open_loot_container() -> bool:
 		# binding is lost, but a new open cannot authorize any interaction.
 		return false
 	_loot_open = true
-	_loot_state_hint = &""
-	_loot_state_hint_revision = -1
 	projection_changed.emit(SCOPE_RAID)
 	return true
 
@@ -286,8 +296,6 @@ func open_loot_container() -> bool:
 func close_loot_container() -> bool:
 	var changed := _loot_open
 	_loot_open = false
-	_loot_state_hint = &""
-	_loot_state_hint_revision = -1
 	if changed:
 		projection_changed.emit(SCOPE_RAID)
 	return true
@@ -309,16 +317,22 @@ func loot_container_state() -> StringName:
 			return InventoryPresentationModel.STATE_DISCONNECTED
 		InventoryProjectionBridge.ProjectionStatus.RESYNCHRONIZING, InventoryProjectionBridge.ProjectionStatus.LOADING:
 			return InventoryPresentationModel.STATE_RESYNCHRONIZING
-		InventoryProjectionBridge.ProjectionStatus.STALE:
-			return InventoryPresentationModel.STATE_STALE_CORRECTED
-	if not _loot_state_hint.is_empty():
-		return _loot_state_hint
 
 	var policy := world_policy_state(_inventory_id_for_source(_loot_source))
 	if not bool(policy.get("available", false)):
 		return InventoryPresentationModel.STATE_INACCESSIBLE
 	if _loot_carry_overweight():
 		return InventoryPresentationModel.STATE_OVERWEIGHT
+	# Live policy and canonical mass facts outrank a historical rejection hint.
+	# The hint is only a presentation hold while every causal source/destination
+	# snapshot remains the exact generation/revision observed by the native
+	# receipt.
+	if status == InventoryProjectionBridge.ProjectionStatus.STALE:
+		return InventoryPresentationModel.STATE_STALE_CORRECTED
+	if not _loot_state_hint.is_empty():
+		if _loot_hint_is_current():
+			return _loot_state_hint
+		_clear_loot_state_hint()
 	var descriptor_value := descriptor(SOURCE_LOOT)
 	if not bool(descriptor_value.get("available", false)):
 		return InventoryPresentationModel.STATE_INACCESSIBLE
@@ -918,6 +932,11 @@ func _submit_once(scope: StringName, kind: StringName, payload: Dictionary, item
 		result["ui_operation"] = operation
 		result["ui_scope"] = scope
 		result["ui_pending_command_id"] = pending_id
+	# Capture native causal metadata before applying the result to the
+	# presentation model.  Model feedback is intentionally recipient-safe and
+	# strips inventory ids/revision pairs, so it cannot be the source of a
+	# persistent loot-state latch.
+	_capture_loot_causal_result(result, payload, context, operation)
 	if _submission_context_is_current(context) \
 			and not bool(result.get("accepted", false)) \
 			and not bool(result.get("queued", false)):
@@ -1439,6 +1458,10 @@ func _signal_for_key(key: String) -> StringName:
 func _on_model_replaced(scope: StringName, model: InventoryPresentationModel, _generation: int) -> void:
 	if not _active:
 		return
+	if scope == SCOPE_RAID:
+		# A bridge model replacement advances the scope generation even when the
+		# inventory id is reused.  No old receipt can remain causal across it.
+		_clear_loot_state_hint()
 	_bind_model(scope, model)
 	projection_changed.emit(scope)
 
@@ -1453,11 +1476,15 @@ func _on_projection_status_changed(scope: StringName, status: int) -> void:
 func _on_snapshot_projected(scope: StringName, inventory_id: int, revision: int) -> void:
 	if not _active:
 		return
-	if scope == SCOPE_RAID and _loot_state_hint_revision >= 0 \
-			and inventory_id == _inventory_id_for_source(_loot_source) \
-			and revision > _loot_state_hint_revision:
-		_loot_state_hint = &""
-		_loot_state_hint_revision = -1
+	if scope == SCOPE_RAID and not _loot_state_hint.is_empty():
+		var causal_revisions := _loot_state_hint_causal.get("revisions", {}) as Dictionary
+		var causal_revision := int(causal_revisions.get(inventory_id, -1))
+		# Destination-only commits are just as causal as source commits.  Clear
+		# once either observed inventory advances (or regresses, which is a
+		# fail-closed replacement signal); equal revisions retain the hint across
+		# a close/open presentation cycle.
+		if causal_revision >= 0 and revision != causal_revision:
+			_clear_loot_state_hint()
 	projection_changed.emit(scope)
 
 
@@ -1476,19 +1503,10 @@ func _on_model_rejection(info: Dictionary, scope: StringName) -> void:
 		return
 	var output := info.duplicate(true)
 	output["scope"] = scope
-	if scope == SCOPE_RAID and _feedback_touches_loot(output):
-		var reason := String(output.get("reason_token", "")).to_lower()
-		var status: Dictionary = output.get("status", {}) as Dictionary
-		if reason.is_empty():
-			reason = String(status.get("reason", "")).to_lower()
-		if reason.contains("stale") or reason.contains("revision"):
-			_loot_state_hint = InventoryPresentationModel.STATE_STALE_CORRECTED
-			_loot_state_hint_revision = _bridge.confirmed_revision(
-				SCOPE_RAID, _inventory_id_for_source(_loot_source))
-		elif reason.contains("overweight") or reason.contains("capacity"):
-			_loot_state_hint = InventoryPresentationModel.STATE_OVERWEIGHT
-			_loot_state_hint_revision = _bridge.confirmed_revision(
-				SCOPE_RAID, _inventory_id_for_source(_loot_source))
+	# Do not persist generic model feedback.  Its recipient-safe shape has no
+	# causal source/destination ids and revision pairs, so it cannot prove which
+	# exact loot projection a rejection observed.  The synchronous adapter
+	# receipt is captured by _submit_once before this callback is reached.
 	rejection_feedback.emit(output)
 
 
@@ -1497,30 +1515,162 @@ func _on_model_acceptance(info: Dictionary, scope: StringName) -> void:
 		return
 	var output := info.duplicate(true)
 	output["scope"] = scope
-	if scope == SCOPE_RAID and _feedback_touches_loot(output):
-		_loot_state_hint = &""
-		_loot_state_hint_revision = -1
 	accepted_feedback.emit(output)
 
 
-func _feedback_touches_loot(info: Dictionary) -> bool:
-	if not _loot_open or _bridge == null:
+func _clear_loot_state_hint() -> void:
+	_loot_state_hint = &""
+	_loot_state_hint_causal.clear()
+
+
+func _loot_hint_is_current() -> bool:
+	if _loot_state_hint.is_empty() or _loot_state_hint_causal.is_empty():
 		return false
-	var loot_inventory_id := _inventory_id_for_source(_loot_source)
-	if loot_inventory_id <= 0:
+	if not _binding_is_current() or _bridge == null:
 		return false
-	if int(info.get("inventory_id", 0)) == loot_inventory_id:
-		return true
-	for raw_item_id in (info.get("items", []) as Array):
-		if not _item_for_source(SOURCE_LOOT, int(raw_item_id)).is_empty():
+	if StringName(_loot_state_hint_causal.get("source", "")) != _loot_source:
+		return false
+	if int(_loot_state_hint_causal.get("owner_generation", -1)) != _owner_generation:
+		return false
+	if int(_loot_state_hint_causal.get("binding_serial", -1)) != _binding_serial:
+		return false
+	if int(_loot_state_hint_causal.get("scope_generation", -1)) \
+			!= _bridge.scope_generation(SCOPE_RAID):
+		return false
+	var source_inventory_id := int(_loot_state_hint_causal.get("source_inventory_id", 0))
+	var destination_inventory_id := int(_loot_state_hint_causal.get("destination_inventory_id", 0))
+	if source_inventory_id <= 0 or destination_inventory_id <= 0 \
+			or source_inventory_id != _inventory_id_for_source(_loot_source):
+		return false
+	var causal_revisions := _loot_state_hint_causal.get("revisions", {}) as Dictionary
+	if causal_revisions.is_empty():
+		return false
+	for inventory_id_value in [source_inventory_id, destination_inventory_id]:
+		var inventory_id := int(inventory_id_value)
+		var causal_revision := int(causal_revisions.get(inventory_id, -1))
+		if causal_revision < 0 \
+				or _bridge.confirmed_revision(SCOPE_RAID, inventory_id) != causal_revision:
+			return false
+	return true
+
+
+func _capture_loot_causal_result(
+	result: Dictionary,
+	payload: Dictionary,
+	context: Dictionary,
+	operation: StringName
+) -> void:
+	if operation != OP_LOOT and operation != OP_QUICK:
+		return
+	if bool(result.get("accepted", false)) or bool(result.get("queued", false)):
+		return
+	if not _submission_context_is_current(context) or not _loot_open:
+		return
+	var source_inventory_id := int(payload.get("source_inventory_id", 0))
+	var destination_inventory_id := int(payload.get("destination_inventory_id", 0))
+	if source_inventory_id <= 0 or destination_inventory_id <= 0 \
+			or source_inventory_id != _inventory_id_for_source(_loot_source):
+		return
+	# The native receipt's revision array is the provenance for both inventory
+	# ids.  A model-safe rejection or an adapter validation error that lacks this
+	# array is intentionally insufficient for persistent state.
+	if not _receipt_has_revision_entry(result, source_inventory_id) \
+			or not _receipt_has_revision_entry(result, destination_inventory_id):
+		return
+	var hint_state := _loot_hint_state_for_receipt(result)
+	if hint_state.is_empty():
+		return
+	var source_revision := _receipt_causal_revision(
+		result, "source", source_inventory_id)
+	var destination_revision := source_revision if source_inventory_id == destination_inventory_id \
+		else _receipt_causal_revision(result, "destination", destination_inventory_id)
+	if source_revision < 0 or destination_revision < 0:
+		# A generic/adaptor-only rejection has no authoritative causal tuple.  It
+		# remains transient feedback but must not poison the persistent loot state.
+		return
+	var causal := {
+		"source": String(_loot_source),
+		"source_inventory_id": source_inventory_id,
+		"destination_inventory_id": destination_inventory_id,
+		"owner_generation": int(context.get("owner_generation", 0)),
+		"binding_serial": int(context.get("binding_serial", 0)),
+		"scope_generation": int(context.get("scope_generation", 0)),
+		"revisions": {
+			source_inventory_id: source_revision,
+			destination_inventory_id: destination_revision,
+		},
+	}
+	if int(causal.get("owner_generation", 0)) <= 0 \
+			or int(causal.get("binding_serial", 0)) <= 0 \
+			or int(causal.get("scope_generation", 0)) <= 0:
+		return
+	if _bridge == null \
+			or _bridge.confirmed_revision(SCOPE_RAID, source_inventory_id) != source_revision \
+			or _bridge.confirmed_revision(SCOPE_RAID, destination_inventory_id) != destination_revision:
+		return
+	_loot_state_hint = hint_state
+	_loot_state_hint_causal = causal
+
+
+func _receipt_has_revision_entry(result: Dictionary, inventory_id: int) -> bool:
+	var revisions_value: Variant = result.get("revisions", null)
+	if not revisions_value is Array:
+		return false
+	for revision_value in revisions_value as Array:
+		if revision_value is Dictionary \
+				and int((revision_value as Dictionary).get("inventory", 0)) == inventory_id:
 			return true
 	return false
+
+
+func _loot_hint_state_for_receipt(result: Dictionary) -> StringName:
+	var status := result.get("status", {}) as Dictionary
+	var diagnostic := int(status.get("diagnostic", 0))
+	var code := int(status.get("code", -1))
+	var reason := String(result.get("reason", "")).to_lower()
+	var status_reason := String(status.get("reason", "")).to_lower()
+	var reason_token := String(status.get("reason_token", "")).to_lower()
+	if diagnostic == _NATIVE_DIAGNOSTIC_MASS_CAPACITY_EXCEEDED \
+			or reason.contains("overweight") or reason.contains("capacity") \
+			or status_reason.contains("overweight") or status_reason.contains("capacity") \
+			or reason_token.contains("overweight") or reason_token.contains("capacity"):
+		return InventoryPresentationModel.STATE_OVERWEIGHT
+	if code == _NATIVE_STATUS_REVISION_STALE or _NATIVE_DIAGNOSTIC_STALE.has(diagnostic) \
+			or reason.contains("stale") or reason.contains("revision") \
+			or status_reason.contains("stale") or status_reason.contains("revision") \
+			or reason_token.contains("stale") or reason_token.contains("revision"):
+		return InventoryPresentationModel.STATE_STALE_CORRECTED
+	return &""
+
+
+func _receipt_causal_revision(
+	result: Dictionary,
+	prefix: String,
+	inventory_id: int
+) -> int:
+	var revisions_value: Variant = result.get("revisions", null)
+	if revisions_value is Array:
+		for revision_value in revisions_value as Array:
+			if not revision_value is Dictionary:
+				continue
+			var revision := revision_value as Dictionary
+			if int(revision.get("inventory", 0)) != inventory_id:
+				continue
+			var predecessor: Variant = revision.get("predecessor", -1)
+			if typeof(predecessor) == TYPE_INT and int(predecessor) >= 0:
+				return int(predecessor)
+	var predecessor_key := "%s_predecessor_revision" % prefix
+	var predecessor_value: Variant = result.get(predecessor_key, -1)
+	if typeof(predecessor_value) == TYPE_INT and int(predecessor_value) >= 0:
+		return int(predecessor_value)
+	return -1
 
 
 func _on_binding_invalidated(reason: StringName) -> void:
 	if not _active:
 		return
 	last_error = reason
+	_clear_loot_state_hint()
 	_binding_serial += 1
 	_active = false
 	_disconnect_bridge()

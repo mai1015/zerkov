@@ -53,7 +53,14 @@
 			],
 			"search": "",
 			"selected_item": 0,
-			"state": "ready"
+			"state": "ready",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "Confirmed raid projection · search and inspection are presentation-only."
+			}
 		},
 		{
 			"caret": 3,
@@ -90,7 +97,14 @@
 			],
 			"search": "battery",
 			"selected_item": 0,
-			"state": "searching"
+			"state": "searching",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "Confirmed raid projection · search and inspection are presentation-only."
+			}
 		},
 		{
 			"caret": 3,
@@ -125,7 +139,14 @@
 			],
 			"search": "battery",
 			"selected_item": 0,
-			"state": "inaccessible"
+			"state": "inaccessible",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "Range, visibility, access, or world-container liveness is not confirmed."
+			}
 		},
 		{
 			"caret": 3,
@@ -160,7 +181,14 @@
 			],
 			"search": "battery",
 			"selected_item": 0,
-			"state": "stale"
+			"state": "stale",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "The previous gesture was stale; wait for a newer confirmed projection."
+			}
 		},
 		{
 			"caret": 3,
@@ -195,7 +223,14 @@
 			],
 			"search": "battery",
 			"selected_item": 0,
-			"state": "overweight"
+			"state": "overweight",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "Carry capacity is exceeded; no item was removed or partially transferred."
+			}
 		},
 		{
 			"caret": 3,
@@ -230,7 +265,14 @@
 			],
 			"search": "battery",
 			"selected_item": 0,
-			"state": "resynchronizing"
+			"state": "resynchronizing",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "Waiting for a coherent replacement snapshot; mutations are paused."
+			}
 		},
 		{
 			"caret": 0,
@@ -268,7 +310,14 @@
 			],
 			"search": "",
 			"selected_item": 1,
-			"state": "selection_scroll"
+			"state": "selection_scroll",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "Confirmed raid projection · search and inspection are presentation-only."
+			}
 		},
 		{
 			"caret": 0,
@@ -303,7 +352,14 @@
 			],
 			"search": "",
 			"selected_item": 1,
-			"state": "close"
+			"state": "close",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (244.0, 23.0)]",
+				"tooltip": "LIVE · RAID MUTATIONS AVAILABLE · PROFILE READ-ONLY"
+			}
 		},
 		{
 			"caret": 0,
@@ -338,7 +394,14 @@
 			],
 			"search": "",
 			"selected_item": 0,
-			"state": "disconnected"
+			"state": "disconnected",
+			"status_hit_target": {
+				"focus_mode": 0,
+				"mouse_filter": 1,
+				"point_1701_144_inside": true,
+				"rect": "[P: (1628.0, 133.0), S: (146.0, 23.0)]",
+				"tooltip": "Inventory authority is disconnected; existing loot data is informational only."
+			}
 		}
 	],
 	"replacement_route": false

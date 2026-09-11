@@ -19,13 +19,15 @@ No replacement route, full-screen loot panel, discovery dashboard, local UI auth
 
 ## Native 1920×1080 evidence
 
-Graphical capture command:
+Graphical capture command (the accepted PNGs below were retained; the
+tooltip/cause repair changes hit-testing and state bookkeeping only, so no
+pixels changed):
 
 ```text
 Godot --path . --audio-driver Dummy --script res://tests/visual/inventory_loot_ui_4_11/capture.gd
 ```
 
-Result: `INVENTORY_LOOT_UI_4_11_CAPTURE_COMPLETE checks=26 failures=0`, macOS OpenGL, exact `[1920, 1080]` for every record.
+Result: `INVENTORY_LOOT_UI_4_11_CAPTURE_COMPLETE checks=26 failures=0`, macOS OpenGL, exact `[1920, 1080]` for every record. The PNG SHA-256 values remain unchanged from the accepted 1920×1080 evidence; `captures.json` additionally records the exact status hit target and tooltip probe.
 
 Captures are under [`captures/`](captures/):
 
@@ -40,16 +42,18 @@ Captures are under [`captures/`](captures/):
 - [`1920x1080_disconnected.png`](captures/1920x1080_disconnected.png)
 - [`captures.json`](captures/captures.json)
 
-Geometry recorded in `captures.json` is unchanged across the open/state captures: `InventoryContent` is `(0,0) 1920×1080`, `DesktopStashScroll` is `(1304,225) 518×740`, the retained Loot tab is `(1328,174) 76×32`, `LootClose` is `(1780,130) 92×28`, the loot grid uses `74`px cells, and `replacement_panel_present` is false for every record.
+Evidence hashes (SHA-256; all images are exact 1920×1080): `captures.json` `42496e4d2dc396b589aec982f880e370f03abdd9e3d7f98060af5c6f86ef7de3`; ready `b55851953e5dd6e2bf2655169260e0d491823dbb179bee80cc3bd546b4ca1747`; searching `ebc5af9a24c758389a8e432c1e3251e6d826e46f744d72b215ff58203330bb9d`; inaccessible `332d08bbb75e5ac78e2a8d42658988a96d418b4d2dfcbe4730b4566c7450eb0d`; stale `686455163af03db108a54ddbdf16c30f7010b51ae033a0ab12b8ed781b9c5e0e`; overweight `b0346f68c377b81136eab4665dacfc8b6807a9ccc96e1d6dcdc7b87f818951bf`; resynchronizing `e1b6bdc5cd97352e53b4953c1e1338815c6d00b149f183170f7aad8638cabc1e`; selection `bad55d1e98193c24448571e7ba927dc63ae26119a2273ffef7debfef8a77aae4`; close `cb5d4d8e4ebaeb7076536d58eda0f459c7a8c6fdacf06ade7f85384ab8b07db0`; disconnected `331375f940c8867b7f366a7f18a8c268067ffb7641ea77ad4d8cd51853981c2d`.
+
+Geometry recorded in `captures.json` is unchanged across the open/state captures: `InventoryContent` is `(0,0) 1920×1080`, `DesktopStashScroll` is `(1304,225) 518×740`, the retained Loot tab is `(1328,174) 76×32`, `LootClose` is `(1780,130) 92×28`, the loot grid uses `74`px cells, and `replacement_panel_present` is false for every record. The status hit target remains the authored `(1628,133) 146×23` in Loot mode, includes exact point `(1701,144)`, uses `MOUSE_FILTER_PASS` with `FOCUS_NONE`, and carries the full state explanation in `tooltip_text`.
 
 ## Focused 4.11 contract
 
 ```text
 Godot --headless --path . --audio-driver Dummy --script res://tests/raid/inventory_loot_ui_4_11_contract.gd
-INVENTORY_LOOT_UI_4_11_COMPLETE checks=37 failures=0
+INVENTORY_LOOT_UI_4_11_COMPLETE checks=69 failures=0
 ```
 
-The contract uses a temporary deterministic authority fixture only for test setup, then verifies the production bridge/adapter/controller flow for crate and corpse projections, open/search/close, canonical transfer/no-loss, inaccessible policy, stale and overweight presentation gates, resynchronizing, lifecycle unload/disconnect, binding-token invalidation, and retained workspace geometry. Noncanonical stale/overweight capture states are supplied by a test-only controller subclass; a recursive source scan asserts that production `game/` and `ui/` contain no override API or callsite.
+The contract uses temporary deterministic authorities only as test fixtures, then verifies the production bridge/adapter/controller flow for crate and corpse projections, open/search/close, canonical transfer/no-loss, inaccessible policy, stale and overweight presentation gates, resynchronizing, lifecycle unload/disconnect, binding-token invalidation, and retained workspace geometry. It also drives a real native 25 kg backpack against the authored 28 kg capacity, proves source+destination causal predecessor revisions survive model feedback stripping, ignores generic feedback for persistent state, retains the hint across same-source close/open, gives inaccessible policy precedence, clears on destination-only revision advance, and drops the old hint on source switch. Four temporary policy ports tear down their owner during each read stage; each returns a stable stale-binding result without a script error. Noncanonical stale/overweight capture frames are supplied by a test-only controller subclass; a recursive source scan asserts that production `game/` and `ui/` contain no override API or callsite.
 
 ## Regression results
 
@@ -58,7 +62,7 @@ the remaining checks are resolution-independent domain contracts. All commands
 below exited zero:
 
 ```text
-common_ui_navigation_1080_regression       checks=94 failures=0 maximum_menu_depth=2
+common_ui_navigation_1080_regression       checks=94 failures=0 maximum_menu_depth=2 (1920x1080)
 inventory_smoke                            checks=21 failures=0 (1920x1080)
 ui_smoke                                   checks=948 failures=0 (1920x1080)
 raid_smoke                                 checks=29 failures=0 (1920x1080)

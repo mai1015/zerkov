@@ -203,12 +203,32 @@ func world_policy_state(inventory_id: int) -> Dictionary:
 	}
 	if not is_bound() or inventory_id <= 0:
 		return result
-	if not _world_policy_port.is_world_inventory(
-		_admission.actor_id, inventory_id, _admission.generation):
+	# Trusted policy ports are synchronous callback boundaries.  Capture the
+	# exact objects and generation token before the first call: a port may
+	# release this adapter/owner from inside its callback, which nulls the
+	# member references synchronously.  Every subsequent call is gated by a
+	# local binding check so a reentrant lifecycle edge fails closed without
+	# dereferencing a member that the callback just invalidated.
+	var captured_port := _world_policy_port
+	var captured_owner := _owner
+	var captured_admission := _admission
+	var captured_owner_generation := _owner_generation
+	if not _policy_query_binding_is_current(
+		captured_port, captured_owner, captured_admission,
+		captured_owner_generation):
+		result.reason = &"inventory_runtime_stale_binding"
+		return result
+	if not captured_port.is_world_inventory(
+		captured_admission.actor_id, inventory_id, captured_admission.generation):
 		result.reason = &"world_target_invalid"
 		return result
-	var distance_raw := _world_policy_port.authoritative_distance_raw(
-		_admission.actor_id, inventory_id, _admission.generation)
+	if not _policy_query_binding_is_current(
+		captured_port, captured_owner, captured_admission,
+		captured_owner_generation):
+		result.reason = &"inventory_runtime_stale_binding"
+		return result
+	var distance_raw := captured_port.authoritative_distance_raw(
+		captured_admission.actor_id, inventory_id, captured_admission.generation)
 	result.distance_raw = distance_raw
 	if distance_raw < 0:
 		result.reason = &"distance_unavailable"
@@ -216,19 +236,53 @@ func world_policy_state(inventory_id: int) -> Dictionary:
 	if distance_raw > _max_transfer_distance_raw:
 		result.reason = &"out_of_range"
 		return result
-	if not _world_policy_port.is_currently_visible(
-		_admission.actor_id, inventory_id, _admission.generation):
+	if not _policy_query_binding_is_current(
+		captured_port, captured_owner, captured_admission,
+		captured_owner_generation):
+		result.reason = &"inventory_runtime_stale_binding"
+		return result
+	if not captured_port.is_currently_visible(
+		captured_admission.actor_id, inventory_id, captured_admission.generation):
 		result.reason = &"not_visible"
 		return result
-	var access := _world_policy_port.access_state(
-		_admission.actor_id, inventory_id, _admission.generation)
+	if not _policy_query_binding_is_current(
+		captured_port, captured_owner, captured_admission,
+		captured_owner_generation):
+		result.reason = &"inventory_runtime_stale_binding"
+		return result
+	var access := captured_port.access_state(
+		captured_admission.actor_id, inventory_id, captured_admission.generation)
 	result.access = access
 	if access != ZInventoryWorldPolicyPort.ACCESS_OPEN:
 		result.reason = &"access_closed"
 		return result
+	if not _policy_query_binding_is_current(
+		captured_port, captured_owner, captured_admission,
+		captured_owner_generation):
+		result.reason = &"inventory_runtime_stale_binding"
+		return result
 	result.available = true
 	result.reason = &""
 	return result
+
+
+func _policy_query_binding_is_current(
+	captured_port: ZInventoryWorldPolicyPort,
+	captured_owner: RaidInventoryOwner,
+	captured_admission: ZSessionAdmission,
+	captured_owner_generation: int
+) -> bool:
+	return not _invalidated \
+		and _configured \
+		and captured_port != null \
+		and captured_owner != null \
+		and is_instance_valid(captured_owner) \
+		and captured_admission != null \
+		and _owner == captured_owner \
+		and _world_policy_port == captured_port \
+		and _admission == captured_admission \
+		and _owner_generation == captured_owner_generation \
+		and captured_owner.is_current_generation(captured_owner_generation)
 
 
 func matches_binding(

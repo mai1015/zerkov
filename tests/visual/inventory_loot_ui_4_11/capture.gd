@@ -37,6 +37,7 @@ func _capture_411(state: String, extra: Dictionary = {}) -> void:
     check(rendered.get_size() == Vector2i(1920, 1080), "1920x1080 native capture for " + state)
     check(rendered.save_png(OUTPUT_411 + "/" + file_name) == OK, "save " + file_name)
     var loot_grid: Control = screen._grid_for_source("loot")
+    var loot_status := screen._node("StashCompatible") as Label
     var record := {
         "image": file_name,
         "state": state,
@@ -54,6 +55,13 @@ func _capture_411(state: String, extra: Dictionary = {}) -> void:
         "grid_columns": loot_grid.grid_columns if loot_grid != null else 0,
         "grid_rows": loot_grid.grid_rows if loot_grid != null else 0,
         "mutation": loot_grid.mutation_enabled if loot_grid != null else false,
+        "status_hit_target": {
+            "rect": str(loot_status.get_global_rect()) if loot_status != null else "",
+            "point_1701_144_inside": loot_status != null and loot_status.get_global_rect().has_point(Vector2(1701, 144)),
+            "mouse_filter": loot_status.mouse_filter if loot_status != null else -1,
+            "focus_mode": loot_status.focus_mode if loot_status != null else -1,
+            "tooltip": loot_status.tooltip_text if loot_status != null else "",
+        },
         "selected_item": screen._selected_live_item.get("item_id", 0),
         "search": (screen._node("StashSearch") as LineEdit).text,
         "caret": (screen._node("StashSearch") as LineEdit).caret_column,
