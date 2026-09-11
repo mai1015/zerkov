@@ -282,6 +282,7 @@ func run() -> void:
 	_test_forged_phase_and_reentrant_admission()
 	_test_registration_reentrant_release()
 	_test_registration_context_revalidation_cleanup()
+	_test_release_from_native_cancellation()
 	_test_unproven_owner_unload_cannot_clear_hold()
 	for fixture in _fixtures.duplicate():
 		_cleanup_fixture(fixture)
@@ -1072,6 +1073,47 @@ func _test_registration_context_revalidation_cleanup() -> void:
 	if not component.is_torn_down():
 		component.queue_teardown(component.get_current_tick())
 	component.queue_free()
+
+
+func _test_release_from_native_cancellation() -> void:
+	var fixture := _new_fixture("release_native_cancel")
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var component := fixture["component"] as GameplayAbilityComponent
+	var authority := fixture["authority"] as RaidAuthority
+	var second_target := ZEntityId.from_parts(PackedStringArray([
+		"health_consequence", "release_native_cancel", "zz_second"]))
+	var second_component := _new_health_component(98_002)
+	check(authority.authorize_actor(second_target, ZRaidIntent.Source.AI,
+		int(fixture["generation"])), "second cancellation actor authorizes")
+	check(bool(adapter.register_actor(second_target, ZRaidIntent.Source.AI,
+		second_component, second_component.entity_id).get("accepted", false)),
+		"second cancellation actor registers")
+	var release_generation := adapter.binding_generation()
+	var observed: Array[Dictionary] = []
+	component.activation_cancelled.connect(func(_result: Dictionary) -> void:
+		if observed.is_empty():
+			observed.append({"entered": true})
+			observed[0]["nested_release"] = adapter.release_binding(
+				&"nested_native_cancellation")
+			observed[0]["nested_error"] = adapter.last_error)
+	var released := adapter.release_binding(&"outer_native_cancellation")
+	check(released
+		and adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.RELEASED
+		and adapter.actor_count() == 0
+		and adapter.binding_generation() == release_generation + 1,
+		"outer two-actor release completes one binding cleanup")
+	check(observed.size() == 1
+		and not bool(observed[0].get("nested_release", true))
+		and observed[0].get("nested_error") == &"health_binding_change_reentrant",
+		"native activation cancellation rejects recursive binding release")
+	check(component.is_torn_down() and not component.is_owner_valid()
+		and second_component.is_torn_down() and not second_component.is_owner_valid(),
+		"two captured native components each reach proven terminal cleanup")
+	check(not adapter.release_binding(&"duplicate_native_cancellation")
+		and adapter.last_error == &"health_adapter_not_bound"
+		and adapter.binding_generation() == release_generation + 1,
+		"completed teardown cannot replay actor cleanup or advance generation")
+	second_component.queue_free()
 
 
 func _test_unproven_owner_unload_cannot_clear_hold() -> void:

@@ -478,6 +478,22 @@ func release_binding(
 	var effective_tick := maxi(_last_tick, tick)
 	if effective_tick < 0 or effective_tick > MAX_AUTHORITY_TICK:
 		return _reject_bool(&"health_teardown_tick_invalid")
+	# Participant clear and component teardown may synchronously emit native
+	# callbacks. Fence the complete teardown before crossing either boundary and
+	# funnel every guarded exit through this wrapper so a failed release remains
+	# retryable without permitting a callback to consume the binding recursively.
+	_mutation_active = true
+	var released := _release_binding_mutation(
+		reason, effective_tick, teardown_components)
+	_mutation_active = false
+	return released
+
+
+func _release_binding_mutation(
+	reason: StringName,
+	effective_tick: int,
+	teardown_components: bool
+) -> bool:
 	if _phase_registered and _authority != null and is_instance_valid(_authority):
 		var callback := _phase_callback(_binding_generation)
 		if _authority.has_exact_phase_handler(
@@ -497,8 +513,16 @@ func release_binding(
 	_phase_registered = false
 	var actor_ids := PackedStringArray(_actors.keys())
 	actor_ids.sort()
+	var teardown_plan: Array[Dictionary] = []
 	for actor_key in actor_ids:
-		var record := _actors[actor_key] as Dictionary
+		var record := _actors.get(actor_key, {}) as Dictionary
+		if record.is_empty():
+			return _latch_recovery(&"health_teardown_actor_missing", {
+				"actor_id": actor_key})
+		teardown_plan.append({"actor_id": actor_key, "record": record})
+	for entry in teardown_plan:
+		var actor_key := String(entry["actor_id"])
+		var record := entry["record"] as Dictionary
 		_disconnect_actor_callback(record)
 		var port := record.get("medical_port") as MedicalInventoryParticipantPort
 		if port != null and not port.clear():
@@ -2160,7 +2184,6 @@ func _reset_binding_refs() -> void:
 	_last_tick = 0
 	_journal_cursor = 0
 	_phase_active = false
-	_mutation_active = false
 	_public_signal_active = false
 
 
