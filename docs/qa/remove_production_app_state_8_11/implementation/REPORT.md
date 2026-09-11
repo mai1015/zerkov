@@ -154,3 +154,30 @@ bunker, crafting, friend, insurance, or marketplace services. It does not bind
 HUD, Tasks/Maps, deployment/summary, or meta actions to new authorities, and it
 does not claim Tasks 8.5, 8.7, 8.8, or 8.9. Task 8.11 remains open until an
 independent reviewer accepts this packet.
+
+## Independent acceptance — 2026-09-11
+
+Fresh Astra review accepted exact integrated candidate
+`dedf01256f7a1004f2220c219151031f3b56d0a8` with no P0, P1, or P2
+findings and `human_approval: false`. The combined `ui/` and `game/` scan found
+zero production `app.state` or reflective equivalents and no fixture-provider
+escape. Task 8.6 Character injection, the existing designed inventory surface,
+Task 8.10 Controls/input persistence, read-only views, navigation, and accepted
+Vision authority remained intact.
+
+Both capture paths now verify the final framebuffer immediately after readback
+and quit/return before path creation or writes on mismatch. QA/review startup
+checks both engine and user argument sources plus the actual root/native Window
+size before layout or route construction. The reviewed unavailable-state image
+is exactly `1920x1080`, has SHA-256
+`946d010d541ac202f6dd840925a3f90fd4d25af3c6b9d8800cfb905077e0a6b7`,
+and its paragraph wraps within the existing authored panel.
+
+The final combined review passed source/provider `57/0`, views `115/0`,
+Character composition `22/0`, authority replay `81/0`, production unavailable
+`106/0`, Character UI `65/0`, inventory binding `138/0`, and CommonUI
+integration `76/0`, along with import, strict spec, scope, hash, and diff gates.
+All screen-producing commands were exact `1920x1080`; no alternate-size,
+compact, or responsive layout was launched or generated. Shared binding bytes
+remain at SHA-256 `ff6f972f99cc7e9a66db4852735ead27d344b3d090d246a420aa0136aff6bde5`,
+with `.tmp` and `.bak` absent.

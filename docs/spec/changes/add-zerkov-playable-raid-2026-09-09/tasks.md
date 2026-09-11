@@ -491,7 +491,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   regression coverage to CommonUI-backed screens. Keep any retained adaptive
   implementation out of the current first-playable test matrix; smaller suites
   are deferred until task 11.8 or a later approved display-support proposal.
-- [ ] 8.11 `[SOL]` Remove production reads/writes of `app.state`; keep mock
+- [x] 8.11 `[SOL]` Remove production reads/writes of `app.state`; keep mock
   fixtures only behind test/developer providers.
 - [ ] 8.12 `[ASTRA]` Review every real-data screen at 1920x1080 for hierarchy,
   readability and preserved interaction affordances. Smaller outputs are
