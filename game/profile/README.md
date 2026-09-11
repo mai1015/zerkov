@@ -17,7 +17,10 @@ Call `configure("zerkov.profile.local")`, then `load_profile()` or
 `save_profile(payload, expected_generation, revision)`. A save always targets
 `expected_generation + 1`, and revision must advance exactly once. Repeating
 the exact request is an I/O-free replay; a divergent request for the same or a
-stale generation is rejected.
+stale generation is rejected. Call `close()` after the final operation; it is
+idempotent, returns `true` after releasing the lease, and returns `false` with
+`profile_store_operation_active` or `profile_store_configuration_active` when
+teardown races work that still owns the store.
 
 Production callers cannot provide a path. The default adapter maps a validated
 profile identity to a domain-separated SHA-256 filename below the fixed
@@ -59,10 +62,18 @@ directory-fsync operation and `flush()` does not expose a separately auditable
 fsync result, so production success is intentionally reported as committed but
 durability-uncertain. On the validated macOS/APFS host this establishes a
 single namespace-replacement point, but it is not proof against sudden power
-loss. There is also no interprocess lock: the supported mode is one offline
-process, with an in-process single-writer lease. Symlink/reparse checks close
-ordinary traversal paths, but concurrent hostile local filesystem mutation
-between check and open is outside this boundary's threat model.
+loss.
+
+There is no interprocess lock: the supported mode remains one offline process.
+Within that process, a static `Mutex` linearizes lease acquisition/release for
+each storage identity and an instance `Mutex` admits at most one load/save at a
+time. Configure, close, and operation admission update their in-memory state in
+short critical sections. No adapter callback, hashing pass, or storage I/O runs
+with either mutex held. A close racing an active operation is rejected without
+releasing the lease, so another store cannot enter until the operation finishes
+and close is retried successfully. Symlink/reparse checks close ordinary
+traversal paths, but concurrent hostile local filesystem mutation between check
+and open is outside this boundary's threat model.
 
 Checksums and fingerprints detect accidental or non-recomputed tampering; they
 are not signatures or encryption and do not defend against an attacker who can

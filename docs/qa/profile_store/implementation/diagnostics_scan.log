@@ -1,4 +1,4 @@
-PASS: no matches in final accepted editor, Godot contract, toolchain, vendor, or strict-spec logs.
+PASS: no matches in final accepted editor, Godot contract, concurrency-repeat, toolchain, vendor, or strict-spec logs.
 
 Scanned patterns:
 SCRIPT ERROR
@@ -12,3 +12,5 @@ RID allocations
 failures=[1-9]
 FAILED
 Traceback
+join_timeouts=[1-9]
+deadlocks=[1-9]

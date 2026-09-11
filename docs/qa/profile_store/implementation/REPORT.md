@@ -1,12 +1,36 @@
 # Task 7.9 — ProfileStore implementation evidence
 
-Status: **implementation complete; integration review pending**
+Status: **P1 concurrency repair complete; integration re-review pending**
 
 Task: `7.9` from `add-zerkov-playable-raid-2026-09-09`
+
+Repair base: current `main` `f94222068ec398e4480e049563c496cedb13ff41`
+merged as `2f5c9a3`
 
 Engine: Godot `4.7.2.stable.official.ed1daf0bf`
 
 Host observed by the promoted contract: macOS, APFS
+
+## Concurrency correctness repair
+
+Independent review of commit `d52c3f69b2b4df291a40e61d3ed656933aafd2b3`
+found that the process-wide writer-lease dictionary and the per-store operation
+flag used check-then-set sequences without synchronization. Real Godot Threads
+could therefore acquire two leases for one storage identity or enter two saves
+on one store.
+
+The repaired implementation uses one static `Mutex` for lease-map ownership and
+one instance `Mutex` for lifecycle/operation state. Lease acquisition/release,
+configuration admission, close, and the final check/set that admits load/save
+are now linearized. Lock order is always lease mutex then instance mutex when
+both are needed. Adapter configure/prepare/key/capability callbacks, canonical
+encoding and hashing, and every storage operation run outside both locks.
+
+`close()` is now an idempotent boolean operation. It refuses teardown with
+`profile_store_configuration_active` or `profile_store_operation_active`
+instead of releasing a lease while work is in flight. Failure exits clear their
+admission state under the instance mutex; a contender can acquire the lease
+after the active operation finishes and close is retried.
 
 ## Delivered boundary
 
@@ -98,10 +122,12 @@ result from `FileAccess.flush()`. Therefore production receipts deliberately
 report `committed_durability_uncertain`, not durable. The tests do not simulate
 a real power cut and do not prove APFS crash durability.
 
-The supported mode is one offline process. An in-process lease rejects a second
-writer for the same storage identity; there is no interprocess lock. Symlink
-checks reject stable path attacks, but a hostile local process racing filesystem
-entries between check and open is outside this boundary's threat model.
+The supported mode is one offline process. Mutex-backed in-process admission
+rejects a second writer for the same storage identity and a second operation on
+the same store; there is no interprocess lock. No ProfileStore mutex is held
+across a file-operation callback or storage I/O. Symlink checks reject stable
+path attacks, but a hostile local process racing filesystem entries between
+check and open is outside this boundary's threat model.
 
 Godot API references used for the guarantee boundary:
 [FileAccess](https://docs.godotengine.org/en/4.7/classes/class_fileaccess.html),
@@ -109,12 +135,12 @@ Godot API references used for the guarantee boundary:
 
 ## Automated results
 
-The final ten-program Godot matrix executed **20,018 checks with zero
+The final ten-program Godot matrix executed **20,056 checks with zero
 failures**:
 
 | Contract | Checks | Failures |
 | --- | ---: | ---: |
-| ProfileStore promoted contract | 220 | 0 |
+| ProfileStore promoted contract | 258 | 0 |
 | Inventory persistence/replacement adjacency | 97 | 0 |
 | Inventory authority adjacency | 79 | 0 |
 | Offline session lifecycle adjacency | 44 | 0 |
@@ -135,7 +161,15 @@ backup; both corrupt; both missing; preservation of the sole good backup;
 safe temp cleanup and blocked cleanup; a real symlink fixture; injected failure
 before/after candidate write, backup replacement, and primary replacement;
 post-commit verification corruption; directory-sync failure; a seam-proven
-durable result; and fresh-instance host reload and host backup recovery.
+durable result; fresh-instance host reload and host backup recovery; eight-way
+synchronized lease acquisition; synchronized same-store save admission; bounded
+thread joins; close during blocked storage I/O; validation-error admission
+cleanup; and lease reacquisition after both ordinary and raced teardown.
+
+The final concurrency contract was also repeated 25 times in one bounded
+headless run (`6,450` assertions, zero failures and zero join timeouts) to check
+for scheduling flakiness. These repetitions are supplementary and are not
+double-counted in the ten-program matrix.
 
 The clean final editor import exited `0`. Every accepted log was scanned for
 `SCRIPT ERROR`, `ERROR:`, warnings, extension-load failures, assertion failure

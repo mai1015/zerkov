@@ -21,3 +21,12 @@ the raid-progression/runtime-foundation deltas. Confirm that:
     encryption, or interprocess locking;
 11. no settlement, loss-policy, loadout, summary, UI, add-on, task-ledger, or
     truth-spec scope entered the change.
+12. the static lease mutex makes same-identity configure acquisition/release a
+    single linearization point across Godot Threads;
+13. the instance mutex admits at most one load/save and prevents close from
+    releasing the lease while configuration or an operation is active;
+14. no mutex remains held while calling the file-operation seam, hashing,
+    serializing, reading, flushing, replacing, verifying, or syncing;
+15. bounded synchronized thread probes prove one eight-way configure winner,
+    one same-store save winner, explicit loser receipts, no deadlock, and lease
+    reacquisition only after successful teardown.

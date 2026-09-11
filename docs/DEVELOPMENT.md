@@ -113,18 +113,22 @@ The game-owned profile boundary is documented in
 covers canonical bytes, strict malformed/tampered input rejection, primary and
 backup precedence, exact replay, monotonic generation/revision CAS, temp and
 backup rotation, injected failures on both sides of replacement, real symlink
-rejection, and a restart-like host filesystem flow. A named zero-failure result
-and a clean diagnostics scan are both required:
+rejection, a restart-like host filesystem flow, synchronized concurrent lease
+acquisition, same-store operation admission, and close-during-save lease
+retention. Thread joins are bounded. A named zero-failure result and a clean
+diagnostics scan are both required:
 
 ```text
-PROFILE_STORE_RESULT checks=220 failures=0
+PROFILE_STORE_RESULT checks=258 failures=0
 ```
 
 The production Godot adapter writes and flushes a same-directory temp before
 `DirAccess.rename_absolute()`. Godot exposes no directory-fsync API, so a
 verified production replacement is reported as
 `committed_durability_uncertain`; the checkpoint does not claim power-loss
-durability or an interprocess writer lock.
+durability or an interprocess writer lock. Within one process, mutex-backed
+critical sections linearize lease ownership and admit one operation per store;
+no file-operation callback or storage I/O executes while those locks are held.
 
 ## Inventory UI binding checkpoint (task 4.7b)
 

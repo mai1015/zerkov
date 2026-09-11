@@ -4,9 +4,11 @@ extends RefCounted
 ##
 ## The supported runtime is single-process and single-writer. An in-process
 ## lease rejects two ProfileStore writers for the same storage identity, but no
-## interprocess lock is claimed. Production paths are fixed by
-## GodotProfileFileOperations; the injected operations entry point is a trusted
-## test seam and never receives caller-selected paths.
+## interprocess lock is claimed. Lease-map and instance-state transitions are
+## mutex-linearized across Godot Threads; the mutexes are never held across an
+## adapter callback, hashing, serialization, or storage I/O. Production paths
+## are fixed by GodotProfileFileOperations; the injected operations entry
+## point is a trusted test seam and never receives caller-selected paths.
 
 const GodotOperations = preload("res://game/profile/godot_profile_file_operations.gd")
 
@@ -56,10 +58,19 @@ const _ENVELOPE_KEYS: PackedStringArray = [
 const _PAYLOAD_KEYS: PackedStringArray = ["domains", "project"]
 
 static var _writer_leases: Dictionary = {}
+static var _writer_leases_mutex: Mutex = Mutex.new()
 
-var last_error: StringName = &""
+var _state_mutex: Mutex = Mutex.new()
+var _last_error: StringName = &""
+var last_error: StringName:
+	get:
+		_state_mutex.lock()
+		var result := _last_error
+		_state_mutex.unlock()
+		return result
 
 var _configured: bool = false
+var _configuration_active: bool = false
 var _operation_active: bool = false
 var _profile_id: String = ""
 var _operations: ProfileFileOperations
@@ -81,31 +92,69 @@ func configure_with_trusted_operations(
 	return _configure(profile_id, operations)
 
 
-func close() -> void:
+## Releases this store's in-process lease. Teardown is refused while configure
+## or load/save is active, so close can never publish the lease mid-operation.
+func close() -> bool:
+	_writer_leases_mutex.lock()
+	_state_mutex.lock()
+	if _configuration_active:
+		_last_error = &"profile_store_configuration_active"
+		_state_mutex.unlock()
+		_writer_leases_mutex.unlock()
+		return false
+	if _operation_active:
+		_last_error = &"profile_store_operation_active"
+		_state_mutex.unlock()
+		_writer_leases_mutex.unlock()
+		return false
 	if not _configured:
-		return
+		_last_error = &""
+		_state_mutex.unlock()
+		_writer_leases_mutex.unlock()
+		return true
 	var held: Variant = _writer_leases.get(_lease_key)
-	if held is WeakRef and (held as WeakRef).get_ref() == self:
+	var owned_lease: bool = held is WeakRef and (held as WeakRef).get_ref() == self
+	if owned_lease:
 		_writer_leases.erase(_lease_key)
 	_configured = false
 	_operation_active = false
 	_profile_id = ""
 	_lease_key = ""
 	_operations = null
+	_last_error = &"" if owned_lease else &"single_writer_lease_lost"
+	_state_mutex.unlock()
+	_writer_leases_mutex.unlock()
+	return owned_lease
 
 
 func is_configured() -> bool:
-	return _configured and _lease_is_current()
+	_writer_leases_mutex.lock()
+	_state_mutex.lock()
+	var held: Variant = _writer_leases.get(_lease_key)
+	var result: bool = _configured and _operations != null \
+		and held is WeakRef and (held as WeakRef).get_ref() == self
+	_state_mutex.unlock()
+	_writer_leases_mutex.unlock()
+	return result
 
 
 func profile_id() -> String:
-	return _profile_id
+	_state_mutex.lock()
+	var result := _profile_id
+	_state_mutex.unlock()
+	return result
 
 
 func storage_capabilities() -> Dictionary:
-	if not is_configured():
+	var operations := _snapshot_current_operations()
+	if operations == null:
 		return {}
-	return _freeze(_operations.capabilities()) as Dictionary
+	# The adapter callback stays outside both mutexes. The local strong reference
+	# remains valid if another thread closes immediately after the snapshot.
+	var result := operations.capabilities().duplicate(true)
+	result["in_process_lease_thread_safe"] = true
+	result["per_store_operation_admission_thread_safe"] = true
+	return _freeze(result) as Dictionary
 
 
 ## Loads no default. Primary and backup are read and validated independently.
@@ -113,14 +162,14 @@ func storage_capabilities() -> Dictionary:
 ## filesystem objects, I/O uncertainty, or divergent equal generations fail
 ## closed even if one candidate appears valid.
 func load_profile() -> Dictionary:
-	last_error = &""
-	if not _begin_operation():
-		return _load_failure(last_error)
+	var admission_reason := _begin_operation()
+	if not admission_reason.is_empty():
+		return _load_failure(admission_reason)
 	var selection := _read_selection()
-	_end_operation()
 	if not bool(selection.get("ok", false)):
-		last_error = StringName(selection.get("reason", &"profile_load_failed"))
-		return _load_failure(last_error, selection)
+		var failure_reason := StringName(selection.get("reason", &"profile_load_failed"))
+		_finish_operation(failure_reason)
+		return _load_failure(failure_reason, selection)
 	var selected := selection["selected"] as Dictionary
 	var envelope := selected["envelope"] as Dictionary
 	var recovered := StringName(selected["slot"]) == ProfileFileOperations.SLOT_BACKUP
@@ -133,7 +182,7 @@ func load_profile() -> Dictionary:
 			recovery_reason = &"primary_invalid_backup_selected"
 		else:
 			recovery_reason = &"newer_backup_selected"
-	return _freeze({
+	var result := _freeze({
 		"ok": true,
 		"status": LOAD_RECOVERED_BACKUP if recovered else LOAD_PRIMARY,
 		"reason": recovery_reason,
@@ -148,6 +197,8 @@ func load_profile() -> Dictionary:
 		"primary_validation": _candidate_diagnostic(selection["primary"] as Dictionary),
 		"backup_validation": _candidate_diagnostic(selection["backup"] as Dictionary),
 	}) as Dictionary
+	_finish_operation(&"")
+	return result
 
 
 ## Compare-and-swap save. candidate generation is expected_generation + 1;
@@ -159,12 +210,11 @@ func save_profile(
 	expected_generation: int,
 	revision: int
 ) -> Dictionary:
-	last_error = &""
-	if not _begin_operation():
-		return _write_failure(last_error)
+	var admission_reason := _begin_operation()
+	if not admission_reason.is_empty():
+		return _write_failure(admission_reason)
 	var result := _save_profile_active(payload, expected_generation, revision)
-	_end_operation()
-	last_error = StringName(result.get("reason", &""))
+	_finish_operation(StringName(result.get("reason", &"")))
 	return _freeze(result) as Dictionary
 
 
@@ -618,57 +668,140 @@ func _cleanup_temps() -> Dictionary:
 
 
 func _configure(profile_id: String, operations: ProfileFileOperations) -> bool:
-	last_error = &""
-	if _configured:
-		return _reject_bool(&"profile_store_already_configured")
+	if not _begin_configuration():
+		return false
 	if not _is_profile_id_valid(profile_id):
-		return _reject_bool(&"profile_id_invalid")
+		return _finish_configuration_failure(&"profile_id_invalid")
 	if operations == null:
-		return _reject_bool(&"file_operations_invalid")
+		return _finish_configuration_failure(&"file_operations_invalid")
+	# Adapter setup can touch the filesystem or invoke a trusted test double, so
+	# it deliberately runs without either ProfileStore mutex held.
 	var configured := operations.configure(profile_id)
 	if not bool(configured.get("ok", false)):
-		return _reject_bool(StringName(configured.get("reason", &"file_operations_configure_failed")))
+		return _finish_configuration_failure(StringName(
+			configured.get("reason", &"file_operations_configure_failed")))
 	var prepared := operations.prepare()
 	if not bool(prepared.get("ok", false)):
-		return _reject_bool(StringName(prepared.get("reason", &"storage_prepare_failed")))
+		return _finish_configuration_failure(StringName(
+			prepared.get("reason", &"storage_prepare_failed")))
 	var key := operations.lease_key()
 	if key.is_empty() or key.to_utf8_buffer().size() > 1024:
-		return _reject_bool(&"storage_lease_key_invalid")
+		return _finish_configuration_failure(&"storage_lease_key_invalid")
+
+	# Lock order is always global lease map, then instance state. No adapter
+	# callback or storage I/O occurs while either mutex is held.
+	_writer_leases_mutex.lock()
+	_state_mutex.lock()
 	var existing: Variant = _writer_leases.get(key)
 	if existing is WeakRef and (existing as WeakRef).get_ref() != null:
-		return _reject_bool(&"single_writer_lease_held")
+		_configuration_active = false
+		_last_error = &"single_writer_lease_held"
+		_state_mutex.unlock()
+		_writer_leases_mutex.unlock()
+		return false
 	_writer_leases[key] = weakref(self)
 	_operations = operations
 	_profile_id = profile_id
 	_lease_key = key
 	_configured = true
+	_configuration_active = false
+	_last_error = &""
+	_state_mutex.unlock()
+	_writer_leases_mutex.unlock()
 	return true
 
 
-func _begin_operation() -> bool:
-	if not is_configured():
-		return _reject_bool(&"profile_store_not_configured")
-	if _operation_active:
-		return _reject_bool(&"profile_store_reentrant_operation")
-	if _operations.lease_key() != _lease_key:
-		return _reject_bool(&"storage_identity_changed")
-	_operation_active = true
-	return true
-
-
-func _end_operation() -> void:
-	_operation_active = false
-
-
-func _lease_is_current() -> bool:
+func _begin_operation() -> StringName:
+	var observed_operations: ProfileFileOperations
+	var observed_key: String
+	_state_mutex.lock()
 	if not _configured or _operations == null:
+		_last_error = &"profile_store_not_configured"
+		_state_mutex.unlock()
+		return &"profile_store_not_configured"
+	observed_operations = _operations
+	observed_key = _lease_key
+	_state_mutex.unlock()
+
+	# This trusted callback remains outside the mutex. State and lease identity
+	# are rechecked atomically afterward, so close/reconfigure cannot create a
+	# stale admission window.
+	var reported_key := observed_operations.lease_key()
+	_writer_leases_mutex.lock()
+	_state_mutex.lock()
+	var reason: StringName = &""
+	if not _configured or _operations == null:
+		reason = &"profile_store_not_configured"
+	elif _operations != observed_operations or _lease_key != observed_key:
+		reason = &"storage_identity_changed"
+	elif reported_key != observed_key:
+		reason = &"storage_identity_changed"
+	else:
+		var held: Variant = _writer_leases.get(observed_key)
+		if not (held is WeakRef) or (held as WeakRef).get_ref() != self:
+			reason = &"single_writer_lease_lost"
+		elif _operation_active:
+			reason = &"profile_store_reentrant_operation"
+	if not reason.is_empty():
+		_last_error = reason
+		_state_mutex.unlock()
+		_writer_leases_mutex.unlock()
+		return reason
+	_operation_active = true
+	_last_error = &""
+	_state_mutex.unlock()
+	_writer_leases_mutex.unlock()
+	return &""
+
+
+func _finish_operation(reason: StringName) -> void:
+	_state_mutex.lock()
+	_operation_active = false
+	_last_error = reason
+	_state_mutex.unlock()
+
+
+func _begin_configuration() -> bool:
+	_state_mutex.lock()
+	if _configured:
+		_last_error = &"profile_store_already_configured"
+		_state_mutex.unlock()
 		return false
+	if _configuration_active:
+		_last_error = &"profile_store_configuration_active"
+		_state_mutex.unlock()
+		return false
+	_configuration_active = true
+	_last_error = &""
+	_state_mutex.unlock()
+	return true
+
+
+func _finish_configuration_failure(reason: StringName) -> bool:
+	_state_mutex.lock()
+	_configuration_active = false
+	_last_error = reason
+	_state_mutex.unlock()
+	return false
+
+
+func _snapshot_current_operations() -> ProfileFileOperations:
+	_writer_leases_mutex.lock()
+	_state_mutex.lock()
 	var held: Variant = _writer_leases.get(_lease_key)
-	return held is WeakRef and (held as WeakRef).get_ref() == self
+	var result: ProfileFileOperations
+	if _configured and _operations != null \
+			and held is WeakRef and (held as WeakRef).get_ref() == self:
+		result = _operations
+	_state_mutex.unlock()
+	_writer_leases_mutex.unlock()
+	return result
 
 
 func _reject_bool(reason: StringName) -> bool:
-	last_error = reason
+	_state_mutex.lock()
+	_last_error = reason
+	_state_mutex.unlock()
 	return false
 
 

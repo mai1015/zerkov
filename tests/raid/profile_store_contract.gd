@@ -8,6 +8,8 @@ const FileOps = preload("res://game/profile/profile_file_operations.gd")
 const GodotOps = preload("res://game/profile/godot_profile_file_operations.gd")
 
 const PROFILE_ID: String = "zerkov.profile.contract_7_9"
+const THREAD_TIMEOUT_MSEC: int = 5_000
+const CONCURRENT_CONFIGURE_WORKERS: int = 8
 
 
 class FakeFileOperations extends ProfileFileOperations:
@@ -153,6 +155,107 @@ class FakeFileOperations extends ProfileFileOperations:
 		return {"ok": ok, "state": state, "bytes": PackedByteArray(), "reason": reason}
 
 
+class ThreadGate extends RefCounted:
+	var _participants: int = 0
+	var _mutex: Mutex = Mutex.new()
+	var _semaphore: Semaphore = Semaphore.new()
+	var _arrived: int = 0
+	var _released: bool = false
+
+	func _init(participants: int) -> void:
+		_participants = participants
+
+	func arrive_and_wait() -> void:
+		_mutex.lock()
+		_arrived += 1
+		var already_released := _released
+		_mutex.unlock()
+		if not already_released:
+			_semaphore.wait()
+
+	func arrived_count() -> int:
+		_mutex.lock()
+		var result := _arrived
+		_mutex.unlock()
+		return result
+
+	func release_all() -> void:
+		_mutex.lock()
+		if _released:
+			_mutex.unlock()
+			return
+		_released = true
+		_mutex.unlock()
+		for _index in _participants:
+			_semaphore.post()
+
+
+class ThreadSafeFakeFileOperations extends FakeFileOperations:
+	var lease_key_gate: ThreadGate
+	var write_temp_gate: ThreadGate
+	var _io_mutex: Mutex = Mutex.new()
+
+	func configure(profile_id: String) -> Dictionary:
+		_io_mutex.lock()
+		var result := super.configure(profile_id)
+		_io_mutex.unlock()
+		return result
+
+	func lease_key() -> String:
+		var gate := lease_key_gate
+		if gate != null:
+			gate.arrive_and_wait()
+		_io_mutex.lock()
+		var result := super.lease_key()
+		_io_mutex.unlock()
+		return result
+
+	func prepare() -> Dictionary:
+		_io_mutex.lock()
+		var result := super.prepare()
+		_io_mutex.unlock()
+		return result
+
+	func read_slot(slot: StringName, maximum_bytes: int) -> Dictionary:
+		_io_mutex.lock()
+		var result := super.read_slot(slot, maximum_bytes)
+		_io_mutex.unlock()
+		return result
+
+	func write_temp(slot: StringName, bytes: PackedByteArray) -> Dictionary:
+		var gate := write_temp_gate
+		if gate != null:
+			gate.arrive_and_wait()
+		_io_mutex.lock()
+		var result := super.write_temp(slot, bytes)
+		_io_mutex.unlock()
+		return result
+
+	func replace_slot(source_slot: StringName, destination_slot: StringName) -> Dictionary:
+		_io_mutex.lock()
+		var result := super.replace_slot(source_slot, destination_slot)
+		_io_mutex.unlock()
+		return result
+
+	func remove_slot(slot: StringName) -> Dictionary:
+		_io_mutex.lock()
+		var result := super.remove_slot(slot)
+		_io_mutex.unlock()
+		return result
+
+	func sync_directory() -> Dictionary:
+		_io_mutex.lock()
+		var result := super.sync_directory()
+		_io_mutex.unlock()
+		return result
+
+	func capabilities() -> Dictionary:
+		_io_mutex.lock()
+		var result := super.capabilities()
+		_io_mutex.unlock()
+		return result
+
+
 var checks: int = 0
 var failures: int = 0
 var host_capabilities: Dictionary = {}
@@ -172,6 +275,7 @@ func check(condition: bool, message: String) -> void:
 func run() -> void:
 	_test_canonical_codec()
 	_test_identity_and_writer_boundary()
+	_test_concurrent_lease_and_operation_admission()
 	_test_initial_save_load_replay_and_rotation()
 	_test_validation_and_recovery_precedence()
 	_test_preserve_recovered_backup()
@@ -179,13 +283,15 @@ func run() -> void:
 	_test_payload_bounds()
 	_test_real_symlink_rejection()
 	_test_real_filesystem_restart()
-	print("PROFILE_STORE_HOST filesystem=%s replace=%s file_flush=%s file_fsync_proven=%s directory_sync=%s interprocess_lock=%s" % [
+	print("PROFILE_STORE_HOST filesystem=%s replace=%s file_flush=%s file_fsync_proven=%s directory_sync=%s interprocess_lock=%s lease_thread_safe=%s operation_admission_thread_safe=%s" % [
 		host_capabilities.get("filesystem_type", "unknown"),
 		host_capabilities.get("replace_primitive", "unknown"),
 		host_capabilities.get("file_flush", false),
 		host_capabilities.get("file_fsync_proven", false),
 		host_capabilities.get("directory_sync", false),
 		host_capabilities.get("interprocess_lock", false),
+		host_capabilities.get("in_process_lease_thread_safe", false),
+		host_capabilities.get("per_store_operation_admission_thread_safe", false),
 	])
 	print("PROFILE_STORE_RESULT checks=%d failures=%d" % [checks, failures])
 	quit(0 if failures == 0 else 1)
@@ -269,6 +375,13 @@ func _test_identity_and_writer_boundary() -> void:
 			"invalid/traversal profile identity is rejected: " + invalid_id)
 		check(rejected_ops.configure_calls == 0,
 			"invalid identity reaches no file-operation configuration")
+	var retry_ops := FakeFileOperations.new("invalid_retry")
+	var retry_store := Store.new()
+	check(not retry_store.configure_with_trusted_operations("zerkov.profile.Bad", retry_ops),
+		"invalid configuration fails before adapter setup")
+	check(retry_store.configure_with_trusted_operations(PROFILE_ID, retry_ops),
+		"configuration admission is released after validation failure")
+	check(retry_store.close(), "validation-retry store releases its lease")
 
 	var ops := FakeFileOperations.new("lease")
 	var first := Store.new()
@@ -287,6 +400,164 @@ func _test_identity_and_writer_boundary() -> void:
 			or call.begins_with("write:") or call.begins_with("replace:") \
 			or call.begins_with("remove:") or call == "sync_directory"),
 		"the store seam is slot-based and receives no caller path")
+
+
+func _test_concurrent_lease_and_operation_admission() -> void:
+	_test_concurrent_configure_lease()
+	_test_concurrent_same_store_save()
+	_test_close_during_save_preserves_lease()
+
+
+func _test_concurrent_configure_lease() -> void:
+	var gate := ThreadGate.new(CONCURRENT_CONFIGURE_WORKERS)
+	var stores: Array[ProfileStore] = []
+	var operations: Array[ThreadSafeFakeFileOperations] = []
+	var threads: Array[Thread] = []
+	var started: Array[bool] = []
+	var all_started := true
+	for index in CONCURRENT_CONFIGURE_WORKERS:
+		var store := Store.new()
+		var ops := ThreadSafeFakeFileOperations.new("concurrent_configure")
+		ops.lease_key_gate = gate
+		var thread := Thread.new()
+		var start_error := thread.start(Callable(self, "_thread_configure").bind(store, ops))
+		stores.append(store)
+		operations.append(ops)
+		threads.append(thread)
+		started.append(start_error == OK)
+		all_started = start_error == OK and all_started
+	check(all_started, "all synchronized configure workers start")
+	var all_arrived := _wait_for_gate(gate, CONCURRENT_CONFIGURE_WORKERS)
+	check(all_arrived, "all configure workers rendezvous before lease acquisition")
+	gate.release_all()
+	var joined := _bounded_join(threads, started)
+	check(bool(joined.get("complete", false)), "concurrent configure workers join without deadlock")
+
+	var results := joined.get("results", []) as Array
+	var success_count := 0
+	var winner_index := -1
+	var losers_are_explicit := true
+	if bool(joined.get("complete", false)):
+		for index in results.size():
+			if bool(results[index]):
+				success_count += 1
+				winner_index = index
+			elif started[index]:
+				losers_are_explicit = stores[index].last_error \
+					== &"single_writer_lease_held" and losers_are_explicit
+	check(success_count == 1, "one synchronized configure acquires the shared lease")
+	check(losers_are_explicit, "all concurrent configure losers report the held lease")
+	check(winner_index >= 0 and stores[winner_index].is_configured(),
+		"the sole configure winner retains its lease after worker teardown")
+	for ops in operations:
+		ops.lease_key_gate = null
+	if winner_index >= 0:
+		check(stores[winner_index].close(), "the configure winner releases its lease atomically")
+	else:
+		check(false, "a configure winner exists for release")
+	for index in stores.size():
+		if index != winner_index:
+			stores[index].close()
+	var successor_ops := ThreadSafeFakeFileOperations.new("concurrent_configure")
+	var successor := Store.new()
+	check(successor.configure_with_trusted_operations(PROFILE_ID, successor_ops),
+		"a successor acquires the lease after the sole winner closes")
+	check(successor.close(), "the successor releases the reacquired lease")
+
+
+func _test_concurrent_same_store_save() -> void:
+	var ops := ThreadSafeFakeFileOperations.new("concurrent_save")
+	var store := Store.new()
+	check(store.configure_with_trusted_operations(PROFILE_ID, ops),
+		"concurrent-save store configures")
+	var lease_gate := ThreadGate.new(2)
+	var write_gate := ThreadGate.new(2)
+	ops.lease_key_gate = lease_gate
+	ops.write_temp_gate = write_gate
+	var first_thread := Thread.new()
+	var second_thread := Thread.new()
+	var first_start := first_thread.start(Callable(self, "_thread_save").bind(
+		store, _payload(501, PackedByteArray([5, 0, 1]))))
+	var second_start := second_thread.start(Callable(self, "_thread_save").bind(
+		store, _payload(501, PackedByteArray([5, 0, 1]))))
+	var threads: Array[Thread] = [first_thread, second_thread]
+	var started: Array[bool] = [first_start == OK, second_start == OK]
+	check(first_start == OK and second_start == OK, "both concurrent save workers start")
+	var both_admission_callbacks := _wait_for_gate(lease_gate, 2)
+	check(both_admission_callbacks,
+		"both saves rendezvous outside the operation-admission critical section")
+	check(store.is_configured(),
+		"lease-key callbacks execute without holding the lease/state mutexes")
+	lease_gate.release_all()
+	var winner_reached_storage := _wait_for_gate(write_gate, 1)
+	check(winner_reached_storage, "the admitted save reaches candidate storage")
+	var loser_finished_while_winner_blocked := _wait_for_live_count(threads, started, 1)
+	check(loser_finished_while_winner_blocked,
+		"the second save is rejected while the admitted save remains blocked")
+	write_gate.release_all()
+	var joined := _bounded_join(threads, started)
+	ops.lease_key_gate = null
+	ops.write_temp_gate = null
+	check(bool(joined.get("complete", false)), "concurrent save workers join without deadlock")
+	var committed_count := 0
+	var rejected_count := 0
+	for value in joined.get("results", []) as Array:
+		if value is Dictionary and bool((value as Dictionary).get("committed", false)):
+			committed_count += 1
+		elif value is Dictionary \
+				and (value as Dictionary).get("reason", &"") \
+				== &"profile_store_reentrant_operation":
+			rejected_count += 1
+	check(committed_count == 1, "exactly one concurrent save commits")
+	check(rejected_count == 1, "exactly one concurrent save is rejected at admission")
+	var loaded := store.load_profile()
+	check(bool(loaded.get("ok", false)) and int(loaded.get("generation", 0)) == 1 \
+		and (loaded.get("payload", {}) as Dictionary) \
+		== _payload(501, PackedByteArray([5, 0, 1])),
+		"concurrent admission leaves one exact committed generation")
+	check(store.is_configured(), "concurrent save completion does not lose the writer lease")
+	check(store.close(), "concurrent-save store closes after both workers finish")
+	var successor := Store.new()
+	var successor_ops := ThreadSafeFakeFileOperations.new("concurrent_save")
+	check(successor.configure_with_trusted_operations(PROFILE_ID, successor_ops),
+		"save-successor store reacquires the released lease")
+	check(successor.close(), "save-successor store releases its lease")
+
+
+func _test_close_during_save_preserves_lease() -> void:
+	var ops := ThreadSafeFakeFileOperations.new("close_during_save")
+	var store := Store.new()
+	check(store.configure_with_trusted_operations(PROFILE_ID, ops),
+		"close-race store configures")
+	var write_gate := ThreadGate.new(1)
+	ops.write_temp_gate = write_gate
+	var save_thread := Thread.new()
+	var start_error := save_thread.start(Callable(self, "_thread_save").bind(
+		store, _payload(777, PackedByteArray([7, 7, 7]))))
+	var threads: Array[Thread] = [save_thread]
+	var started: Array[bool] = [start_error == OK]
+	check(start_error == OK, "close-race save worker starts")
+	check(_wait_for_gate(write_gate, 1), "close-race save blocks inside test storage")
+	check(not store.close() and store.last_error == &"profile_store_operation_active",
+		"close refuses to release a lease while a save is active")
+	check(store.is_configured(), "failed concurrent close leaves the original store configured")
+	var contender_ops := ThreadSafeFakeFileOperations.new("close_during_save")
+	var contender := Store.new()
+	check(not contender.configure_with_trusted_operations(PROFILE_ID, contender_ops) \
+		and contender.last_error == &"single_writer_lease_held",
+		"another writer cannot enter while close is refused")
+	write_gate.release_all()
+	var joined := _bounded_join(threads, started)
+	ops.write_temp_gate = null
+	check(bool(joined.get("complete", false)), "close-race save joins without deadlock")
+	var save_results := joined.get("results", []) as Array
+	check(save_results.size() == 1 and save_results[0] is Dictionary \
+		and bool((save_results[0] as Dictionary).get("committed", false)),
+		"the protected in-flight save commits normally")
+	check(store.close(), "close succeeds after the admitted save finishes")
+	check(contender.configure_with_trusted_operations(PROFILE_ID, contender_ops),
+		"the previously rejected contender acquires the released lease")
+	check(contender.close(), "the close-race contender releases its lease")
 
 
 func _test_initial_save_load_replay_and_rotation() -> void:
@@ -712,6 +983,9 @@ func _test_real_filesystem_restart() -> void:
 		and not bool(capabilities.get("directory_sync", true)) \
 		and not bool(capabilities.get("interprocess_lock", true)),
 		"host capabilities state path, temp, directory-sync, and writer limitations")
+	check(bool(capabilities.get("in_process_lease_thread_safe", false)) \
+		and bool(capabilities.get("per_store_operation_admission_thread_safe", false)),
+		"host capabilities expose mutex-backed lease and operation admission")
 	first.close()
 
 	var restarted := Store.new()
@@ -804,6 +1078,54 @@ func _test_real_symlink_rejection() -> void:
 	var namespace_removed := DirAccess.remove_absolute(root_path) == OK
 	check(link_removed and target_removed and namespace_removed,
 		"symlink fixture cleanup removes only the exact link, target, and empty namespace")
+
+
+func _thread_configure(
+	store: ProfileStore,
+	operations: ProfileFileOperations
+) -> bool:
+	return store.configure_with_trusted_operations(PROFILE_ID, operations)
+
+
+func _thread_save(store: ProfileStore, payload: Dictionary) -> Dictionary:
+	return store.save_profile(payload, 0, 1)
+
+
+func _wait_for_gate(gate: ThreadGate, expected: int) -> bool:
+	var deadline := Time.get_ticks_msec() + THREAD_TIMEOUT_MSEC
+	while Time.get_ticks_msec() < deadline:
+		if gate.arrived_count() >= expected:
+			return true
+		OS.delay_msec(1)
+	return gate.arrived_count() >= expected
+
+
+func _wait_for_live_count(
+	threads: Array[Thread],
+	started: Array[bool],
+	maximum_live: int
+) -> bool:
+	var deadline := Time.get_ticks_msec() + THREAD_TIMEOUT_MSEC
+	while Time.get_ticks_msec() < deadline:
+		var live_count := 0
+		for index in threads.size():
+			if started[index] and threads[index].is_alive():
+				live_count += 1
+		if live_count <= maximum_live:
+			return true
+		OS.delay_msec(1)
+	return false
+
+
+func _bounded_join(threads: Array[Thread], started: Array[bool]) -> Dictionary:
+	var complete := _wait_for_live_count(threads, started, 0)
+	var results: Array = []
+	results.resize(threads.size())
+	if complete:
+		for index in threads.size():
+			if started[index]:
+				results[index] = threads[index].wait_to_finish()
+	return {"complete": complete, "results": results}
 
 
 func _one_generation_fixture(label: String) -> Dictionary:
