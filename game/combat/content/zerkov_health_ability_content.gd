@@ -94,6 +94,14 @@ const TAG_DEFINITION_COUNT: int = 34
 const EFFECT_DEFINITION_COUNT: int = 41
 const ABILITY_DEFINITION_COUNT: int = 41
 
+# `GameplayAbilityComponent.request_activation()` queues a request when it is
+# entered from one of that component's synchronous change notifications. A
+# queued receipt is not a committed result and cannot be cancelled through the
+# public API, so the bounded seam must never submit one. This per-component
+# guard is held across the native call and lets a notification callback reject
+# a nested application before native tick/queue admission.
+static var _bounded_application_in_flight: Dictionary = {}
+
 
 static func build_definition_catalog() -> GameplayDefinitionCatalog:
 	var catalog := GameplayDefinitionCatalog.new()
@@ -251,8 +259,9 @@ static func initialize_component(
 
 
 ## The only task-5.5 seam allowed to apply set-by-caller instant health or
-## resource effects. Integer micro-units, exact grant identity, and real
-## base/current headroom are all validated before activation.
+## resource effects. Integer micro-units, exact grant/sequence identity, real
+## base/current headroom, native effect admission, and non-reentrancy are all
+## validated before activation.
 static func apply_bounded_instant(
 	component: GameplayAbilityComponent,
 	ability_spec: int,
@@ -261,6 +270,13 @@ static func apply_bounded_instant(
 	tick: int,
 	command_sequence: int
 ) -> Dictionary:
+	var component_instance_id := 0
+	if component != null and is_instance_valid(component):
+		component_instance_id = component.get_instance_id()
+		if _bounded_application_in_flight.has(component_instance_id):
+			return _rejection(&"health_application_reentrant", {
+				"native_invoked": false,
+			})
 	var preflight := preflight_component(component, tick)
 	if not bool(preflight.get("accepted", false)):
 		return preflight
@@ -282,6 +298,19 @@ static func apply_bounded_instant(
 			or StringName(grant.get("ability_identifier", &"")) \
 				!= StringName(policy["ability_identifier"]):
 		return _rejection(&"health_ability_spec_mismatch")
+	var last_command_sequence := int(grant.get("last_command_sequence", 0))
+	if last_command_sequence < 0 or last_command_sequence > MAX_COMMAND_SEQUENCE:
+		return _rejection(&"health_grant_sequence_invalid")
+	if last_command_sequence > 0 and command_sequence <= last_command_sequence:
+		return _rejection(&"health_command_sequence_stale", {
+			"native_invoked": false,
+			"command_sequence": command_sequence,
+			"last_command_sequence": last_command_sequence,
+		})
+	if int(grant.get("cooldown_handle", 0)) != 0:
+		return _rejection(&"health_grant_cooldown_state_invalid")
+	if _execution_uses_spec(component, ability_spec):
+		return _rejection(&"health_ability_already_active")
 	var attribute_identifier := String(policy["attribute_identifier"])
 	if not component.has_attribute(attribute_identifier):
 		return _rejection(&"health_attribute_uninitialized")
@@ -324,6 +353,25 @@ static func apply_bounded_instant(
 	var before := component.write_snapshot()
 	if before.is_empty():
 		return _rejection(&"health_snapshot_unavailable")
+	var effect_preflight := component.preflight_pending_remote_effect({
+		"source": component.get_entity_id(),
+		"target": component.get_entity_id(),
+		"effect_identifier": String(effect_identifier),
+		"level": int(grant.get("level", 1)),
+		"set_by_caller": [{
+			"field": String(SET_BY_CALLER_AMOUNT),
+			"value": float(applied) / float(FIXED_SCALE),
+		}],
+		"originating_spec": ability_spec,
+		"tick": tick,
+	}, component, tick)
+	var effect_preflight_status := effect_preflight.get("status", {}) as Dictionary
+	if not bool(effect_preflight_status.get("ok", false)):
+		return _rejection(&"health_native_effect_preflight_failed", {
+			"native_invoked": false,
+			"status": effect_preflight_status.duplicate(true),
+		})
+	_bounded_application_in_flight[component_instance_id] = true
 	var activation: Dictionary = component.request_activation({
 		"spec": ability_spec,
 		"command_sequence": command_sequence,
@@ -332,6 +380,25 @@ static func apply_bounded_instant(
 			"value": float(applied) / float(FIXED_SCALE),
 		}],
 	}, tick)
+	_bounded_application_in_flight.erase(component_instance_id)
+	if bool(activation.get("queued", false)):
+		# This cannot occur for calls admitted through this seam: the guard
+		# rejects its only supported reentrant entry path before submission.
+		# Never misreport a queued native command as a rejected/no-mutation
+		# receipt, because the native queue may still commit it after return.
+		return {
+			"accepted": true,
+			"reason": &"",
+			"mutation_state": &"queued",
+			"queued": true,
+			"requested_amount_micros": requested,
+			"applied_amount_micros": applied,
+			"clamped": applied != requested,
+			"native_invoked": true,
+			"attribute_identifier": attribute_identifier,
+			"base_before_micros": base_before,
+			"base_after_micros": base_before,
+		}
 	var status := activation.get("status", {}) as Dictionary
 	if not bool(status.get("ok", false)):
 		var rollback_ok := component.write_snapshot() == before

@@ -39,8 +39,13 @@ Set-by-caller damage/resource effects must enter through
 `ZerkovHealthAbilityContent.apply_bounded_instant()`. It accepts integer
 micro-units, caps overkill and restoration to actual base/current headroom,
 rejects resource overspend, and verifies the exact authored ability grant.
-Initialization likewise verifies the live sealed-catalog provenance and 60 Hz
-clock before mutation, and remains idempotent after valid gameplay changes.
+Before native activation it also rejects stale per-grant command sequences,
+runs the public side-effect-free effect preflight, and holds a per-component
+guard so a synchronous native change notification cannot reenter the seam and
+enqueue a delayed mutation. Rejected calls therefore advance neither canonical
+snapshot bytes nor the component's diagnostic tick watermark. Initialization
+likewise verifies the live sealed-catalog provenance and 60 Hz clock before
+mutation, and remains idempotent after valid gameplay changes.
 
 The declarations intentionally stop at task 5.5's data/policy boundary. Heavy-
 bleed tick damage and cadence, lethal-zone rules, pain/movement contributions,

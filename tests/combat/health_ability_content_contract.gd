@@ -24,6 +24,8 @@ func run() -> void:
 	_test_initialization_guards()
 	_test_combined_fail_before_mutation()
 	_test_bounded_application_and_replay()
+	_test_bounded_rejection_admission_atomicity()
+	_test_bounded_reentrant_rejection_atomicity()
 	var first := _new_health_component(51_010)
 	var second := _new_health_component(51_010)
 	var first_snapshot := _drive_persistent_transitions(first, true)
@@ -465,6 +467,131 @@ func _test_bounded_application_and_replay() -> void:
 		and StringName(result.get("reason", &"")) == &"health_actor_not_alive"
 		and component.write_snapshot() == before,
 		"dead state rejects further bounded resource/healing mutation")
+	_cleanup_component(component)
+
+
+func _test_bounded_rejection_admission_atomicity() -> void:
+	var component := _new_health_component(51_041)
+	var stamina_spec := _grant(component,
+		ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND,
+		"atomic.stamina.spend", 0)
+	var result := ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec,
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		ZerkovHealthAbilityContent.FIXED_SCALE, 0, 1)
+	check(bool(result.get("accepted", false))
+		and component.get_current_tick() == 0
+		and _base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
+			== 99 * ZerkovHealthAbilityContent.FIXED_SCALE,
+		"atomicity fixture accepts sequence 1 at authority tick 0")
+
+	var before := component.write_snapshot()
+	var tick_before := component.get_current_tick()
+	result = ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec,
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		ZerkovHealthAbilityContent.FIXED_SCALE, 120, 1)
+	check(not bool(result.get("accepted", true))
+		and StringName(result.get("reason", &""))
+			== &"health_command_sequence_stale",
+		"future-tick stale sequence is rejected by the bounded admission seam")
+	check(component.write_snapshot() == before
+		and component.get_current_tick() == tick_before,
+		"stale rejection changes neither canonical bytes nor wrapper tick admission")
+
+	result = ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec,
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		ZerkovHealthAbilityContent.FIXED_SCALE, 1, 2)
+	check(bool(result.get("accepted", false))
+		and component.get_current_tick() == 1
+		and _base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
+			== 98 * ZerkovHealthAbilityContent.FIXED_SCALE,
+		"stale future input cannot poison the next valid tick and sequence")
+
+	before = component.write_snapshot()
+	tick_before = component.get_current_tick()
+	result = ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec,
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		0, 240, 3)
+	check(not bool(result.get("accepted", true))
+		and StringName(result.get("reason", &"")) == &"health_amount_out_of_bounds"
+		and component.write_snapshot() == before
+		and component.get_current_tick() == tick_before,
+		"future-tick invalid magnitude is rejected without admitting its tick")
+	result = ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec,
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		ZerkovHealthAbilityContent.FIXED_SCALE, 2, 3)
+	check(bool(result.get("accepted", false))
+		and component.get_current_tick() == 2
+		and _base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
+			== 97 * ZerkovHealthAbilityContent.FIXED_SCALE,
+		"rejected future magnitude cannot poison the next valid admission")
+	_cleanup_component(component)
+
+
+func _test_bounded_reentrant_rejection_atomicity() -> void:
+	var component := _new_health_component(51_042)
+	var hydration_spec := _grant(component,
+		ZerkovHealthAbilityContent.ABILITY_HYDRATION_DRAIN,
+		"reentrant.hydration.drain", 0)
+	var stamina_spec := _grant(component,
+		ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND,
+		"reentrant.stamina.spend", 0)
+	var observation := {
+		"armed": false,
+		"calls": 0,
+		"before": PackedByteArray(),
+		"after": PackedByteArray(),
+		"tick_before": -1,
+		"tick_after": -1,
+		"result": {},
+	}
+	var callback := func(_record: Dictionary) -> void:
+		if not bool(observation["armed"]):
+			return
+		observation["armed"] = false
+		observation["calls"] = int(observation["calls"]) + 1
+		observation["before"] = component.write_snapshot()
+		observation["tick_before"] = component.get_current_tick()
+		observation["result"] = \
+			ZerkovHealthAbilityContent.apply_bounded_instant(
+				component, stamina_spec,
+				ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+				ZerkovHealthAbilityContent.FIXED_SCALE, 0, 1)
+		observation["after"] = component.write_snapshot()
+		observation["tick_after"] = component.get_current_tick()
+	component.attribute_changed.connect(callback)
+	observation["armed"] = true
+	var outer := ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, hydration_spec,
+		ZerkovHealthAbilityContent.EFFECT_HYDRATION_DRAIN,
+		ZerkovHealthAbilityContent.FIXED_SCALE, 0, 1)
+	component.attribute_changed.disconnect(callback)
+	var nested := observation["result"] as Dictionary
+	check(bool(outer.get("accepted", false)) and int(observation["calls"]) == 1,
+		"outer bounded activation synchronously reaches the adversarial listener")
+	check(not bool(nested.get("accepted", true))
+		and StringName(nested.get("reason", &"")) == &"health_application_reentrant"
+		and not bool(nested.get("native_invoked", true)),
+		"reentrant bounded application is rejected before native queue admission")
+	check(observation["after"] == observation["before"]
+		and int(observation["tick_after"]) == int(observation["tick_before"])
+		and _base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
+			== ZerkovHealthAbilityContent.MAX_STAMINA_MICROS,
+		"reentrant rejection cannot mutate now or drain a queued mutation later")
+
+	var legitimate := ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec,
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		ZerkovHealthAbilityContent.FIXED_SCALE, 1, 1)
+	check(bool(legitimate.get("accepted", false))
+		and component.get_current_tick() == 1
+		and _base_micros(component, ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)
+			== 99 * ZerkovHealthAbilityContent.FIXED_SCALE,
+		"reentrant rejection consumes neither the later valid tick nor sequence")
 	_cleanup_component(component)
 
 
