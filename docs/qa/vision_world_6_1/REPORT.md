@@ -365,3 +365,22 @@ git diff --cached --check
 
 Exact source, test, dependency, lock, toolchain, manifest, and artifact hashes
 are recorded in `reviewed_hashes.sha256` beside this report.
+
+## Independent acceptance — 2026-09-11
+
+Fresh detached review accepted exact candidate
+`75b663247a0df2984bdfa66b4c4a6eea6ce80139` with no P0, P1, or P2
+findings. The reviewer reproduced the four previously rejected lifecycle cases:
+unauthenticated reserved-slot registration, direct reserved-handler removal,
+direct owner-binding clear, and owner deletion immediately before an ACTIVE
+tick. All now fail closed or follow the authenticated two-sided lifecycle path;
+the deletion case immutably reports `vision_owner_lost_during_tick` and releases
+the runtime exactly once.
+
+The focused Vision contract passed `305/0` twice with identical fingerprints,
+the adjacent domain matrix passed `2856/0`, and a disposable independent repair
+probe passed `30/0`, for `3496/0` reviewed assertions. Fresh and incremental
+imports, toolchain `7/0`, six locked packages, vendor unit tests `4/4`, all
+`45/45` reviewed hashes, strict spec validation, and diff/clean-tree gates
+passed. The probe was removed. No UI, screen, viewport, visual, capture,
+compact, responsive, or size command was run.
