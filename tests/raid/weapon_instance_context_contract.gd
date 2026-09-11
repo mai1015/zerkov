@@ -25,6 +25,20 @@ var _duplicate_pose_proved: bool = false
 var _conflicting_pose_rejected: bool = false
 
 
+class OneShotRemoveFailureAdapter extends WeaponInstanceContextAdapter:
+	var fail_next_remove: bool = true
+
+	func _remove_native_weapon(weapon_id: String) -> Dictionary:
+		if fail_next_remove:
+			fail_next_remove = false
+			return {
+				"ok": false,
+				"reservation_to_release": "",
+				"injected": true,
+			}
+		return super._remove_native_weapon(weapon_id)
+
+
 func _initialize() -> void:
 	call_deferred("run")
 
@@ -149,6 +163,34 @@ func run() -> void:
 		&"weapon_context_due_work",
 		Callable(self, "_advance_due_work"),
 		_raid_authority.generation()), "reload/status due-work publisher registers")
+	var exact_content_fingerprint := int(
+		ZerkovCombatContent.validate_resource_bundle().get("fingerprint", 0))
+	check(exact_content_fingerprint != 0
+		and _weapon_authority.content_fingerprint() == exact_content_fingerprint,
+		"task-5.2 composition pins the exact task-5.1 content fingerprint")
+	var altered_runtime := ZerkovCombatContent.build_runtime_configuration()
+	(altered_runtime["weapons"][0] as Dictionary)["capacity"] = \
+		ZerkovCombatContent.AKM_CAPACITY - 1
+	var altered_configuration: Dictionary = _weapon_authority.configure(
+		altered_runtime["shot_profiles"],
+		altered_runtime["weapons"],
+		altered_runtime["recoil_profiles"],
+		altered_runtime["attachments"],
+		altered_runtime["ammo_profiles"])
+	check(bool(altered_configuration.get("ok", false))
+		and _weapon_authority.content_fingerprint() != exact_content_fingerprint,
+		"valid but non-authored WeaponAuthority content has a different fingerprint")
+	var mismatched_adapter := WeaponInstanceContextAdapter.new()
+	root.add_child(mismatched_adapter)
+	check(not mismatched_adapter.bind_owner(
+		owner, reconciler, _admission, _raid_authority, _weapon_authority,
+		weapon_port, _reload_adapter, owner_generation, scope_generation,
+		_raid_authority.generation())
+		and mismatched_adapter.last_error == &"weapon_content_fingerprint_mismatch",
+		"adapter bind fails closed on a valid non-task-5.1 catalog")
+	check(bool(ZerkovCombatContent.configure_authority(
+		_weapon_authority).get("ok", false)), "exact authored content restores after bind rejection")
+	mismatched_adapter.queue_free()
 
 	_instance_adapter = WeaponInstanceContextAdapter.new()
 	_instance_adapter.name = "WeaponInstanceContextAdapter"
@@ -170,13 +212,29 @@ func run() -> void:
 		scope_generation,
 		_raid_authority.generation()
 	), "task-5.2 adapter binds every exact authority generation")
+	check(bool(_weapon_authority.configure(
+		altered_runtime["shot_profiles"],
+		altered_runtime["weapons"],
+		altered_runtime["recoil_profiles"],
+		altered_runtime["attachments"],
+		altered_runtime["ammo_profiles"]).get("ok", false))
+		and not _instance_adapter.is_bound()
+		and _instance_adapter.authority_context(_weapon_id, 0).get("reason")
+			== &"weapon_context_binding_stale",
+		"bound adapter continuously fails closed when live content fingerprint changes")
+	check(bool(ZerkovCombatContent.configure_authority(
+		_weapon_authority).get("ok", false)) and _instance_adapter.is_bound(),
+		"restoring the exact pinned content restores the still-current setup binding")
 	check(_weapon_authority.snapshots().is_empty(),
 		"binding is mutation-free before ordered phase-5 reconciliation")
 	check(_raid_authority.register_phase_handler(
 		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
-		&"zz_weapon_context_probe",
+		&"weapon_context_probe",
 		Callable(self, "_probe_context_and_fire"),
-		_raid_authority.generation()), "phase-5 context consumer registers after adapter")
+		_raid_authority.generation(),
+		WeaponInstanceContextAdapter.CONSUMER_PHASE_PRIORITY,
+		WeaponInstanceContextAdapter.consumer_phase_dependencies()),
+		"phase-5 context consumer declares the instance provider dependency")
 	check(_raid_authority.transition(
 		RaidAuthority.Lifecycle.ACTIVE, _raid_authority.generation()),
 		"raid enters active lifecycle after composition")
@@ -316,25 +374,136 @@ func run() -> void:
 	check(_diagnostic(_fire_outcomes.get(85, {}) as Dictionary) == 64,
 		"native fire rejects RaidAuthority liveness=false context")
 
+	var conserved_weapon_state := _weapon_authority.snapshot(_weapon_id)
+	var conserved_binding_generation := _instance_adapter.weapon_binding_generation(_weapon_id)
+	var world_inventory_id := owner.world_crate_inventory_id
+	var world_container := _container(
+		inventory_authority.snapshot(world_inventory_id),
+		ZerkovInventoryCatalog.CONTAINER_WORLD_CRATE)
+	check(world_container > 0, "world custody container resolves")
+	var transfer_out: Dictionary = inventory_authority.loot_item(
+		inventory_id,
+		world_inventory_id,
+		akm_item_id,
+		_spatial(world_container, 0, 0),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		51_006
+	)
+	var transfer_out_replay: Dictionary = inventory_authority.loot_item(
+		inventory_id,
+		world_inventory_id,
+		akm_item_id,
+		_spatial(world_container, 0, 0),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		51_006
+	)
+	check(bool(transfer_out.get("accepted", false))
+		and bool(transfer_out_replay.get("accepted", false))
+		and bool(transfer_out_replay.get("replayed", false))
+		and (transfer_out_replay.get("events", []) as Array).is_empty(),
+		"canonical transfer-out replay preserves one stable custody change")
+	check(_raid_authority.advance_one(_raid_authority.generation()),
+		"transferred-out weapon reconciliation tick advances")
+	var transferred_state := _weapon_authority.snapshot(_weapon_id)
+	var transfer_out_outcome := _instance_adapter.current_outcome()
+	check(transferred_state == conserved_weapon_state
+		and _instance_adapter.weapon_binding_generation(_weapon_id)
+			== conserved_binding_generation
+		and _instance_adapter.instance_records().size() == 1
+		and (transfer_out_outcome.get("parked", []) as Array).size() == 1,
+		"transfer out parks the exact loaded native instance and binding")
+	check((_contexts_by_tick.get(86, {}) as Dictionary).get("reason")
+		== &"weapon_item_not_owned",
+		"external custody denies player fire context without destroying mechanics")
+
+	var transfer_back: Dictionary = inventory_authority.loot_item(
+		world_inventory_id,
+		inventory_id,
+		akm_item_id,
+		_spatial(backpack, 0, 0),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		51_007
+	)
+	check(bool(transfer_back.get("accepted", false)),
+		"same canonical weapon transfers back to player custody")
+	check(_raid_authority.advance_one(_raid_authority.generation()),
+		"returned dormant weapon reconciliation tick advances")
+	var returned_context := _contexts_by_tick.get(87, {}) as Dictionary
+	check(_weapon_authority.snapshot(_weapon_id) == conserved_weapon_state
+		and _instance_adapter.weapon_binding_generation(_weapon_id)
+			== conserved_binding_generation
+		and bool(returned_context.get("ok", false))
+		and not bool((returned_context.get("context", {}) as Dictionary).get(
+			"weapon_equipped", true)),
+		"transfer back restores player context around the unchanged dormant instance")
+
+	var reequip_after_transfer: Dictionary = inventory_authority.equip_item(
+		inventory_id,
+		akm_item_id,
+		equipment,
+		String(EquippedItemReconciler.SLOT_PRIMARY),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		51_008
+	)
+	check(bool(reequip_after_transfer.get("accepted", false))
+		and _raid_authority.advance_one(_raid_authority.generation()),
+		"returned canonical weapon re-equips on the next ordered tick")
+	var reequipped_context := (_contexts_by_tick.get(88, {}) as Dictionary).get(
+		"context", {}) as Dictionary
+	check(_weapon_authority.snapshot(_weapon_id) == conserved_weapon_state
+		and _instance_adapter.weapon_binding_generation(_weapon_id)
+			== conserved_binding_generation
+		and bool(reequipped_context.get("weapon_equipped", false)),
+		"re-equip reuses conserved mechanics, native identity, and binding generation")
+
 	var remove_akm: Dictionary = inventory_authority.remove_item(
 		inventory_id,
 		akm_item_id,
 		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
-		51_006
+		51_009
 	)
-	check(bool(remove_akm.get("accepted", false)),
+	var remove_akm_replay: Dictionary = inventory_authority.remove_item(
+		inventory_id,
+		akm_item_id,
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		51_009
+	)
+	check(bool(remove_akm.get("accepted", false))
+		and bool(remove_akm_replay.get("accepted", false))
+		and bool(remove_akm_replay.get("replayed", false)),
 		"canonical inventory destruction removes AKM ownership")
 	check(_raid_authority.advance_one(_raid_authority.generation()),
 		"destroyed weapon reconciliation tick advances")
 	check(_weapon_authority.snapshot(_weapon_id).is_empty()
 		and _instance_adapter.instance_records().is_empty()
-		and (_contexts_by_tick.get(86, {}) as Dictionary).get("reason")
+		and (_contexts_by_tick.get(89, {}) as Dictionary).get("reason")
 			== &"weapon_instance_not_owned",
 		"destroyed inventory item removes native instance and future context")
+	var deregistration_replay := _reload_adapter.unregister_weapon(
+		_weapon_id, conserved_binding_generation)
+	check(bool(deregistration_replay.get("accepted", false))
+		and bool(deregistration_replay.get("replayed", false)),
+		"permanent destruction explicitly retired the exact reload binding once")
 
-	check(_instance_adapter.release_binding(&"teardown", 86),
+	var stale_phase_callback := Callable(
+		_instance_adapter, "_on_weapon_phase").bind(_instance_adapter.binding_generation())
+	check(_raid_authority.unregister_phase_handler(
+		&"weapon_context_probe", _raid_authority.generation()),
+		"phase-5 consumer releases before its declared context provider")
+	check(_instance_adapter.release_binding(&"teardown", 89)
+		and not _raid_authority.has_phase_handler(
+			WeaponInstanceContextAdapter.PHASE_HANDLER_ID, _raid_authority.generation()),
 		"instance/context adapter releases before dependency teardown")
-	check(_reload_adapter.release_binding(&"teardown", 86),
+	var stale_intents: Array[ZRaidIntent] = []
+	check(bool(stale_phase_callback.call(
+		_raid_authority,
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		90,
+		stale_intents)) and _instance_adapter.instance_records().is_empty(),
+		"captured stale provider callback is an inert generation-checked no-op")
+	check(_raid_authority.advance_one(_raid_authority.generation()),
+		"post-release raid tick cannot invoke the deregistered provider")
+	check(_reload_adapter.release_binding(&"teardown", 90),
 		"reload coordinator releases after owned instances")
 	reconciler.release_binding(&"test_teardown")
 	bridge.release_binding()
@@ -349,11 +518,13 @@ func run() -> void:
 	_weapon_authority.queue_free()
 	_run_external_owner_teardown()
 	_run_missing_pose_fails_closed()
+	_run_phase_handler_ordering_contract()
+	_run_cleanup_failure_reachability()
 
 	print("WEAPON_INSTANCE_CONTEXT_RESULT checks=", checks,
 		" failures=", failures,
 		" accepted_shot=", bool(accepted_fire.get("accepted", false)),
-		" dormant_preserved=true teardown_safe=true")
+		" dormant_preserved=true transfer_conserved=true teardown_safe=true")
 	if failures > 0:
 		print("WEAPON_INSTANCE_CONTEXT_FIRE_OUTCOMES ", _fire_outcomes)
 	quit(0 if failures == 0 else 1)
@@ -474,6 +645,209 @@ func _run_missing_pose_fails_closed() -> void:
 	check(observed.size() == 1 and observed[0].get("reason") == &"weapon_pose_stale",
 		"current fire context fails closed when movement did not publish this tick")
 	check(authority.teardown(authority.generation()), "missing-pose authority tears down")
+
+
+func _run_phase_handler_ordering_contract() -> void:
+	var raid_id := ZRaidId.from_parts(PackedStringArray(["fixture", "phase_ordering"]))
+	var admission := SessionCoordinator.new(OfflineSessionIngress.new()).open_offline(
+		raid_id, &"phase_ordering_profile", &"player")
+	var authority := RaidAuthority.new()
+	check(authority.configure(raid_id, admission, 5_204),
+		"phase-order authority configures")
+	var order := PackedStringArray()
+	check(authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"z_provider",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool:
+			order.append("z_provider")
+			return true,
+		authority.generation(),
+		10), "priority provider registers independently of lexical position")
+	check(not authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"missing_consumer",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool: return true,
+		authority.generation(),
+		20,
+		PackedStringArray(["missing_provider"]))
+		and authority.last_error == &"handler_dependency_missing",
+		"consumer cannot declare a missing same-phase provider")
+	check(not authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"early_consumer",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool: return true,
+		authority.generation(),
+		5,
+		PackedStringArray(["z_provider"]))
+		and authority.last_error == &"handler_dependency_order_invalid",
+		"dependency cannot be contradicted by an earlier consumer priority")
+	check(authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"a_consumer",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool:
+			order.append("a_consumer")
+			return true,
+		authority.generation(),
+		20,
+		PackedStringArray(["z_provider"])),
+		"consumer registers with an explicit provider dependency")
+	check(authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"b_tie",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool:
+			order.append("b_tie")
+			return true,
+		authority.generation(),
+		30), "later lexical tie registers first")
+	check(authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"a_tie",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool:
+			order.append("a_tie")
+			return true,
+		authority.generation(),
+		30), "earlier lexical tie registers second")
+	check(not authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		&"z_provider",
+		func(_current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				_tick: int, _intents: Array[ZRaidIntent]) -> bool: return true,
+		authority.generation(),
+		10) and authority.last_error == &"handler_id_duplicate",
+		"duplicate handler registration remains fail-closed")
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, authority.generation())
+		and authority.advance_one(authority.generation()),
+		"priority/dependency fixture advances one complete tick")
+	check(order == PackedStringArray(["z_provider", "a_consumer", "a_tie", "b_tie"]),
+		"same-phase order is priority first and lexical ID as deterministic tie-break")
+	check(not authority.unregister_phase_handler(&"z_provider", authority.generation())
+		and authority.last_error == &"handler_has_dependents",
+		"provider cannot release before a declared consumer")
+	check(authority.unregister_phase_handler(&"a_consumer", authority.generation())
+		and authority.unregister_phase_handler(&"z_provider", authority.generation())
+		and authority.unregister_phase_handler(&"z_provider", authority.generation()),
+		"consumer-first deregistration is explicit and idempotent")
+	check(not authority.unregister_phase_handler(&"a_tie", authority.generation() + 1)
+		and authority.last_error == &"stale_generation",
+		"stale generation cannot deregister a replacement handler")
+	check(authority.teardown(authority.generation()), "phase-order authority tears down")
+
+
+func _run_cleanup_failure_reachability() -> void:
+	var raid_id := ZRaidId.from_parts(PackedStringArray(["fixture", "cleanup_reachability"]))
+	var admission := SessionCoordinator.new(OfflineSessionIngress.new()).open_offline(
+		raid_id, &"cleanup_reachability_profile", &"player")
+	var owner := RaidInventoryOwner.new()
+	root.add_child(owner)
+	check(owner.configure(), "cleanup-reachability inventory owner configures")
+	var owner_generation := owner.generation()
+	var bridge := InventoryProjectionBridge.new()
+	root.add_child(bridge)
+	check(bridge.bind_owner(owner, owner_generation),
+		"cleanup-reachability projection binds")
+	var scope_generation := bridge.scope_generation(InventoryProjectionBridge.SCOPE_RAID)
+	var reconciler := EquippedItemReconciler.new()
+	root.add_child(reconciler)
+	check(reconciler.bind_owner(
+		owner, bridge, admission, owner_generation, scope_generation),
+		"cleanup-reachability reconciler binds")
+	var inventory := owner.raid_authority()
+	var equipment := _container(
+		inventory.snapshot(owner.raid_player_inventory_id),
+		ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
+	var inserted: Dictionary = inventory.insert_item(
+		owner.raid_player_inventory_id,
+		String(ZerkovInventoryCatalog.ITEM_AKM),
+		1,
+		_slot(equipment, EquippedItemReconciler.SLOT_PRIMARY),
+		RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID,
+		53_001)
+	check(bool(inserted.get("accepted", false)),
+		"cleanup-reachability AKM equips canonically")
+	var mapping := reconciler.mapping_for_slot(EquippedItemReconciler.SLOT_PRIMARY)
+	var weapon_id := String(mapping.get("weapon_id", ""))
+	var weapon_authority := WeaponAuthority.new()
+	root.add_child(weapon_authority)
+	check(bool(ZerkovCombatContent.configure_authority(
+		weapon_authority).get("ok", false)),
+		"cleanup-reachability WeaponAuthority configures")
+	var weapon_port := WeaponAuthorityReloadPort.new()
+	check(weapon_port.configure(weapon_authority),
+		"cleanup-reachability weapon port configures")
+	var reload_adapter := InventoryWeaponAdapter.new()
+	root.add_child(reload_adapter)
+	check(reload_adapter.bind_owner(owner, admission, weapon_port, owner_generation),
+		"cleanup-reachability reload adapter binds")
+	var raid_authority := RaidAuthority.new()
+	check(raid_authority.configure(raid_id, admission, 5_205),
+		"cleanup-reachability raid authority configures")
+	check(raid_authority.publish_weapon_actor_status(
+		admission.actor_id, true, true, 0, raid_authority.generation()),
+		"cleanup-reachability actor status initializes")
+	check(raid_authority.register_phase_handler(
+		RaidAuthority.TickPhase.MOVEMENT,
+		&"cleanup_pose",
+		func(current: RaidAuthority, _phase: RaidAuthority.TickPhase,
+				tick: int, _intents: Array[ZRaidIntent]) -> bool:
+			return current.publish_weapon_actor_pose(
+				admission.actor_id, Vector2.ZERO, Vector2.RIGHT,
+				tick, current.generation()),
+		raid_authority.generation()), "cleanup-reachability pose provider registers")
+	var adapter := OneShotRemoveFailureAdapter.new()
+	root.add_child(adapter)
+	check(adapter.bind_owner(
+		owner, reconciler, admission, raid_authority, weapon_authority,
+		weapon_port, reload_adapter, owner_generation, scope_generation,
+		raid_authority.generation()), "cleanup-reachability instance adapter binds")
+	check(raid_authority.transition(
+		RaidAuthority.Lifecycle.ACTIVE, raid_authority.generation())
+		and raid_authority.advance_one(raid_authority.generation())
+		and not weapon_authority.snapshot(weapon_id).is_empty(),
+		"cleanup-reachability fixture creates one native AKM")
+	var binding_generation := adapter.weapon_binding_generation(weapon_id)
+	var stale_deregistration := reload_adapter.unregister_weapon(
+		weapon_id, binding_generation + 1)
+	check(not bool(stale_deregistration.get("accepted", true))
+		and stale_deregistration.get("reason") == &"weapon_binding_generation_stale",
+		"stale cleanup callback cannot retire the current reload binding")
+	check(not adapter.release_binding(&"teardown", 1)
+		and adapter.lifecycle == WeaponInstanceContextAdapter.Lifecycle.RECOVERY_REQUIRED,
+		"injected native cleanup failure latches recoverable fail-closed state")
+	var retained_records := adapter.instance_records()
+	check(retained_records.size() == 1
+		and String(retained_records[0].get("weapon_id", "")) == weapon_id
+		and not weapon_authority.snapshot(weapon_id).is_empty(),
+		"cleanup failure retains a reachable record for the still-live native weapon")
+	var already_deregistered := reload_adapter.unregister_weapon(
+		weapon_id, binding_generation)
+	check(bool(already_deregistered.get("accepted", false))
+		and bool(already_deregistered.get("replayed", false)),
+		"failed native cleanup had already retired its reload binding exactly once")
+	check(adapter.release_binding(&"teardown", 1)
+		and adapter.instance_records().is_empty()
+		and weapon_authority.snapshot(weapon_id).is_empty()
+		and not raid_authority.has_phase_handler(
+			WeaponInstanceContextAdapter.PHASE_HANDLER_ID, raid_authority.generation()),
+		"retry from recovery removes the reachable native weapon and provider lease")
+	check(reload_adapter.release_binding(&"teardown", 1),
+		"cleanup-reachability reload adapter releases")
+	reconciler.release_binding(&"test_teardown")
+	bridge.release_binding()
+	check(owner.teardown(owner_generation), "cleanup-reachability owner tears down")
+	check(raid_authority.teardown(raid_authority.generation()),
+		"cleanup-reachability raid authority tears down")
+	adapter.queue_free()
+	reload_adapter.queue_free()
+	reconciler.queue_free()
+	bridge.queue_free()
+	owner.queue_free()
+	weapon_authority.queue_free()
 
 
 func _publish_pose(

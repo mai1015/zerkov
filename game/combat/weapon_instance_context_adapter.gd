@@ -20,8 +20,12 @@ enum Lifecycle {
 }
 
 const PHASE_HANDLER_ID: StringName = &"weapon_instance_context"
+const PHASE_HANDLER_PRIORITY: int = 100
+const CONSUMER_PHASE_PRIORITY: int = 200
 const NEUTRAL_MODIFIER_PPM: int = 1_000_000
 const MAX_TRACKED_FIREARMS: int = 16
+# Public Inventory System TransactionEventKind::REMOVED.
+const INVENTORY_EVENT_REMOVED: int = 6
 
 var lifecycle: Lifecycle = Lifecycle.UNBOUND
 var last_error: StringName = &""
@@ -37,6 +41,7 @@ var _raid_authority: RaidAuthority
 var _raid_generation: int = 0
 var _weapon_authority: WeaponAuthority
 var _weapon_authority_instance_id: int = 0
+var _weapon_content_fingerprint: int = 0
 var _weapon_port: WeaponAuthorityReloadPort
 var _weapon_port_instance_id: int = 0
 var _reload_adapter: InventoryWeaponAdapter
@@ -45,10 +50,19 @@ var _binding_generation: int = 0
 var _generation_counter: int = 0
 var _next_weapon_binding_generation: int = 1
 var _records: Dictionary = {}
+var _destroyed_item_ids: Dictionary = {}
 var _last_outcome: Dictionary = {}
 var _recovery_details: Dictionary = {}
 var _public_signal_active: bool = false
 var _reconciler_invalidated_callback: Callable
+var _inventory_authority: InventoryAuthority
+var _inventory_authority_instance_id: int = 0
+var _inventory_transaction_callback: Callable
+var _phase_registered: bool = false
+
+
+static func consumer_phase_dependencies() -> PackedStringArray:
+	return PackedStringArray([String(PHASE_HANDLER_ID)])
 
 
 ## Binding is setup-only and creates no weapon instance. Instance creation is
@@ -98,6 +112,12 @@ func bind_owner(
 	if weapon_authority == null or not is_instance_valid(weapon_authority) \
 			or not weapon_authority.is_ready():
 		return _reject(&"weapon_authority_invalid")
+	var content_report := ZerkovCombatContent.validate_resource_bundle()
+	var expected_content_fingerprint := int(content_report.get("fingerprint", 0))
+	if not bool(content_report.get("ok", false)) or expected_content_fingerprint == 0:
+		return _reject(&"weapon_content_contract_invalid")
+	if weapon_authority.content_fingerprint() != expected_content_fingerprint:
+		return _reject(&"weapon_content_fingerprint_mismatch")
 	if weapon_port == null or not is_instance_valid(weapon_port) \
 			or not weapon_port.is_ready() \
 			or weapon_port.identity_token() \
@@ -109,15 +129,7 @@ func bind_owner(
 			or reload_adapter.inventory_id() != owner.raid_player_inventory_id \
 			or reload_adapter.weapon_port_identity_token() != weapon_port.identity_token():
 		return _reject(&"inventory_weapon_adapter_invalid")
-	if not raid_authority.register_phase_handler(
-		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
-		PHASE_HANDLER_ID,
-		Callable(self, "_on_weapon_phase"),
-		expected_raid_generation
-	):
-		last_error = raid_authority.last_error
-		return false
-
+	var next_binding_generation := _generation_counter + 1
 	_reset_unbound_state()
 	_owner = owner
 	_owner_instance_id = owner.get_instance_id()
@@ -130,16 +142,34 @@ func bind_owner(
 	_raid_generation = expected_raid_generation
 	_weapon_authority = weapon_authority
 	_weapon_authority_instance_id = weapon_authority.get_instance_id()
+	_weapon_content_fingerprint = expected_content_fingerprint
 	_weapon_port = weapon_port
 	_weapon_port_instance_id = weapon_port.get_instance_id()
 	_reload_adapter = reload_adapter
 	_reload_adapter_instance_id = reload_adapter.get_instance_id()
-	_generation_counter += 1
-	_binding_generation = _generation_counter
-	_next_weapon_binding_generation = 1
+	_inventory_authority = owner.raid_authority()
+	_inventory_authority_instance_id = _inventory_authority.get_instance_id()
+	if not raid_authority.register_phase_handler(
+		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
+		PHASE_HANDLER_ID,
+		Callable(self, "_on_weapon_phase").bind(next_binding_generation),
+		expected_raid_generation,
+		PHASE_HANDLER_PRIORITY
+	):
+		var registration_error := raid_authority.last_error
+		_reset_unbound_state()
+		last_error = registration_error
+		return false
+	_phase_registered = true
+	_generation_counter = next_binding_generation
+	_binding_generation = next_binding_generation
 	lifecycle = Lifecycle.BOUND
 	_reconciler_invalidated_callback = Callable(self, "_on_reconciler_invalidated")
 	_reconciler.binding_invalidated.connect(_reconciler_invalidated_callback)
+	_inventory_transaction_callback = Callable(
+		self, "_on_inventory_transaction_committed").bind(
+		_inventory_authority_instance_id, _owner_generation, _binding_generation)
+	_inventory_authority.transaction_committed.connect(_inventory_transaction_callback)
 	return true
 
 
@@ -186,7 +216,9 @@ func authority_context(weapon_id: String, tick: int) -> Dictionary:
 	if snapshot == null or snapshot.get_revision() != _reconciler.current_revision():
 		return {"ok": false, "reason": &"inventory_equipment_snapshot_stale"}
 	var item_state := _item_state(snapshot, record)
-	if not bool(item_state.get("owned", false)):
+	if not bool(item_state.get("valid", false)):
+		return {"ok": false, "reason": &"weapon_inventory_state_invalid"}
+	if not bool(item_state.get("player_owned", false)):
 		return {"ok": false, "reason": &"weapon_item_not_owned"}
 	var native_snapshot := _weapon_authority.snapshot(weapon_id)
 	if not _native_snapshot_matches_record(native_snapshot, record):
@@ -232,13 +264,16 @@ func release_binding(reason: StringName = &"teardown", tick: int = 0) -> bool:
 	last_error = &""
 	if _public_signal_active:
 		return _reject(&"reentrant_binding_change")
-	if lifecycle != Lifecycle.BOUND:
+	if lifecycle != Lifecycle.BOUND and lifecycle != Lifecycle.RECOVERY_REQUIRED:
 		return _reject(&"adapter_not_bound")
 	if not InventoryWeaponAdapter.INTERRUPT_REASONS.has(reason):
 		return _reject(&"interrupt_reason_invalid")
 	if not _remove_all_owned_instances(reason, tick):
 		return false
+	if not _unregister_phase_handler():
+		return false
 	_disconnect_reconciler()
+	_disconnect_inventory_transactions()
 	lifecycle = Lifecycle.INVALIDATED
 	last_error = reason
 	_generation_counter += 1
@@ -251,8 +286,12 @@ func _on_weapon_phase(
 	authority: RaidAuthority,
 	phase: RaidAuthority.TickPhase,
 	tick: int,
-	_intents: Array[ZRaidIntent]
+	_intents: Array[ZRaidIntent],
+	expected_binding_generation: int
 ) -> bool:
+	if expected_binding_generation != _binding_generation \
+			or lifecycle == Lifecycle.INVALIDATED:
+		return true
 	if authority != _raid_authority \
 			or phase != RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS:
 		return _reject(&"weapon_phase_context_invalid")
@@ -285,6 +324,7 @@ func _reconcile_current(tick: int) -> Dictionary:
 	var added: Array[Dictionary] = []
 	var retained: Array[Dictionary] = []
 	var dormant: Array[Dictionary] = []
+	var parked: Array[Dictionary] = []
 	var removed: Array[Dictionary] = []
 	var active_ids := PackedStringArray(active_firearms.keys())
 	active_ids.sort()
@@ -299,9 +339,13 @@ func _reconcile_current(tick: int) -> Dictionary:
 			added.append((created["record"] as Dictionary).duplicate(true))
 		else:
 			var existing := _records[weapon_id] as Dictionary
+			if _destroyed_item_ids.has(int(existing.get("native_item_id", 0))):
+				return _latch_recovery(&"destroyed_weapon_reappeared", existing)
 			if not _record_matches_mapping(existing, mapping):
 				return _latch_recovery(&"weapon_instance_mapping_conflict", existing)
 			existing["equipped"] = true
+			existing["parked"] = false
+			existing["custody"] = &"player"
 			existing["last_inventory_revision"] = snapshot.get_revision()
 			existing["last_reconciled_tick"] = tick
 			_records[weapon_id] = existing
@@ -314,17 +358,24 @@ func _reconcile_current(tick: int) -> Dictionary:
 			continue
 		var record := _records[weapon_id] as Dictionary
 		var state := _item_state(snapshot, record)
-		if bool(state.get("owned", false)):
-			record["equipped"] = false
-			record["last_inventory_revision"] = snapshot.get_revision()
-			record["last_reconciled_tick"] = tick
-			_records[weapon_id] = record
-			dormant.append(record.duplicate(true))
+		if not bool(state.get("valid", false)):
+			return _latch_recovery(&"weapon_inventory_state_invalid", {
+				"record": record,
+				"state": state,
+			})
+		if bool(state.get("destroyed", false)):
+			var removed_record := record.duplicate(true)
+			if not _remove_instance(weapon_id, &"weapon_invalidation", tick):
+				return _reconciliation_rejection(last_error)
+			removed.append(removed_record)
 			continue
-		var removed_record := record.duplicate(true)
-		if not _remove_instance(weapon_id, &"weapon_invalidation", tick):
+		if not _park_instance(record, state, snapshot.get_revision(), tick):
 			return _reconciliation_rejection(last_error)
-		removed.append(removed_record)
+		var parked_record := (_records[weapon_id] as Dictionary).duplicate(true)
+		if bool(state.get("player_owned", false)):
+			dormant.append(parked_record)
+		else:
+			parked.append(parked_record)
 
 	_last_outcome = {
 		"accepted": true,
@@ -337,6 +388,7 @@ func _reconcile_current(tick: int) -> Dictionary:
 		"added": added,
 		"retained": retained,
 		"dormant": dormant,
+		"parked": parked,
 		"removed": removed,
 		"deferred_melee": deferred_melee,
 	}
@@ -369,6 +421,8 @@ func _create_instance(mapping: Dictionary, tick: int) -> Dictionary:
 		"weapon_kind": mapping["weapon_kind"],
 		"weapon_binding_generation": _next_weapon_binding_generation,
 		"equipped": true,
+		"parked": false,
+		"custody": &"player",
 		"created_tick": tick,
 		"last_reconciled_tick": tick,
 		"last_inventory_revision": _reconciler.current_revision(),
@@ -379,8 +433,11 @@ func _create_instance(mapping: Dictionary, tick: int) -> Dictionary:
 	if not bool(registered.get("accepted", false)):
 		var cleanup: Dictionary = _weapon_authority.remove_weapon(weapon_id)
 		if not bool(cleanup.get("ok", false)) \
-				or not String(cleanup.get("reservation_to_release", "")).is_empty():
+				or not String(cleanup.get("reservation_to_release", "")).is_empty() \
+				or not _weapon_authority.snapshot(weapon_id).is_empty():
+			_records[weapon_id] = record
 			return _latch_recovery(&"weapon_instance_register_cleanup_failed", {
+				"record": record,
 				"registration": registered,
 				"cleanup": cleanup,
 			})
@@ -391,19 +448,72 @@ func _create_instance(mapping: Dictionary, tick: int) -> Dictionary:
 
 
 func _remove_instance(weapon_id: String, reason: StringName, tick: int) -> bool:
+	var record := _records.get(weapon_id, {}) as Dictionary
+	if record.is_empty():
+		return true
 	if _reload_adapter != null and is_instance_valid(_reload_adapter) \
-			and _reload_adapter.is_bound():
+			and ((_reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.BOUND \
+					and _reload_adapter.is_bound()) \
+				or _reload_adapter.lifecycle == InventoryWeaponAdapter.Lifecycle.RECOVERY_REQUIRED):
 		var interrupted := _reload_adapter.interrupt_reload(weapon_id, reason, tick)
 		if not bool(interrupted.get("accepted", false)):
-			_latch_recovery(&"weapon_reload_interrupt_failed", interrupted)
+			_latch_recovery(&"weapon_reload_interrupt_failed", {
+				"record": record,
+				"interruption": interrupted,
+			})
 			return false
-	var removed: Dictionary = _weapon_authority.remove_weapon(weapon_id)
+	if _reload_adapter == null or not is_instance_valid(_reload_adapter):
+		_latch_recovery(&"weapon_reload_binding_unreachable", {"record": record})
+		return false
+	var deregistered := _reload_adapter.unregister_weapon(
+		weapon_id, int(record.get("weapon_binding_generation", 0)))
+	if not bool(deregistered.get("accepted", false)):
+		_latch_recovery(&"weapon_reload_deregistration_failed", {
+			"record": record,
+			"deregistration": deregistered,
+		})
+		return false
+	var removed := _remove_native_weapon(weapon_id)
 	if not bool(removed.get("ok", false)) \
 			or not String(removed.get("reservation_to_release", "")).is_empty() \
 			or not _weapon_authority.snapshot(weapon_id).is_empty():
-		_latch_recovery(&"weapon_instance_remove_failed", removed)
+		_latch_recovery(&"weapon_instance_remove_failed", {
+			"record": record,
+			"deregistration": deregistered,
+			"removal": removed,
+		})
 		return false
 	_records.erase(weapon_id)
+	_destroyed_item_ids.erase(int(record.get("native_item_id", 0)))
+	return true
+
+
+func _remove_native_weapon(weapon_id: String) -> Dictionary:
+	return _weapon_authority.remove_weapon(weapon_id)
+
+
+func _park_instance(
+	record: Dictionary,
+	state: Dictionary,
+	inventory_revision: int,
+	tick: int
+) -> bool:
+	var weapon_id := String(record.get("weapon_id", ""))
+	if bool(record.get("equipped", false)):
+		var interrupted := _reload_adapter.interrupt_reload(
+			weapon_id, &"weapon_swap", tick)
+		if not bool(interrupted.get("accepted", false)):
+			_latch_recovery(&"weapon_parking_interrupt_failed", {
+				"record": record,
+				"interruption": interrupted,
+			})
+			return false
+	record["equipped"] = false
+	record["parked"] = true
+	record["custody"] = state.get("custody", &"external")
+	record["last_inventory_revision"] = inventory_revision
+	record["last_reconciled_tick"] = tick
+	_records[weapon_id] = record
 	return true
 
 
@@ -465,6 +575,63 @@ func _native_snapshot_matches_record(snapshot: Dictionary, record: Dictionary) -
 
 
 func _item_state(snapshot: InventorySnapshotResource, record: Dictionary) -> Dictionary:
+	var matches: Array[Dictionary] = []
+	var player_match := _item_state_in_snapshot(snapshot, record, true)
+	if bool(player_match.get("found", false)):
+		matches.append(player_match)
+	for inventory_entry in [
+		{"id": _owner.world_crate_inventory_id, "custody": &"world_crate"},
+		{"id": _owner.corpse_inventory_id, "custody": &"corpse"},
+	]:
+		var inventory_id := int(inventory_entry["id"])
+		if inventory_id <= 0 or not _inventory_authority.has_inventory(inventory_id):
+			continue
+		var custody_snapshot := _inventory_authority.snapshot(inventory_id)
+		if custody_snapshot == null:
+			return {"valid": false, "reason": &"custody_snapshot_missing"}
+		var custody_match := _item_state_in_snapshot(custody_snapshot, record, false)
+		if bool(custody_match.get("found", false)):
+			custody_match["custody"] = inventory_entry["custody"]
+			matches.append(custody_match)
+	if matches.size() > 1:
+		return {"valid": false, "reason": &"weapon_item_duplicate_custody"}
+	var native_item_id := int(record.get("native_item_id", 0))
+	if _destroyed_item_ids.has(native_item_id) and not matches.is_empty():
+		return {"valid": false, "reason": &"destroyed_weapon_still_present"}
+	if matches.size() == 1:
+		var matched_state := matches[0]
+		if not bool(matched_state.get("valid", false)):
+			return matched_state
+		matched_state["live"] = true
+		matched_state["destroyed"] = false
+		return matched_state
+	if _destroyed_item_ids.has(native_item_id):
+		return {
+			"valid": true,
+			"live": false,
+			"destroyed": true,
+			"player_owned": false,
+			"equipped": false,
+			"custody": &"destroyed",
+		}
+	# A canonical drop or transfer to a custody service outside the three raid
+	# inventories keeps the same item live. Absence alone is never destruction;
+	# only the one-shot REMOVED event authorizes native disposal.
+	return {
+		"valid": true,
+		"live": true,
+		"destroyed": false,
+		"player_owned": false,
+		"equipped": false,
+		"custody": &"external",
+	}
+
+
+func _item_state_in_snapshot(
+	snapshot: InventorySnapshotResource,
+	record: Dictionary,
+	player_owned: bool
+) -> Dictionary:
 	for item_value in snapshot.get_items():
 		var item := item_value as Dictionary
 		if int(item.get("id", 0)) != int(record.get("native_item_id", 0)):
@@ -472,18 +639,25 @@ func _item_state(snapshot: InventorySnapshotResource, record: Dictionary) -> Dic
 		if int(item.get("quantity", 0)) != 1 \
 				or item.get("item_definition_identifier") \
 					!= record.get("item_definition_identifier"):
-			return {"owned": false, "equipped": false}
-		var equipment_container := _equipment_container_id(snapshot)
+			return {
+				"found": true,
+				"valid": false,
+				"reason": &"weapon_item_identity_mismatch",
+			}
 		var location := item.get("location", {}) as Dictionary
+		var equipment_container := _equipment_container_id(snapshot) if player_owned else 0
 		return {
-			"owned": true,
-			"equipped": equipment_container > 0 \
+			"found": true,
+			"valid": true,
+			"player_owned": player_owned,
+			"equipped": player_owned and equipment_container > 0 \
 				and String(location.get("kind", "")) == "slot" \
 				and int(location.get("container", 0)) == equipment_container \
 				and StringName(location.get("slot_identifier", &"")) \
 					== EquippedItemReconciler.SLOT_PRIMARY,
+			"custody": &"player" if player_owned else &"external",
 		}
-	return {"owned": false, "equipped": false}
+	return {"found": false, "valid": true}
 
 
 func _equipment_container_id(snapshot: InventorySnapshotResource) -> int:
@@ -510,9 +684,16 @@ func _binding_is_current() -> bool:
 		and _reconciler.scope_generation() == _scope_generation \
 		and _raid_authority != null \
 		and _raid_authority.generation() == _raid_generation \
+		and _phase_registered \
+		and _raid_authority.has_phase_handler(PHASE_HANDLER_ID, _raid_generation) \
+		and _inventory_authority != null and is_instance_valid(_inventory_authority) \
+		and _inventory_authority.get_instance_id() == _inventory_authority_instance_id \
+		and _owner.raid_authority() == _inventory_authority \
 		and _weapon_authority != null and is_instance_valid(_weapon_authority) \
 		and _weapon_authority.get_instance_id() == _weapon_authority_instance_id \
 		and _weapon_authority.is_ready() \
+		and _weapon_content_fingerprint != 0 \
+		and _weapon_authority.content_fingerprint() == _weapon_content_fingerprint \
 		and _weapon_port != null and is_instance_valid(_weapon_port) \
 		and _weapon_port.get_instance_id() == _weapon_port_instance_id \
 		and _weapon_port.identity_token() \
@@ -533,12 +714,49 @@ func _on_reconciler_invalidated(reason: StringName) -> void:
 	# reservation is quarantined because no second inventory release is guessed.
 	if not _remove_all_owned_instances(&"authority_invalidation", tick):
 		return
+	if not _unregister_phase_handler():
+		_latch_recovery(&"weapon_phase_handler_release_failed", {
+			"reason": _raid_authority.last_error if _raid_authority != null else &"raid_missing",
+		})
+		return
 	_disconnect_reconciler()
+	_disconnect_inventory_transactions()
 	lifecycle = Lifecycle.INVALIDATED
 	last_error = effective
 	_generation_counter += 1
 	_binding_generation = _generation_counter
 	_emit_invalidation(effective)
+
+
+func _on_inventory_transaction_committed(
+	result: Dictionary,
+	expected_authority_instance_id: int,
+	expected_owner_generation: int,
+	expected_binding_generation: int
+) -> void:
+	if lifecycle != Lifecycle.BOUND \
+			or expected_binding_generation != _binding_generation \
+			or expected_owner_generation != _owner_generation \
+			or _inventory_authority == null \
+			or not is_instance_valid(_inventory_authority) \
+			or _inventory_authority.get_instance_id() != expected_authority_instance_id \
+			or not bool(result.get("accepted", false)) \
+			or bool(result.get("queued", false)) \
+			or bool(result.get("replayed", false)):
+		return
+	var events := result.get("events", []) as Array
+	for event_value in events:
+		var event := event_value as Dictionary
+		if int(event.get("kind", -1)) != INVENTORY_EVENT_REMOVED:
+			continue
+		var native_item_id := int(event.get("item", 0))
+		if native_item_id <= 0:
+			continue
+		for record_value in _records.values():
+			var record := record_value as Dictionary
+			if int(record.get("native_item_id", 0)) == native_item_id:
+				_destroyed_item_ids[native_item_id] = true
+				break
 
 
 func _reconciliation_rejection(reason: StringName) -> Dictionary:
@@ -587,8 +805,34 @@ func _disconnect_reconciler() -> void:
 	_reconciler_invalidated_callback = Callable()
 
 
+func _disconnect_inventory_transactions() -> void:
+	if _inventory_authority != null and is_instance_valid(_inventory_authority) \
+			and _inventory_transaction_callback.is_valid() \
+			and _inventory_authority.transaction_committed.is_connected(
+				_inventory_transaction_callback):
+		_inventory_authority.transaction_committed.disconnect(_inventory_transaction_callback)
+	_inventory_transaction_callback = Callable()
+
+
+func _unregister_phase_handler() -> bool:
+	if not _phase_registered:
+		return true
+	if _raid_authority == null:
+		return _reject(&"raid_authority_invalid")
+	if not _raid_authority.has_phase_handler(PHASE_HANDLER_ID, _raid_generation):
+		_phase_registered = false
+		return true
+	if not _raid_authority.unregister_phase_handler(
+		PHASE_HANDLER_ID, _raid_generation):
+		last_error = _raid_authority.last_error
+		return false
+	_phase_registered = false
+	return true
+
+
 func _reset_unbound_state() -> void:
 	_disconnect_reconciler()
+	_disconnect_inventory_transactions()
 	lifecycle = Lifecycle.UNBOUND
 	last_error = &""
 	_owner = null
@@ -602,16 +846,20 @@ func _reset_unbound_state() -> void:
 	_raid_generation = 0
 	_weapon_authority = null
 	_weapon_authority_instance_id = 0
+	_weapon_content_fingerprint = 0
 	_weapon_port = null
 	_weapon_port_instance_id = 0
 	_reload_adapter = null
 	_reload_adapter_instance_id = 0
+	_inventory_authority = null
+	_inventory_authority_instance_id = 0
 	_binding_generation = 0
-	_next_weapon_binding_generation = 1
 	_records.clear()
+	_destroyed_item_ids.clear()
 	_last_outcome.clear()
 	_recovery_details.clear()
 	_public_signal_active = false
+	_phase_registered = false
 
 
 func _make_deep_read_only(value: Variant) -> void:
@@ -633,7 +881,9 @@ func _reject(reason: StringName) -> bool:
 
 
 func _exit_tree() -> void:
-	if lifecycle == Lifecycle.BOUND and not _public_signal_active:
+	if (lifecycle == Lifecycle.BOUND or lifecycle == Lifecycle.RECOVERY_REQUIRED) \
+			and not _public_signal_active:
 		release_binding(&"teardown", _raid_authority.last_processed_tick)
 	else:
 		_disconnect_reconciler()
+		_disconnect_inventory_transactions()

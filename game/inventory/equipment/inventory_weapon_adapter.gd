@@ -224,6 +224,42 @@ func register_weapon(mapping: Dictionary, binding_generation: int) -> Dictionary
 	}
 
 
+## Retires one instance binding without mutating either native authority. This
+## cleanup operation deliberately does not require a current inventory runtime:
+## owner lifecycle signals arrive after native inventory erasure, while the
+## game-owned binding must still be explicitly accounted for. Exact replay is a
+## no-op; a stale generation can never remove a replacement binding.
+func unregister_weapon(weapon_id: String, binding_generation: int) -> Dictionary:
+	last_error = &""
+	if _transaction_active or _public_signal_active:
+		return _rejection(&"reentrant_binding_change")
+	if ZWeaponId.parse(weapon_id) == null:
+		return _rejection(&"weapon_id_invalid")
+	if binding_generation <= 0:
+		return _rejection(&"weapon_binding_generation_invalid")
+	var existing := _bindings.get(weapon_id, {}) as Dictionary
+	if existing.is_empty():
+		return {
+			"accepted": true,
+			"replayed": true,
+			"weapon_id": weapon_id,
+			"binding_generation": binding_generation,
+		}
+	if lifecycle != Lifecycle.BOUND and lifecycle != Lifecycle.RECOVERY_REQUIRED:
+		return _rejection(&"adapter_not_bound")
+	if _pending_by_weapon.has(weapon_id):
+		return _rejection(&"weapon_reload_active")
+	if int(existing.get("binding_generation", 0)) != binding_generation:
+		return _rejection(&"weapon_binding_generation_stale")
+	_bindings.erase(weapon_id)
+	return {
+		"accepted": true,
+		"replayed": false,
+		"weapon_id": weapon_id,
+		"binding_generation": binding_generation,
+	}
+
+
 func begin_reload(intent: Dictionary) -> Dictionary:
 	last_error = &""
 	var replay := _request_replay(intent)

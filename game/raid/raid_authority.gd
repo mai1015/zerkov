@@ -47,6 +47,9 @@ const PHASE_NAMES: PackedStringArray = [
 ]
 
 const MAX_HANDLERS_PER_PHASE: int = 16
+const MAX_HANDLER_DEPENDENCIES: int = 8
+const MIN_PHASE_HANDLER_PRIORITY: int = -1_024
+const MAX_PHASE_HANDLER_PRIORITY: int = 1_024
 
 var lifecycle: Lifecycle = Lifecycle.PREPARING
 var last_error: StringName = &""
@@ -155,7 +158,9 @@ func register_phase_handler(
 	phase: TickPhase,
 	handler_id: StringName,
 	callback: Callable,
-	expected_generation: int
+	expected_generation: int,
+	priority: int = 0,
+	after_handler_ids: PackedStringArray = PackedStringArray()
 ) -> bool:
 	last_error = &""
 	if not _is_current_generation(expected_generation):
@@ -166,18 +171,90 @@ func register_phase_handler(
 		return _reject(&"phase_invalid")
 	if not ZIdentityRules.is_valid_part(String(handler_id)) or not callback.is_valid():
 		return _reject(&"handler_invalid")
+	if priority < MIN_PHASE_HANDLER_PRIORITY or priority > MAX_PHASE_HANDLER_PRIORITY:
+		return _reject(&"handler_priority_invalid")
+	if after_handler_ids.size() > MAX_HANDLER_DEPENDENCIES:
+		return _reject(&"handler_dependency_limit")
 	if _handler_ids.has(handler_id):
 		return _reject(&"handler_id_duplicate")
+	var dependencies := PackedStringArray()
+	for dependency_value in after_handler_ids:
+		var dependency_id := StringName(dependency_value)
+		if not ZIdentityRules.is_valid_part(String(dependency_id)) \
+				or dependency_id == handler_id \
+				or dependencies.has(String(dependency_id)):
+			return _reject(&"handler_dependency_invalid")
+		var dependency := _handler_ids.get(dependency_id, {}) as Dictionary
+		if dependency.is_empty() or int(dependency.get("phase", -1)) != int(phase):
+			return _reject(&"handler_dependency_missing")
+		var dependency_priority := int(dependency.get("priority", 0))
+		if dependency_priority > priority \
+				or (dependency_priority == priority \
+					and String(dependency_id) >= String(handler_id)):
+			return _reject(&"handler_dependency_order_invalid")
+		dependencies.append(String(dependency_id))
 	var handlers: Array = _phase_handlers.get(int(phase), [])
 	if handlers.size() >= MAX_HANDLERS_PER_PHASE:
 		return _reject(&"phase_handler_limit")
-	handlers.append({"id": handler_id, "callback": callback})
+	handlers.append({
+		"id": handler_id,
+		"callback": callback,
+		"priority": priority,
+		"after": dependencies,
+	})
 	handlers.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
+		if int(left["priority"]) != int(right["priority"]):
+			return int(left["priority"]) < int(right["priority"])
 		return String(left["id"]) < String(right["id"])
 	)
 	_phase_handlers[int(phase)] = handlers
-	_handler_ids[handler_id] = true
+	_handler_ids[handler_id] = {
+		"phase": int(phase),
+		"priority": priority,
+		"after": dependencies,
+	}
 	return true
+
+
+## Phase-handler lifetimes are explicit and generation-scoped. A provider
+## cannot be removed while a registered consumer still declares that provider
+## as an ordering dependency; composition tears consumers down first.
+func unregister_phase_handler(
+	handler_id: StringName,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_current_generation(expected_generation):
+		return _reject(&"stale_generation")
+	if _is_advancing:
+		return _reject(&"handler_change_during_tick")
+	if not ZIdentityRules.is_valid_part(String(handler_id)):
+		return _reject(&"handler_invalid")
+	if not _handler_ids.has(handler_id):
+		return true
+	for registered_value in _handler_ids.values():
+		var registered := registered_value as Dictionary
+		var dependencies := registered.get("after", PackedStringArray()) as PackedStringArray
+		if dependencies.has(String(handler_id)):
+			return _reject(&"handler_has_dependents")
+	var registration := _handler_ids[handler_id] as Dictionary
+	var phase_value := int(registration.get("phase", -1))
+	var handlers: Array = _phase_handlers.get(phase_value, [])
+	var retained: Array = []
+	for entry_value in handlers:
+		var entry := entry_value as Dictionary
+		if StringName(entry.get("id", &"")) != handler_id:
+			retained.append(entry)
+	if retained.is_empty():
+		_phase_handlers.erase(phase_value)
+	else:
+		_phase_handlers[phase_value] = retained
+	_handler_ids.erase(handler_id)
+	return true
+
+
+func has_phase_handler(handler_id: StringName, expected_generation: int) -> bool:
+	return _is_current_generation(expected_generation) and _handler_ids.has(handler_id)
 
 
 func enqueue_intent(intent: ZRaidIntent, expected_generation: int) -> bool:
