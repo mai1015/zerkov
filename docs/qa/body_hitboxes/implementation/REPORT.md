@@ -38,14 +38,26 @@ Engine: Godot `4.7.2.stable.official.ed1daf0bf`, Compatibility renderer.
   obstruction before body at an exact tie; obstruction ID; or entity ID, zone
   priority and hitbox ID. Capacity, revision and obstruction behavior remain
   bounded and fail closed.
+- The later metadata repair removes the redundant public `is_bound`, numeric
+  binding/generation and scalar snapshot getters. The only binding/snapshot
+  metadata readers are now `binding_provenance(capability)` and
+  `snapshot_metadata(capability)`, both guarded by exact current bearer identity
+  and recursively immutable. A retained world reference therefore cannot read
+  replacement-raid metadata or reacquire replacement-binding provenance.
 
 The reviewer defects were first reproduced against `09463f2` as `9/9`
 expected security-contract failures; see `review_fail_before.log`. The same
 cases are retained as a permanent passing contract.
 
+The metadata-leak rejection of `758eef0` was separately reproduced after adding
+the permanent same-world replacement case: the then-public six scalar getters
+produced `6` expected failures in a 72-check run. See
+`metadata_rebind_fail_before.log`. The repaired contract passes `72/0`.
+
 No task 5.4 shot/consequence adapter, 5.6 damage/injury behavior, 5.11
 presentation, UI, weapon-instance creation, or presentation-driven authority
-was added. The approved task ledger and truth specs were not edited.
+was added. The repair authored no task-ledger or truth-spec change; required
+mainline merges carry their independently accepted project documentation.
 
 ## Verification
 
@@ -56,7 +68,7 @@ All commands ran from `/Volumes/Data/codes/codex-workspace/zerkov-5-3`.
 | Editor import/parse | exit `0`; no script/parser/runtime error diagnostics |
 | Promoted body-hitbox contract | `BODY_HITBOX_RESULT checks=111 failures=0` |
 | Adversarial overlap/tie/obstruction/ordering/lifecycle contract | `BODY_HITBOX_ADVERSARIAL_RESULT checks=173 failures=0` |
-| Reviewer ABA/auth/immutability regression | `BODY_HITBOX_REVIEW_REGRESSION_RESULT checks=53 failures=0` |
+| Reviewer ABA/auth/immutability/metadata regression | `BODY_HITBOX_REVIEW_REGRESSION_RESULT checks=72 failures=0` |
 | Combat content | `COMBAT_CONTENT_RESULT checks=79 failures=0 weapon_count=1` |
 | Health/ability content | `HEALTH_ABILITY_CONTENT_RESULT checks=392 failures=0` |
 | Authority replay | `AUTHORITY_REPLAY_RESULT checks=81 failures=0` |
@@ -66,7 +78,7 @@ All commands ran from `/Volumes/Data/codes/codex-workspace/zerkov-5-3`.
 | Strict change validation | `Valid` |
 | Cached diff check | exit `0` |
 
-Accepted contract executions total `19404` raw checks with `0` failures.
+Accepted contract executions total `19423` raw checks with `0` failures.
 Headless output and editor-import output were scanned because Godot may exit
 successfully after script errors; accepted outputs contain no `SCRIPT ERROR`,
 `Parse Error`, `ERROR:`, invalid-call or assertion-failure diagnostic. The
@@ -100,6 +112,25 @@ validation returned `Valid`; diagnostic and diff checks were clean. See
 viewport, visual, composition, inventory UI, or screen-size suite was run.
 The `RaidAuthority` source seal was refreshed to bind the accepted merged
 5.2/5.3 authority surface.
+
+## Metadata-capability repair and current-main integration
+
+Recorded: `2026-09-11T04:14:21Z`
+
+The metadata repair is commit
+`21596eabaa8ec484d9967562424bd52373a17a16`. Current mainline
+`c08a39b9026c9f45fd666d61a5c5d96b211e178b` was then merged by
+`832877c09203d0598f3ea8db38a8e421c0a06436` without a textual conflict.
+Mainline's task 4.11 inventory/UI additions do not alter the hitbox or weapon
+context authority seams. Historical 1920x1080 evidence arrived through that
+mainline commit; no UI, visual, viewport, runtime-capture or screen-size command
+was executed by this repair.
+
+Final verification ran a fresh headless editor import before tests. The focused
+task 5.2 contracts passed `398/0`; the focused task 5.3 contracts passed
+`356/0`; strict validation returned `Valid`; accepted outputs contained zero
+forbidden diagnostics. See `metadata_capability_repair.log` for exact commands
+and results. Source and packet hashes below seal the post-merge repair state.
 
 ## Deliberate limits / follow-up boundaries
 
