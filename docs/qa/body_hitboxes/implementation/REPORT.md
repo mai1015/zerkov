@@ -225,3 +225,19 @@ compact, composition, inventory-UI, runtime-capture, or display-size suite ran.
 
 This section records a candidate, not independent acceptance. The 5.3 checkbox
 remains open for the primary reviewer.
+
+## Opaque-binding repair independent acceptance
+
+Accepted on 2026-09-11 at immutable candidate
+`cd2346b71e52c7e430980003a455708d7769d56f` after a fresh detached-worktree
+review found no P0-P2 correctness findings. The reviewer confirmed that the
+world retains no live capability object, weak reference, callable, raw lease,
+or published capability identifier, and that release/rebind leaves stale,
+copied, reflected, serialized, reconstructed, and cross-world values inert.
+
+The independent matrix passed task 5.3 `370/0`, task 5.2 compatibility
+`398/0`, and adjacent headless domain contracts `19753/0`, for a Godot-domain
+total of `20521/0`. Clean editor import, strict spec validation, source and
+packet hashes, toolchain checks, vendor checks, and `git diff --check` also
+passed. No UI, screen, viewport, visual, responsive, compact, or alternate-size
+test was run. Task 5.3 is accepted and its ledger checkbox is now closed.
