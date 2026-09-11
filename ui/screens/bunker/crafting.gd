@@ -168,18 +168,32 @@ func _bind_queue() -> void:
 
 func _wire_actions() -> void:
 	for item in [["FilterAll", "ALL"], ["FilterCraftable", "CRAFTABLE"], ["FilterMeds", "MEDS"], ["FilterTools", "TOOLS"]]:
-		_wire_button(get_node("RecipePanel/%s/Hit" % item[0]) as Button, Callable(self, "_on_recipe_filter").bind(item[1]))
+		var filter_hit := get_node("RecipePanel/%s/Hit" % item[0]) as Button
+		_wire_button(filter_hit, Callable(self, "_on_recipe_filter").bind(item[1]))
+		mark_feature_action(filter_hit, FEATURE_CRAFTING)
 	for index in range(RECIPE_NAMES.size()):
-		_wire_button(get_node("RecipePanel/Recipe%s/Hit" % RECIPE_NAMES[index]) as Button, Callable(self, "_on_recipe_selected").bind(index))
-	_wire_button(get_node("RecipePanel/UpgradePanel/Action") as Button, Callable(self, "_on_upgrade_recipe"))
-	_wire_button(get_node("DetailPanel/QuantityMinus") as Button, Callable(self, "_on_quantity").bind(-1))
-	_wire_button(get_node("DetailPanel/QuantityPlus") as Button, Callable(self, "_on_quantity").bind(1))
-	_wire_button(get_node("DetailPanel/MissingPanel/CraftWater") as Button, Callable(self, "_on_craft_water"))
-	_wire_button(get_node("DetailPanel/CraftNow") as Button, Callable(self, "_on_craft_now"))
+		var recipe_hit := get_node("RecipePanel/Recipe%s/Hit" % RECIPE_NAMES[index]) as Button
+		_wire_button(recipe_hit, Callable(self, "_on_recipe_selected").bind(index))
+		mark_feature_action(recipe_hit, FEATURE_CRAFTING)
+	var upgrade := get_node("RecipePanel/UpgradePanel/Action") as Button
+	var quantity_minus := get_node("DetailPanel/QuantityMinus") as Button
+	var quantity_plus := get_node("DetailPanel/QuantityPlus") as Button
+	var craft_water := get_node("DetailPanel/MissingPanel/CraftWater") as Button
+	var craft_now := get_node("DetailPanel/CraftNow") as Button
+	_wire_button(upgrade, Callable(self, "_on_upgrade_recipe"))
+	_wire_button(quantity_minus, Callable(self, "_on_quantity").bind(-1))
+	_wire_button(quantity_plus, Callable(self, "_on_quantity").bind(1))
+	_wire_button(craft_water, Callable(self, "_on_craft_water"))
+	_wire_button(craft_now, Callable(self, "_on_craft_now"))
+	for action in [upgrade, quantity_minus, quantity_plus, craft_water, craft_now]:
+		mark_feature_action(action, FEATURE_CRAFTING)
 	for index in range(2):
 		var collect: Button = get_node("QueuePanel/%s/Collect" % ("QueueBandage" if index == 0 else "QueueSplint")) as Button
 		_wire_button(collect, Callable(self, "_on_collect_queue").bind(str(_craft_queue()[index].get("id", "")) if index < _craft_queue().size() else ""))
-	_wire_button(get_node("QueuePanel/Stash/Hit") as Button, Callable(self, "_on_stash_click"))
+		mark_feature_action(collect, FEATURE_CRAFTING)
+	var stash_hit := get_node("QueuePanel/Stash/Hit") as Button
+	_wire_button(stash_hit, Callable(self, "_on_stash_click"))
+	mark_feature_action(stash_hit, FEATURE_CRAFTING)
 
 
 func _build_focus_graph() -> void:
@@ -249,4 +263,3 @@ func _wire_button(button: Button, callback: Callable) -> void:
 func _asset_texture(asset: String) -> Texture2D:
 	var path: String = "res://assets/handoff/" + asset
 	return load(path) as Texture2D if ResourceLoader.exists(path) else null
-

@@ -220,6 +220,8 @@ func _bind_navigation_chrome() -> void:
 		_navigation_chrome.insurance_requested.connect(insurance)
 	if not _navigation_chrome.back_requested.is_connected(back):
 		_navigation_chrome.back_requested.connect(back)
+	mark_feature_action(_navigation_chrome.get_node_or_null("Insurance") as Control,
+		FEATURE_INSURANCE)
 
 
 func _wire_task_button(button: Button, callback: Callable, key: String) -> void:
@@ -784,7 +786,7 @@ func _abandon_visible() -> void:
 
 
 func _tasks_insurance_notice() -> void:
-	_toast("Insurance claims are outside the approved design set.")
+	notify_feature_action(FEATURE_INSURANCE)
 
 
 func _tasks_back() -> void:

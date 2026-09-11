@@ -13,6 +13,7 @@ signal published(generation: int)
 signal invalidated(generation: int, reason: StringName)
 
 const DEFAULT_REASON: StringName = &"ui_services_not_injected"
+const FEATURE_ACTION_IDS: PackedStringArray = ZUIFeatureGateView.ACTION_IDS
 
 var last_error: StringName = &""
 
@@ -24,6 +25,7 @@ var _raid_view: RaidView
 var _task_view: TaskView
 var _map_view: MapView
 var _summary_view: SummaryView
+var _feature_gates: Dictionary = {}
 
 
 func start_unavailable(
@@ -102,6 +104,10 @@ func replace_views(
 		return _reject(&"ui_presentation_provider_view_invalid")
 	_generation = next_generation
 	_assign_views(bunker, raid, tasks, map, summary)
+	# A view replacement never implies that a gated meta service exists. Keep
+	# the action capabilities generation-scoped and explicitly locked until a
+	# future owning service publishes them.
+	_assign_feature_gates(&"ui_services_not_injected")
 	published.emit(_generation)
 	return true
 
@@ -157,6 +163,25 @@ func summary_view(expected_generation: int) -> SummaryView:
 	return SummaryView.unavailable(
 		ZReadOnlyView.SyncState.UNBOUND, _lease_reason(),
 		expected_generation if expected_generation > 0 else 0)
+
+
+## Returns typed action capability truth for the current provider generation.
+## Unknown actions return null so callers cannot accidentally invent a gate.
+## A stale or released lease returns a new locked view rather than exposing the
+## retired value, matching the view accessors above.
+func feature_gate(action_id: StringName, expected_generation: int) -> ZUIFeatureGateView:
+	if not ZUIFeatureGateView.supports_action(action_id):
+		return null
+	if _lease_is_current(expected_generation):
+		var value: Variant = _feature_gates.get(String(action_id), null)
+		if value is ZUIFeatureGateView:
+			return value as ZUIFeatureGateView
+	return ZUIFeatureGateView.locked(action_id, _lease_reason(),
+			expected_generation if expected_generation > 0 else 0)
+
+
+func feature_gate_ids() -> PackedStringArray:
+	return FEATURE_ACTION_IDS.duplicate()
 
 
 func view_for_route(route: String, expected_generation: int) -> ZReadOnlyView:
@@ -239,6 +264,15 @@ func _assign_unavailable(reason: StringName) -> void:
 	_summary_view = SummaryView.unavailable(
 		ZReadOnlyView.SyncState.UNBOUND,
 		StringName("%s_summary" % String(base_reason)), _generation)
+	_assign_feature_gates(base_reason)
+
+
+func _assign_feature_gates(base_reason: StringName) -> void:
+	_feature_gates.clear()
+	for action_id in FEATURE_ACTION_IDS:
+		var reason := StringName("%s_%s" % [String(base_reason), action_id])
+		_feature_gates[action_id] = ZUIFeatureGateView.locked(
+			StringName(action_id), reason, _generation)
 
 
 func _reject(reason: StringName) -> bool:

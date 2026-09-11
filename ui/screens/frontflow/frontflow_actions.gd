@@ -155,24 +155,32 @@ func _back_to_menu() -> void:
 
 
 func _continue_world() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if _worlds().is_empty() and (get_viewport_rect().size.x < 1920 or get_viewport_rect().size.y < 1080):
 		app.fixture_set("frontflow_compact_saves", "new")
 	go("saves" if _worlds().is_empty() else "session")
 
 
 func _open_saves() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	app.fixture_set("frontflow_save_tab", "worlds")
 	app.fixture_set("frontflow_compact_saves", "worlds")
 	go("saves")
 
 
 func _open_join_friend() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.fixture_set("frontflow_join_mode", "friends")
 	app.fixture_set("frontflow_compact_join_friend", "friends")
 	go("join_friend")
 
 
 func _open_join_code() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.fixture_set("frontflow_join_mode", "code")
 	app.fixture_set("frontflow_compact_join_friend", "friends")
 	go("join_friend")
@@ -199,30 +207,42 @@ func _quit_to_desktop() -> void:
 
 
 func _join_kevin() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.fixture_set("frontflow_joined_friend", "KEVIN_J")
 	toast("JOINING KEV'S HOLE · SESSION READY")
 	go("session")
 
 
 func _request_denz() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.fixture_set("frontflow_denz_requested", true)
 	toast("REQUEST SENT TO DENZ · INVITE ONLY")
 
 func _join_denz() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	app.fixture_set("frontflow_join_mode", "friend")
 	app.fixture_set("frontflow_join_host", "DENZ")
 	go("session")
 
 
 func _decline_invite() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	toast("INVITE DECLINED")
 
 
 func _message_friend() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	toast("MESSAGE COMPOSER IS A LOCAL MOCK")
 
 
 func _friend_filter() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	toast("FRIEND FILTER UPDATED")
 
 
@@ -231,6 +251,8 @@ func _submit_friend_code_from_field() -> void:
 
 
 func _submit_friend_code(code: String) -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	var normalized: String = code.strip_edges().to_upper()
 	var pattern = RegEx.new()
 	pattern.compile("^ZK-[A-Z0-9]{2,8}(-[A-Z0-9]{2,8})?$")
@@ -253,12 +275,16 @@ func _submit_friend_code(code: String) -> void:
 
 
 func _select_world(index: int) -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	selected_world = index
 	app.fixture_set("frontflow_selected_world", index)
 	go("saves")
 
 
 func _new_world_hint() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if get_viewport_rect().size.x < 1920 or get_viewport_rect().size.y < 1080:
 		_compact_section("new")
 		return
@@ -267,6 +293,8 @@ func _new_world_hint() -> void:
 
 
 func _load_selected_world() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if _worlds().is_empty():
 		_new_world_hint()
 		return
@@ -276,9 +304,13 @@ func _load_selected_world() -> void:
 
 
 func _rename_world() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	var worlds = _worlds()
 	if worlds.is_empty(): return
 	app.prompt("RENAME WORLD", str(worlds[selected_world].name), func(value: String):
+		if not require_feature_action(FEATURE_BUNKER):
+			return
 		if value.is_empty():
 			toast("WORLD NAME REQUIRED")
 			return
@@ -288,6 +320,8 @@ func _rename_world() -> void:
 
 
 func _duplicate_world() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	var worlds = _worlds()
 	if worlds.is_empty() or worlds.size() >= 8: return
 	var copy: Dictionary = worlds[selected_world].duplicate(true)
@@ -301,10 +335,14 @@ func _duplicate_world() -> void:
 
 
 func _delete_world() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	app.confirm("DELETE WORLD", "Delete this local world slot? This mock action cannot be undone.", Callable(self, "_delete_world_confirmed"))
 
 
 func _delete_world_confirmed() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	var worlds: Array[Dictionary] = _worlds()
 	if worlds.is_empty():
 		return
@@ -325,11 +363,17 @@ func _world_seed_changed(value: String) -> void:
 
 
 func _set_world_choice(key: String, value: String) -> void:
+	var social_choice: bool = key == "max_players" or (key == "join_mode" and value == "FRIENDS")
+	var feature: StringName = FEATURE_FRIENDS if social_choice else FEATURE_BUNKER
+	if not require_feature_action(feature):
+		return
 	app.fixture_set("frontflow_new_%s" % key, value)
 	go("saves")
 
 
 func _create_world_pressed() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	if _worlds().size() >= 8:
 		toast("ALL 8 WORLD SLOTS ARE IN USE")
 		return
@@ -341,6 +385,8 @@ func _create_world_pressed() -> void:
 
 
 func _create_world_confirmed(name: String) -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	var worlds: Array[Dictionary] = _worlds()
 	var created: Dictionary = {
 		"name": name.to_upper(),

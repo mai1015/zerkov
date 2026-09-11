@@ -1,0 +1,103 @@
+Task 8.9 integration verification over main 9cb602f0f5674deea7d5ad8739c67dda431006f4
+Candidate: 14463e2296ab021aa3ebbec88a3b36752aee3f6e
+Merge base: 7acc971b7622f1a6580e51bcca27793f32e50d56
+
+[merge_state]
+merge_mode=no-ff,no-commit
+unmerged_entries=0
+shared_changed_paths=tests/tooling/test_ui_first_playable_scope.py
+git_diff_check_cached=pass
+git_diff_check_unstaged=pass
+
+[preserved_native_handoff]
+provenance=predecessor integration transcript; exact complete argv was not independently persisted
+known_launch=pinned Godot 4.7.2; integration worktree; --resolution 1920x1080; exclusive fullscreen; named Task 8.9 scripts; integration capture path/directory
+EXACT_1920_NATIVE_PREFLIGHT physical_window=1920x1080 root=1920x1080 root_texture=1920x1080 raw_root_image=1920x1080 ui_mounted=false
+FEATURE_GATES_8_9_RESULT checks=163 failures=0 size=1920x1080
+EXACT_1920_NATIVE_PREFLIGHT physical_window=1920x1080 root=1920x1080 root_texture=1920x1080 raw_root_image=1920x1080 ui_mounted=false
+FEATURE_GATES_8_9_VISUAL_RESULT checks=713 failures=0 size=1920x1080 frames=5
+
+[capture_validation]
+feature_gate_bunker_1920x1080.png dimensions=1920x1080 sha256=b835ef07f956f043c5940d201c099db90196f66d191ad2ca72532f77ab0c6fc4 candidate_bytes=identical
+feature_gate_crafting_1920x1080.png dimensions=1920x1080 sha256=078076a18b43eeef414dba8db38fad5f3d1f06d5fb561bda4eed1699b4c26924 candidate_bytes=identical
+feature_gate_friends_1920x1080.png dimensions=1920x1080 sha256=0a64bc78987b44500f01ffdc38db1d268c633dea52a96d86823d9c42fd617bec candidate_bytes=identical
+feature_gate_insurance_1920x1080.png dimensions=1920x1080 sha256=909802e14a39db31cc049536e2142a075dc66e31ae89201080331d42eee5a3d8 candidate_bytes=identical
+feature_gate_marketplace_1920x1080.png dimensions=1920x1080 sha256=6d6a6d4638c7c31aa3b6db88d767673cecb74c22218a9a649faf5e7051f15f87 candidate_bytes=identical
+feature_gates_1920x1080.png dimensions=1920x1080 sha256=946d010d541ac202f6dd840925a3f90fd4d25af3c6b9d8800cfb905077e0a6b7 candidate_bytes=identical
+feature_gates_contact_sheet_1920x1080.png dimensions=1920x1080 sha256=5d65a8cf95c6231d049ad4d339253a4f710fe95b91cf3c5f35606c2da4614de1 candidate_bytes=identical
+
+[executable]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --version
+4.7.2.stable.official.ed1daf0bf
+$ shasum -a 256 /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot
+c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf  /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot
+
+[feature_contract_headless]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-integrate-8-9-1080 --resolution 1920x1080 --headless --script res://tests/presentation/feature_gates_8_9_contract.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf
+FEATURE_GATES_8_9_RESULT checks=74 failures=0 size=1920x1080
+
+[feature_visual_headless]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-integrate-8-9-1080 --resolution 1920x1080 --headless --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd
+Godot Engine v4.7.2.stable.official.ed1daf0bf
+FEATURE_GATE_VISIBLE action=bunker status=PROTOTYPE ONLY input=keyboard_enter route=bunker control=Stations/Row1/Hit pressed=1 state_unchanged=true modal_unchanged=true
+FEATURE_GATE_VISIBLE action=crafting status=PROTOTYPE ONLY input=mouse_primary route=crafting control=DetailPanel/CraftNow pressed=1 state_unchanged=true modal_unchanged=true
+FEATURE_GATE_VISIBLE action=friends status=PROTOTYPE ONLY input=keyboard_enter route=join_friend control=FilterAll pressed=1 state_unchanged=true modal_unchanged=true
+FEATURE_GATE_VISIBLE action=insurance status=PROTOTYPE ONLY input=keyboard_enter route=summary_solo control=Reinsure pressed=1 state_unchanged=true modal_unchanged=true
+FEATURE_GATE_VISIBLE action=marketplace status=PROTOTYPE ONLY input=mouse_primary route=inventory control=InventoryContent/PostRaidBar/SellJunk pressed=1 state_unchanged=true modal_unchanged=true
+HEADLESS_EVIDENCE_CAPTURE_SKIPPED dummy renderer has no native framebuffer
+FEATURE_GATES_8_9_VISUAL_RESULT checks=124 failures=0 size=1920x1080 frames=0
+
+[adjacent_headless_regressions]
+Every command used the pinned executable, this worktree, --resolution 1920x1080, --headless, and the named res:// script below.
+tests/common_ui_navigation_contract.gd: COMMON_UI_NAVIGATION_RESULT checks=80 failures=0 routes=28
+tests/common_ui_navigation_1080_regression.gd: COMMON_UI_NAVIGATION_1080_RESULT checks=99 failures=0 maximum_menu_depth=2 final_menu_depth=1 final_modal_depth=0 final_popup_depth=0
+tests/common_ui_integration_smoke.gd: COMMON_UI_INTEGRATION_RESULT checks=76 failures=0
+tests/ui_smoke.gd: UI_TEST_COMPLETE checks=948 failures=0
+tests/ui_composition_smoke.gd: UI_COMPOSITION_COMPLETE checks=103 failures=0
+tests/presentation/ui_state_8_11_contract.gd: UI_STATE_8_11_CONTRACT_RESULT checks=57 failures=0
+tests/presentation/view_contracts_contract.gd: VIEW_CONTRACTS_CONTRACT_RESULT checks=115 failures=0
+tests/zerkov_screen_lifecycle_contract.gd: ZERKOV_SCREEN_LIFECYCLE_RESULT checks=116 failures=0 routes=28 geometry_controls=97 geometry_sha256=4eb724f07fb51fdfccaa5b0659bd07fe33dcb8ba23afea03bb8f1666582c8a4a geometry_by_resolution=1920x1080:794e84f101b28dea717a58416b4593af290b79a8cafccf414a8fc93f8b9ddccb
+tests/bunker_smoke.gd: BUNKER_TEST_COMPLETE passing_assertions=21 failures=0
+tests/raid_smoke.gd: RAID_TEST_COMPLETE checks=29 failures=0
+tests/presentation/character_presentation_composition_contract.gd: CHARACTER_PRESENTATION_COMPOSITION_RESULT checks=22 failures=0
+tests/presentation/character_ui_binding_8_6_contract.gd: CHARACTER_UI_BINDING_8_6_RESULT checks=65 failures=0 size=1920x1080
+tests/raid/inventory_loot_ui_4_11_contract.gd: INVENTORY_LOOT_UI_4_11_COMPLETE checks=88 failures=0
+tests/inventory_smoke.gd: INVENTORY_TEST_COMPLETE checks=21 failures=0
+tests/utility_smoke.gd: UTILITY_TEST_COMPLETE checks=24 failures=0
+
+[static_scope]
+$ python3 -m unittest tests/tooling/test_ui_first_playable_scope.py
+.......
+Ran 7 tests in 0.159s
+OK
+
+[strict_spec]
+$ python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py --path /Volumes/Data/codes/codex-workspace/zerkov-integrate-8-9-1080 validate add-zerkov-playable-raid-2026-09-09 --type change --strict
+Valid
+
+[editor_import]
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path /Volumes/Data/codes/codex-workspace/zerkov-integrate-8-9-1080 --resolution 1920x1080 --headless --editor --quit
+Godot Engine v4.7.2.stable.official.ed1daf0bf
+exit=0 diagnostics=none
+
+[candidate_manifest_transition]
+$ shasum -a 256 -c docs/qa/feature_gates_8_9/sources.sha256
+verified=39 expected_final_differences=4 unexpected_differences=0
+expected_final_differences=tests/presentation/feature_gates_8_9_contract.gd,tests/presentation/feature_gates_8_9_visual_evidence.gd,tests/tooling/test_ui_first_playable_scope.py,ui/main.gd
+
+[shared_binding]
+common_ui_bindings.json sha256=ff6f972f99cc7e9a66db4852735ead27d344b3d090d246a420aa0136aff6bde5
+common_ui_bindings.json.tmp=absent
+common_ui_bindings.json.bak=absent
+
+[display_scope]
+native_rerun=not_needed
+alternate_sizes_executed=none
+responsive_or_compact_suites_executed=none
+historical_packet_generators_executed=none
+shared_binding_writers_executed=none
+
+[task_ledger]
+task_8_9=unchecked
+human_approval=false
