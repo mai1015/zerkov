@@ -185,7 +185,7 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   transfer, focus and compact-layout behavior.
 - [ ] 4.12 `[SOL]` Prove canonical inventory persistence round trips and live
   authority replacement invalidate stale UI/adapters safely.
-- [ ] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
+- [x] 4.12a `[SOL]` Normalize `FEATURE_LIST` capability-query metadata for
   stash, world-crate and corpse profiles that can carry item-provided
   ordered-list magazine children, and prove nested magazine contents through
   transfer, persistence and query contracts before exposing those contents
