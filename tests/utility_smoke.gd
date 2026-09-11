@@ -51,6 +51,7 @@ func utility_screen() -> Control:
 func run() -> void:
 	root.size = Vector2i(1920, 1080)
 	app = load("res://ui/main.tscn").instantiate()
+	app.prototype_fixture_mode = true
 	root.add_child(app)
 	app.qa_mode = true
 	await settle()
@@ -61,20 +62,26 @@ func run() -> void:
 	await settle()
 	var settings: Control = utility_screen()
 	settings._set_setting("hud_scale", 117.0)
-	check(float(app.state.get("hud_scale", 0.0)) == 117.0, "HUD scale mirrors to top-level app state")
-	check(float(app.state.get("hud_settings", {}).get("hud_scale", 0.0)) == 117.0, "HUD scale mirrors into hud_settings")
+	check(float(app.fixture_state_for_test().get("hud_scale", 0.0)) == 117.0,
+		"HUD scale mirrors to explicit preview state")
+	check(float(app.fixture_state_for_test().get("hud_settings", {}).get(
+		"hud_scale", 0.0)) == 117.0, "HUD scale mirrors into hud_settings")
 	settings._settings_apply()
-	check(bool(app.state.get("utility_settings_applied", false)), "Apply records settings state")
+	check(bool(app.fixture_state_for_test().get("utility_settings_applied", false)),
+		"Apply records settings state")
 	settings._set_setting("hud_scale", 83.0)
 	settings._settings_revert()
 	await settle()
-	check(float(app.state.get("hud_scale", 0.0)) == 100.0, "HUD section revert restores default scale")
+	check(float(app.fixture_state_for_test().get("hud_scale", 0.0)) == 100.0,
+		"HUD section revert restores default scale")
 	settings = utility_screen()
 	settings._set_setting("hud_scale", 123.0)
 	settings._settings_defaults()
 	await settle()
-	check(float(app.state.get("utility_settings", {}).get("hud_scale", 0.0)) == 100.0, "Defaults restore utility settings")
-	check(float(app.state.get("hud_settings", {}).get("hud_scale", 0.0)) == 100.0, "Defaults restore mirrored HUD settings")
+	check(float(app.fixture_state_for_test().get("utility_settings", {}).get(
+		"hud_scale", 0.0)) == 100.0, "Defaults restore utility settings")
+	check(float(app.fixture_state_for_test().get("hud_settings", {}).get(
+		"hud_scale", 0.0)) == 100.0, "Defaults restore mirrored HUD settings")
 
 	# Maps: zoom, zone selection, and marker detail are all persistent local state.
 	app.navigate("maps", false)
@@ -82,15 +89,18 @@ func run() -> void:
 	var maps: Control = utility_screen()
 	maps._map_zoom(20)
 	await settle()
-	check(int(app.state.get("utility_map_zoom", 0)) == 120, "Map zoom increments and persists")
+	check(int(app.fixture_state_for_test().get("utility_map_zoom", 0)) == 120,
+		"Map zoom increments and persists")
 	maps = utility_screen()
 	maps._select_map_zone(2)
 	await settle()
-	check(int(app.state.get("utility_map_zone", -1)) == 2, "Map zone selection persists")
+	check(int(app.fixture_state_for_test().get("utility_map_zone", -1)) == 2,
+		"Map zone selection persists")
 	maps = utility_screen()
 	maps._select_map_marker("extract", 1)
 	await settle()
-	check(str(app.state.get("utility_map_marker", "")) == "extract:1", "Extract marker selection persists")
+	check(str(app.fixture_state_for_test().get("utility_map_marker", "")) == "extract:1",
+		"Extract marker selection persists")
 
 	# Tasks: tracking writes the HUD task id, progress can complete the local
 	# objective set, and turn-in records a durable completed state.
@@ -99,7 +109,8 @@ func run() -> void:
 	var tasks: Control = utility_screen()
 	tasks._toggle_task_tracking("field_dressing")
 	await settle()
-	check(str(app.state.get("hud_tracked_task_id", "")) == "field_dressing", "Task tracking updates HUD task id")
+	check(str(app.fixture_state_for_test().get("hud_tracked_task_id", "")) \
+			== "field_dressing", "Task tracking updates HUD task id")
 	tasks = utility_screen()
 	var supply: Dictionary = tasks._task_record("supply_run")
 	check(not supply.is_empty(), "Supply run task record is available")
@@ -114,7 +125,8 @@ func run() -> void:
 	check(bool(tasks._task_complete(supply)), "Objective progress completes supply run")
 	tasks._turn_in_task("supply_run")
 	await settle()
-	check(bool(app.state.get("utility_tasks_completed", {}).get("supply_run", false)), "Turn-in records completed task state")
+	check(bool(app.fixture_state_for_test().get("utility_tasks_completed", {}).get(
+		"supply_run", false)), "Turn-in records completed task state")
 
 	# Controls: the deliberate default V conflict is visible, keyboard and mouse
 	# capture write bindings, duplicate conflicts are reported, and resolving a
@@ -151,7 +163,8 @@ func run() -> void:
 	check(str(controls._binding_value("push_to_talk", "primary")) == "—", "Conflict resolution clears the losing binding")
 	check(controls._conflict_pairs().is_empty(), "Conflict resolution leaves no duplicate pairs")
 	controls._save_controls()
-	check(bool(app.state.get("utility_controls_saved", false)), "Controls save after conflicts resolve")
+	check(bool(app.fixture_state_for_test().get("utility_controls_saved", false)),
+		"Controls save after conflicts resolve")
 
 	print("UTILITY_TEST_COMPLETE checks=", checks, " failures=", failures)
 	app.queue_free()

@@ -31,6 +31,7 @@ func run() -> void:
 	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate()
 	app.name = "IsolatedUIHost"
+	app.prototype_fixture_mode = true
 	root.add_child(app)
 	app.qa_mode = true
 	await settle()
@@ -61,14 +62,15 @@ func run() -> void:
 	var handle: CommonUIContextHandle = hud.get_context_handle()
 	check(screen_root.hud_layer().get_top_screen() == hud, "HUD is mounted in the HUD layer")
 	check(screen_root.menu_layer().get_depth() == 0, "HUD does not occupy the menu layer")
-	app.state.raid_ammo = 17
+	app.fixture_state_for_test().raid_ammo = 17
 	await key(KEY_ESCAPE)
 	check(app.current_route == "pause", "physical Back opens pause")
 	check(screen_root.hud_layer().get_top_screen() == hud, "pause retains the HUD instance")
 	check(handle.is_suspended(), "pause suspends HUD routing")
 	check(hud.process_mode == Node.PROCESS_MODE_DISABLED, "pause stops HUD preview timers")
 	await key(KEY_R)
-	check(not bool(app.state.get("raid_reloading", false)), "covered HUD ignores physical reload")
+	check(not bool(app.fixture_state_for_test().get("raid_reloading", false)),
+		"covered HUD ignores physical reload")
 
 	app.screen.app.confirm("Nested modal", "UI-only confirmation", func(): pass)
 	await settle()
@@ -89,7 +91,8 @@ func run() -> void:
 	check(app.screen == hud and app.current_route == "hud", "resume returns the same HUD")
 	check(not handle.is_suspended(), "resume restores HUD routing")
 	check(hud.process_mode != Node.PROCESS_MODE_DISABLED, "resume restarts HUD preview timers")
-	check(app.state.raid_ammo == 17, "pause and modal preserve HUD model state")
+	check(app.fixture_state_for_test().raid_ammo == 17,
+		"pause and modal preserve HUD preview state")
 
 	app.navigate("inventory")
 	await settle()
@@ -133,9 +136,10 @@ func run() -> void:
 	await settle()
 	var picker: Control = app.picker
 	check(screen_root.popup_layer().get_top_screen() == picker, "catalog is a CommonUI popup")
-	var med_count: int = int(app.state.get("med_count", 2))
+	var med_count: int = int(app.fixture_state_for_test().get("med_count", 2))
 	await key(KEY_Y)
-	check(int(app.state.get("med_count", 2)) == med_count, "catalog blocks underlying quick-heal input")
+	check(int(app.fixture_state_for_test().get("med_count", 2)) == med_count,
+		"catalog blocks underlying quick-heal input")
 	for i in range(32):
 		await key(KEY_TAB)
 		var focus := root.gui_get_focus_owner()

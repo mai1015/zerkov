@@ -34,7 +34,7 @@ func _rerender() -> void:
     for node in find_children("*", "ScrollContainer", true, false):
         _compact_scroll[str(node.name)] = node.scroll_vertical
     if app != null:
-        app.state["utility_settings_scroll"] = _compact_scroll.duplicate()
+        app.fixture_set("utility_settings_scroll", _compact_scroll.duplicate())
         app.navigate("settings", false)
 
 

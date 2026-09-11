@@ -74,7 +74,7 @@ static func floorplan(screen: Control, rect: Rect2) -> void:
 	elif screen._route == "session":
 		put(screen, "HostSprite", screen, Rect2(rect.position + rect.size * Vector2(.36, .48), Vector2(24, 40)))
 		var guest := put(screen, "GuestSprite", screen, Rect2(rect.position + rect.size * Vector2(.43, .52), Vector2(24, 40)))
-		guest.visible = bool(screen.app.state.bunker_guest_present)
+		guest.visible = bool(screen.app.fixture_get("bunker_guest_present", true))
 
 static func bunker(screen: Control, view: Vector2) -> void:
 	var left := view.x - 544
@@ -121,7 +121,7 @@ static func session(screen: Control, view: Vector2) -> void:
 	leave.text = "BACK TO BUNKER"
 	wire(leave, screen.go.bind("bunker"))
 	put(screen, "FooterHint", screen, Rect2(16, view.y - 116, left, 48))
-	ZLayoutSnapshot.layout_value(node(screen, "FooterHint"), "text", "WORLD · " + str(screen.app.state.bunker_privacy) + "\nLOOT STAYS WITH YOUR CHARACTER")
+	ZLayoutSnapshot.layout_value(node(screen, "FooterHint"), "text", "WORLD · " + str(screen.app.fixture_get("bunker_privacy", "INVITE ONLY")) + "\nLOOT STAYS WITH YOUR CHARACTER")
 
 static func building(screen: Control, view: Vector2) -> void:
 	var map_width := view.x - 380

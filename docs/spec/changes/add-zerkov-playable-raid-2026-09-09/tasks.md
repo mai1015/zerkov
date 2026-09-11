@@ -491,7 +491,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   regression coverage to CommonUI-backed screens. Keep any retained adaptive
   implementation out of the current first-playable test matrix; smaller suites
   are deferred until task 11.8 or a later approved display-support proposal.
-- [ ] 8.11 `[SOL]` Remove production reads/writes of `app.state`; keep mock
+- [x] 8.11 `[SOL]` Remove production reads/writes of `app.state`; keep mock
   fixtures only behind test/developer providers.
 - [ ] 8.12 `[ASTRA]` Review every real-data screen at 1920x1080 for hierarchy,
   readability and preserved interaction affordances. Smaller outputs are
@@ -501,6 +501,21 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
 
 Evidence: existing 28-route smoke remains green; CommonUI lifecycle/input
 tests; real-data screenshot matrix; zero production mock-state references.
+
+Implementation candidate evidence (8.11, 2026-09-11): production `Main` and
+`ZUIContext` expose no `state`/`fixtures`; the recursively enumerated `ui/` and
+`game/` source audit found zero legacy `app.state`/reflective-state access, one
+explicit `ui/dev` fixture-import owner and no fixture-store escape. Generation-
+scoped fixture and typed presentation providers, stale/released truth, the
+locked missing-service surface, retained Task 8.6 Character composition and
+retained Task 8.10 input facade passed `57/0` domain/static and `109/0` native
+exact-1920 checks. The 28-route smoke passed `948/0`; Character UI,
+inventory-binding, CommonUI input/navigation/integration, composition,
+lifecycle, reflow and family suites remained green at exact 1920x1080. Strict
+spec, editor import and the 24-active/13-deferred runner gate passed. No compact,
+responsive, historical inventory-binding or smaller-output suite ran. See
+`docs/qa/remove_production_app_state_8_11/implementation/REPORT.md`. Task 8.11
+remains unchecked pending independent review.
 
 Completed task evidence (8.2, 2026-09-10): independent re-review accepted the
 final active-context repair at `e48f18baeede8687a96babc64fc9069016836a3d`.

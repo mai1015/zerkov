@@ -14,7 +14,7 @@ func build() -> void:
 	active_route = str(app.current_route)
 
 	var worlds: Array[Dictionary] = _worlds()
-	var selected_value: Variant = app.state.get("frontflow_selected_world", 0)
+	var selected_value: Variant = app.fixture_get("frontflow_selected_world", 0)
 	selected_world = clampi(int(selected_value), 0, maxi(0, worlds.size() - 1))
 	_populate_screen(worlds)
 	_install_authored_scale_safe_styles()

@@ -14,6 +14,12 @@ proposal. The new scope-enforcement results are in
 seals remain immutable evidence for their recorded commits and are not current
 aggregate checks.
 
+Task 8.11's implementation-only packet is in
+[`remove_production_app_state_8_11/implementation/REPORT.md`](remove_production_app_state_8_11/implementation/REPORT.md).
+It records the production fixture-provider boundary, typed unavailable truth,
+stale-generation coverage, preserved Task 8.6/8.10 compositions, and one native
+exact-1920 frame. Task 8.11 remains unchecked pending independent review.
+
 ## UI composition migration — 2026-09-09
 
 The [retained UI-only acceptance report](ui-composition-2026-09-09/README.md)

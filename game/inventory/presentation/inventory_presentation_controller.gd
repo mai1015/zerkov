@@ -4,8 +4,8 @@ extends RefCounted
 ## Production UI seam for the retained inventory screen.
 ##
 ## The controller deliberately has no dependency on the screen scene or on
-## app.state.  It turns confirmed bridge snapshots into UI records and turns
-## gestures into one, strictly-shaped ZRaidIntent at a time.  A screen may
+## prototype fixture storage. It turns confirmed bridge snapshots into UI
+## records and turns gestures into one, strictly-shaped ZRaidIntent at a time. A screen may
 ## still use its fixture controller when this object has not been bound.
 
 const InventoryProjectionBridge = preload("res://game/inventory/presentation/inventory_projection_bridge.gd")

@@ -23,7 +23,7 @@ func build() -> void:
 
 
 func _bind_pause_state() -> void:
-	var privacy: String = str(app.state.get("bunker_privacy", "INVITE ONLY"))
+	var privacy: String = str(app.fixture_get("bunker_privacy", "INVITE ONLY"))
 	_configure_segment(get_node("SessionPanel/Closed") as Button, privacy == "CLOSED")
 	_configure_segment(get_node("SessionPanel/Invite") as Button, privacy == "INVITE ONLY")
 	_configure_segment(get_node("SessionPanel/Friends") as Button, privacy == "FRIENDS")
@@ -204,9 +204,9 @@ func _privacy_friends() -> void:
 
 
 func _set_pause_privacy(value: String) -> void:
-	app.state["bunker_privacy"] = value
-	var worlds: Array = app.state.get("frontflow_worlds", [])
-	var selected: int = int(app.state.get("frontflow_selected_world", 0))
+	app.fixture_set("bunker_privacy", value)
+	var worlds: Array = app.fixture_get("frontflow_worlds", [])
+	var selected: int = int(app.fixture_get("frontflow_selected_world", 0))
 	if selected >= 0 and selected < worlds.size():
 		worlds[selected]["privacy"] = value
 	app.navigate("pause", false)
