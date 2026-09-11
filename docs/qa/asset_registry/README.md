@@ -10,11 +10,15 @@ No assets, Godot import metadata, project settings, UI consumers, TileSets, slic
 
 ## Registry result
 
-ASSET_REGISTRY_RESULT checks=1336 failures=0 entries=74 imported=62 pending=12 atlases=7 warnings=64
+ASSET_REGISTRY_RESULT checks=1405 failures=0 entries=74 imported=62 pending=12 atlases=7 warnings=64 negative_probes=13
 
-The contract exercises deterministic SHA-256 fingerprinting, defensive copies, exact aliases and collision rejection, path confinement, runtime and source hash verification, positive and bounded atlas metadata, forbidden-source rejection, explicit content links, filtering and mipmap fields, license/provenance fields, and pending-entry behavior.
+Manifest SHA-256: `46da7a8974cd2131de8af4631900649bdeb8304814eb9d96d22a3f9c9a7c44fd` (62 runtime hashes and 22 locally present source hashes reverified).
+
+The contract exercises deterministic SHA-256 fingerprinting, defensive copies (including direct returned-entry mutation), exact aliases and collision rejection, strict path confinement and field types, runtime and local-source byte/hash verification, positive and bounded atlas metadata with exact frame enumeration, case-insensitive forbidden-source rejection, canonical content links and license references, filtering and mipmap fields, and pending-entry behavior. All 13 independent negative probes are permanent contract cases.
 
 The manifest contains 62 imported runtime entries and 12 explicitly pending or unimported external-sheet entries. Pending entries have no runtime path or runtime hash. The three approved distribution blockers remain surfaced and are not cleared.
+
+The six UI background provenance rows use source root `/Volumes/Data/Assets/zerkov/UI/UI` with `Background UI/<filename>` relative paths, and each locally available source digest matches its runtime digest. The Sawmill row is explicitly the 1000x800 pixel-art prop sheet with nearest filtering and mipmaps disabled; slicing remains task 9.3.
 
 ## Regression and diagnostics
 

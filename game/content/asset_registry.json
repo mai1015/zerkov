@@ -1883,7 +1883,7 @@
       "availability": "imported",
       "provenance": {
         "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
-        "source_relative_path": "UI/Background UI/background_layer-5_clouds.png",
+        "source_relative_path": "Background UI/background_layer-5_clouds.png",
         "source_status": "available",
         "source_sha256": "8f0810c125c68b600309e5135b4dca212fb522cf5f3b8e88506bcf5135d37954"
       },
@@ -1911,7 +1911,7 @@
       "availability": "imported",
       "provenance": {
         "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
-        "source_relative_path": "UI/Background UI/background_Layer-1_Front_CORRECTED.png",
+        "source_relative_path": "Background UI/background_Layer-1_Front_CORRECTED.png",
         "source_status": "available",
         "source_sha256": "7c44574e5dfa02e56e849f9e232dee4854a9193787909598dc5d652ad35faa7a"
       },
@@ -1939,7 +1939,7 @@
       "availability": "imported",
       "provenance": {
         "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
-        "source_relative_path": "UI/Background UI/background_layer-2_house.png",
+        "source_relative_path": "Background UI/background_layer-2_house.png",
         "source_status": "available",
         "source_sha256": "ea4567eb43cc1a9eee7d1d0e264ab8ef4b201333cae70b21343ea8eaedaa0cc5"
       },
@@ -1967,7 +1967,7 @@
       "availability": "imported",
       "provenance": {
         "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
-        "source_relative_path": "UI/Background UI/background_layer-6_logo-clouds.png",
+        "source_relative_path": "Background UI/background_layer-6_logo-clouds.png",
         "source_status": "available",
         "source_sha256": "25f0343637c99f486abbf63f154a6b773bc2ff7cbc7a7d99a930f29104232469"
       },
@@ -1995,7 +1995,7 @@
       "availability": "imported",
       "provenance": {
         "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
-        "source_relative_path": "UI/Background UI/background_layer-3_mountains.png",
+        "source_relative_path": "Background UI/background_layer-3_mountains.png",
         "source_status": "available",
         "source_sha256": "ee829867e0dcbe78730e0d709a2c1ca8ac141cedd317d1e975e6921d92b277d4"
       },
@@ -2023,7 +2023,7 @@
       "availability": "imported",
       "provenance": {
         "source_root": "/Volumes/Data/Assets/zerkov/UI/UI",
-        "source_relative_path": "UI/Background UI/background_layer-4_sky.png",
+        "source_relative_path": "Background UI/background_layer-4_sky.png",
         "source_status": "available",
         "source_sha256": "60218b16e108be4a56c084f4338094beb988e0ccdbd1c1a5f7d87b491bba180b"
       },
@@ -2210,9 +2210,9 @@
       "notes": "Selected 32 px source-tile sheet; TileSet authoring belongs to task 3.3."
     },
     {
-      "id": "zerkov.asset.world.sawmill.layout",
+      "id": "zerkov.asset.world.sawmill.prop_sheet",
       "aliases": [
-        "world.sawmill.layout"
+        "world.sawmill.prop_sheet"
       ],
       "runtime_path": "",
       "availability": "pending_unimported",
@@ -2224,9 +2224,9 @@
       },
       "runtime_sha256": null,
       "family": "world_source",
-      "kind": "world_layout",
+      "kind": "prop_sheet",
       "filtering": {
-        "mode": "linear",
+        "mode": "nearest",
         "mipmaps": false
       },
       "license": {
@@ -2236,7 +2236,7 @@
         "reason": "External source is not imported or covered by a redistribution grant/project-owned provenance record."
       },
       "content_links": [],
-      "notes": "Explicit Sawmill reference layout; gameplay layers and anchors belong to world tasks."
+      "notes": "1000x800 pixel-art prop sheet; slicing belongs to task 9.3."
     }
   ]
 }

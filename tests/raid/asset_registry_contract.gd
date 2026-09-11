@@ -89,9 +89,17 @@ func run() -> void:
 		var source_hash := _string_value(provenance.get("source_sha256", ""))
 		check(source_hash.is_empty() or _is_sha256(source_hash),
 			"source hash is null or valid: " + asset_id)
-		if String(provenance.get("source_status", "")) == "available":
+		var source_status := String(provenance.get("source_status", ""))
+		if source_status == "available":
 			check(source_hash == _string_value(entry.get("runtime_sha256", "")),
 				"available source and runtime bytes share the recorded digest: " + asset_id)
+		if source_status == "available" or source_status == "available_external":
+			var source_root := _string_value(provenance.get("source_root", ""))
+			var source_relative := _string_value(provenance.get("source_relative_path", ""))
+			var source_path := source_root.trim_suffix("/") + "/" + source_relative
+			if source_root.begins_with("/") and FileAccess.file_exists(source_path):
+				check(_sha256_file(source_path) == source_hash,
+					"locally available source bytes match their recorded digest: " + asset_id)
 		var filtering := entry.get("filtering", {}) as Dictionary
 		check(filtering.has("mode") and filtering.has("mipmaps"),
 			"filtering and mipmap policy are explicit: " + asset_id)
@@ -125,6 +133,41 @@ func run() -> void:
 					and int(atlas_data.get("frame_count", 0)) > 0,
 					"atlas frame dimensions are positive: " + asset_id)
 
+	for background_id in [
+		"zerkov.asset.original.ui.background.clouds",
+		"zerkov.asset.original.ui.background.foreground",
+		"zerkov.asset.original.ui.background.house",
+		"zerkov.asset.original.ui.background.logo_clouds",
+		"zerkov.asset.original.ui.background.mountains",
+		"zerkov.asset.original.ui.background.sky",
+	]:
+		var background := registry.get_asset(background_id)
+		var background_provenance := background.get("provenance", {}) as Dictionary
+		check(background_provenance.get("source_root", "")
+				== "/Volumes/Data/Assets/zerkov/UI/UI",
+			"UI background source root is canonical: " + background_id)
+		check(not String(background_provenance.get("source_relative_path", ""))
+				.begins_with("UI/"),
+			"UI background source path does not duplicate the UI directory: " + background_id)
+		check(background_provenance.get("source_status", "") == "available",
+			"UI background source is locally available: " + background_id)
+		check(background_provenance.get("source_sha256", "")
+				== background.get("runtime_sha256", ""),
+			"UI background source and runtime hashes match: " + background_id)
+
+	var sawmill := registry.get_asset("zerkov.asset.world.sawmill.prop_sheet")
+	check(not sawmill.is_empty(), "Sawmill prop sheet uses an honest stable id")
+	check(registry.get_asset("zerkov.asset.world.sawmill.layout").is_empty(),
+		"stale Sawmill layout id is not retained")
+	check(sawmill.get("kind", "") == "prop_sheet",
+		"Sawmill source is classified as a pixel-art prop sheet")
+	check((sawmill.get("filtering", {}) as Dictionary).get("mode", "") == "nearest"
+		and (sawmill.get("filtering", {}) as Dictionary).get("mipmaps", true) == false,
+		"Sawmill prop sheet uses nearest filtering without mipmaps")
+	check(String((sawmill.get("provenance", {}) as Dictionary).get("source_relative_path", ""))
+			== "Lumber Yard/Lumber yard.png",
+		"Sawmill source filename is preserved exactly")
+
 	var blockers := registry.distribution_blockers()
 	var blocker_ids: Dictionary = {}
 	for blocker_value in blockers:
@@ -153,14 +196,17 @@ func run() -> void:
 	check(registry.get_asset("zerkov.item.weapon.akm").is_empty(),
 		"canonical content ids are not accepted as asset ids")
 
-	var mutated_entry := entries[0].duplicate(true)
-	var original_id := String(mutated_entry.get("id", ""))
-	mutated_entry["id"] = "zerkov.asset.mutated"
-	(mutated_entry.get("provenance", {}) as Dictionary)["source_root"] = "forged"
+	var original_id := String((entries[0] as Dictionary).get("id", ""))
+	var returned_entry := registry.get_asset(original_id)
+	returned_entry["id"] = "zerkov.asset.mutated"
+	(returned_entry.get("provenance", {}) as Dictionary)["source_root"] = "forged"
+	(returned_entry["aliases"] as Array)[0] = "forged.alias"
 	check(registry.manifest_fingerprint() == fingerprint,
-		"mutating an entries copy cannot change the registry fingerprint")
+		"mutating a directly returned entry cannot change the registry fingerprint")
 	check(registry.get_asset(original_id).get("id", "") == original_id,
-		"mutating an entries copy cannot change the registry index")
+		"mutating a directly returned entry cannot change the registry index")
+	check(registry.resolve_alias("forged.alias").is_empty(),
+		"mutating a directly returned alias list cannot change the alias index")
 	var manifest_copy := registry.manifest()
 	(manifest_copy.get("assets", []) as Array)[0]["id"] = "zerkov.asset.mutated"
 	check(registry.get_asset(original_id).get("id", "") == original_id,
@@ -173,6 +219,7 @@ func run() -> void:
 		"missing handoff provenance is surfaced as a warning")
 	check(warning_codes.has("pending_unimported"),
 		"absent approved-slice sheets are surfaced as pending")
+	_run_negative_probes(registry)
 	check(imported_count > 0, "curated in-repo assets are represented")
 	check(pending_count > 0, "approved absent sheets are represented explicitly")
 	check(atlas_count > 0, "explicit atlas metadata is represented")
@@ -180,14 +227,126 @@ func run() -> void:
 	print("ASSET_REGISTRY_RESULT checks=", checks, " failures=", failures,
 		" entries=", entries.size(), " imported=", imported_count,
 		" pending=", pending_count, " atlases=", atlas_count,
-		" warnings=", registry.validation_warnings().size())
+		" warnings=", registry.validation_warnings().size(),
+		" negative_probes=13")
 	quit(0 if failures == 0 else 1)
+
+
+func _run_negative_probes(registry: ZerkovAssetRegistry) -> void:
+	var candidate := registry.manifest()
+	_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["runtime_path"] = "res://assets/../outside.png"
+	_expect_rejection(candidate, "runtime_path", "runtime traversal is rejected")
+
+	candidate = registry.manifest()
+	_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["runtime_path"] = "res://assets\\outside.png"
+	_expect_rejection(candidate, "runtime_path", "Windows runtime separators are rejected")
+
+	candidate = registry.manifest()
+	(_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["provenance"] as Dictionary)["source_relative_path"] = "../escape.png"
+	_expect_rejection(candidate, "provenance_path", "source traversal is rejected")
+
+	candidate = registry.manifest()
+	var hostile_provenance := _entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["provenance"] as Dictionary
+	hostile_provenance["source_root"] = "C:\\Assets\\zerkov"
+	hostile_provenance["source_relative_path"] = "res://sprite.png"
+	_expect_rejections(candidate, ["source_root", "provenance_path"], "Windows and URI provenance are rejected")
+
+	candidate = registry.manifest()
+	(_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["provenance"] as Dictionary)["source_relative_path"] = "Characters (dO nOt UsE)/sprite.png"
+	_expect_rejection(candidate, "provenance_forbidden", "case-insensitive DO NOT USE segments are rejected")
+
+	candidate = registry.manifest()
+	var missing_source := _entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["provenance"] as Dictionary
+	missing_source["source_root"] = "/Volumes/Data/Assets/zerkov/not-present"
+	_expect_rejection(candidate, "source_missing", "available source must exist")
+
+	candidate = registry.manifest()
+	(_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["provenance"] as Dictionary)["source_sha256"] = String("0").repeat(64)
+	_expect_rejection(candidate, "source_hash_mismatch", "available source bytes must match their digest")
+
+	candidate = registry.manifest()
+	candidate["schema_version"] = 1.0
+	_expect_rejection(candidate, "schema_version_type", "schema version must be an integer")
+
+	candidate = registry.manifest()
+	_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["availability"] = true
+	_expect_rejection(candidate, "availability_type", "availability must be a string")
+
+	candidate = registry.manifest()
+	(_entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["aliases"] as Array)[0] = 42
+	_expect_rejection(candidate, "alias_type", "aliases must contain strings")
+
+	candidate = registry.manifest()
+	var bad_atlas := _entry_for(candidate, "zerkov.asset.world.exterior.props")["atlas"] as Dictionary
+	bad_atlas["source_size"] = [1, 1]
+	_expect_rejection(candidate, "atlas_bounds", "atlas cells must fit declared dimensions")
+
+	candidate = registry.manifest()
+	var duplicate_order := _entry_for(candidate, "zerkov.asset.character.npc1.idle")["atlas"] as Dictionary
+	duplicate_order["frame_order"] = [0, 0, 1, 2, 3, 4]
+	_expect_rejection(candidate, "atlas_frame_order_duplicate", "atlas frame_order must be nonduplicate")
+
+	candidate = registry.manifest()
+	var bad_links := _entry_for(candidate, "zerkov.asset.handoff.akm")
+	bad_links["content_links"] = ["zerkov.item.not_real", "not-a-content-id"]
+	var bad_license := _entry_for(candidate, "zerkov.asset.original.ammo.standard_762x39")["license"] as Dictionary
+	bad_license["status"] = true
+	bad_license["reference"] = "res://missing/LICENSE.txt"
+	_expect_rejections(
+		candidate,
+		["content_link_target", "content_link_syntax", "license_status_type", "license_reference_missing"],
+		"dangling content links and dishonest license evidence are rejected",
+	)
+
+
+func _entry_for(manifest: Dictionary, asset_id: String) -> Dictionary:
+	var values: Variant = manifest.get("assets", [])
+	if values is Array:
+		for value in values:
+			if value is Dictionary and String((value as Dictionary).get("id", "")) == asset_id:
+				return value as Dictionary
+	return {}
+
+
+func _expect_rejection(candidate: Dictionary, code: String, label: String) -> void:
+	_expect_rejections(candidate, [code], label)
+
+
+func _expect_rejections(candidate: Dictionary, codes: Array, label: String) -> void:
+	var findings: Array[Dictionary] = ZerkovAssetRegistry.validate_candidate(candidate)
+	for code_value in codes:
+		var code := String(code_value)
+		check(_has_error_code(findings, code),
+			"negative probe rejected with " + code + ": " + label)
+
+
+func _has_error_code(findings: Array[Dictionary], code: String) -> bool:
+	for finding in findings:
+		if String(finding.get("severity", "")) == "error" and String(finding.get("code", "")) == code:
+			return true
+	return false
 
 
 func _is_sha256(value: String) -> bool:
 	var regex := RegEx.new()
 	regex.compile("^[0-9a-fA-F]{64}$")
 	return regex.search(value) != null
+
+
+func _sha256_file(path: String) -> String:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return ""
+	var context := HashingContext.new()
+	if context.start(HashingContext.HASH_SHA256) != OK:
+		file.close()
+		return ""
+	if context.update(file.get_buffer(file.get_length())) != OK:
+		file.close()
+		return ""
+	var digest := context.finish().hex_encode()
+	file.close()
+	return digest
 
 
 func _string_value(value: Variant) -> String:

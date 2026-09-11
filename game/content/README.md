@@ -15,8 +15,14 @@ load so callers cannot mutate the indexed data.
 Each entry records its exact res://assets/ path when imported, source-root and
 source-relative provenance, applicable SHA-256 digests, family/kind, filtering
 and mipmap policy, license status/reference, and optional explicit atlas
-metadata. pending_unimported rows identify approved-slice source sheets that
-are not yet in the repository; they do not provide runtime paths.
+metadata. Locally present source bytes are verified against their recorded
+digest; unavailable external provenance is marked explicitly rather than
+claimed available. pending_unimported rows identify approved-slice source
+sheets that are not yet in the repository; they do not provide runtime paths.
+
+The six UI background rows preserve the source root and exact `Background UI/`
+relative paths. The Sawmill source is a 1000x800 pixel-art prop sheet with
+nearest filtering and no mipmaps; slicing remains task 9.3.
 
 The manifest intentionally keeps the current add-on/art distribution blockers
 visible. Registry presence is not license clearance. Import presets and
