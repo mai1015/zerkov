@@ -35,24 +35,34 @@ class BindingWorldPolicyPort extends ZInventoryWorldPolicyPort:
     var access_blocked := false
     var reentrant_stage: StringName = &""
     var reentrant_callback: Callable = Callable()
+    var reentrant_denial := false
+    var reentrant_denial_stage: StringName = &""
 
     func is_world_inventory(actor: ZEntityId, inventory_id: int, p_generation: int) -> bool:
         var result: bool = _matches(actor, p_generation) and bool(world_ids.get(inventory_id, false))
+        if reentrant_denial and reentrant_denial_stage == &"is_world_inventory":
+            result = false
         _fire_reentrant(&"is_world_inventory")
         return result
 
     func authoritative_distance_raw(actor: ZEntityId, inventory_id: int, p_generation: int) -> int:
         var result := 1_000_000 if _matches(actor, p_generation) and world_ids.get(inventory_id, false) else -1
+        if reentrant_denial and reentrant_denial_stage == &"authoritative_distance_raw":
+            result = -1
         _fire_reentrant(&"authoritative_distance_raw")
         return result
 
     func is_currently_visible(actor: ZEntityId, inventory_id: int, p_generation: int) -> bool:
         var result: bool = _matches(actor, p_generation) and bool(world_ids.get(inventory_id, false))
+        if reentrant_denial and reentrant_denial_stage == &"is_currently_visible":
+            result = false
         _fire_reentrant(&"is_currently_visible")
         return result
 
     func access_state(actor: ZEntityId, inventory_id: int, p_generation: int) -> StringName:
         var result := ACCESS_UNAVAILABLE if access_blocked else (ACCESS_OPEN if _matches(actor, p_generation) and world_ids.get(inventory_id, false) else ACCESS_UNAVAILABLE)
+        if reentrant_denial and reentrant_denial_stage == &"access_state":
+            result = ACCESS_CLOSED
         _fire_reentrant(&"access_state")
         return result
 
@@ -403,6 +413,7 @@ func run() -> void:
         "capacity proof restores the crate source before resynchronization")
 
     await _run_reentrant_policy_state_probes()
+    await _run_controller_reentrant_policy_probe()
 
     var raid_generation := bridge.scope_generation(Bridge.SCOPE_RAID)
     check(bridge.begin_resynchronization(Bridge.SCOPE_RAID, owner.generation(), raid_generation), "resynchronization begins on the existing projection")
@@ -457,48 +468,107 @@ func _receipt_revision(revisions: Array, inventory_id: int) -> int:
 
 func _run_reentrant_policy_state_probes() -> void:
     for stage in [&"is_world_inventory", &"authoritative_distance_raw", &"is_currently_visible", &"access_state"]:
-        var probe_owner := RaidInventoryOwner.new()
-        probe_owner.name = "InventoryLootUI411PolicyProbe_%s" % String(stage)
-        root.add_child(probe_owner)
-        var configured := probe_owner.configure()
-        check(configured, "reentrant policy %s owner configures" % String(stage))
-        if not configured:
+        for denial in [false, true]:
+            var probe_owner := RaidInventoryOwner.new()
+            var stage_key := String(stage) + ("_denial" if denial else "_success")
+            probe_owner.name = "InventoryLootUI411PolicyProbe_%s" % stage_key
+            root.add_child(probe_owner)
+            var configured := probe_owner.configure()
+            check(configured, "reentrant policy %s owner configures" % stage_key)
+            if not configured:
+                probe_owner.queue_free()
+                await process_frame
+                continue
+            var raid_id := ZRaidId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key]))
+            var session_id := ZSessionId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "session"]))
+            var actor_id := ZEntityId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "actor"]))
+            var admission_request := ZSessionRequest.create_offline(
+                ZRequestId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "admission"])),
+                raid_id, &"ui_loot_policy_profile", &"player", 7)
+            var admission := ZSessionAdmission.accept_local(admission_request, session_id, actor_id)
+            var identity := BindingIdentityPort.new()
+            identity.session_key = session_id.canonical_key()
+            identity.actor_key = actor_id.canonical_key()
+            identity.epoch = admission.authority_epoch
+            identity.generation = admission.generation
+            identity.native_actor = RaidInventoryOwner.FIXTURE_ACTOR_ID
+            identity.owned[probe_owner.raid_player_inventory_id] = true
+            var world := BindingWorldPolicyPort.new()
+            world.actor_key = actor_id.canonical_key()
+            world.generation = admission.generation
+            world.world_ids[probe_owner.world_crate_inventory_id] = true
+            world.reentrant_denial = denial
+            world.reentrant_denial_stage = stage
+            var probe_adapter := Adapter.new()
+            check(probe_adapter.configure(probe_owner, admission, identity, world, MAX_TRANSFER_DISTANCE_RAW),
+                "reentrant policy %s adapter configures" % stage_key)
+            var captured_owner := probe_owner
+            var captured_generation := probe_owner.generation()
+            world.arm_reentrant(stage, func() -> void:
+                captured_owner.teardown(captured_generation)
+            )
+            var policy := probe_adapter.world_policy_state(probe_owner.world_crate_inventory_id)
+            check(not bool(policy.get("available", true))
+                and policy.get("reason", &"") == &"inventory_runtime_stale_binding",
+                "policy %s callback fails closed before interpreting its returned value" % stage_key)
             probe_owner.queue_free()
             await process_frame
-            continue
-        var stage_key := String(stage)
-        var raid_id := ZRaidId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key]))
-        var session_id := ZSessionId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "session"]))
-        var actor_id := ZEntityId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "actor"]))
-        var admission_request := ZSessionRequest.create_offline(
-            ZRequestId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "admission"])),
-            raid_id, &"ui_loot_policy_profile", &"player", 7)
-        var admission := ZSessionAdmission.accept_local(admission_request, session_id, actor_id)
-        var identity := BindingIdentityPort.new()
-        identity.session_key = session_id.canonical_key()
-        identity.actor_key = actor_id.canonical_key()
-        identity.epoch = admission.authority_epoch
-        identity.generation = admission.generation
-        identity.native_actor = RaidInventoryOwner.FIXTURE_ACTOR_ID
-        identity.owned[probe_owner.raid_player_inventory_id] = true
-        var world := BindingWorldPolicyPort.new()
-        world.actor_key = actor_id.canonical_key()
-        world.generation = admission.generation
-        world.world_ids[probe_owner.world_crate_inventory_id] = true
-        var probe_adapter := Adapter.new()
-        check(probe_adapter.configure(probe_owner, admission, identity, world, MAX_TRANSFER_DISTANCE_RAW),
-            "reentrant policy %s adapter configures" % String(stage))
-        var captured_owner := probe_owner
-        var captured_generation := probe_owner.generation()
-        world.arm_reentrant(stage, func() -> void:
-            captured_owner.teardown(captured_generation)
-        )
-        var policy := probe_adapter.world_policy_state(probe_owner.world_crate_inventory_id)
-        check(not bool(policy.get("available", true))
-            and policy.get("reason", &"") == &"inventory_runtime_stale_binding",
-            "policy %s callback fails closed without dereferencing invalidated ports" % String(stage))
-        probe_owner.queue_free()
-        await process_frame
+
+
+func _run_controller_reentrant_policy_probe() -> void:
+    var probe_owner := RaidInventoryOwner.new()
+    probe_owner.name = "InventoryLootUI411ControllerPolicyProbe"
+    root.add_child(probe_owner)
+    check(probe_owner.configure(), "controller reentrant policy owner configures")
+    var stage_key := "controller"
+    var raid_id := ZRaidId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key]))
+    var session_id := ZSessionId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "session"]))
+    var actor_id := ZEntityId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "actor"]))
+    var admission_request := ZSessionRequest.create_offline(
+        ZRequestId.from_parts(PackedStringArray(["ui", "loot", "policy", stage_key, "admission"])),
+        raid_id, &"ui_loot_policy_profile", &"player", 7)
+    var admission := ZSessionAdmission.accept_local(admission_request, session_id, actor_id)
+    var identity := BindingIdentityPort.new()
+    identity.session_key = session_id.canonical_key()
+    identity.actor_key = actor_id.canonical_key()
+    identity.epoch = admission.authority_epoch
+    identity.generation = admission.generation
+    identity.native_actor = RaidInventoryOwner.FIXTURE_ACTOR_ID
+    identity.owned[probe_owner.raid_player_inventory_id] = true
+    var world := BindingWorldPolicyPort.new()
+    world.actor_key = actor_id.canonical_key()
+    world.generation = admission.generation
+    world.world_ids[probe_owner.world_crate_inventory_id] = true
+    var probe_adapter := Adapter.new()
+    check(probe_adapter.configure(probe_owner, admission, identity, world, MAX_TRANSFER_DISTANCE_RAW),
+        "controller reentrant policy adapter configures")
+    var probe_bridge := Bridge.new()
+    root.add_child(probe_bridge)
+    check(probe_bridge.bind_owner(probe_owner, probe_owner.generation()),
+        "controller reentrant policy bridge binds")
+    var probe_controller := Controller.new()
+    check(probe_controller.bind(probe_owner, probe_bridge, probe_adapter, admission),
+        "controller reentrant policy controller binds")
+    check(probe_controller.open_loot_container(), "controller reentrant policy opens loot")
+    var captured_owner := probe_owner
+    var captured_generation := probe_owner.generation()
+    world.arm_reentrant(&"is_world_inventory", func() -> void:
+        captured_owner.teardown(captured_generation)
+    )
+    var requests_before := probe_adapter.tracked_request_count()
+    var state := probe_controller.loot_container_state()
+    check(state == Model.STATE_DISCONNECTED and not probe_controller.is_bound()
+        and probe_adapter.tracked_request_count() == requests_before,
+        "controller rechecks binding after policy teardown and projects disconnected without submissions")
+    var rejected := probe_controller.submit_quick(&"loot", {})
+    check(not bool(rejected.get("accepted", true))
+        and rejected.get("reason", &"") == Controller.REASON_UNBOUND
+        and probe_adapter.tracked_request_count() == requests_before,
+        "controller rejection agrees with disconnected state and keeps request delta at zero")
+    probe_controller.unbind()
+    probe_bridge.queue_free()
+    probe_owner.queue_free()
+    await process_frame
 
 
 func _find_item(items: Array[Dictionary], item_id: int) -> Dictionary:

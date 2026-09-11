@@ -319,6 +319,18 @@ func loot_container_state() -> StringName:
 			return InventoryPresentationModel.STATE_RESYNCHRONIZING
 
 	var policy := world_policy_state(_inventory_id_for_source(_loot_source))
+	# The trusted policy query may synchronously invalidate the owner/adapter
+	# from inside any callback.  Re-read binding truth before interpreting even
+	# a returned denial; disconnected lifecycle state outranks inaccessible and
+	# any historical causal hint.
+	if not _binding_is_current() or _bridge == null:
+		return InventoryPresentationModel.STATE_DISCONNECTED
+	status = _bridge.scope_status(SCOPE_RAID)
+	match status:
+		InventoryProjectionBridge.ProjectionStatus.DISCONNECTED, InventoryProjectionBridge.ProjectionStatus.UNBOUND:
+			return InventoryPresentationModel.STATE_DISCONNECTED
+		InventoryProjectionBridge.ProjectionStatus.RESYNCHRONIZING, InventoryProjectionBridge.ProjectionStatus.LOADING:
+			return InventoryPresentationModel.STATE_RESYNCHRONIZING
 	if not bool(policy.get("available", false)):
 		return InventoryPresentationModel.STATE_INACCESSIBLE
 	if _loot_carry_overweight():
