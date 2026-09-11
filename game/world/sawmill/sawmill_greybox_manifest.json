@@ -4,7 +4,7 @@
   "atlas_asset_id": "zerkov.asset.world.sawmill.greybox_atlas",
   "atlas_alias": "world.sawmill.greybox_atlas",
   "source_path": "res://assets/world/sawmill/sawmill_greybox_atlas.svg",
-  "source_root": "/Volumes/Data/codes/codex-workspace/zerkov-3-3",
+  "source_root": "res://",
   "source_relative_path": "assets/world/sawmill/sawmill_greybox_atlas.svg",
   "source_status": "available",
   "source_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad",
@@ -68,18 +68,16 @@
     {"stable_id": "zerkov.draw.sawmill.fx", "id": "fx", "z_index": 50, "y_sort": false, "occludes": false}
   ],
   "terrain_peering_order": [
-    "right_side", "right_corner", "bottom_right_side", "bottom_right_corner",
-    "bottom_side", "bottom_corner", "bottom_left_side", "bottom_left_corner",
-    "left_side", "left_corner", "top_left_side", "top_left_corner",
-    "top_side", "top_corner", "top_right_side", "top_right_corner"
+    "right_side", "bottom_right_corner", "bottom_side", "bottom_left_corner",
+    "left_side", "top_left_corner", "top_side", "top_right_corner"
   ],
   "terrain_peering": {
-    "dirt": ["dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt"],
-    "grass": ["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
-    "stone": ["stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
-    "water": ["water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water"],
-    "road": ["road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road"],
-    "sand": ["sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand"]
+    "dirt": ["dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt"],
+    "grass": ["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+    "stone": ["stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
+    "water": ["water", "water", "water", "water", "water", "water", "water", "water"],
+    "road": ["road", "road", "road", "road", "road", "road", "road", "road"],
+    "sand": ["sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand"]
   },
   "tiles": [
     {"stable_id":"zerkov.tile.sawmill.greybox.dirt", "atlas_coord":[0,0], "alternative_id":0, "frame_index":0, "terrain_id":"dirt", "terrain_stable_id":"zerkov.terrain.sawmill.dirt", "terrain_peering_id":"dirt", "navigation_kind":"walkable", "navigation_stable_id":"zerkov.navigation.sawmill.walkable", "navigation_polygon":"full_cell", "collision_kind":"none", "collision_stable_id":"zerkov.collision.sawmill.none", "collision_polygon":null, "draw_layer":"ground", "draw_stable_id":"zerkov.draw.sawmill.ground", "z_index":0, "y_sort_origin":0, "occludes":false},

@@ -625,7 +625,7 @@ func _validate_manifest(manifest: Dictionary) -> Array[Dictionary]:
 				findings.append(_finding(
 					"error",
 					"source_root",
-					"Source root must be a canonical absolute path or HTTPS URI",
+					"Source root must be a project-relative res:// root, canonical absolute path, or HTTPS URI",
 					asset_id,
 				))
 			if not _is_strict_relative_path(source_relative_path):
@@ -702,7 +702,7 @@ func _validate_manifest(manifest: Dictionary) -> Array[Dictionary]:
 					"Runtime bytes exist but source provenance cannot be verified",
 					asset_id,
 				))
-			if source_root.begins_with("/") and _is_strict_relative_path(source_relative_path):
+			if (source_root.begins_with("/") or source_root.begins_with("res://")) and _is_strict_relative_path(source_relative_path):
 				var source_file_path := _join_source_path(source_root, source_relative_path)
 				var source_exists := FileAccess.file_exists(source_file_path)
 				if source_status == SOURCE_STATUS_AVAILABLE:
@@ -1266,6 +1266,10 @@ func _contains_nul(value: String) -> bool:
 func _is_source_root(value: String) -> bool:
 	if value.is_empty() or _contains_nul(value) or value.contains("\\"):
 		return false
+	if value == "res://":
+		return true
+	if value.begins_with("res://"):
+		return _is_strict_relative_path(value.trim_prefix("res://"))
 	if value.begins_with("https://"):
 		var uri_regex := RegEx.new()
 		uri_regex.compile("^https://[^\\s/?#]+(?:/[^\\s?#%]*)?$")
@@ -1302,6 +1306,8 @@ func _is_confined_runtime_path(value: String) -> bool:
 
 
 func _join_source_path(source_root: String, relative_path: String) -> String:
+	if source_root == "res://":
+		return source_root + relative_path
 	return source_root.trim_suffix("/") + "/" + relative_path
 
 
@@ -1316,7 +1322,7 @@ func _source_path_for_entry(entry: Dictionary) -> String:
 		return ""
 	var root := String(root_value)
 	var relative := String(relative_value)
-	if not root.begins_with("/") or not _is_strict_relative_path(relative):
+	if (not root.begins_with("/") and not root.begins_with("res://")) or not _is_strict_relative_path(relative):
 		return ""
 	return _join_source_path(root, relative)
 

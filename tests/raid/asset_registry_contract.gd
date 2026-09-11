@@ -97,7 +97,9 @@ func run() -> void:
 			var source_root := _string_value(provenance.get("source_root", ""))
 			var source_relative := _string_value(provenance.get("source_relative_path", ""))
 			var source_path := source_root.trim_suffix("/") + "/" + source_relative
-			if source_root.begins_with("/") and FileAccess.file_exists(source_path):
+			if source_root == "res://":
+				source_path = "res://" + source_relative
+			if (source_root.begins_with("/") or source_root.begins_with("res://")) and FileAccess.file_exists(source_path):
 				check(_sha256_file(source_path) == source_hash,
 					"locally available source bytes match their recorded digest: " + asset_id)
 		var filtering := entry.get("filtering", {}) as Dictionary

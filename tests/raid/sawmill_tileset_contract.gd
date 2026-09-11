@@ -26,22 +26,25 @@ const DRAW_LAYER_IDS := ["ground", "detail", "obstacle", "canopy", "actor", "fx"
 const CUSTOM_DATA_NAMES := ["source_tile_id", "navigation_kind", "collision_kind", "draw_layer"]
 const PEERING_BITS := [
 	TileSet.CELL_NEIGHBOR_RIGHT_SIDE,
-	TileSet.CELL_NEIGHBOR_RIGHT_CORNER,
-	TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE,
 	TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_CORNER,
 	TileSet.CELL_NEIGHBOR_BOTTOM_SIDE,
-	TileSet.CELL_NEIGHBOR_BOTTOM_CORNER,
-	TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_SIDE,
 	TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_CORNER,
 	TileSet.CELL_NEIGHBOR_LEFT_SIDE,
-	TileSet.CELL_NEIGHBOR_LEFT_CORNER,
-	TileSet.CELL_NEIGHBOR_TOP_LEFT_SIDE,
 	TileSet.CELL_NEIGHBOR_TOP_LEFT_CORNER,
 	TileSet.CELL_NEIGHBOR_TOP_SIDE,
-	TileSet.CELL_NEIGHBOR_TOP_CORNER,
-	TileSet.CELL_NEIGHBOR_TOP_RIGHT_SIDE,
 	TileSet.CELL_NEIGHBOR_TOP_RIGHT_CORNER,
 ]
+const PEERING_NAMES := [
+	"right_side",
+	"bottom_right_corner",
+	"bottom_side",
+	"bottom_left_corner",
+	"left_side",
+	"top_left_corner",
+	"top_side",
+	"top_right_corner",
+]
+const PEERING_VALUES := [0, 3, 4, 7, 8, 11, 12, 15]
 
 var checks: int = 0
 var failures: int = 0
@@ -82,6 +85,7 @@ func run() -> void:
 
 	_test_native_shape(first_tile_set)
 	_test_native_tiles(first_tile_set)
+	_test_tilemap_polygon_bounds(first_tile_set)
 	_test_metadata(first_tile_set)
 	_test_repair_probes(first_tile_set)
 
@@ -121,6 +125,8 @@ func _test_manifest() -> void:
 		"manifest names the exact greybox registry alias")
 	check(manifest.get("source_path", "") == ATLAS_PATH,
 		"manifest source path is the project-owned SVG")
+	check(manifest.get("source_root", "") == "res://",
+		"manifest provenance root is stable across project checkouts")
 	check(manifest.get("runtime_path", "") == ATLAS_PATH,
 		"manifest runtime path is the project-owned SVG")
 	check(not _string_value(manifest.get("source_path", "")).to_lower().contains("exterior"),
@@ -244,10 +250,17 @@ func _test_manifest_draw_layers() -> void:
 func _test_manifest_peering() -> void:
 	var peering := _dictionary_value(manifest.get("terrain_peering", {}))
 	var peering_order := _array_value(manifest.get("terrain_peering_order", []))
-	check(peering_order.size() == 16, "manifest declares all sixteen peering positions")
+	check(PEERING_BITS.size() == 8 and PEERING_VALUES.size() == 8,
+		"contract declares exactly eight valid square peering bits")
+	check(PEERING_BITS == [0, 3, 4, 7, 8, 11, 12, 15],
+		"Godot square peering constants are exactly the valid bit set")
+	check(peering_order == PEERING_NAMES,
+		"manifest peering order contains only valid Godot square positions")
+	check(peering_order.size() == PEERING_BITS.size(),
+		"manifest declares exactly the native valid peering positions")
 	for terrain_id in TERRAIN_IDS:
 		var values := _array_value(peering.get(terrain_id, []))
-		check(values.size() == 16, "terrain peering has sixteen entries: " + terrain_id)
+		check(values.size() == PEERING_BITS.size(), "terrain peering has one entry per valid native position: " + terrain_id)
 		for value in values:
 			check(TERRAIN_IDS.has(_string_value(value)), "terrain peering references a known terrain")
 
@@ -333,6 +346,8 @@ func _test_registry_provenance() -> void:
 		"greybox source is a project-owned atlas registry row")
 	var provenance := _dictionary_value(asset.get("provenance", {}))
 	var manifest_provenance := _dictionary_value(manifest.get("provenance", {}))
+	check(provenance.get("source_root", "") == "res://",
+		"registry provenance root is stable across project checkouts")
 	check(provenance.get("source_root", "") == manifest.get("source_root", ""), "registry source root matches manifest")
 	check(provenance.get("source_relative_path", "") == manifest.get("source_relative_path", ""),
 		"registry source-relative path matches manifest")
@@ -455,8 +470,7 @@ func _test_native_tiles(tile_set: TileSet) -> void:
 		var peering_values := _array_value(_dictionary_value(manifest.get("terrain_peering", {})).get(terrain_id, []))
 		for index in range(PEERING_BITS.size()):
 			var bit: int = PEERING_BITS[index]
-			if not data.is_valid_terrain_peering_bit(bit):
-				continue
+			check(data.is_valid_terrain_peering_bit(bit), "TileData exposes the exact valid peering bit: " + tile_id)
 			native_peering += 1
 			var expected_id := _string_value(peering_values[index])
 			check(data.get_terrain_peering_bit(bit) == TERRAIN_IDS.find(expected_id),
@@ -467,16 +481,12 @@ func _test_native_tiles(tile_set: TileSet) -> void:
 		if navigation_polygon != null:
 			native_navigation += 1
 			check(navigation_polygon.get_polygon_count() > 0, "navigation polygon has a native polygon: " + tile_id)
-			check(_packed_vector2_to_array(navigation_polygon.get_vertices()) == [[0.0, 0.0], [32.0, 0.0], [32.0, 32.0], [0.0, 32.0]],
-				"navigation polygon is a full 32 px cell: " + tile_id)
 		var expected_collision := not _string_value(row.get("collision_polygon", "")).is_empty()
 		var collision_count := data.get_collision_polygons_count(0)
 		check((collision_count > 0) == expected_collision, "TileData collision polygon matches manifest: " + tile_id)
 		if collision_count > 0:
 			native_collision += 1
 			check(collision_count == 1, "TileData has one collision polygon: " + tile_id)
-			var expected_points := _full_cell() if row.get("collision_polygon", "") == "full_cell" else _dock_edge()
-			check(data.get_collision_polygon_points(0, 0) == expected_points, "collision polygon geometry is explicit: " + tile_id)
 			check(data.is_collision_polygon_one_way(0, 0) == (row.get("collision_kind", "") == "one_way"),
 				"collision one-way flag is explicit: " + tile_id)
 		var occluder_count := data.get_occluder_polygons_count(0)
@@ -491,6 +501,96 @@ func _test_native_tiles(tile_set: TileSet) -> void:
 	check(native_collision > 0, "native source contains collision polygons")
 	check(native_occlusion > 0, "native source contains occluder polygons")
 	check(native_peering > 0, "native source contains terrain peering data")
+
+
+func _test_tilemap_polygon_bounds(tile_set: TileSet) -> void:
+	var layer := TileMapLayer.new()
+	layer.set_tile_set(tile_set)
+	var tiles := _array_value(manifest.get("tiles", []))
+	var navigation_count := 0
+	var collision_count := 0
+	var occluder_count := 0
+	for index in range(tiles.size()):
+		var row := _dictionary_value(tiles[index])
+		var coordinate_array := _array_value(row.get("atlas_coord", []))
+		if coordinate_array.size() != 2:
+			continue
+		var coordinate := Vector2i(int(coordinate_array[0]), int(coordinate_array[1]))
+		var alternative_id := int(row.get("alternative_id", -1))
+		var cell := Vector2i(index, 0)
+		layer.set_cell(cell, 0, coordinate, alternative_id)
+		var cell_center := layer.map_to_local(cell)
+		var expected_center := Vector2(cell.x * 32 + 16, cell.y * 32 + 16)
+		check(cell_center == expected_center, "TileMapLayer map_to_local returns the centered 32 px cell origin")
+		var data: TileData = layer.get_cell_tile_data(cell)
+		check(data != null, "TileMapLayer exposes mapped native TileData")
+		if data == null:
+			continue
+		var tile_id := _string_value(row.get("stable_id", ""))
+		var navigation_expected := not _string_value(row.get("navigation_polygon", "")).is_empty()
+		if navigation_expected:
+			navigation_count += 1
+			var navigation_polygon := data.get_navigation_polygon(0)
+			check(navigation_polygon != null, "mapped TileData keeps the navigation polygon: " + tile_id)
+			if navigation_polygon != null:
+				var navigation_points := _translated_points(cell_center, navigation_polygon.get_vertices())
+				check(_rect_approx(_points_bounds(navigation_points), _cell_rect(cell)),
+					"mapped navigation polygon bounds equal its world cell: " + tile_id)
+		var collision_polygon_kind := _string_value(row.get("collision_polygon", ""))
+		if not collision_polygon_kind.is_empty():
+			collision_count += 1
+			var native_collision_count := data.get_collision_polygons_count(0)
+			check(native_collision_count == 1, "mapped TileData keeps one collision polygon: " + tile_id)
+			if native_collision_count > 0:
+				var collision_points := _translated_points(cell_center, data.get_collision_polygon_points(0, 0))
+				var expected_collision_rect := _cell_rect(cell)
+				if collision_polygon_kind == "dock_edge":
+					expected_collision_rect = Rect2(Vector2(cell.x * 32, cell.y * 32 + 24), Vector2(32, 8))
+				check(_rect_approx(_points_bounds(collision_points), expected_collision_rect),
+					"mapped collision polygon bounds equal its authored world shape: " + tile_id)
+		var occludes := bool(row.get("occludes", false))
+		if occludes:
+			occluder_count += 1
+			var native_occluder_count := data.get_occluder_polygons_count(0)
+			check(native_occluder_count == 1, "mapped TileData keeps one occluder polygon: " + tile_id)
+			if native_occluder_count > 0:
+				var occluder := data.get_occluder(0, 0)
+				check(occluder != null, "mapped TileData exposes its occluder polygon: " + tile_id)
+				if occluder != null:
+					var occluder_points := _translated_points(cell_center, occluder.get_polygon())
+					check(_rect_approx(_points_bounds(occluder_points), _cell_rect(cell)),
+						"mapped occluder polygon bounds equal its world cell: " + tile_id)
+	check(navigation_count == 11, "TileMapLayer validates all eleven navigation polygons")
+	check(collision_count == 6, "TileMapLayer validates all six collision polygons")
+	check(occluder_count == 4, "TileMapLayer validates all four occluder polygons")
+
+
+func _translated_points(origin: Vector2, points: PackedVector2Array) -> PackedVector2Array:
+	var translated := PackedVector2Array()
+	for point in points:
+		translated.append(origin + point)
+	return translated
+
+
+func _points_bounds(points: PackedVector2Array) -> Rect2:
+	if points.is_empty():
+		return Rect2()
+	var minimum := points[0]
+	var maximum := points[0]
+	for point in points:
+		minimum.x = min(minimum.x, point.x)
+		minimum.y = min(minimum.y, point.y)
+		maximum.x = max(maximum.x, point.x)
+		maximum.y = max(maximum.y, point.y)
+	return Rect2(minimum, maximum - minimum)
+
+
+func _cell_rect(cell: Vector2i) -> Rect2:
+	return Rect2(Vector2(cell.x * 32, cell.y * 32), Vector2(32, 32))
+
+
+func _rect_approx(actual: Rect2, expected: Rect2) -> bool:
+	return actual.position.is_equal_approx(expected.position) and actual.size.is_equal_approx(expected.size)
 
 
 func _test_metadata(tile_set: TileSet) -> void:
@@ -692,8 +792,7 @@ func _native_signature(tile_set: TileSet) -> String:
 						tile_row["terrain"] = data.get_terrain()
 						var peering: Array = []
 						for bit in PEERING_BITS:
-							if data.is_valid_terrain_peering_bit(bit):
-								peering.append([bit, data.get_terrain_peering_bit(bit)])
+							peering.append([bit, data.get_terrain_peering_bit(bit)])
 						tile_row["peering"] = peering
 						for custom_name in CUSTOM_DATA_NAMES:
 							tile_row["custom_" + custom_name] = _string_value(data.get_custom_data(custom_name))
@@ -786,11 +885,11 @@ func _packed_int_to_array(value: PackedInt32Array) -> Array:
 
 
 func _full_cell() -> PackedVector2Array:
-	return PackedVector2Array([Vector2(0, 0), Vector2(32, 0), Vector2(32, 32), Vector2(0, 32)])
+	return PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)])
 
 
 func _dock_edge() -> PackedVector2Array:
-	return PackedVector2Array([Vector2(0, 24), Vector2(32, 24), Vector2(32, 32), Vector2(0, 32)])
+	return PackedVector2Array([Vector2(-16, 8), Vector2(16, 8), Vector2(16, 16), Vector2(-16, 16)])
 
 
 func _canonical_json(value: Variant) -> String:

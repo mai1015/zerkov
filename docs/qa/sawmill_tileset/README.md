@@ -24,6 +24,8 @@ Registry identity and provenance are explicit in
 - ID `zerkov.asset.world.sawmill.greybox_atlas`
 - alias `world.sawmill.greybox_atlas`
 - imported runtime path `res://assets/world/sawmill/sawmill_greybox_atlas.svg`
+- project-relative provenance root `res://` plus
+  `assets/world/sawmill/sawmill_greybox_atlas.svg`
 - project-owned family, nearest filtering, mipmaps disabled, cleared MIT license
 
 The pending external `zerkov.asset.world.exterior_textures` row is not used,
@@ -34,8 +36,9 @@ copied, or coordinate-guessed. No unmerged Task 9.2 behavior is required.
 `game/world/sawmill/sawmill_greybox_manifest.json` is the companion semantic
 coordinate registry. It fixes row-major coordinates and frame indices, stable
 IDs, six terrains, four navigation kinds, three collision kinds, six draw
-layers, polygon kinds, z/y metadata, and two alternative IDs. All stable IDs
-are checked with the bounded `ZIdentityRules` grammar.
+layers, the eight valid Godot square peering positions, polygon kinds, z/y
+metadata, and two alternative IDs. All stable IDs are checked with the bounded
+`ZIdentityRules` grammar.
 
 `game/world/sawmill/sawmill_tileset.tres` is a real `TileSet` containing:
 
@@ -44,9 +47,13 @@ are checked with the bounded `ZIdentityRules` grammar.
 - native per-tile `TileData` for every catalog row, including four String
   custom-data layers consumable by a TileMap (`source_tile_id`,
   `navigation_kind`, `collision_kind`, `draw_layer`);
-- one six-terrain set with explicit peering, one navigation layer with full
-  cell polygons on traversable rows, one physics layer with full-cell/dock-edge
-  collision polygons and one-way data, and one occlusion layer;
+- one six-terrain set with explicit peering at only the valid bit set
+  `[0, 3, 4, 7, 8, 11, 12, 15]`, one navigation layer with full-cell polygons
+  on traversable rows, one physics layer with full-cell/dock-edge collision
+  polygons and one-way data, and one occlusion layer;
+- tile-local polygons centered around the TileMap cell origin, so a
+  `TileMapLayer.map_to_local()` transform places all 11 navigation, 6
+  collision, and 4 occluder shapes inside their intended 32 px world cells;
 - explicit draw z-order/y-sort metadata and stable semantic metadata linking
   the resource to the registry and manifest.
 
@@ -61,16 +68,18 @@ godot --headless --path . --audio-driver Dummy --script res://tests/raid/sawmill
 Observed result after repair:
 
 ```text
-SAWMILL_TILESET_RESULT checks=1150 failures=0 tiles=16 alternatives=2 cache_mode=ignore source_asset=zerkov.asset.world.sawmill.greybox_atlas source_status=available
+SAWMILL_TILESET_RESULT checks=1319 failures=0 tiles=16 alternatives=2 cache_mode=ignore source_asset=zerkov.asset.world.sawmill.greybox_atlas source_status=available
 ```
 
 The contract performs two distinct `ResourceLoader.CACHE_MODE_IGNORE` loads and
 compares canonical metadata and native TileData signatures. It includes
 fail-before probes for zero native coordinates, missing TileData, navigation,
 collision, terrain, and custom-data surfaces, and confirms the repaired
-resource has no findings. The registry contract was also run headlessly with
-zero validation failures; Godot may print its existing SVG image-dimension
-warning while checking the imported source.
+resource has no findings. It uses a TileMapLayer and `map_to_local()` to check
+world bounds rather than accepting untransformed resource-local geometry. The
+registry contract was also run headlessly with zero validation failures; Godot
+may print its existing SVG image-dimension warning while checking the imported
+source.
 
 No UI, viewport, capture, visual, responsive, compact, or alternate-size test
 was run. The exact 1920x1080 visual path was not necessary for this source-only

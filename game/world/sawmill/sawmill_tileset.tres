@@ -3,60 +3,60 @@
 [ext_resource type="Texture2D" path="res://assets/world/sawmill/sawmill_greybox_atlas.svg" id="1_j0sun"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_onev8"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_weodj"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_ow8ta"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_4mgeb"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_nxy28"]
-polygon = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_pt23p"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_l0r07"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_qu06p"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_xa8ny"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_lhdxq"]
-polygon = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_3mq24"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_l5kot"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_k2k2d"]
-polygon = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_mprb8"]
-vertices = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_qcecu"]
-polygon = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ip8sx"]
 texture = ExtResource("1_j0sun")
@@ -129,7 +129,7 @@ texture_region_size = Vector2i(32, 32)
 3:0/0 = 0
 3:0/0/terrain_set = 0
 3:0/0/terrain = 3
-3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 3:0/0/terrains_peering_bit/right_side = 3
 3:0/0/terrains_peering_bit/bottom_right_corner = 3
 3:0/0/terrains_peering_bit/bottom_side = 3
@@ -196,7 +196,7 @@ texture_region_size = Vector2i(32, 32)
 2:1/0/terrain_set = 0
 2:1/0/terrain = 2
 2:1/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_lhdxq")
-2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 2:1/0/terrains_peering_bit/right_side = 2
 2:1/0/terrains_peering_bit/bottom_right_corner = 2
 2:1/0/terrains_peering_bit/bottom_side = 2
@@ -214,7 +214,7 @@ texture_region_size = Vector2i(32, 32)
 3:1/0/terrain_set = 0
 3:1/0/terrain = 2
 3:1/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_k2k2d")
-3:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+3:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 3:1/0/terrains_peering_bit/right_side = 2
 3:1/0/terrains_peering_bit/bottom_right_corner = 2
 3:1/0/terrains_peering_bit/bottom_side = 2
@@ -232,7 +232,7 @@ texture_region_size = Vector2i(32, 32)
 0:2/0/terrain_set = 0
 0:2/0/terrain = 1
 0:2/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_nxy28")
-0:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+0:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 0:2/0/terrains_peering_bit/right_side = 1
 0:2/0/terrains_peering_bit/bottom_right_corner = 1
 0:2/0/terrains_peering_bit/bottom_side = 1
@@ -283,7 +283,7 @@ texture_region_size = Vector2i(32, 32)
 3:2/0/z_index = 20
 3:2/0/terrain_set = 0
 3:2/0/terrain = 4
-3:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, 24, 32, 24, 32, 32, 0, 32)
+3:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, 8, 16, 8, 16, 16, -16, 16)
 3:2/0/physics_layer_0/polygon_0/one_way = true
 3:2/0/terrains_peering_bit/right_side = 4
 3:2/0/terrains_peering_bit/bottom_right_corner = 4
@@ -354,7 +354,7 @@ texture_region_size = Vector2i(32, 32)
 3:3/0/terrain_set = 0
 3:3/0/terrain = 2
 3:3/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_qcecu")
-3:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, 0, 32, 0, 32, 32, 0, 32)
+3:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 3:3/0/terrains_peering_bit/right_side = 2
 3:3/0/terrains_peering_bit/bottom_right_corner = 2
 3:3/0/terrains_peering_bit/bottom_side = 2
@@ -411,7 +411,7 @@ metadata/sawmill_source_provenance = {
 "runtime_path": "res://assets/world/sawmill/sawmill_greybox_atlas.svg",
 "runtime_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad",
 "source_relative_path": "assets/world/sawmill/sawmill_greybox_atlas.svg",
-"source_root": "/Volumes/Data/codes/codex-workspace/zerkov-3-3",
+"source_root": "res://",
 "source_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad",
 "source_status": "available"
 }
@@ -463,12 +463,12 @@ metadata/sawmill_terrain_metadata = {
 }]
 }
 metadata/sawmill_terrain_peering = {
-"dirt": ["dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt"],
-"grass": ["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
-"road": ["road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road", "road"],
-"sand": ["sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand"],
-"stone": ["stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
-"water": ["water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water", "water"]
+"dirt": ["dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt"],
+"grass": ["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+"road": ["road", "road", "road", "road", "road", "road", "road", "road"],
+"sand": ["sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand"],
+"stone": ["stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
+"water": ["water", "water", "water", "water", "water", "water", "water", "water"]
 }
 metadata/sawmill_navigation_metadata = {
 "kinds": [{

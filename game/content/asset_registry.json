@@ -2217,7 +2217,7 @@
       "runtime_path": "res://assets/world/sawmill/sawmill_greybox_atlas.svg",
       "availability": "imported",
       "provenance": {
-        "source_root": "/Volumes/Data/codes/codex-workspace/zerkov-3-3",
+        "source_root": "res://",
         "source_relative_path": "assets/world/sawmill/sawmill_greybox_atlas.svg",
         "source_status": "available",
         "source_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad"
