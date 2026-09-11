@@ -1,6 +1,7 @@
 extends SceneTree
 ## Permanent reviewer-regression coverage for exact binding provenance,
-## authorized actor ownership, and recursively immutable publications.
+## same-world metadata isolation, authorized actor ownership, and recursively
+## immutable publications.
 
 const BODY_LAYER: int = 1
 const OBSTRUCTION_LAYER: int = 2
@@ -23,6 +24,7 @@ func check(condition: bool, message: String) -> void:
 
 func run() -> void:
 	_test_cross_instance_capability_aba()
+	_test_same_world_metadata_rebind()
 	_test_authorized_actor_and_publisher_port()
 	_test_immutable_publication_families()
 	print("BODY_HITBOX_REVIEW_REGRESSION_RESULT checks=", checks,
@@ -69,7 +71,7 @@ func _test_cross_instance_capability_aba() -> void:
 		0, 1, [second_body], [], int(second["generation"]), int(second["token"]),
 		second["owner_actor"], int(second["owner_source"]), first["capability"])
 		and second_world.last_error == &"binding_capability_mismatch"
-		and second_world.snapshot_revision() == 0,
+		and int(_snapshot_metadata(second).get("world_revision", -1)) == 0,
 		"world-A capability cannot publish into same-numbered world B")
 	check(_publish(second, 0, 1, [second_body], []),
 		"second same-ID world publishes with its own capability")
@@ -77,7 +79,7 @@ func _test_cross_instance_capability_aba() -> void:
 		0, 1, [], [], int(second["generation"]), int(second["token"]),
 		second["owner_actor"], int(second["owner_source"]), first["capability"])
 		and second_world.last_error == &"binding_capability_mismatch"
-		and second_world.snapshot_revision() == 1,
+		and int(_snapshot_metadata(second).get("world_revision", 0)) == 1,
 		"foreign capability cannot remove geometry from the current binding")
 	check((first["authority"] as RaidAuthority).transition(
 		RaidAuthority.Lifecycle.ACTIVE, int(first["generation"])),
@@ -118,6 +120,85 @@ func _test_cross_instance_capability_aba() -> void:
 	var freed_world_capability := second_world.raycast(query, first["capability"])
 	check(freed_world_capability.get("reason") == &"binding_capability_mismatch",
 		"capability retained after issuer destruction cannot authenticate elsewhere")
+
+
+func _test_same_world_metadata_rebind() -> void:
+	var first := _new_context("review_metadata_first")
+	var world := first["world"] as BodyHitboxWorld2D
+	var first_capability: Variant = first["capability"]
+	var first_target := _entity("review_metadata_first_target")
+	_authorize_actor(first, first_target, ZRaidIntent.Source.AI)
+	check(_publish(first, 0, 1, [_body(first_target, 1, Vector2i.ZERO)], []),
+		"first metadata binding publishes")
+	var first_metadata := world.snapshot_metadata(first_capability)
+	check(int(first_metadata.get("world_revision", 0)) == 1
+		and String(first_metadata.get("snapshot_digest", "")).length() == 64,
+		"first metadata is readable only with its exact capability")
+	check(world.release_binding(first_capability),
+		"first metadata binding releases before same-world replacement")
+
+	var replacement_raid := ZRaidId.from_parts(
+		PackedStringArray(["hitbox", "review_metadata_replacement"]))
+	var replacement_admission := SessionCoordinator.new().open_offline(
+		replacement_raid, &"review_metadata_replacement", &"player")
+	var replacement_authority := RaidAuthority.new()
+	check(replacement_authority.configure(
+		replacement_raid, replacement_admission, 41),
+		"replacement metadata authority configures")
+	var replacement_generation := replacement_authority.generation()
+	var replacement_owner := ZEntityId.parse(
+		replacement_admission.actor_id.canonical_key())
+	var replacement_capability := world.bind_raid_authority(
+		replacement_authority, replacement_owner, ZRaidIntent.Source.PLAYER,
+		replacement_generation)
+	check(replacement_capability != null,
+		"same world binds a replacement raid with a new exact capability")
+	var replacement_provenance := world.binding_provenance(replacement_capability)
+	var replacement := {
+		"authority": replacement_authority,
+		"world": world,
+		"generation": replacement_generation,
+		"token": int(replacement_provenance.get("binding_token", 0)),
+		"capability": replacement_capability,
+		"owner_actor": replacement_owner,
+		"owner_actor_id": replacement_owner.canonical_key(),
+		"owner_source": int(ZRaidIntent.Source.PLAYER),
+		"raid_id": replacement_raid.canonical_key(),
+		"session_id": replacement_admission.session_id.canonical_key(),
+		"authority_epoch": replacement_admission.authority_epoch,
+		"query_actor": replacement_owner,
+		"query_source": int(ZRaidIntent.Source.PLAYER),
+	}
+	var replacement_target := _entity("review_metadata_replacement_target")
+	_authorize_actor(replacement, replacement_target, ZRaidIntent.Source.AI)
+	check(_publish(replacement, 0, 1, [
+		_body(replacement_target, 1, Vector2i(4_000_000, 0))], []),
+		"same-world replacement publishes distinct geometry")
+	var replacement_metadata := world.snapshot_metadata(replacement_capability)
+	check(String(replacement_metadata.get("raid_id", ""))
+		== replacement_raid.canonical_key()
+		and String(replacement_metadata.get("snapshot_digest", ""))
+			!= String(first_metadata.get("snapshot_digest", "")),
+		"current capability reads the replacement raid metadata")
+
+	for method_name in PackedStringArray([
+		"is_bound",
+		"binding_token",
+		"authority_generation",
+		"snapshot_tick",
+		"snapshot_revision",
+		"snapshot_digest",
+	]):
+		check(not world.has_method(StringName(method_name)),
+			"redundant unauthenticated metadata getter is not public: %s" % method_name)
+	var stale_metadata := world.snapshot_metadata(first_capability)
+	check(stale_metadata.is_empty() and stale_metadata.is_read_only()
+		and world.last_error == &"binding_capability_mismatch",
+		"stale same-world capability cannot observe replacement snapshot metadata")
+	var stale_provenance := world.binding_provenance(first_capability)
+	check(stale_provenance.is_empty() and stale_provenance.is_read_only()
+		and world.last_error == &"binding_capability_mismatch",
+		"stale same-world capability cannot observe replacement binding metadata")
 
 
 func _test_authorized_actor_and_publisher_port() -> void:
@@ -280,11 +361,12 @@ func _new_context(label: String) -> Dictionary:
 	var capability := world.bind_raid_authority(
 		authority, owner_actor, owner_source, generation)
 	check(capability != null, "%s world binds" % label)
+	var provenance := world.binding_provenance(capability)
 	return {
 		"authority": authority,
 		"world": world,
 		"generation": generation,
-		"token": world.binding_token(),
+		"token": int(provenance.get("binding_token", 0)),
 		"capability": capability,
 		"owner_actor": owner_actor,
 		"owner_actor_id": owner_actor.canonical_key(),
@@ -351,7 +433,7 @@ func _query(
 	body_mask: int,
 	obstruction_mask: int
 ) -> Dictionary:
-	var world := context["world"] as BodyHitboxWorld2D
+	var metadata := _snapshot_metadata(context)
 	return {
 		"request_id": ZRequestId.from_parts(
 			PackedStringArray(["hitbox", label])).canonical_key(),
@@ -364,8 +446,8 @@ func _query(
 		"owner_actor_source": int(context["owner_source"]),
 		"query_actor_id": (context["query_actor"] as ZEntityId).canonical_key(),
 		"query_actor_source": int(context["query_source"]),
-		"tick": world.snapshot_tick(),
-		"world_revision": world.snapshot_revision(),
+		"tick": int(metadata.get("tick", -1)),
+		"world_revision": int(metadata.get("world_revision", 0)),
 		"origin_raw": origin,
 		"target_raw": target,
 		"body_mask": body_mask,
@@ -377,6 +459,11 @@ func _query(
 func _ray(context: Dictionary, query: Variant) -> Dictionary:
 	return (context["world"] as BodyHitboxWorld2D).raycast(
 		query, context["capability"])
+
+
+func _snapshot_metadata(context: Dictionary) -> Dictionary:
+	return (context["world"] as BodyHitboxWorld2D).snapshot_metadata(
+		context["capability"])
 
 
 func _is_deep_read_only(value: Variant) -> bool:

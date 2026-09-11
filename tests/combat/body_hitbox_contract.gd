@@ -106,7 +106,7 @@ func _test_authoritative_world_contract() -> void:
 	_authorize_bodies(context, bodies)
 	check(_publish(context, 0, 1, bodies, []),
 		"complete tick-zero body snapshot publishes while preparing")
-	var digest := world.snapshot_digest()
+	var digest := String(_snapshot_metadata(context).get("snapshot_digest", ""))
 	check(digest.length() == 64, "published world snapshot has a stable digest")
 	var metadata := world.snapshot_metadata(context["capability"])
 	check(int(metadata.get("body_count", -1)) == 2
@@ -123,7 +123,7 @@ func _test_authoritative_world_contract() -> void:
 
 	# Input mutation after publication cannot change the stored snapshot.
 	bodies[0]["origin_raw"] = Vector2i(500_000_000, 500_000_000)
-	check(world.snapshot_digest() == digest,
+	check(String(_snapshot_metadata(context).get("snapshot_digest", "")) == digest,
 		"caller mutation cannot alter published authoritative geometry")
 	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, generation),
 		"fixture authority activates after world publication")
@@ -219,7 +219,8 @@ func _test_authoritative_world_contract() -> void:
 	]
 	check(_publish(context, 0, 1, canonical_bodies, []),
 		"same snapshot accepts reordered input as a duplicate")
-	check(world.last_publication_duplicate and world.snapshot_digest() == digest,
+	check(world.last_publication_duplicate
+		and String(_snapshot_metadata(context).get("snapshot_digest", "")) == digest,
 		"snapshot input ordering cannot change canonical digest")
 
 
@@ -269,11 +270,12 @@ func _new_context(label: String) -> Dictionary:
 		authority, owner_actor, owner_source, generation)
 	check(capability != null,
 		"%s body world binds during preparing" % label)
+	var provenance := world.binding_provenance(capability)
 	return {
 		"authority": authority,
 		"world": world,
 		"generation": generation,
-		"token": world.binding_token(),
+		"token": int(provenance.get("binding_token", 0)),
 		"capability": capability,
 		"owner_actor": ZEntityId.parse(owner_actor.canonical_key()),
 		"owner_source": int(owner_source),
@@ -318,8 +320,8 @@ func _query(
 	obstruction_mask: int,
 	exclusions: Array = []
 ) -> Dictionary:
-	var world := context["world"] as BodyHitboxWorld2D
 	var request := ZRequestId.from_parts(PackedStringArray(["hitbox", label]))
+	var metadata := _snapshot_metadata(context)
 	return {
 		"request_id": request.canonical_key(),
 		"raid_id": String(context["raid_id"]),
@@ -331,8 +333,8 @@ func _query(
 		"owner_actor_source": int(context["owner_source"]),
 		"query_actor_id": (context["query_actor"] as ZEntityId).canonical_key(),
 		"query_actor_source": int(context["query_source"]),
-		"tick": world.snapshot_tick(),
-		"world_revision": world.snapshot_revision(),
+		"tick": int(metadata.get("tick", -1)),
+		"world_revision": int(metadata.get("world_revision", 0)),
 		"origin_raw": origin,
 		"target_raw": target,
 		"body_mask": body_mask,
@@ -369,3 +371,8 @@ func _publish(
 func _ray(context: Dictionary, query: Variant) -> Dictionary:
 	return (context["world"] as BodyHitboxWorld2D).raycast(
 		query, context["capability"])
+
+
+func _snapshot_metadata(context: Dictionary) -> Dictionary:
+	return (context["world"] as BodyHitboxWorld2D).snapshot_metadata(
+		context["capability"])

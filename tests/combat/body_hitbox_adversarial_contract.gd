@@ -184,9 +184,8 @@ func _test_input_order_independence() -> void:
 		[body_beta, body_alpha], [obstruction_beta, obstruction_alpha])
 	var second := _active_context("ordering_second",
 		[body_alpha, body_beta], [obstruction_alpha, obstruction_beta])
-	var first_world := first["world"] as BodyHitboxWorld2D
-	var second_world := second["world"] as BodyHitboxWorld2D
-	check(first_world.snapshot_digest() == second_world.snapshot_digest(),
+	check(String(_snapshot_metadata(first).get("snapshot_digest", ""))
+		== String(_snapshot_metadata(second).get("snapshot_digest", "")),
 		"snapshot digest is independent of body and obstruction Array order")
 	var first_result := _ray(first, _query(
 		first, "ordering_first_query", Vector2i(0, -600_000),
@@ -212,14 +211,17 @@ func _test_snapshot_adversaries() -> void:
 	_authorize_bodies(context, [initial])
 	check(_publish(context, 0, 1, [initial], []),
 		"adversarial fixture publishes initial snapshot")
-	var initial_digest := world.snapshot_digest()
+	var initial_digest := String(
+		_snapshot_metadata(context).get("snapshot_digest", ""))
 
 	var added_at_equal := _body(_entity("snapshot_added"), 1, Vector2i(2_000_000, 0))
 	_authorize_bodies(context, [added_at_equal])
 	check(not _publish(context, 0, 1, [initial, added_at_equal], [])
 		and world.last_error == &"equal_snapshot_revision_divergence",
 		"equal world revision cannot smuggle an additional body")
-	check(world.snapshot_revision() == 1 and world.snapshot_digest() == initial_digest,
+	var committed_metadata := _snapshot_metadata(context)
+	check(int(committed_metadata.get("world_revision", 0)) == 1
+		and String(committed_metadata.get("snapshot_digest", "")) == initial_digest,
 		"equal-revision divergence is fail-atomic")
 	var unauthorized := _body(
 		_entity("snapshot_unauthorized"), 1, Vector2i(3_000_000, 0))
@@ -273,7 +275,9 @@ func _test_snapshot_adversaries() -> void:
 		"bad_geometry", 1, Vector2i(10, 10), Vector2i(0, 0))
 	_check_failed_publication(world, context, 1, 2, [initial], [bad_obstruction],
 		&"obstruction_geometry_invalid", "reversed obstruction AABB")
-	check(world.snapshot_revision() == 1 and world.snapshot_digest() == initial_digest,
+	committed_metadata = _snapshot_metadata(context)
+	check(int(committed_metadata.get("world_revision", 0)) == 1
+		and String(committed_metadata.get("snapshot_digest", "")) == initial_digest,
 		"all malformed snapshot attempts preserve the prior committed state")
 
 	check(_publish(context, 1, 2, [initial], []),
@@ -357,12 +361,13 @@ func _test_query_adversaries() -> void:
 	malformed["binding_token"] = int(context["token"]) + 1
 	check(_ray(context, malformed).get("reason") == &"binding_token_mismatch",
 		"forged binding token is rejected")
+	var current_metadata := _snapshot_metadata(context)
 	malformed = valid.duplicate(true)
-	malformed["world_revision"] = world.snapshot_revision() + 1
+	malformed["world_revision"] = int(current_metadata.get("world_revision", 0)) + 1
 	check(_ray(context, malformed).get("reason") == &"world_revision_mismatch",
 		"future world revision is rejected")
 	malformed = valid.duplicate(true)
-	malformed["tick"] = world.snapshot_tick() + 1
+	malformed["tick"] = int(current_metadata.get("tick", -1)) + 1
 	check(_ray(context, malformed).get("reason") == &"query_tick_mismatch",
 		"future query tick is rejected")
 	malformed = valid.duplicate(true)
@@ -508,7 +513,8 @@ func _test_lifecycle_and_rebind() -> void:
 		ZRaidIntent.Source.PLAYER, generation)
 	check(replacement_capability != null,
 		"released world binds to replacement authority")
-	var replacement_token := world.binding_token()
+	var replacement_provenance := world.binding_provenance(replacement_capability)
+	var replacement_token := int(replacement_provenance.get("binding_token", 0))
 	check(replacement_token != first_token,
 		"replacement binding receives a monotonic ABA-safe token")
 	var replacement_context := {
@@ -591,13 +597,16 @@ func _check_failed_publication(
 	expected_error: StringName,
 	label: String
 ) -> void:
-	var before_revision := world.snapshot_revision()
-	var before_digest := world.snapshot_digest()
+	var before_metadata := _snapshot_metadata(context)
+	var before_revision := int(before_metadata.get("world_revision", 0))
+	var before_digest := String(before_metadata.get("snapshot_digest", ""))
 	var accepted := _publish(context, tick, revision, bodies, obstructions)
-	check(not accepted and world.last_error == expected_error,
+	var publication_error := world.last_error
+	var after_metadata := _snapshot_metadata(context)
+	check(not accepted and publication_error == expected_error,
 		"%s is rejected with stable reason" % label)
-	check(world.snapshot_revision() == before_revision
-		and world.snapshot_digest() == before_digest,
+	check(int(after_metadata.get("world_revision", 0)) == before_revision
+		and String(after_metadata.get("snapshot_digest", "")) == before_digest,
 		"%s rejection is fail-atomic" % label)
 
 
@@ -614,11 +623,12 @@ func _new_context(label: String) -> Dictionary:
 		authority, owner_actor, owner_source, generation)
 	check(capability != null,
 		"%s world binds" % label)
+	var provenance := world.binding_provenance(capability)
 	return {
 		"authority": authority,
 		"world": world,
 		"generation": generation,
-		"token": world.binding_token(),
+		"token": int(provenance.get("binding_token", 0)),
 		"capability": capability,
 		"owner_actor": ZEntityId.parse(owner_actor.canonical_key()),
 		"owner_source": int(owner_source),
@@ -692,7 +702,7 @@ func _query(
 	obstruction_mask: int,
 	exclusions: Array = []
 ) -> Dictionary:
-	var world := context["world"] as BodyHitboxWorld2D
+	var metadata := _snapshot_metadata(context)
 	return {
 		"request_id": ZRequestId.from_parts(
 			PackedStringArray(["hitbox", label])).canonical_key(),
@@ -705,8 +715,8 @@ func _query(
 		"owner_actor_source": int(context["owner_source"]),
 		"query_actor_id": (context["query_actor"] as ZEntityId).canonical_key(),
 		"query_actor_source": int(context["query_source"]),
-		"tick": world.snapshot_tick(),
-		"world_revision": world.snapshot_revision(),
+		"tick": int(metadata.get("tick", -1)),
+		"world_revision": int(metadata.get("world_revision", 0)),
 		"origin_raw": origin,
 		"target_raw": target,
 		"body_mask": body_mask,
@@ -743,3 +753,8 @@ func _publish(
 func _ray(context: Dictionary, query: Variant) -> Dictionary:
 	return (context["world"] as BodyHitboxWorld2D).raycast(
 		query, context["capability"])
+
+
+func _snapshot_metadata(context: Dictionary) -> Dictionary:
+	return (context["world"] as BodyHitboxWorld2D).snapshot_metadata(
+		context["capability"])

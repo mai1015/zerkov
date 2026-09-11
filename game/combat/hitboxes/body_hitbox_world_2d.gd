@@ -167,14 +167,6 @@ func bind_raid_authority(
 	return _active_binding_capability
 
 
-func is_bound() -> bool:
-	return lifecycle == Lifecycle.BOUND and _binding_identity_is_current()
-
-
-func binding_token() -> int:
-	return _active_binding_token if lifecycle == Lifecycle.BOUND else 0
-
-
 func binding_provenance(capability: Variant) -> Dictionary:
 	last_error = &""
 	if not _guard_binding_capability(capability) or not _binding_identity_is_current():
@@ -182,10 +174,6 @@ func binding_provenance(capability: Variant) -> Dictionary:
 			last_error = &"binding_generation_invalidated"
 		return _read_only_dictionary({})
 	return _read_only_dictionary(_binding_provenance)
-
-
-func authority_generation() -> int:
-	return _authority_generation if lifecycle == Lifecycle.BOUND else 0
 
 
 ## Release remains available after the captured authority terminalizes. It
@@ -221,18 +209,6 @@ func release_binding(
 
 func teardown(capability: Variant) -> bool:
 	return release_binding(capability, &"body_hitbox_world_torn_down")
-
-
-func snapshot_tick() -> int:
-	return _snapshot_tick
-
-
-func snapshot_revision() -> int:
-	return _snapshot_revision
-
-
-func snapshot_digest() -> String:
-	return _snapshot_digest
 
 
 ## Geometry-free metadata is safe to expose to audit/replay code. Actor poses

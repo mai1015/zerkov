@@ -20,6 +20,10 @@ remain deterministic audit provenance but are never treated as credentials;
 foreign or revoked capabilities fail even when every public ID and counter is
 identical. Release revokes the capability before clearing state, and authority
 teardown invalidates it before query parsing or replay lookup.
+The only public binding/snapshot metadata readers are
+`binding_provenance(capability)` and `snapshot_metadata(capability)`; redundant
+scalar getters are intentionally absent, so retaining a reused world reference
+cannot expose or reacquire replacement-binding metadata.
 
 The binding owner and snapshot publisher, every body entity/source, and every
 query actor/source are checked through `RaidAuthority`'s explicit read-only
