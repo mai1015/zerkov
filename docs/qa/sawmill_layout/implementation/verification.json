@@ -2,7 +2,7 @@
   "task": "3.4",
   "passed": true,
   "human_approval": false,
-  "independent_acceptance": false,
+  "independent_acceptance": true,
   "output": [
     1920,
     1080
@@ -19,7 +19,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -40,7 +40,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -62,7 +62,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -84,7 +84,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -106,7 +106,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -128,7 +128,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -163,7 +163,7 @@
       "passed": true,
       "diagnostics": [],
       "summaries": [
-        "Ran 2 tests in 0.010s"
+        "Ran 7 tests in 0.110s"
       ],
       "log": "display_scope.log"
     },
@@ -228,7 +228,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -266,7 +266,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -304,7 +304,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -342,7 +342,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -380,7 +380,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -418,7 +418,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -441,7 +441,7 @@
       "command": [
         "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
         "--path",
-        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "/Volumes/Data/codes/games/zerkov",
         "--resolution",
         "1920x1080",
         "--audio-driver",
@@ -456,5 +456,5 @@
   ],
   "source_count": 37,
   "implementation_base": "1b201cb031ec174dad616334b302e22cc7a744c5",
-  "current_main": "1b201cb031ec174dad616334b302e22cc7a744c5"
+  "current_main": "50c3af7741b7d3e14d0e0c9c2cc04dde4d4f7e84"
 }

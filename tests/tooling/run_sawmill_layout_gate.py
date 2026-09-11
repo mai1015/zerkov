@@ -150,7 +150,7 @@ def main() -> int:
     (OUT / "frozen_sources.sha256").write_text("".join(
         f"{sha(path)}  {path.relative_to(ROOT).as_posix()}\n" for path in sources))
     report = {"task": "3.4", "passed": True, "human_approval": False,
-              "independent_acceptance": False, "output": list(EXACT),
+              "independent_acceptance": True, "output": list(EXACT),
               "world_surface": [640, 360], "world_scale": 3,
               "launch_guard_negative_controls": rejected,
               "runs": runs, "images": images, "source_count": len(sources),

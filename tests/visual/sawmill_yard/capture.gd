@@ -95,7 +95,9 @@ func run() -> void:
 		_label_anchors()
 		annotations.show()
 		var rendered := await frame()
-		if not _exact_frame(rendered):
+		var exact_rendered := rendered.get_size() == EXACT_SIZE \
+			and _exact_frame(rendered)
+		if not exact_rendered:
 			push_error("SAWMILL_CAPTURE: output mismatch; no path or image will be written")
 			quit(2)
 			return
@@ -311,7 +313,9 @@ func _capture_contact_sheet() -> Dictionary:
 	_label(sheet, "Direct haul lane + southern bypass / four authored 96px clear corridors / nine stable anchors", Vector2(24, 980), 16, Tokens.SOFT)
 	_label(sheet, "Composition evidence only. No movement, AI, search, task, countdown or human playtest acceptance.", Vector2(24, 1020), 16, Tokens.MUTED)
 	var rendered := await frame()
-	if not _exact_frame(rendered):
+	var exact_rendered := rendered.get_size() == EXACT_SIZE \
+		and _exact_frame(rendered)
+	if not exact_rendered:
 		sheet.free()
 		push_error("SAWMILL_CAPTURE: contact sheet output mismatch; no write")
 		quit(2)

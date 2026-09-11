@@ -119,7 +119,7 @@ suite; replay digest; teardown/reentrancy regression tests.
   mapping gates remain open.
 - [x] 3.3 `[LUNA]` Create a 32 px Sawmill source TileSet with explicit terrain,
   navigation, collision and draw-layer metadata.
-- [ ] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
+- [x] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
   spawn, objective landmarks, combat lanes, cover, loot and Road Gate extract.
 - [ ] 3.5 `[LUNA]` Implement player acceleration, speed, facing and input intent
   generation without direct transform authority in the UI/controller.

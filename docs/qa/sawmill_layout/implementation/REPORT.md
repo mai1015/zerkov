@@ -1,12 +1,15 @@
 # Task 3.4 — Sawmill Yard composition
 
-Implementation candidate; Task 3.4 remains unchecked for independent review.
-Human approval is false. This is level composition/readability evidence, not
-a playable raid or acceptance of movement, AI, loot materialization, tasks,
-extraction countdown, final art or human route-finding.
+Accepted after independent Astra review and clean 1080-only integration; Task
+3.4 is checked. Human approval remains false. This is level
+composition/readability evidence, not a playable raid or acceptance of
+movement, AI, loot materialization, tasks, extraction countdown, final art or
+human route-finding.
 
-Base and current main merged before sealing:
-`1b201cb031ec174dad616334b302e22cc7a744c5` (already up to date).
+The implementation candidate `93f7f874eeaa5d8c3c5d243e02f537cfd8e13d87`
+was merged over the exact 1080-only baseline by integration commit
+`27b057f06fcc9fa4c4aba521867f41ccd82ca6de`, then merged into main as
+`50c3af7741b7d3e14d0e0c9c2cc04dde4d4f7e84`.
 The accepted TileSet/atlas, UI, project settings, add-ons, authority code and
 truth specs remain unchanged.
 
@@ -81,6 +84,16 @@ saving. An invalid SubViewport property was repaired and an idle draw wait was
 replaced by explicit native GPU drawing. They are not acceptance evidence;
 all used the exact resolution flag. The final gate has no waived diagnostics.
 
+## Independent and integration acceptance
+
+The independent Astra reviewer reported zero P0/P1/P2 findings and kept human
+approval false. It regenerated all seven exact 1920×1080 images byte-for-byte,
+proved finite occupancy/reachability with `8130/0` checks, and passed larger
+collision/approach sweeps with `10616/0` checks. The clean integration reran 20
+gates: layout `8006/0` twice, TileSet `1319/0`, registry `1447/0`, native
+capture `74/0` twice, exact display scope, strict spec, import/parses, hashes,
+and diff checks. Both native runs reproduced all seven PNGs byte-for-byte.
+
 ## Verification
 
 Run `python3 tests/tooling/run_sawmill_layout_gate.py` from the worktree root.
@@ -92,7 +105,7 @@ Run `python3 tests/tooling/run_sawmill_layout_gate.py` from the worktree root.
 | Accepted TileSet contract | `1319/0` |
 | Asset registry | `1447/0` |
 | Native capture/contact sheet | `74/0`; seven exact 1920×1080 PNGs |
-| Static display scope | 2 tests, 0 failures; no screens executed |
+| Static display scope | 7 tests, 0 failures; no screens executed |
 | Strict spec validation | Valid |
 | Diff | clean |
 | Launch guard negative controls | 5 rejected without launching |
@@ -127,5 +140,5 @@ the gate records fully expanded `<worktree>` paths for final executions:
 /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --path <worktree> --resolution 1920x1080 --audio-driver Dummy --borderless --position 0,0 --script res://tests/visual/sawmill_yard/capture.gd
 ```
 
-No responsive, compact or historical alternative-output suite was run. No
-Task 3.4 acceptance checkbox, later task checkbox or human gate was closed.
+No responsive, compact or historical alternative-output suite was run. Task
+3.4 alone is accepted; no later task checkbox or human gate was closed.
