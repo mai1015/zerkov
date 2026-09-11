@@ -10,6 +10,12 @@ const LootController = preload("res://game/inventory/presentation/inventory_pres
 var records_411: Array[Dictionary] = []
 
 
+func _initialize() -> void:
+    # This is the sole current inventory visual runner. Every capture below is
+    # asserted at the exact first-playable 1920x1080 canvas.
+    run.call_deferred()
+
+
 class LootStateProbeController extends LootController:
     ## Capture-only provider for deterministic noncanonical state frames. The
     ## production controller has no public state override surface.
