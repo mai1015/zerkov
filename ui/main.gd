@@ -250,11 +250,26 @@ func _run_qa() -> void:
 func toast(message: String) -> void:
 	feedback.toast(message)
 
-func confirm(title_text: String, message: String, callback: Callable) -> bool:
-	return feedback.confirm(title_text, message, callback)
+func request_confirm(
+	requester: ZUIContext,
+	capability: RefCounted,
+	title_text: String,
+	message: String,
+	callback: Callable
+) -> bool:
+	return feedback.confirm(requester, capability, title_text, message, callback)
 
-func prompt(title_text: String, initial_value: String, callback: Callable, max_length: int = 24) -> bool:
-	return feedback.prompt(title_text, initial_value, callback, max_length)
+func request_prompt(
+	requester: ZUIContext,
+	capability: RefCounted,
+	title_text: String,
+	initial_value: String,
+	callback: Callable,
+	max_length: int = 24
+) -> bool:
+	return feedback.prompt(
+		requester, capability, title_text, initial_value, callback, max_length
+	)
 
 func toggle_picker() -> bool:
 	return feedback.toggle_picker()

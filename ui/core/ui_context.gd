@@ -5,6 +5,8 @@ extends RefCounted
 ## Weak host ownership lets covered/removed screens release cleanly.
 var current_route: String
 var _host: WeakRef
+var _feedback_owner: WeakRef
+var _feedback_capability: RefCounted
 var fixtures: ZUIFixtureStore
 ## Records that this view was entered from the explicit developer catalog.
 ## It does not confer permission to forge later catalog selections.
@@ -35,6 +37,24 @@ func _init(
 	fixtures = store
 	developer_context = is_developer_context
 	route_payload = payload if payload != null else ZUIRoutePayload.empty()
+
+
+## Bind this context to the one screen instance created with it. The opaque
+## capability is never supplied by screen code; it only accompanies requests
+## made through this exact context.
+func _bind_feedback_owner(owner: ZScreen) -> bool:
+	if owner == null or owner.app != self \
+			or _feedback_owner != null or _feedback_capability != null:
+		return false
+	_feedback_owner = weakref(owner)
+	_feedback_capability = RefCounted.new()
+	return true
+
+
+func _feedback_owner_for(capability: RefCounted) -> ZScreen:
+	if capability == null or capability != _feedback_capability or _feedback_owner == null:
+		return null
+	return _feedback_owner.get_ref() as ZScreen
 
 func _service() -> Node:
 	return _host.get_ref() as Node
@@ -68,10 +88,16 @@ func toast(message: String) -> void:
 	if _service() != null: _service().toast(message)
 
 func confirm(title: String, message: String, callback: Callable) -> bool:
-	return bool(_service().confirm(title, message, callback)) if _service() != null else false
+	var host := _service()
+	return bool(host.request_confirm(
+		self, _feedback_capability, title, message, callback
+	)) if host != null else false
 
 func prompt(title: String, value: String, callback: Callable, max_length: int = 24) -> bool:
-	return bool(_service().prompt(title, value, callback, max_length)) if _service() != null else false
+	var host := _service()
+	return bool(host.request_prompt(
+		self, _feedback_capability, title, value, callback, max_length
+	)) if host != null else false
 
 func accepts_input(view: Control) -> bool:
 	var host := _service()

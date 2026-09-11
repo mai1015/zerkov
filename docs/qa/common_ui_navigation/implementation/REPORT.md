@@ -5,6 +5,7 @@ Status: implementation repair complete; independent re-review pending.
 Task: `8.2` from `add-zerkov-playable-raid-2026-09-09`.
 Implementation baseline: `39dcf3bba9aad7675b0cdf2f9d6925f06aa0d751`.
 Independent-review repair base: `79cd5deffa784264d6c653c6c9e403954fb335e7`.
+Callback-ownership repair base: `b315950340fd88cdcfba8b60d07dabc414c402c3`.
 Engine: Godot `4.7.2.stable.official.ed1daf0bf`, Compatibility renderer.
 
 ## Outcome
@@ -42,9 +43,14 @@ input and overlay races:
   commits. Duplicate same-frame confirms are idempotently rejected, overlay
   references remain tracked until CommonUI finishes the pop, repeated Back is
   consumed, and focus returns to the retained screen.
-- A dialog callback is tied to the screen instance that opened it and runs only
-  after a successful modal pop while that owner is still current. A stale
-  callback expires safely rather than touching a replaced screen.
+- Every navigator-created `ZUIContext` is bound once to its exact `ZScreen`
+  instance with an opaque capability. Confirm and Prompt validate that context,
+  capability, route, CommonUI layer top and unsuspended routing lifecycle both
+  before opening and after a successful modal pop. The exact retained-caller
+  reproduction (main menu -> Saves -> Session, then late `Saves._delete_world`)
+  leaves all three fixture worlds intact; inactive Confirm/Prompt requests,
+  forged contexts, replayed capabilities and torn-down owners cannot open or
+  commit, while the current Session owner still commits once.
 - Developer selections require a live opaque capability issued by the active
   F1 catalog. The catalog closes and restores lower lifecycle/focus before its
   authorized route commits. Direct facade calls, forged developer/system
@@ -74,11 +80,12 @@ detection policy was authored here; those remain task 8.3/8.10 work.
 
 | Evidence | Result |
 | --- | --- |
-| `logs/navigation_1080.log` | `72` checks, `0` failures at exact 1920x1080; retained HUD/Pause Back chain, overlay serialization, stale callbacks, focus, duplicate input and origin/capability forgery |
-| `logs/navigation_1080_native.log` | the same `72`-check contract passes with the native Compatibility renderer; counted once in the assertion total |
+| `logs/navigation_1080.log` | `94` checks, `0` failures at exact 1920x1080; includes the prior `72` cases plus retained/stale dialog caller, Prompt, forged context, capability replay, teardown and current-owner commit coverage |
+| `logs/navigation_1080_native.log` | the same `94`-check contract passes with the native Compatibility renderer; counted once in the assertion total |
 | `logs/navigation_contract.log` | `78` checks, `0` failures; keyboard, synthetic controller, focus, layer, Back, invalid-intent and lifecycle coverage |
 | `logs/common_ui_integration.log` | `76` checks, `0` failures |
 | `logs/ui_composition.log` | `109` checks, `0` failures |
+| `logs/ui_component_states.log` | `15` headless component/caller checks, `0` failures |
 | `logs/lifecycle_contract.log` | `209` checks, `0` failures; `28` routes and `392` geometry records |
 | `logs/ui_reflow.log` | `756` checks, `0` failures |
 | `logs/responsive.log` | `97` checks, `0` failures; developer study reached through F1 |
@@ -90,7 +97,7 @@ detection policy was authored here; those remain task 8.3/8.10 work.
 | `logs/strict_validation.log` | approved change validates `Valid` in strict mode |
 | `git diff --check` | exit `0`, no output |
 
-The unique assertion-bearing accepted suites total `2,632` checks with `0`
+The unique assertion-bearing accepted suites total `2,669` checks with `0`
 failures.
 The focused lifecycle digest remains exactly
 `550b91a79fa9c5ae30bc3f736629e78429c25f56e0fc4c52bbecf38e60fa1e03`,

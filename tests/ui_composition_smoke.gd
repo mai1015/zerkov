@@ -68,7 +68,7 @@ func run() -> void:
 	await key(KEY_R)
 	check(not bool(app.state.get("raid_reloading", false)), "covered HUD ignores physical reload")
 
-	app.confirm("Nested modal", "UI-only confirmation", func(): pass)
+	app.screen.app.confirm("Nested modal", "UI-only confirmation", func(): pass)
 	await settle()
 	check(app.modal != null and handle.is_suspended(), "modal keeps the covered HUD suspended")
 	await key(KEY_ESCAPE)

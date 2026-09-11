@@ -149,6 +149,10 @@ func _open(intent: ZUIRouteIntent) -> void:
 				or ZRouteCatalog.is_developer_only(route),
 		intent.payload
 	)
+	if not next.app._bind_feedback_owner(next):
+		next.free()
+		_reject(route, "Unable to bind the UI screen feedback context: " + route)
+		return
 	var role := ZRouteCatalog.role_for(route)
 	var layer := root.layer(ZRouteCatalog.layer_for(route))
 	if layer == null:

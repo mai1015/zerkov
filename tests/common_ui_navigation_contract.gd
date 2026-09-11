@@ -185,7 +185,10 @@ func run() -> void:
 	# Invalid request types, routes, payload types, payload values, and stale
 	# origins are rejected synchronously. A live modal and every layer depth/top
 	# remain unchanged; only non-modal diagnostic toast text may change.
-	app.confirm("Navigation contract", "Invalid intents must not alter this modal.", func() -> void: pass)
+	inventory.app.confirm(
+		"Navigation contract", "Invalid intents must not alter this modal.",
+		func() -> void: pass
+	)
 	await settle()
 	var modal := app.modal as CommonActivatableScreen
 	check(screen_root.modal_layer().get_top_screen() == modal, "dialog uses the modal layer")

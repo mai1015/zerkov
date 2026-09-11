@@ -123,11 +123,15 @@ func run() -> void:
 		gallery.queue_free()
 		await settle()
 		app.screen.show()
-		app.confirm("UI confirmation", "Shared modal with keyboard focus and an explicit cancel action.", func(): pass)
+		app.screen.app.confirm(
+			"UI confirmation",
+			"Shared modal with keyboard focus and an explicit cancel action.",
+			func(): pass
+		)
 		await capture(prefix + "dialog")
 		app._close_overlay(app.modal)
 		await settle()
-		app.prompt("Rename world", "OAK'S BUNKER", func(_value): pass)
+		app.screen.app.prompt("Rename world", "OAK'S BUNKER", func(_value): pass)
 		await capture(prefix + "prompt")
 		app._close_overlay(app.modal)
 		await settle()

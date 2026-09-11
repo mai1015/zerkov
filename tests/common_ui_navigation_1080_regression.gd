@@ -97,7 +97,106 @@ func run() -> void:
 	check(root.get_visible_rect().size == Vector2(1920, 1080),
 		"regression runs at the exact independent-review canvas")
 
+	# Exact retained-caller repro: title -> main menu reset -> Saves push ->
+	# Session push. A late call on the retained inactive Saves instance must not
+	# acquire a modal or commit its hidden callback.
+	check(app.request_route("main_menu", false), "main-menu reset is admitted")
+	await settle()
+	check(app.current_route == "main_menu" and screen_root.menu_layer().get_depth() == 1,
+		"main-menu reset establishes one menu root")
+	check(app.request_route("saves"), "Saves push is admitted")
+	await settle()
+	var retained_saves := app.screen as ZScreen
+	var retained_saves_context := retained_saves.app
+	var retained_saves_capability: RefCounted = retained_saves_context._feedback_capability
+	var world_count_before := int(app.state.get("frontflow_worlds", []).size())
+	check(world_count_before == 3, "retained-caller fixture begins with three worlds")
+	check(app.request_route("session"), "Session push over Saves is admitted")
+	await settle()
+	var owning_session := app.screen as ZScreen
+	check(app.current_route == "session" and screen_root.menu_layer().get_depth() == 3,
+		"Session retains inactive Saves beneath the active screen")
+	retained_saves.call("_delete_world")
+	check(app.modal == null and screen_root.modal_layer().get_depth() == 0,
+		"inactive retained Saves cannot acquire a modal")
+	await settle()
+	retained_saves.call("_rename_world")
+	check(app.modal == null and screen_root.modal_layer().get_depth() == 0,
+		"inactive retained Saves cannot acquire a prompt")
+	check(app.current_route == "session" \
+			and int(app.state.get("frontflow_worlds", []).size()) == world_count_before,
+		"inactive Saves cannot commit its hidden delete callback")
+	check("does not own" in app.toast_label.text.to_lower(),
+		"inactive request fails with an ownership diagnostic")
+
+	var forged_context := ZUIContext.new(app, "session", app.fixtures)
+	var forged_callback_count := {"value": 0}
+	check(not app.request_confirm(
+		forged_context,
+		RefCounted.new(),
+		"Forged context",
+		"Must not open.",
+		func() -> void: forged_callback_count.value += 1
+	), "an unbound context and arbitrary capability cannot forge modal ownership")
+	check(app.modal == null and forged_callback_count.value == 0,
+		"forged ownership leaves modal state and callbacks untouched")
+
+	var stale_commit_count := {"value": 0}
+	check(owning_session.app.confirm(
+		"Stale commit",
+		"Captured ownership must be revalidated.",
+		func() -> void: stale_commit_count.value += 1
+	), "current owner can open the stale-commit guard fixture")
+	await settle()
+	app.modal.set_meta(ZUIFeedback.CALLBACK_CONTEXT_META, retained_saves_context)
+	app.modal.set_meta(ZUIFeedback.CALLBACK_CAPABILITY_META, retained_saves_capability)
+	app.modal.confirmed.emit()
+	await settle()
+	check(stale_commit_count.value == 0 and app.modal == null \
+			and app.screen == owning_session,
+		"replayed inactive ownership cannot commit a captured callback")
+	check("expired" in app.toast_label.text.to_lower(),
+		"stale callback commit fails safely with an expiry diagnostic")
+
+	var current_callback_count := {"value": 0}
+	check(owning_session.app.confirm(
+		"Current owner",
+		"Must commit once.",
+		func() -> void: current_callback_count.value += 1
+	), "the current routing-active context can acquire a modal")
+	await settle()
+	check(app.modal.get_meta(ZUIFeedback.CALLBACK_CONTEXT_META, null) == owning_session.app,
+		"dialog captures the exact requesting context rather than host.screen ID")
+	check(app.modal.get_meta(ZUIFeedback.CALLBACK_CAPABILITY_META, null) \
+			== owning_session.app._feedback_capability,
+		"dialog captures the exact requesting context capability")
+	app.modal.confirmed.emit()
+	await settle()
+	check(current_callback_count.value == 1 and app.modal == null,
+		"current owner callback commits once after CommonUI modal closure: count=%d toast=%s active=%s" % [
+			current_callback_count.value,
+			app.toast_label.text,
+			str(owning_session.is_routing_active()),
+		])
+
+	check(app.request_route("main_menu", false), "teardown reset is admitted")
+	await settle()
+	check(not app.request_confirm(
+		retained_saves_context,
+		retained_saves_capability,
+		"Replayed context",
+		"Must not open after teardown.",
+		func() -> void: forged_callback_count.value += 10
+	), "a captured context capability cannot replay after owner teardown")
+	check(app.modal == null \
+			and int(app.state.get("frontflow_worlds", []).size()) == world_count_before \
+			and forged_callback_count.value == 0,
+		"teardown replay cannot open or commit")
+
 	# HUD -> Pause -> Session used to push another Pause on Back forever.
+	# Measure that chain independently of the deliberate three-screen retained
+	# caller fixture above.
+	maximum_menu_depth = 0
 	check(app.request_route("hud", false), "HUD reset is admitted")
 	await settle()
 	var hud := app.screen as CommonActivatableScreen
@@ -141,7 +240,7 @@ func run() -> void:
 	var first_modal := app.modal as CommonActivatableScreen
 	var duplicate_callback_count := 0
 	check(first_modal != null, "summary action claims one modal synchronously")
-	check(not app.confirm("Duplicate", "Must be idempotent.", func() -> void:
+	check(not summary.app.confirm("Duplicate", "Must be idempotent.", func() -> void:
 		duplicate_callback_count += 1), "same-frame duplicate modal is rejected")
 	check(not app.toggle_picker(), "F1 popup cannot open over a claimed modal")
 	await settle()
@@ -176,7 +275,7 @@ func run() -> void:
 	# Reverse ordering is coordinated too: an admitted route prevents a stale
 	# modal from opening before the route transaction drains.
 	check(app.request_route("main_menu", false), "route is admitted while overlays are clear")
-	check(not app.confirm("Stale owner", "Must not open.", func() -> void: pass),
+	check(not summary.app.confirm("Stale owner", "Must not open.", func() -> void: pass),
 		"modal cannot open behind a pending navigation transaction")
 	await settle()
 	check(app.current_route == "main_menu" \
@@ -278,9 +377,9 @@ func run() -> void:
 	# Two same-frame confirmations still produce one modal. Repeated controller
 	# Back while its pop is in flight cannot leave an untracked residual depth.
 	var final_callback_count := 0
-	check(app.confirm("Once", "Only one modal.", func() -> void:
+	check(inventory.app.confirm("Once", "Only one modal.", func() -> void:
 		final_callback_count += 1), "first same-frame modal is admitted")
-	check(not app.confirm("Twice", "Must not stack.", func() -> void:
+	check(not inventory.app.confirm("Twice", "Must not stack.", func() -> void:
 		final_callback_count += 10), "second same-frame modal is idempotently rejected")
 	await settle()
 	check(screen_root.modal_layer().get_depth() == 1 and app.modal != null,

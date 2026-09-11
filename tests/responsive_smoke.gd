@@ -62,7 +62,9 @@ func run() -> void:
 	await resize_to(Vector2i(1280, 720))
 	var callback_screen: Control = app.screen
 	var result = {"value": ""}
-	app.prompt("Resize-safe input", "Initial", func(value): result.value = value)
+	callback_screen.app.prompt(
+		"Resize-safe input", "Initial", func(value): result.value = value
+	)
 	await settle()
 	var field: LineEdit = app.modal.find_children("*", "LineEdit", true, false)[0]
 	field.text = "Kept while resizing"

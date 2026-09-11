@@ -111,7 +111,7 @@ func run() -> void:
 	check(not is_instance_valid(app.picker), "F1 screen picker closes")
 
 	var result: Dictionary = {"accepted": false}
-	app.confirm("UI test", "Confirm local mock action", func(): result.accepted = true)
+	app.screen.app.confirm("UI test", "Confirm local mock action", func(): result.accepted = true)
 	await settle()
 	var buttons: Array[Node] = app.modal.find_children("*", "Button", true, false)
 	for button in buttons:
@@ -119,7 +119,7 @@ func run() -> void:
 	await settle()
 	check(not result.accepted, "Cancel must not execute confirmation action")
 	check(not is_instance_valid(app.modal), "Cancel closes confirmation")
-	app.confirm("UI test", "Confirm local mock action", func(): result.accepted = true)
+	app.screen.app.confirm("UI test", "Confirm local mock action", func(): result.accepted = true)
 	await settle()
 	buttons = app.modal.find_children("*", "Button", true, false)
 	for button in buttons:
