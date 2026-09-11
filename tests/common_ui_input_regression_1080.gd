@@ -6,12 +6,18 @@ extends SceneTree
 ## Run with: godot --headless --path . --audio-driver Dummy \
 ##   --script res://tests/common_ui_input_regression_1080.gd
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+const PERSISTENCE_PATHS := [
+	"user://common_ui_bindings.json",
+	"user://common_ui_bindings.json.tmp",
+	"user://common_ui_bindings.json.bak",
+]
 
 const InputActions = preload("res://game/input/zerkov_input_actions.gd")
 
 var app: Control
 var checks := 0
 var failures := 0
+var persistence_snapshot: Dictionary = {}
 
 
 func _initialize() -> void:
@@ -28,6 +34,66 @@ func check(value: bool, message: String) -> void:
 func settle() -> void:
 	for _frame in range(10):
 		await process_frame
+
+
+func snapshot_persistence() -> Dictionary:
+	var snapshot: Dictionary = {}
+	for path_variant in PERSISTENCE_PATHS:
+		var path: String = str(path_variant)
+		var exists := FileAccess.file_exists(path)
+		snapshot[path] = {
+			"exists": exists,
+			"bytes": FileAccess.get_file_as_bytes(path) if exists else PackedByteArray(),
+		}
+	return snapshot
+
+
+func restore_persistence(snapshot: Dictionary) -> bool:
+	var restored := true
+	for path_variant in PERSISTENCE_PATHS:
+		var path: String = str(path_variant)
+		var absolute_path := ProjectSettings.globalize_path(path)
+		if FileAccess.file_exists(path):
+			if DirAccess.remove_absolute(absolute_path) != OK:
+				restored = false
+		var expected: Dictionary = snapshot.get(path, {})
+		if not bool(expected.get("exists", false)):
+			continue
+		var file := FileAccess.open(path, FileAccess.WRITE)
+		if file == null:
+			restored = false
+			continue
+		file.store_buffer(expected.get("bytes", PackedByteArray()) as PackedByteArray)
+		file.close()
+	return restored
+
+
+func persistence_matches(snapshot: Dictionary) -> bool:
+	var current := snapshot_persistence()
+	for path_variant in PERSISTENCE_PATHS:
+		var path: String = str(path_variant)
+		var expected: Dictionary = snapshot.get(path, {})
+		var actual: Dictionary = current.get(path, {})
+		if bool(expected.get("exists", false)) != bool(actual.get("exists", false)):
+			return false
+		if bool(expected.get("exists", false)) \
+				and (expected.get("bytes", PackedByteArray()) as PackedByteArray) \
+					!= (actual.get("bytes", PackedByteArray()) as PackedByteArray):
+			return false
+	return true
+
+
+func finish() -> void:
+	if is_instance_valid(app):
+		app.queue_free()
+	await settle()
+	check(restore_persistence(persistence_snapshot),
+		"shared CommonUI persistence files restore successfully")
+	check(persistence_matches(persistence_snapshot),
+		"shared JSON, temp and backup bytes are identical after cleanup")
+	print("COMMON_UI_INPUT_1080_RESULT checks=", checks, " failures=", failures,
+		" viewport=", FIRST_PLAYABLE_SIZE)
+	quit(0 if failures == 0 else 1)
 
 
 func focus_is_inside(owner: Node) -> bool:
@@ -109,6 +175,7 @@ func open_confirm(owner: ZScreen, count: Dictionary) -> bool:
 
 func run() -> void:
 	root.size = FIRST_PLAYABLE_SIZE
+	persistence_snapshot = snapshot_persistence()
 	app = load("res://ui/main.tscn").instantiate() as Control
 	app.name = "CommonUIInput1080Host"
 	root.add_child(app)
@@ -120,10 +187,7 @@ func run() -> void:
 	check(service != null and service.is_configured(),
 		"production host exposes the configured game-owned input facade")
 	if service == null or not service.is_configured():
-		print("COMMON_UI_INPUT_1080_RESULT checks=", checks, " failures=", failures)
-		app.queue_free()
-		await settle()
-		quit(1)
+		await finish()
 		return
 
 	var restore := service.restore_defaults(&"common_ui_input_runner_setup")
@@ -138,6 +202,33 @@ func run() -> void:
 	var map_primary := controls_button("map", "primary")
 	check(map_primary != null and map_primary.text == "M",
 		"map row resolves its default primary binding from CommonUI")
+	var map_secondary_button := controls_button("map", "secondary")
+	var map_controller_button := controls_button("map", "controller")
+	check(map_secondary_button.disabled and map_secondary_button.text == "N/A" \
+		and map_secondary_button.focus_mode == Control.FOCUS_NONE,
+		"unsupported secondary cells are visibly unavailable instead of aliasing controller")
+	check(not map_controller_button.disabled and map_controller_button.text == "Back",
+		"controller cell owns the CommonUI secondary slot honestly")
+	var move_primary_button := controls_button("move", "primary")
+	var move_controller_button := controls_button("move", "controller")
+	check(move_primary_button.disabled and move_primary_button.text == "W A S D" \
+		and move_controller_button.disabled and move_controller_button.text == "LS · 4-WAY",
+		"four-direction Move is visibly read-only with an honest vector summary")
+	var move_direction_codes_before: Array[int] = []
+	for direction in [InputActions.GAME_MOVE_UP, InputActions.GAME_MOVE_LEFT,
+			InputActions.GAME_MOVE_DOWN, InputActions.GAME_MOVE_RIGHT]:
+		var before_binding := service.effective_binding(direction, CommonUIBinding.SLOT_PRIMARY)
+		move_direction_codes_before.append(before_binding.get_code() if before_binding != null else -1)
+	controls.call("_begin_capture", "move", "primary")
+	await settle()
+	var move_direction_codes_after: Array[int] = []
+	for direction in [InputActions.GAME_MOVE_UP, InputActions.GAME_MOVE_LEFT,
+			InputActions.GAME_MOVE_DOWN, InputActions.GAME_MOVE_RIGHT]:
+		var after_binding := service.effective_binding(direction, CommonUIBinding.SLOT_PRIMARY)
+		move_direction_codes_after.append(after_binding.get_code() if after_binding != null else -1)
+	check(current_controls().capture_action.is_empty() \
+		and move_direction_codes_after == move_direction_codes_before,
+		"Move capture cannot target the aggregate action behind four displayed directions")
 
 	# Keyboard capture updates the logical action, persists it, and consumes the
 	# candidate before the route action stage can see it.
@@ -148,6 +239,10 @@ func run() -> void:
 	var map_binding := service.effective_binding(InputActions.UI_OPEN_MAP, CommonUIBinding.SLOT_PRIMARY)
 	check(map_binding != null and map_binding.get_device_kind() == CommonUIBinding.DEVICE_KEYBOARD \
 		and map_binding.get_code() == KEY_Z, "keyboard capture commits the CommonUI binding")
+	var first_rebind_request: StringName = current_controls().last_binding_request_id
+	check(not String(first_rebind_request).is_empty() \
+		and not bool(current_controls().last_binding_result.get("replayed", true)),
+		"first screen rebind receives a non-replayed service request identity")
 	check(current_controls().capture_action.is_empty() \
 		and controls_button("map", "primary").text == "Z",
 		"keyboard capture clears its pending state and refreshes the authored row")
@@ -160,20 +255,65 @@ func run() -> void:
 	check(app.current_route == "maps", "the rebound CommonUI action routes from the active screen")
 	check(app.request_route("controls", false), "controls returns through the typed route boundary")
 	await settle()
+	current_controls().call("_begin_capture", "map", "primary")
+	await key(KEY_K)
+	var second_rebind_request: StringName = current_controls().last_binding_request_id
+	check(second_rebind_request != first_rebind_request \
+		and not bool(current_controls().last_binding_result.get("replayed", true)) \
+		and service.effective_binding(InputActions.UI_OPEN_MAP, CommonUIBinding.SLOT_PRIMARY).get_code() == KEY_K,
+		"reopened Controls allocates a fresh request identity and commits its first rebind")
+	var first_reset_request: StringName = &""
+	current_controls().call("_reset_bindings")
+	await settle()
+	first_reset_request = current_controls().last_binding_request_id
+	var first_reset_result: Dictionary = current_controls().last_binding_result.duplicate(true)
+	current_controls().call("_reset_bindings")
+	await settle()
+	var second_reset_request: StringName = current_controls().last_binding_request_id
+	var second_reset_result: Dictionary = current_controls().last_binding_result.duplicate(true)
+	check(first_reset_request != second_reset_request \
+		and not bool(first_reset_result.get("replayed", true)) \
+		and not bool(second_reset_result.get("replayed", true)),
+		"repeated Reset allocates distinct non-replayed service request identities")
 
-	# Backspace is a real clear operation, and a controller candidate can then
-	# occupy the released secondary slot without touching the primary binding.
+	# The unsupported secondary cell cannot start capture. Controller capture is
+	# explicit about owning the CommonUI secondary slot instead.
+	var map_controller_before := service.effective_binding(InputActions.UI_OPEN_MAP,
+		CommonUIBinding.SLOT_SECONDARY)
 	current_controls().call("_begin_capture", "map", "secondary")
-	await key(KEY_BACKSPACE)
-	check(service.effective_binding(InputActions.UI_OPEN_MAP, CommonUIBinding.SLOT_SECONDARY) == null,
-		"Backspace clears an optional binding through the service")
-	current_controls().call("_begin_capture", "map", "secondary")
+	await settle()
+	check(current_controls().capture_action.is_empty() \
+		and service.effective_binding(InputActions.UI_OPEN_MAP, CommonUIBinding.SLOT_SECONDARY).get_code() \
+			== map_controller_before.get_code(),
+		"unsupported secondary capture cannot overwrite the controller binding")
+	current_controls().call("_begin_capture", "map", "controller")
 	await joypad_button(JOY_BUTTON_A)
 	var map_secondary := service.effective_binding(InputActions.UI_OPEN_MAP, CommonUIBinding.SLOT_SECONDARY)
 	check(map_secondary != null and map_secondary.get_device_kind() == CommonUIBinding.DEVICE_GAMEPAD_BUTTON \
 		and map_secondary.get_code() == JOY_BUTTON_A,
 		"controller capture commits a CommonUI gamepad binding")
-	check(app.current_route == "controls", "captured controller input cannot open another route")
+	check(app.current_route == "controls" and controls_button("map", "controller").text == "A",
+		"captured controller input cannot open another route")
+
+	# Weapon cycle has an existing second logical action for its controller
+	# affordance, so its secondary and controller cells are independently real.
+	var weapon_controller_before := service.effective_binding(
+		InputActions.GAME_WEAPON_CYCLE_CONTROLLER, CommonUIBinding.SLOT_SECONDARY)
+	current_controls().call("_begin_capture", "weapon_cycle", "secondary")
+	await key(KEY_BACKSPACE)
+	check(service.effective_binding(InputActions.GAME_WEAPON_CYCLE, CommonUIBinding.SLOT_SECONDARY) == null \
+		and controls_button("weapon_cycle", "secondary").text == "—",
+		"Backspace clears the supported weapon-cycle secondary slot")
+	current_controls().call("_begin_capture", "weapon_cycle", "secondary")
+	await key(KEY_K)
+	var weapon_secondary := service.effective_binding(InputActions.GAME_WEAPON_CYCLE,
+		CommonUIBinding.SLOT_SECONDARY)
+	var weapon_controller_after := service.effective_binding(
+		InputActions.GAME_WEAPON_CYCLE_CONTROLLER, CommonUIBinding.SLOT_SECONDARY)
+	check(weapon_secondary != null and weapon_secondary.get_code() == KEY_K \
+		and weapon_controller_after != null \
+		and weapon_controller_after.get_code() == weapon_controller_before.get_code(),
+		"weapon-cycle secondary rebind leaves its distinct controller action intact")
 
 	# The service rejects a same-context collision before writing it. The test
 	# uses an uncommitted candidate so the screen remains on the same route.
@@ -288,6 +428,4 @@ func run() -> void:
 	check(teardown_token != null and not teardown_token.is_active(),
 		"teardown invalidates a still-held input capability")
 
-	print("COMMON_UI_INPUT_1080_RESULT checks=", checks, " failures=", failures,
-		" viewport=", FIRST_PLAYABLE_SIZE)
-	quit(0 if failures == 0 else 1)
+	await finish()

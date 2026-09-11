@@ -44,8 +44,12 @@ const LIVE_CONTROLLER_ACTIONS := {
 	"weapon_cycle": ZerkovActions.GAME_WEAPON_CYCLE_CONTROLLER,
 }
 
+const LIVE_UNAVAILABLE_TEXT := "N/A"
+
 var _capture_generation: int = 0
 var _live_refresh_queued: bool = false
+var last_binding_request_id: StringName = &""
+var last_binding_result: Dictionary = {}
 
 
 func build() -> void:
@@ -82,9 +86,29 @@ func _live_slot(column: String) -> int:
 		else CommonUIBinding.SLOT_SECONDARY
 
 
+func _binding_column_supported(action: String, column: String) -> bool:
+	if not _uses_live_bindings():
+		return true
+	# CommonUI's accepted registry has two device-agnostic slots. The authored
+	# controls table has a third visual column, so only the existing weapon-cycle
+	# controller projection may occupy a distinct logical seam; the other
+	# secondary cells are explicitly unavailable rather than overwriting the
+	# controller slot. Move is a four-action vector and has no one-cell target.
+	if action == "move":
+		return false
+	if column == "secondary" and action != "weapon_cycle":
+		return false
+	return true
+
+
 func _request_id(operation: String) -> StringName:
+	var service := _live_input_service()
+	if service != null:
+		last_binding_request_id = service.allocate_request_id("controls_" + operation)
+		return last_binding_request_id
 	_capture_generation += 1
-	return StringName("controls_%s_%d" % [operation, _capture_generation])
+	last_binding_request_id = StringName("controls_%s_%d" % [operation, _capture_generation])
+	return last_binding_request_id
 
 
 func _bindings_state() -> Dictionary:
@@ -114,6 +138,10 @@ func _binding_value(action: String, column: String) -> String:
 			if not direction_text.is_empty():
 				directions.append(direction_text)
 		return " ".join(directions) if not directions.is_empty() else "—"
+	if not _binding_column_supported(action, column):
+		if action == "move" and column == "controller":
+			return "LS · 4-WAY"
+		return LIVE_UNAVAILABLE_TEXT
 
 	var binding := service.effective_binding(logical_action, _live_slot(column))
 	var text := CommonBindingText.describe(binding)
@@ -131,6 +159,8 @@ func _binding_conflicts(action: String, column: String) -> Array:
 	var logical_action := _live_action(action, column)
 	if service == null or logical_action == &"":
 		return super._binding_conflicts(action, column)
+	if not _binding_column_supported(action, column):
+		return []
 	var candidate := service.effective_binding(logical_action, _live_slot(column))
 	if candidate == null:
 		return []
@@ -237,10 +267,16 @@ func _bind_binding_rows() -> void:
 			for column in ["primary", "secondary", "controller"]:
 				var button: Button = body.get_node(suffix + _column_suffix(column)) as Button
 				var value: String = _binding_value(action_id, column)
-				var listening: bool = capture_action == action_id and capture_column == column
+				var editable := _binding_column_supported(action_id, column)
+				var listening: bool = editable and capture_action == action_id and capture_column == column
 				var conflict: bool = not _binding_conflicts(action_id, column).is_empty()
+				button.disabled = not editable
+				button.focus_mode = Control.FOCUS_ALL if editable else Control.FOCUS_NONE
 				button.text = "PRESS KEY" if listening else value
-				button.tooltip_text = "Rebind " + str(action.get("label", action_id)) + " · " + column
+				var unavailable_reason: String = "Move is a four-direction CommonUI projection" \
+					if action_id == "move" else "CommonUI exposes no independent " + column + " binding for this row"
+				button.tooltip_text = ("Rebind " + str(action.get("label", action_id)) + " · " + column) \
+					if editable else "Unavailable · " + unavailable_reason
 				button.add_theme_font_size_override("font_size", 10 if column == "controller" else 11)
 				_set_binding_button_style(button, column == "controller", listening, conflict)
 
@@ -355,8 +391,11 @@ func _wire_actions() -> void:
 		var group: Dictionary = group_variant
 		for action_variant in group.get("actions", []):
 			var action: Dictionary = action_variant
-			var suffix: String = _action_suffix(str(action.get("id", "")))
+			var action_id: String = str(action.get("id", ""))
+			var suffix: String = _action_suffix(action_id)
 			for column in ["primary", "secondary", "controller"]:
+				if not _binding_column_supported(action_id, column):
+					continue
 				_wire_button(body.get_node(suffix + _column_suffix(column)) as Button, Callable(self, "_begin_capture").bind(str(action.get("id", "")), column))
 	_wire_button(body.get_node("ResetAll") as Button, Callable(self, "_reset_bindings"))
 
@@ -405,6 +444,8 @@ func _build_focus_graph() -> void:
 			var action: Dictionary = action_variant
 			var suffix: String = _action_suffix(str(action.get("id", "")))
 			for column in ["primary", "secondary", "controller"]:
+				if not _binding_column_supported(str(action.get("id", "")), column):
+					continue
 				buttons.append(body.get_node(suffix + _column_suffix(column)) as Button)
 	buttons.append(body.get_node("ResetAll") as Button)
 	if buttons.is_empty():
@@ -471,6 +512,7 @@ func _apply_control_preset(preset: String) -> void:
 	if service != null:
 		if preset == "DEFAULT":
 			var result := service.restore_defaults(_request_id("preset"))
+			last_binding_result = result.duplicate(true)
 			_toast("Default controls restored" if bool(result.get("ok", false)) \
 				else "Default controls failed · " + str(result.get("error", "unknown error")))
 		else:
@@ -481,6 +523,11 @@ func _apply_control_preset(preset: String) -> void:
 
 
 func _begin_capture(action: String, column: String) -> void:
+	if _uses_live_bindings() and not _binding_column_supported(action, column):
+		var reason: String = "uses a CommonUI multi-action projection" if action == "move" \
+			else "has no independent CommonUI secondary slot"
+		_toast("Binding unavailable · " + _binding_label(action) + " " + reason)
+		return
 	if _uses_live_bindings() and _live_action(action, column) == &"":
 		return
 	_capture_generation += 1
@@ -571,6 +618,7 @@ func _clear_live_capture() -> void:
 	var action := _live_action(capture_action, capture_column)
 	var slot := _live_slot(capture_column)
 	var result := service.clear_binding(action, slot, false, _request_id("clear"))
+	last_binding_result = result.duplicate(true)
 	if bool(result.get("ok", false)):
 		_toast("Binding cleared")
 	else:
@@ -588,6 +636,8 @@ func _assign_capture(candidate: Variant) -> void:
 	if service == null:
 		super._assign_capture(str(candidate))
 		return
+	if not _binding_column_supported(capture_action, capture_column):
+		return
 	var binding := candidate as CommonUIBinding
 	if binding == null:
 		return
@@ -595,6 +645,7 @@ func _assign_capture(candidate: Variant) -> void:
 	var slot := _live_slot(capture_column)
 	var result := service.rebind(action, slot, binding,
 		CommonInputBindingRegistry.CONFLICT_REJECT, false, _request_id("rebind"))
+	last_binding_result = result.duplicate(true)
 	if not bool(result.get("ok", false)):
 		var conflicts: Array = result.get("conflicts", [])
 		_toast("Binding conflict · choose a free binding" if not conflicts.is_empty() \
@@ -611,6 +662,7 @@ func _reset_bindings() -> void:
 	var service := _live_input_service()
 	if service != null:
 		var result := service.restore_defaults(_request_id("reset"))
+		last_binding_result = result.duplicate(true)
 		_toast("Default controls restored" if bool(result.get("ok", false)) \
 			else "Default controls failed · " + str(result.get("error", "unknown error")))
 		_capture_generation += 1
