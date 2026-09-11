@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--path",
+    ".",
+    "--script",
+    "res://tests/addons/combined_addons_smoke.gd"
+  ],
+  "cwd": "/Volumes/Data/codes/forge-workspace/550652e6-8b07-494d-8090-d2a13021ac29/zerkov",
+  "returncode": 0
+}

@@ -1,0 +1,12 @@
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tests/combat/health_ability_content_contract.gd
+EXIT_CODE: 0
+OUTPUT:
+ERROR: Failed to open 'user://logs/godot2026-09-10T19.41.58.log'.
+   at: copy (core/io/dir_access.cpp:429)
+ERROR: Failed to open log file for writing: user://logs/godot.log
+   at: rotate_file (core/io/logger.cpp:169)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+HEALTH_ABILITY_CONTENT_RESULT checks=251 failures=0 zones=7 attributes=10 tags=34 effects=41 real_gameplay_abilities=true

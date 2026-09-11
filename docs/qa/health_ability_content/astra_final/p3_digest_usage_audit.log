@@ -1,0 +1,11 @@
+COMMAND: rg -n --glob '!docs/qa/health_ability_content/astra_final/**' 'declaration_digest\(' .
+EXIT_CODE: 0
+OUTPUT:
+./game/content/zerkov_equipment_ability_content.gd:130:static func declaration_digest() -> String:
+./game/combat/content/zerkov_health_ability_content.gd:219:static func declaration_digest() -> String:
+./game/inventory/equipment/inventory_ability_adapter.gd:149:	var declaration_digest := ZerkovEquipmentAbilityContent.declaration_digest()
+./tests/raid/inventory_ability_reconciliation_contract.gd:235:	var digest := ZerkovEquipmentAbilityContent.declaration_digest()
+./docs/qa/health_ability_content/independent_review.md:15:observation notes that `declaration_digest()` does not encode heavy-bleed
+./tests/combat/health_ability_content_contract.gd:92:		and ZerkovHealthAbilityContent.declaration_digest().length() == 64,
+./tests/combat/health_ability_content_contract.gd:94:	check(ZerkovHealthAbilityContent.declaration_digest()
+./tests/combat/health_ability_content_contract.gd:95:		== ZerkovHealthAbilityContent.declaration_digest(),

@@ -1,0 +1,16 @@
+{
+  "files": {
+    "docs/qa/health_ability_content/README.md": "fbb3a2e0dbbd7126df1e931a4dca632256c3d4e70a15591ebbb9a9847f721ead",
+    "docs/qa/health_ability_content/implementation/run_validation.py": "2622eb8876a97c3546ed2474d435988ae0ed4bbe9ecb75c38c25c45452fe93fb",
+    "game/combat/content/README.md": "9004f2391cd8c5d0709d3a0d04ec68d6c74e82eb160f7698553c587156bd9638",
+    "game/combat/content/zerkov_health_ability_content.gd": "cd2e21892359f6172bf1a48498af3bf0dc8dfb80e33254dcfff42e0367609db4",
+    "game/combat/content/zerkov_health_ability_content.gd.uid": "5874fdb6767b0e0c8bec1343f49960175e8117d7ae6cc7b3ee489d38c2d99633",
+    "game/content/README.md": "0488bc5b0d442d38c78bd97e99fff67e586ad9a64af6959b465258ebfa68bf6d",
+    "game/content/zerkov_gameplay_ability_content.gd": "c5b0b94f1918645010c399aac9a90f8fa51922502a33ad4ef3664814e62203e6",
+    "game/content/zerkov_gameplay_ability_content.gd.uid": "0ccc430d3f13f5d640aa56035a40258b1a2cd9e436761a51ffe41ddeac45c220",
+    "tests/combat/health_ability_content_contract.gd": "9e600fa43507ee77e24cd1ad8745a9b875e202790c3b419d138f311ffda60ea4",
+    "tests/combat/health_ability_content_contract.gd.uid": "51e659336de95de21677803d0b6767f5c43f58d69eafc3a0ab3e2d4c8c891a17"
+  },
+  "git_head_before_task_checkpoint": "ab036d2a6c102b6692a9d36e7db6a1b8821f0402",
+  "schema_version": 1
+}
