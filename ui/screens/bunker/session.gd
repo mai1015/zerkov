@@ -123,15 +123,31 @@ func _wire_actions() -> void:
 	var chrome: ZTopChrome = get_node("TopChrome")
 	if not chrome.world_back_requested.is_connected(_on_world_back):
 		chrome.world_back_requested.connect(_on_world_back)
-	_wire_button(get_node("SessionPanel/PrivacyClosed/Hit") as Button, Callable(self, "_on_privacy").bind("CLOSED"))
-	_wire_button(get_node("SessionPanel/PrivacyInviteOnly/Hit") as Button, Callable(self, "_on_privacy").bind("INVITE ONLY"))
-	_wire_button(get_node("SessionPanel/PrivacyFriends/Hit") as Button, Callable(self, "_on_privacy").bind("FRIENDS"))
-	_wire_button(get_node("SessionPanel/Players/EmptySlot/Hit") as Button, Callable(self, "_on_empty_slot"))
-	_wire_button(get_node("SessionPanel/CodeRow/Copy") as Button, Callable(self, "_on_copy_code"))
-	_wire_button(get_node("SessionPanel/NewCode") as Button, Callable(self, "_on_new_code"))
-	_wire_button(get_node("SessionPanel/Players/Guest/Kick") as Button, Callable(self, "_on_kick_guest"))
+	var privacy_closed := get_node("SessionPanel/PrivacyClosed/Hit") as Button
+	var privacy_invite := get_node("SessionPanel/PrivacyInviteOnly/Hit") as Button
+	var privacy_friends := get_node("SessionPanel/PrivacyFriends/Hit") as Button
+	_wire_button(privacy_closed, Callable(self, "_on_privacy").bind("CLOSED"))
+	_wire_button(privacy_invite, Callable(self, "_on_privacy").bind("INVITE ONLY"))
+	_wire_button(privacy_friends, Callable(self, "_on_privacy").bind("FRIENDS"))
+	mark_feature_action(privacy_closed, FEATURE_BUNKER)
+	mark_feature_action(privacy_invite, FEATURE_BUNKER)
+	mark_feature_action(privacy_friends, FEATURE_BUNKER)
+	var empty_slot := get_node("SessionPanel/Players/EmptySlot/Hit") as Button
+	var copy_code := get_node("SessionPanel/CodeRow/Copy") as Button
+	var new_code := get_node("SessionPanel/NewCode") as Button
+	var kick := get_node("SessionPanel/Players/Guest/Kick") as Button
+	_wire_button(empty_slot, Callable(self, "_on_empty_slot"))
+	_wire_button(copy_code, Callable(self, "_on_copy_code"))
+	_wire_button(new_code, Callable(self, "_on_new_code"))
+	_wire_button(kick, Callable(self, "_on_kick_guest"))
+	mark_feature_action(empty_slot, FEATURE_FRIENDS)
+	mark_feature_action(copy_code, FEATURE_FRIENDS)
+	mark_feature_action(new_code, FEATURE_FRIENDS)
+	mark_feature_action(kick, FEATURE_FRIENDS)
 	for friend in [["Denz", "DENZ"], ["Pilgrim", "PILGRIM_88"], ["Soot", "SOOT"]]:
-		_wire_button(get_node("SessionPanel/FriendsBox/%s/Invite" % friend[0]) as Button, Callable(self, "_on_invite").bind(friend[1]))
+		var invite := get_node("SessionPanel/FriendsBox/%s/Invite" % friend[0]) as Button
+		_wire_button(invite, Callable(self, "_on_invite").bind(friend[1]))
+		mark_feature_action(invite, FEATURE_FRIENDS)
 
 
 func _wire_button(button: Button, callback: Callable) -> void:

@@ -916,6 +916,8 @@ func _rect_overlap(ax: int, ay: int, aw: int, ah: int, bx: int, by: int, bw: int
 
 
 func _reinsure() -> void:
+    if not require_feature_action(FEATURE_INSURANCE):
+        return
     if _live_inventory_binding:
         _notify("Re-insurance unavailable in live inventory mode")
         return
@@ -923,6 +925,8 @@ func _reinsure() -> void:
 
 
 func _sell_junk() -> void:
+    if not require_feature_action(FEATURE_MARKETPLACE):
+        return
     if _live_inventory_binding:
         _notify("Sell unavailable in live inventory mode")
         return

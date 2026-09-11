@@ -38,7 +38,9 @@ func _bind_static_scene() -> void:
 		(row.get_node("Number") as Label).add_theme_color_override("font_color", ACCENT if selected else MUTED)
 		(row.get_node("Name") as Label).add_theme_color_override("font_color", TEXT if station_id != 6 else MUTED)
 		(row.get_node("Level") as Label).text = station_levels[station_id - 1]
-		_wire_button(row.get_node("Hit") as Button, Callable(self, "_on_station").bind(station_id))
+		var row_hit := row.get_node("Hit") as Button
+		_wire_button(row_hit, Callable(self, "_on_station").bind(station_id))
+		mark_feature_action(row_hit, FEATURE_BUNKER)
 
 	var marker_titles: Array[String] = [
 		"STORAGE UNIT",
@@ -74,8 +76,12 @@ func _bind_static_scene() -> void:
 		level.text = "LOCKED" if station_id == 6 else ("LVL 2" if station_id <= 2 else "LVL 1")
 		card.modulate.a = 0.5 if station_id == 6 else 1.0
 		badge.modulate.a = 0.5 if station_id == 6 else 1.0
-		_wire_button(card.get_node("Hit") as Button, Callable(self, "_on_station").bind(station_id))
-		_wire_button(badge.get_node("Hit") as Button, Callable(self, "_on_station").bind(station_id))
+		var card_hit := card.get_node("Hit") as Button
+		var badge_hit := badge.get_node("Hit") as Button
+		_wire_button(card_hit, Callable(self, "_on_station").bind(station_id))
+		_wire_button(badge_hit, Callable(self, "_on_station").bind(station_id))
+		mark_feature_action(card_hit, FEATURE_BUNKER)
+		mark_feature_action(badge_hit, FEATURE_BUNKER)
 
 	_sync_station_details()
 
@@ -110,9 +116,17 @@ func _sync_station_details() -> void:
 		(get_node("StationDetails/" + node_name) as CanvasItem).visible = not alternate
 	for node_name in alternate_nodes:
 		(get_node("StationDetails/" + node_name) as CanvasItem).visible = alternate
-	_wire_button(get_node("StationDetails/UpgradeAction") as Button, Callable(self, "_on_upgrade_station"))
-	_wire_button(get_node("StationDetails/UseAction") as Button, Callable(self, "_on_use_station"))
-	_wire_button(get_node("StationDetails/AltUseAction") as Button, Callable(self, "_on_use_station"))
+	var upgrade := get_node("StationDetails/UpgradeAction") as Button
+	var use := get_node("StationDetails/UseAction") as Button
+	var alternate_use := get_node("StationDetails/AltUseAction") as Button
+	_wire_button(upgrade, Callable(self, "_on_upgrade_station"))
+	_wire_button(use, Callable(self, "_on_use_station"))
+	_wire_button(alternate_use, Callable(self, "_on_use_station"))
+	mark_feature_action(upgrade, FEATURE_BUNKER)
+	mark_feature_action(use, FEATURE_BUNKER)
+	mark_feature_action(alternate_use, FEATURE_BUNKER)
+	mark_feature_label(get_node("StationDetails/Missing/Market") as Control,
+		FEATURE_MARKETPLACE)
 	if not alternate:
 		return
 	var station_names: Array[String] = ["", "STORAGE UNIT", "MEDICAL STATION", "UTILITIES", "AMMUNITION BENCH", "FOOD SUPPLIES"]

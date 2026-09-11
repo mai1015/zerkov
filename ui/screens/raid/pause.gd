@@ -70,6 +70,10 @@ func _wire_actions() -> void:
 	_wire_button(get_node("SessionPanel/Invite") as Button, Callable(self, "_privacy_invite"))
 	_wire_button(get_node("SessionPanel/Friends") as Button, Callable(self, "_privacy_friends"))
 	_wire_button(get_node("ControlsButton") as Button, Callable(self, "_open_controls"))
+	mark_feature_action(get_node("ActionsPanel/SessionRow/Hit") as Button, FEATURE_BUNKER)
+	mark_feature_action(get_node("SessionPanel/Closed") as Button, FEATURE_BUNKER)
+	mark_feature_action(get_node("SessionPanel/Invite") as Button, FEATURE_BUNKER)
+	mark_feature_action(get_node("SessionPanel/Friends") as Button, FEATURE_FRIENDS)
 
 
 func _wire_button(button: Button, callback: Callable) -> void:
@@ -148,6 +152,8 @@ func _resume_pause() -> void:
 
 
 func _open_session() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	go("session")
 
 
@@ -189,16 +195,22 @@ func _quit_to_desktop() -> void:
 
 
 func _privacy_closed() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	_set_pause_privacy("CLOSED")
 
 
 
 func _privacy_invite() -> void:
+	if not require_feature_action(FEATURE_BUNKER):
+		return
 	_set_pause_privacy("INVITE ONLY")
 
 
 
 func _privacy_friends() -> void:
+	if not require_feature_action(FEATURE_FRIENDS):
+		return
 	_set_pause_privacy("FRIENDS")
 
 

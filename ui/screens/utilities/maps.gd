@@ -69,6 +69,8 @@ func _bind_navigation_chrome() -> void:
 		_navigation_chrome.insurance_requested.connect(insurance)
 	if not _navigation_chrome.back_requested.is_connected(back):
 		_navigation_chrome.back_requested.connect(back)
+	mark_feature_action(_navigation_chrome.get_node_or_null("Insurance") as Control,
+		FEATURE_INSURANCE)
 
 
 func _install_scale_safe_styles() -> void:
@@ -324,7 +326,7 @@ func _deploy_current_zone() -> void:
 
 
 func _maps_insurance_notice() -> void:
-	_toast("Insurance claims are outside the approved design set.")
+	notify_feature_action(FEATURE_INSURANCE)
 
 
 func _maps_back() -> void:

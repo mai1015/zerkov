@@ -15,6 +15,11 @@ const PRODUCTION_SELF_MANAGED_ROUTES: PackedStringArray = [
 	"title", "controls", "inventory", "health", "stats",
 ]
 const LOCKED_STATE_NODE: StringName = &"ProductionUnavailableState"
+const FEATURE_BUNKER: StringName = &"bunker"
+const FEATURE_CRAFTING: StringName = &"crafting"
+const FEATURE_FRIENDS: StringName = &"friends"
+const FEATURE_INSURANCE: StringName = &"insurance"
+const FEATURE_MARKETPLACE: StringName = &"marketplace"
 
 func _ready() -> void:
 	if app == null:
@@ -286,6 +291,62 @@ func box(parent: Node, bounds: Rect2, color: Color = U.PANEL, border: Color = U.
 	parent.add_child(node)
 	return node
 
+
+func feature_gate(action_id: StringName) -> ZUIFeatureGateView:
+	return app.feature_gate(action_id) if app != null else null
+
+
+func feature_action_allowed(action_id: StringName) -> bool:
+	var gate := feature_gate(action_id)
+	return gate != null and (gate.is_prototype() or gate.is_available())
+
+
+## Annotate a retained authored control with the typed gate state. The control
+## remains in the CommonUI focus graph so keyboard/controller users receive the
+## same explicit status through its tooltip and metadata as pointer users.
+func mark_feature_action(control: Control, action_id: StringName) -> bool:
+	if control == null:
+		return false
+	var gate := feature_gate(action_id)
+	if gate == null:
+		return false
+	control.set_meta("z_feature_action", action_id)
+	control.set_meta("z_feature_status", gate.status_name())
+	control.set_meta("z_feature_status_label", gate.status_label())
+	control.set_meta("z_feature_gate_reason", gate.gate_reason())
+	if not control.has_meta("z_feature_original_tooltip"):
+		control.set_meta("z_feature_original_tooltip", control.tooltip_text)
+	var explanation := "Fixture-only preview; no authoritative persistence." \
+			if gate.is_prototype() else "Unavailable until the owning service is connected."
+	control.tooltip_text = "%s · %s · %s" % [gate.status_label(),
+			gate.display_name(), explanation]
+	return true
+
+
+func mark_feature_label(control: Control, action_id: StringName) -> bool:
+	return mark_feature_action(control, action_id)
+
+
+func require_feature_action(action_id: StringName) -> bool:
+	var gate := feature_gate(action_id)
+	if gate != null and (gate.is_prototype() or gate.is_available()):
+		return true
+	if gate != null:
+		toast("%s · %s" % [gate.status_label(), gate.display_name()])
+	else:
+		toast("LOCKED · Feature status is unavailable")
+	return false
+
+
+func notify_feature_action(action_id: StringName) -> void:
+	var gate := feature_gate(action_id)
+	if gate == null:
+		toast("LOCKED · Feature status is unavailable")
+		return
+	var explanation := "fixture-only preview; no authoritative persistence" \
+			if gate.is_prototype() else "owning service is not connected"
+	toast("%s · %s · %s" % [gate.status_label(), gate.display_name(), explanation])
+
 func txt(parent: Node, content: String, bounds: Rect2, font_size: int = 14, color: Color = U.TEXT, mono: bool = false) -> Label:
 	return U.label(parent, content, bounds, font_size, color, mono)
 
@@ -345,8 +406,10 @@ func chrome(active: String) -> void:
 		navigation.name = "NavigationChrome"
 		add_child(navigation)
 		navigation.navigate_requested.connect(go)
-		navigation.insurance_requested.connect(func(): toast("Insurance claims are outside the approved design set."))
+		navigation.insurance_requested.connect(func(): notify_feature_action(FEATURE_INSURANCE))
 		navigation.back_requested.connect(func(): app.back())
+	mark_feature_action(navigation.get_node_or_null("Insurance") as Control,
+		FEATURE_INSURANCE)
 	navigation.active_route = active
 	navigation.layout_for(get_viewport_rect().size)
 

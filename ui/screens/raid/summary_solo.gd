@@ -27,6 +27,7 @@ func _bind_dynamic_state() -> void:
 	var insurance: Button = get_node("Reinsure") as Button
 	insurance.text = "LOADOUT INSURED" if insured else "RE-INSURE LOADOUT · $ 340"
 	insurance.disabled = insured
+	mark_feature_action(insurance, FEATURE_INSURANCE)
 
 
 func _install_valid_styles() -> void:

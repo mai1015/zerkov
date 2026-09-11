@@ -74,14 +74,25 @@ func _wire_actions() -> void:
 		if not menu_card.activated.is_connected(menu_callbacks[index]):
 			menu_card.activated.connect(menu_callbacks[index])
 		menu_entries.append(menu_card.get_focus_target())
+	mark_feature_action(get_node("MenuContinue") as Control, FEATURE_BUNKER)
+	mark_feature_action(get_node("MenuPlay") as Control, FEATURE_BUNKER)
+	mark_feature_action(get_node("MenuJoinFriend") as Control, FEATURE_FRIENDS)
 
 	var card: Control = get_node("ContinueCard") as Control
 	_wire_button(card.get_node("ManageSaves") as Button, Callable(self, "_open_saves"))
-	_wire_button(get_node("FriendKevin/Action") as Button, Callable(self, "_join_kevin"))
-	_wire_button(get_node("FriendDenz/Action") as Button, Callable(self, "_request_denz"))
-	_wire_button(get_node("FriendMara/Hit") as Button, Callable(self, "_open_join_friend"))
-	_wire_button(get_node("FriendCode/JoinByCode") as Button, Callable(self, "_open_join_code"))
+	mark_feature_action(card.get_node("ManageSaves") as Button, FEATURE_BUNKER)
+	var kevin := get_node("FriendKevin/Action") as Button
+	var denz := get_node("FriendDenz/Action") as Button
+	var mara := get_node("FriendMara/Hit") as Button
+	var join_code := get_node("FriendCode/JoinByCode") as Button
+	_wire_button(kevin, Callable(self, "_join_kevin"))
+	_wire_button(denz, Callable(self, "_request_denz"))
+	_wire_button(mara, Callable(self, "_open_join_friend"))
+	_wire_button(join_code, Callable(self, "_open_join_code"))
+	for action in [kevin, denz, mara, join_code]:
+		mark_feature_action(action, FEATURE_FRIENDS)
 	_wire_button(get_node("ContinueAction") as Button, Callable(self, "_continue_world"))
+	mark_feature_action(get_node("ContinueAction") as Button, FEATURE_BUNKER)
 
 
 func _wire_button(button: Button, callback: Callable) -> void:
