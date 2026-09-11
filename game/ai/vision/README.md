@@ -6,9 +6,12 @@ tick/budget driver. `RaidVisionWorldOwner` retains one `OFFLINE_AUTHORITY`
 Callable. No owner Object/Resource property retains the native node, and the
 Callable never returns it. Runtime disposal accepts only a fresh anonymous
 owner-script attestation challenged inside the opaque runtime; the reflected
-runtime Callable cannot attest itself. `NOTIFICATION_PREDELETE` invalidates the
-shared lexical state synchronously even when a configured owner was never
-placed in a scene tree.
+runtime Callable cannot attest itself. PREDELETE may mint that attestation only
+while Godot's engine-owned `is_queued_for_deletion()` state is true. Direct
+calls to `_notification(NOTIFICATION_PREDELETE)` or `_exit_tree()` are inert,
+and an unqueued direct `free()` is canceled before it can split owner and
+binding state. `queue_free()` remains valid both in-tree and off-tree and
+invalidates the shared lexical state when the real PREDELETE is delivered.
 
 `RaidAuthority` owns one reserved phase-3 (`VISION`) slot. Generic handler
 registration rejects that identity and cannot exhaust its reserved capacity;
@@ -27,12 +30,14 @@ driver.
 Owner release has two deliberately different contracts. Explicit teardown is
 fail-atomic: while a PREPARING consumer depends on the reserved slot, rejection
 leaves the owner, native runtime, slot, and dependency graph unchanged. Object
-destruction cannot obey that contract because `NOTIFICATION_PREDELETE` must
-finish. A dependency-free PREPARING destruction releases the slot for a fresh
-owner only after the disappearing owner is quarantined; otherwise an exact
-predelete-only attestation makes `RaidAuthority` enter
+destruction cannot obey that contract once `queue_free()` has irreversibly
+committed the owner to PREDELETE. A dependency-free PREPARING destruction
+releases the slot for a fresh owner only after the disappearing owner is
+quarantined; otherwise an exact queue-authenticated, predelete-only attestation
+makes `RaidAuthority` enter
 `FAILED`, synchronously seal the native runtime, and clear the reserved slot
 and every dependent handler together. If destruction occurs inside a tick,
+the queued state is detected before another callback or reentrant tick can run;
 the already-consumed tick is finalized as failed and no later callback runs.
 The owner-loss cause is committed once in opaque lexical state; callback
 reentry and `Object.set()` cannot replace `vision_owner_lost_during_tick` with

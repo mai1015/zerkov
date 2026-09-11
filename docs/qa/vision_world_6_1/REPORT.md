@@ -3,7 +3,7 @@
 This packet records the implementation-level evidence for the approved change's task 6.1
 on branch `codex/vision-world-6-1`, originally based on `d947b40`. It
 incorporates all independent-review repairs and the integration of current
-main commit `64e01051e6676c9582ce5409b683d542dddc8686` on 2026-09-11. Human
+main commit `abc9c107d91b7b01819a67da88add254de2e0bcf` on 2026-09-11. Human
 approval, encounter tuning, tasks 6.2 and 6.3, and whole-game acceptance are
 not claimed.
 
@@ -16,8 +16,12 @@ property contains the native Node, `Callable.get_object()` is the script
 resource, and the Callable has no bound arguments. Its operation protocol
 never returns the native value and advances only while the exact reserved
 authority callback is synchronously attested. `NOTIFICATION_PREDELETE`
-synchronously frees the native state even for an owner configured off-tree;
-every retained copy of the Callable observes `alive == false` afterward.
+synchronously frees the native state only when Godot's engine-owned deletion
+queue proves that destruction is real, including for an owner configured
+off-tree; every retained copy of the Callable observes `alive == false`
+afterward. Direct `_notification`/`_exit_tree` calls cannot mint authority, and
+an unqueued direct `free()` is canceled before it can strand the reserved
+binding. A real `queue_free()` remains irrevocable and releases exactly once.
 When that owner is bound, dependency-free PREPARING destruction releases only
 the owner slot, while destruction that cannot safely release uses a transient,
 challenge-bound predelete attestation to fail-stop and seal the complete
@@ -50,14 +54,29 @@ attestations at every mutating boundary, and stores the terminal cause in an
 opaque write-once lexical latch. The focused contract now covers PREPARING free
 both with and without dependents, active free, later-callback free/reentry,
 direct helper calls, reflected runtime/latch callables, arbitrary attacker
-callables, and `Object.set()` attempts, and reports 262/0; the units contract
+callables, and `Object.set()` attempts. That repaired contract reported 262/0;
+the units contract
 remains 41/0.
+
+The next independent probe reproduced one remaining provenance gap by calling
+`owner.call("_notification", NOTIFICATION_PREDELETE)` on a live, in-tree,
+PREPARING owner. Because the helper itself minted an otherwise honest
+attestation, it tore down the native runtime, owner generation, authority slot,
+and dependent graph while the object remained valid and parented. The final
+repair gates PREDELETE on Godot's non-writable queued-for-deletion state, makes
+`_exit_tree` non-authorizing, cancels unqueued direct-free attempts, and detects
+a queued owner synchronously inside an authority tick. Permanent regressions
+cover direct helper sequences, built-in `Object.notification`, canceled direct
+free, dependency-free and dependent PREPARING queueing, ACTIVE queueing,
+later-callback queueing with and without reentry, frame-end destruction, exact
+slot/handler/generation results, and retained-runtime invalidation. The focused
+contract now reports 284/0; the units contract remains 41/0.
 
 ## Current-main integration
 
-The current main integration through `64e0105` includes the earlier accepted
-integrations through `c265d3a`, `4accbd8a`, and `6fc090e`, and touched the shared
-`RaidAuthority` without a textual conflict. Its resolved record preserves
+The current main integration through `abc9c10` includes the earlier accepted
+integrations through `c265d3a`, `4accbd8a`, `6fc090e`, and `64e0105`, and
+touched the shared `RaidAuthority` without a textual conflict. Its resolved record preserves
 main's bounded handler priorities/dependencies, unregister lifecycle, weapon
 actor pose/status state,
 phase-5 context reads, 5.3 authorized actor-source query, digest contribution,
@@ -66,8 +85,9 @@ priority/dependency metadata shape as generic handlers, while generic
 registration and the newly merged generic unregister/preflight APIs all reject
 `raid_vision_world`. The specialized two-sided owner release remains the sole
 way to replace that slot. Main now contains independently accepted task 5.3
-capability encapsulation and task 8.6 Character UI binding. Their ledger state
-arrived unchanged from main; task 6.1 remains open for independent acceptance.
+capability encapsulation, task 8.6 Character UI binding, and task 8.10 CommonUI
+input regressions. Their ledger state arrived unchanged from main; task 6.1
+remains open for independent acceptance.
 
 `ZWorldUnits` keeps both accepted contracts: shared weapon, tile, and inventory
 scalar conversions retain the +/-1,048,576-pixel domain, while Vision point
@@ -87,7 +107,10 @@ attestation. Receivers create the challenge and bind both object identities and
 generations; no attestation is stored or returned, and the reflectively readable
 runtime/terminal dispatchers cannot answer those challenges. Safe PREPARING
 replacement occurs only after the same dependent-handler preflight used by
-generic unregister. Direct or replayed release calls are inert. Explicit
+generic unregister. Direct or replayed release calls are inert. A PREDELETE
+attestation is created only while the exact owner is irreversibly queued by
+Godot; direct `_notification`, `_exit_tree`, and queued-loss-helper calls cannot
+substitute caller-controlled state for that engine provenance. Explicit
 teardown during any authority callback fails atomically and retains the live owner,
 binding, and native state; PREPARING explicit teardown likewise preserves the
 complete composition while a dependent exists. Unavoidable PREDELETE is a
@@ -96,8 +119,8 @@ cleanly for replacement, while a dependent PREPARING, active, extracting, or
 settling owner synchronously commits an immutable owner-loss cause, fails and
 seals the raid, clears the owner slot and complete handler graph, and blocks
 replacement or later ACTIVE work. During a callback the authority stays in its
-advancing guard until the callback unwinds,
-then finalizes the consumed tick without dispatching another handler. Reentrant
+advancing guard, detects the queued owner before dispatching another handler,
+and then finalizes the consumed tick when the callback unwinds. Reentrant
 API calls and reflective writes cannot replace that first terminal cause.
 Direct callbacks, callbacks forged by an earlier handler in the same VISION
 phase, replayed callbacks, and reflected runtime calls outside dispatch cannot
@@ -190,8 +213,9 @@ capture, or viewport-setting test was invoked, so this integration run created
 no alternate-resolution artifact; the project's exact 1920x1080 UI boundary
 was not exercised. Historical UI evidence files arrived unchanged through the
 requested main merge and are not evidence for this run. Main's accepted 8.6
-presentation/composition contracts and visual capture were deliberately not
-run because they construct UI/viewports. In particular,
+presentation/composition contracts, visual capture, and 8.10 CommonUI input
+regression were deliberately not run because they construct UI/viewports. In
+particular,
 `inventory_loot_ui_4_11_contract.gd` and
 `inventory_multi_controller_contract.gd` were excluded because their fixture
 constructs the inventory screen even in headless mode. Adjacent 4.11 behavior
@@ -201,8 +225,8 @@ and catalog contracts.
 | Validation | Result |
 | --- | ---: |
 | Final editor import / script registration | exit 0; diagnostics 0 |
-| Vision world focused contract | 262 / 0 |
-| Deterministic focused repeat | 262 / 0; identical seal/failure metrics |
+| Vision world focused contract | 284 / 0 |
+| Deterministic focused repeat | 284 / 0; identical seal/failure metrics |
 | Combined six-add-on smoke | 155 / 0 |
 | Units and clock contract | 41 / 0; shared 100,000px round trips pass |
 | Session lifecycle domain contract | 44 / 0 |
@@ -227,7 +251,7 @@ and catalog contracts.
 | Reviewed source/dependency hashes | 45 / 45 verified |
 | Strict approved-change validation | `Valid` |
 | `git diff --check` | exit 0 |
-| Accepted Godot assertion executions | **3,380 / 0** |
+| Accepted Godot assertion executions | **3,424 / 0** |
 
 ## Reproduction
 
@@ -298,9 +322,10 @@ git diff --cached --check
 - Exact source paths intentionally make the accepted local macOS provenance
   non-portable. A relocated SDK, Windows/Linux artifacts, or a changed package
   must be explicitly re-attested and resealed rather than silently accepted.
-- The requested main merge through `64e0105` brings `project.godot`, accepted
+- The requested main merge through `abc9c10` brings `project.godot`, accepted
   5.3 hitbox capability isolation, accepted 8.6 Character UI composition,
-  inventory, weapon context, documentation, and task history into this branch.
+  accepted 8.10 CommonUI input regression coverage, inventory, weapon context,
+  documentation, and task history into this branch.
   The current lifecycle-attestation repair changed only the Vision
   owner/README/tests, shared `RaidAuthority`, and this QA packet. It did not
   independently edit `project.godot`, bootstrap, central identity,
