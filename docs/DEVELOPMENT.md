@@ -241,24 +241,19 @@ down its owner/component before `RaidAuthority` terminalizes; raid-terminal-firs
 cleanup is not automatic. Task 4.11 is next, while whole-game, multiplayer and
 release acceptance remain open.
 
-## Render-scale verification
+## Render-scale verification (historical and deferred)
 
-The current isolated native render-scale check uses the fixed 640x360 world
-surface with the existing full-output HUD at exact 1920×1080 only. Run the
-current exact-size subset from the project root with:
+The exploratory render-scale runner and its Python sheet generator are retained
+only as historical Task 3.1 source. They include non-selected internal surfaces
+and non-1920×1080 summary images, so both entry points now fail closed before
+viewport setup, imports, directories, or image writes. Do not invoke or reopen
+them before task 11.8 or a later approved display-support proposal.
 
-```sh
-uv run --with pillow python tests/visual/render_scale/verify.py
-```
-
-Current generated render-scale files are written under
-`docs/qa/render_scale/current_1080/`; the historical root packet is not
-overwritten.
-
-The historical packet also contains smaller-resolution and responsive results;
-those are not current commands and MUST NOT be regenerated before task 11.8 or
-a later approved display-support proposal. Current exact-size results are
-recorded separately in [`docs/qa/1080-only-scope.md`](qa/1080-only-scope.md).
+Current visual work must use a genuine exact 1920×1080 render target. The only
+permitted low-resolution world surface is the selected fixed 640×360 surface,
+nearest-mapped exactly 3× into that output; it is not a separate screen target.
+Current enforcement is recorded in
+[`docs/qa/1080-only-scope.md`](qa/1080-only-scope.md).
 
 The historical packet's zero-failure lines are:
 

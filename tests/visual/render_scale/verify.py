@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Run the exact 1920x1080 native evidence subset and assemble QA sheets."""
+"""Historical render-scale packet generator.
+
+The exploratory matrix includes non-selected internal surfaces and writes
+non-1920x1080 summary images.  It is deliberately inert while the current
+first-playable contract is exact 1920x1080 only.  Task 11.8 (or a later
+approved display-support proposal) is the sole reopening point.
+"""
+
+raise SystemExit(
+    "DEFERRED_DISPLAY_SUITE: render_scale/verify.py is historical; "
+    "reopen only through task 11.8 or an approved display-support proposal"
+)
+
 import argparse
 import hashlib
 import json

@@ -68,11 +68,21 @@ func run() -> void:
         push_error("Task 8.6 captures require a graphical renderer")
         quit(1)
         return
-    DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
     root.borderless = true
     root.position = Vector2i.ZERO
     root.size = EXACT_SIZE
-    check(root.size == EXACT_SIZE, "capture root is exact 1920x1080")
+    await process_frame
+    RenderingServer.force_draw(true)
+    var preflight := root.get_texture().get_image()
+    var exact_preflight := root.size == EXACT_SIZE \
+        and root.get_visible_rect().size == Vector2(EXACT_SIZE) \
+        and preflight != null and preflight.get_size() == EXACT_SIZE
+    check(exact_preflight, "capture root and framebuffer are exact 1920x1080 before setup")
+    if not exact_preflight:
+        push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: nonexact framebuffer rejected before paths or writes")
+        quit(2)
+        return
+    DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
     check(_setup_capture_runtime(), "capture-only real authority runtime configures")
     if failures > 0:
         _finish()
@@ -92,12 +102,14 @@ func run() -> void:
     var screen: Control = app.screen
     screen._set_loot_mode(true)
     await settle()
-    await _capture("inventory_ready", screen)
+    if not await _capture("inventory_ready", screen):
+        return
 
     app.navigate("health")
     await settle()
     screen = app.screen
-    await _capture("health_ready", screen)
+    if not await _capture("health_ready", screen):
+        return
     var aggregate_badge := screen._node("HealthColumn/RadiationBadge") as Panel
     await _hover(aggregate_badge.get_global_rect().get_center())
     var hovered := root.gui_get_hovered_control()
@@ -107,21 +119,33 @@ func run() -> void:
         and hovered.tooltip_text.contains("Dehydrated"),
         "native hover reaches the truthful aggregate effect tooltip")
     await create_timer(0.8).timeout
-    await _capture("health_effects_hover", screen)
+    if not await _capture("health_effects_hover", screen):
+        return
 
     owner.teardown(owner.generation())
     await settle()
-    await _capture("health_disconnected", screen)
+    if not await _capture("health_disconnected", screen):
+        return
     _finish()
 
 
-func _capture(state: String, screen: Control) -> void:
+func _capture(state: String, screen: Control) -> bool:
     RenderingServer.force_draw(true)
     await process_frame
     var image := root.get_texture().get_image()
     var file_name := "1920x1080_%s.png" % state
-    check(image.get_size() == EXACT_SIZE, state + " image is exact 1920x1080")
-    check(image.save_png(OUTPUT + "/" + file_name) == OK, "save " + file_name)
+    var exact_frame := image != null and image.get_size() == EXACT_SIZE \
+        and root.get_visible_rect().size == Vector2(EXACT_SIZE)
+    check(exact_frame, state + " image is exact 1920x1080")
+    if not exact_frame:
+        push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: nonexact frame rejected before write: " + state)
+        quit(2)
+        return false
+    var save_error := image.save_png(OUTPUT + "/" + file_name)
+    check(save_error == OK, "save " + file_name)
+    if save_error != OK:
+        quit(1)
+        return false
     var stash_scroll := screen._node("DesktopStashScroll") as ScrollContainer
     var grid: Control = screen._grid_for_source("loot" if screen._loot_mode else "stash")
     var first_badge := screen._node("HealthColumn/DehydratedBadge") as Panel
@@ -153,6 +177,7 @@ func _capture(state: String, screen: Control) -> void:
             "aggregate_mouse_filter": aggregate_badge.mouse_filter,
         },
     })
+    return true
 
 
 func _setup_capture_runtime() -> bool:

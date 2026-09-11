@@ -289,6 +289,13 @@ func _sync_window_scale() -> void:
 func _on_window_resized() -> void:
 	if get_window().size == _last_window_size:
 		return
+	# A QA/review session is an exact-output contract, not a responsive-layout
+	# exercise. Reject a later host resize before syncing scale or reflowing any
+	# screen; ordinary production compatibility remains unchanged below.
+	if qa_mode or _review_navigation_enabled:
+		push_error("QA/review window left exact 1920x1080; alternate layout rejected")
+		get_tree().quit(2)
+		return
 	_sync_window_scale()
 	_resize_pending = true
 	if is_instance_valid(resize_timer):
@@ -403,6 +410,13 @@ func _run_qa() -> void:
 		if arg.begins_with("--capture-dir="): capture_dir = arg.trim_prefix("--capture-dir=")
 		if arg.begins_with("--screen="): single = arg.trim_prefix("--screen=")
 	if not capture_dir.is_empty():
+		await RenderingServer.frame_post_draw
+		var preflight := get_viewport().get_texture().get_image()
+		if preflight == null or preflight.get_size() != DESKTOP_CANVAS \
+				or get_viewport().get_visible_rect().size != Vector2(DESKTOP_CANVAS):
+			push_error("QA capture requires a genuine 1920x1080 framebuffer; rejected before paths or writes")
+			get_tree().quit(2)
+			return
 		DirAccess.make_dir_recursive_absolute(capture_dir)
 	var failures = 0
 	var routes: Array = [single] if not single.is_empty() else ROUTES.keys()
@@ -420,6 +434,11 @@ func _run_qa() -> void:
 		if not capture_dir.is_empty():
 			await RenderingServer.frame_post_draw
 			var capture = get_viewport().get_texture().get_image()
+			if capture == null or capture.get_size() != DESKTOP_CANVAS \
+					or get_viewport().get_visible_rect().size != Vector2(DESKTOP_CANVAS):
+				push_error("QA capture framebuffer changed from exact 1920x1080; no image written")
+				get_tree().quit(2)
+				return
 			var err = capture.save_png(capture_dir.path_join(route + ".png"))
 			if err != OK: failures += 1
 		print("QA_SCREEN ", route, " nodes=", screen.find_children("*", "", true, false).size())
