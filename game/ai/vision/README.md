@@ -16,16 +16,21 @@ invalidates the shared lexical state when the real PREDELETE is delivered.
 `RaidAuthority` owns one reserved phase-3 (`VISION`) slot. Generic handler
 registration rejects that identity and cannot exhaust its reserved capacity;
 the typed owner API derives the callback instead of accepting a caller-supplied
-ID or callback. Registration, dispatch, release, PREDELETE failure, quarantine,
-and runtime disposal authenticate the exact objects, generations, operation,
-and a fresh receiver-owned challenge. Each mutating proof is an anonymous
-Callable created only on the validated synchronous call stack; it is never
-stored, returned, or derived from a writable boolean. The exact checked-in
-base-script owner remains mandatory for the production slot, so configured
-subclasses cannot claim it. Direct, forged, and replayed callbacks—including
-calls through a reflectively retained runtime or terminal-latch Callable—are
-inert. The owner has no `_process()`, delta-time API, or public direct-tick
-driver.
+ID or callback. The shared internal registration commit also requires a fresh,
+full-context authority-script attestation, so reflective calls to the nominally
+unchecked helper cannot publish either a reserved or generic handler.
+Registration, dispatch, release, PREDELETE failure, quarantine, and runtime
+disposal authenticate the exact objects, generations, operation, and a fresh
+receiver-owned challenge. Each mutating proof is an anonymous Callable created
+only on the validated synchronous call stack; it is never stored, returned, or
+derived from a writable boolean. The exact checked-in base-script owner remains
+mandatory for the production slot, so configured subclasses cannot claim it.
+Direct, forged, and replayed callbacks—including calls through a reflectively
+retained runtime or terminal-latch Callable—are inert. Reflective calls to the
+legacy owner-binding clear and reserved-handler removal helpers are explicit
+mutation-free traps; the actual two-sided clear occurs only inside the already
+authenticated release transaction. The owner has no `_process()`, delta-time
+API, or public direct-tick driver.
 
 Owner release has two deliberately different contracts. Explicit teardown is
 fail-atomic: while a PREPARING consumer depends on the reserved slot, rejection
@@ -41,7 +46,10 @@ the queued state is detected before another callback or reentrant tick can run;
 the already-consumed tick is finalized as failed and no later callback runs.
 The owner-loss cause is committed once in opaque lexical state; callback
 reentry and `Object.set()` cannot replace `vision_owner_lost_during_tick` with
-a secondary error such as `reentrant_tick`.
+a secondary error such as `reentrant_tick`. An owner queued immediately before
+a fresh authority advance is classified by Godot's queued-for-deletion state as
+that same authenticated owner-loss cause, rather than as a generic provenance
+failure, before the slot and runtime are sealed.
 
 `ZerkovVisionConfig` seals the complete configuration as SHA-256
 `3ead6e826bfd2552aa1396a4d266de3603524355c56620033cb1bd84b6df58f3`.

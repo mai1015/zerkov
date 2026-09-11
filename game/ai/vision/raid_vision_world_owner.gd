@@ -309,7 +309,12 @@ func register_with_raid_authority(raid_authority: RaidAuthority) -> bool:
 		self, _generation, captured_raid_generation, registration_attestation
 	):
 		var reason := raid_authority.last_error
-		_clear_authority_binding()
+		# Registration has not published a live owner binding yet, so rollback is
+		# kept inside this validated boundary instead of exposing a mutable helper.
+		_binding_registered = false
+		_raid_authority_ref = null
+		_raid_authority_instance_id = 0
+		_raid_authority_generation = 0
 		return _reject(reason)
 	_binding_registered = true
 	_binding_consumed = true
@@ -367,7 +372,12 @@ func release_registered_binding(
 		lifecycle = Lifecycle.QUARANTINED
 		if not _dispose_native_runtime(disposal_attestation):
 			return false
-	_clear_authority_binding()
+	# Keep the clear in the already authority-attested callback. A separate
+	# reflectively callable clearing helper would split the two-sided binding.
+	_binding_registered = false
+	_raid_authority_ref = null
+	_raid_authority_instance_id = 0
+	_raid_authority_generation = 0
 	return true
 
 
@@ -623,7 +633,10 @@ func teardown(expected_generation: int) -> bool:
 	_configuration = {}
 	_configuration_fingerprint = ""
 	_provenance_fingerprint = ""
-	_clear_authority_binding()
+	_binding_registered = false
+	_raid_authority_ref = null
+	_raid_authority_instance_id = 0
+	_raid_authority_generation = 0
 	return true
 
 
@@ -675,7 +688,10 @@ func _notification(what: int) -> void:
 	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
 		lifecycle = Lifecycle.TORN_DOWN
 		_generation += 1
-	_clear_authority_binding()
+	_binding_registered = false
+	_raid_authority_ref = null
+	_raid_authority_instance_id = 0
+	_raid_authority_generation = 0
 
 
 func _binding_values_match(
@@ -740,11 +756,11 @@ func _fail_authority_for_predelete(
 	)
 
 
-func _clear_authority_binding() -> void:
-	_binding_registered = false
-	_raid_authority_ref = null
-	_raid_authority_instance_id = 0
-	_raid_authority_generation = 0
+## Deliberately inert compatibility trap for reflective callers. Binding state
+## mutates only inside the registration rollback, authority-attested release,
+## explicit teardown, or engine-authenticated PREDELETE boundaries above.
+func _clear_authority_binding(_attestation: Variant = Callable()) -> bool:
+	return false
 
 
 func _append_metrics_record(

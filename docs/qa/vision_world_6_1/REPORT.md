@@ -29,6 +29,14 @@ authority composition before the object disappears. No writable lifecycle
 boolean or publicly recoverable Callable is a disposal, release, PREDELETE, or
 terminal-cause bearer.
 
+Reflective compatibility helpers cannot split either half of the live binding:
+`_clear_authority_binding` and `_remove_reserved_vision_handler` are
+mutation-free traps, while their real state transitions are inlined inside the
+already authenticated two-sided release transaction. The shared internal
+registration commit requires its own fresh full-context authority-script
+attestation, so direct calls to the nominally unchecked helper cannot inject a
+reserved or generic callback.
+
 The production owner has no observer, target, occluder, transform, query, or
 projection port. Those belong to tasks 6.2/6.3. Native memory/budget behavior is
 tested through an explicitly test-only fixture that cannot be obtained from a
@@ -72,6 +80,23 @@ later-callback queueing with and without reentry, frame-end destruction, exact
 slot/handler/generation results, and retained-runtime invalidation. The focused
 contract now reports 284/0; the units contract remains 41/0.
 
+A later independent review found three related reflective composition gaps.
+Ordinary calls to `_remove_reserved_vision_handler` could delete the live slot
+and let an ACTIVE tick commit without invoking its owner; calls to
+`_clear_authority_binding` could split the owner from the authority; and calls
+to `_register_phase_handler_unchecked` could occupy the reserved identity with
+an arbitrary callback. It also reproduced an owner queued immediately before a
+fresh ACTIVE advance being mislabeled `vision_owner_provenance_invalid`, with
+no immutable terminal cause. The permanent regressions now execute these direct
+paths across absent, attacker, and reflectively recovered pseudo-proofs, prove
+the exact owner still receives tick 1 after rejection, and exercise the
+pre-tick queued-owner path through frame-end destruction. The repair makes both
+clear/remove helpers unconditionally mutation-free, binds the internal
+registration commit to a one-call exact-script attestation, and uses the
+engine-owned queued state to commit `vision_owner_lost_during_tick` before the
+terminal seal. The focused contract now reports 305/0; the units contract
+remains 41/0.
+
 ## Current-main integration
 
 The current main integration through `abc9c10` includes the earlier accepted
@@ -103,8 +128,10 @@ the callback and checks the exact configured owner object, owner generation,
 raid generation, transient registration attestation, and callback provenance.
 Release and PREDELETE requests carry fresh, operation-specific owner-script
 attestations, while authority-to-owner release uses a separate authority-script
-attestation. Receivers create the challenge and bind both object identities and
-generations; no attestation is stored or returned, and the reflectively readable
+attestation. The internal handler-table commit has a separate authority-script
+proof bound to the exact phase, identity, callback, priority, dependencies,
+authority, and generation. Receivers create the challenge and bind all context;
+no attestation is stored or returned, and the reflectively readable
 runtime/terminal dispatchers cannot answer those challenges. Safe PREPARING
 replacement occurs only after the same dependent-handler preflight used by
 generic unregister. Direct or replayed release calls are inert. A PREDELETE
@@ -120,8 +147,12 @@ settling owner synchronously commits an immutable owner-loss cause, fails and
 seals the raid, clears the owner slot and complete handler graph, and blocks
 replacement or later ACTIVE work. During a callback the authority stays in its
 advancing guard, detects the queued owner before dispatching another handler,
-and then finalizes the consumed tick when the callback unwinds. Reentrant
-API calls and reflective writes cannot replace that first terminal cause.
+and then finalizes the consumed tick when the callback unwinds. A queue committed
+immediately before a fresh advance is recognized before callback dispatch and
+latches the same owner-loss cause. Reentrant API calls and reflective writes
+cannot replace that first terminal cause. The reflectively callable clear/remove
+compatibility helpers never mutate; only the authenticated release transaction
+can clear the two-sided owner/slot composition.
 Direct callbacks, callbacks forged by an earlier handler in the same VISION
 phase, replayed callbacks, and reflected runtime calls outside dispatch cannot
 advance.
@@ -225,8 +256,8 @@ and catalog contracts.
 | Validation | Result |
 | --- | ---: |
 | Final editor import / script registration | exit 0; diagnostics 0 |
-| Vision world focused contract | 284 / 0 |
-| Deterministic focused repeat | 284 / 0; identical seal/failure metrics |
+| Vision world focused contract | 305 / 0 |
+| Deterministic focused repeat | 305 / 0; identical seal/failure metrics |
 | Combined six-add-on smoke | 155 / 0 |
 | Units and clock contract | 41 / 0; shared 100,000px round trips pass |
 | Session lifecycle domain contract | 44 / 0 |
@@ -251,7 +282,7 @@ and catalog contracts.
 | Reviewed source/dependency hashes | 45 / 45 verified |
 | Strict approved-change validation | `Valid` |
 | `git diff --check` | exit 0 |
-| Accepted Godot assertion executions | **3,424 / 0** |
+| Accepted Godot assertion executions | **3,466 / 0** |
 
 ## Reproduction
 
@@ -326,7 +357,7 @@ git diff --cached --check
   5.3 hitbox capability isolation, accepted 8.6 Character UI composition,
   accepted 8.10 CommonUI input regression coverage, inventory, weapon context,
   documentation, and task history into this branch.
-  The current lifecycle-attestation repair changed only the Vision
+  The current reflective composition repair changed only the Vision
   owner/README/tests, shared `RaidAuthority`, and this QA packet. It did not
   independently edit `project.godot`, bootstrap, central identity,
   add-on/vendor source, truth specs, the approved task ledger, UI, inventory,

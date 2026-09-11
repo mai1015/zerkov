@@ -59,6 +59,7 @@ const _ATTEST_TERMINAL_READ: StringName = &"raid_terminal_cause_read"
 const _ATTEST_TERMINAL_COMMIT: StringName = &"raid_terminal_cause_commit"
 const _ATTEST_TERMINAL_SEAL: StringName = &"raid_terminal_runtime_seal"
 const _ATTEST_OWNER_RELEASE: StringName = &"raid_vision_owner_binding_release"
+const _ATTEST_HANDLER_REGISTER: StringName = &"raid_phase_handler_register"
 const _ATTEST_OWNER_REGISTER_REQUEST: StringName = \
 	&"vision_owner_registration_request"
 const _ATTEST_OWNER_RELEASE_REQUEST: StringName = \
@@ -331,8 +332,24 @@ func register_phase_handler(
 			and (_phase_handlers.get(int(phase), []) as Array).size() \
 				>= MAX_HANDLERS_PER_PHASE - 1:
 		return _reject(&"phase_handler_limit")
+	var registration_context := {
+		"authority_instance_id": get_instance_id(),
+		"raid_generation": _generation,
+		"phase": int(phase),
+		"handler_id": handler_id,
+		"callback": callback,
+		"priority": priority,
+		"after": dependencies,
+	}
+	var registration_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation, request, _ATTEST_HANDLER_REGISTER, registration_context
+		)
 	return _register_phase_handler_unchecked(
-		phase, handler_id, callback, priority, dependencies
+		phase, handler_id, callback, priority, dependencies,
+		registration_attestation,
 	)
 
 
@@ -375,8 +392,25 @@ func register_vision_world_owner(
 	var callback := Callable(owner, "_handle_raid_phase")
 	if not callback.is_valid():
 		return _reject(&"vision_owner_callback_invalid")
+	var dependencies := PackedStringArray()
+	var registration_context := {
+		"authority_instance_id": get_instance_id(),
+		"raid_generation": _generation,
+		"phase": int(TickPhase.VISION),
+		"handler_id": RESERVED_VISION_HANDLER_ID,
+		"callback": callback,
+		"priority": 0,
+		"after": dependencies,
+	}
+	var registration_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation, request, _ATTEST_HANDLER_REGISTER, registration_context
+		)
 	if not _register_phase_handler_unchecked(
-		TickPhase.VISION, RESERVED_VISION_HANDLER_ID, callback
+		TickPhase.VISION, RESERVED_VISION_HANDLER_ID, callback, 0,
+		dependencies, registration_attestation
 	):
 		return false
 	_vision_owner_ref = weakref(owner)
@@ -429,7 +463,6 @@ func release_vision_world_owner(
 			return _reject(&"handler_has_dependents")
 		if not _release_vision_owner_binding(lifecycle_attestation):
 			return _reject(&"vision_owner_binding_release_failed")
-		_remove_reserved_vision_handler()
 		return true
 	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.EXTRACTING:
 		lifecycle = Lifecycle.FAILED
@@ -498,7 +531,6 @@ func fail_vision_world_owner_predelete(
 			and not _phase_handler_has_dependents(RESERVED_VISION_HANDLER_ID):
 		if not _release_vision_owner_binding(lifecycle_attestation):
 			return _reject(&"vision_owner_binding_release_failed")
-		_remove_reserved_vision_handler()
 		return true
 	if not _commit_terminal_cause(failure_reason, lifecycle_attestation):
 		return _reject(_TERMINAL_LATCH_INVALID)
@@ -973,8 +1005,11 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 			var callback: Callable = entry["callback"]
 			if _processing_handler_id == RESERVED_VISION_HANDLER_ID \
 					and not _reserved_vision_callback_is_current():
+				var invalid_reason := &"vision_owner_lost_during_tick" \
+					if _bound_vision_owner_is_queued_for_deletion() \
+					else &"vision_owner_provenance_invalid"
 				return _fail_current_tick(
-					tick, &"vision_owner_provenance_invalid", lifecycle_attestation
+					tick, invalid_reason, lifecycle_attestation
 				)
 			if not callback.is_valid():
 				return _fail_current_tick(
@@ -1107,8 +1142,24 @@ func _register_phase_handler_unchecked(
 	handler_id: StringName,
 	callback: Callable,
 	priority: int = 0,
-	after_handler_ids: PackedStringArray = PackedStringArray()
+	after_handler_ids: PackedStringArray = PackedStringArray(),
+	attestation: Variant = Callable()
 ) -> bool:
+	if not _transient_attestation_is_valid(
+		attestation,
+		get_script(),
+		_ATTEST_HANDLER_REGISTER,
+		{
+			"authority_instance_id": get_instance_id(),
+			"raid_generation": _generation,
+			"phase": int(phase),
+			"handler_id": handler_id,
+			"callback": callback,
+			"priority": priority,
+			"after": after_handler_ids,
+		},
+	):
+		return _reject(&"handler_registration_attestation_invalid")
 	if _handler_ids.has(handler_id):
 		return _reject(&"handler_id_duplicate")
 	var handlers: Array = _phase_handlers.get(int(phase), [])
@@ -1254,20 +1305,12 @@ func _terminalize_queued_vision_owner_during_tick() -> bool:
 	return _seal_terminal_runtime(lifecycle_attestation)
 
 
-func _remove_reserved_vision_handler() -> void:
-	var handlers: Array = _phase_handlers.get(int(TickPhase.VISION), [])
-	var retained: Array = []
-	for entry_value in handlers:
-		if entry_value is Dictionary \
-				and (entry_value as Dictionary).get("id", &"") \
-					== RESERVED_VISION_HANDLER_ID:
-			continue
-		retained.append(entry_value)
-	if retained.is_empty():
-		_phase_handlers.erase(int(TickPhase.VISION))
-	else:
-		_phase_handlers[int(TickPhase.VISION)] = retained
-	_handler_ids.erase(RESERVED_VISION_HANDLER_ID)
+## Deliberately inert compatibility trap for reflective callers. Reserved-slot
+## removal is committed only inside the attested two-sided release below.
+func _remove_reserved_vision_handler(
+	_attestation: Variant = Callable()
+) -> bool:
+	return false
 
 
 func _release_vision_owner_binding(
@@ -1289,6 +1332,21 @@ func _release_vision_owner_binding(
 			self, owner_generation, raid_generation, lifecycle_attestation
 		):
 			return false
+	# Commit reserved-handler removal inside the same authority-attested release
+	# boundary. No separately callable helper can publish half of this change.
+	var handlers: Array = _phase_handlers.get(int(TickPhase.VISION), [])
+	var retained: Array = []
+	for entry_value in handlers:
+		if entry_value is Dictionary \
+				and (entry_value as Dictionary).get("id", &"") \
+					== RESERVED_VISION_HANDLER_ID:
+			continue
+		retained.append(entry_value)
+	if retained.is_empty():
+		_phase_handlers.erase(int(TickPhase.VISION))
+	else:
+		_phase_handlers[int(TickPhase.VISION)] = retained
+	_handler_ids.erase(RESERVED_VISION_HANDLER_ID)
 	_vision_owner_ref = null
 	_vision_owner_instance_id = 0
 	_vision_owner_generation = 0
@@ -1303,6 +1361,20 @@ func _authority_lifecycle_attestation_context() -> Dictionary:
 		"owner_instance_id": _vision_owner_instance_id,
 		"owner_generation": _vision_owner_generation,
 	}
+
+
+func _bound_vision_owner_is_queued_for_deletion() -> bool:
+	if _vision_owner_ref == null:
+		return false
+	var owner_value: Variant = _vision_owner_ref.get_ref()
+	if not owner_value is RaidVisionWorldOwner \
+			or not is_instance_valid(owner_value):
+		return false
+	var owner := owner_value as RaidVisionWorldOwner
+	return owner.is_queued_for_deletion() \
+		and _vision_owner_matches(
+			owner, _vision_owner_generation, _vision_owner_raid_generation
+		)
 
 
 func _commit_terminal_cause(
