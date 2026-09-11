@@ -63,7 +63,7 @@ func run() -> void:
 	screen._close_tip()
 
 	# Ctrl-click semantics: the screen callback uses the selected loadout
-	# destination and persists the transfer into app.state.
+	# destination and persists the transfer into explicit fixture storage.
 	var quick_item: Dictionary = screen._items_for("stash")[0]
 	stash_grid._slot_quick_move(quick_item)
 	await settle()
@@ -101,15 +101,17 @@ func run() -> void:
 	app.navigate("health", false)
 	await settle()
 	var health: Control = app.screen
-	var before_meds: int = int(app.state.get("med_count", 2))
+	var before_meds: int = int(app.fixture_state_for_test().get("med_count", 2))
 	var heal_key := InputEventKey.new()
 	heal_key.keycode = KEY_Y
 	heal_key.physical_keycode = KEY_Y
 	heal_key.pressed = true
 	health._unhandled_input(heal_key)
 	await settle()
-	check(bool(app.state.get("quick_healed", false)), "quick heal persists local treated state")
-	check(int(app.state.get("med_count", 0)) == max(0, before_meds - 1), "quick heal consumes one med")
+	check(bool(app.fixture_state_for_test().get("quick_healed", false)),
+		"quick heal persists local treated state")
+	check(int(app.fixture_state_for_test().get("med_count", 0)) \
+			== max(0, before_meds - 1), "quick heal consumes one med")
 
 	app.navigate("stats", false)
 	await settle()

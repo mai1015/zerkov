@@ -102,12 +102,14 @@ func run() -> void:
     var canonical_stash := runtime.items_for(&"stash")
     check(not canonical_stash.is_empty() and stash_grid.items.size() == canonical_stash.size(),
         "stash widgets derive from the injected confirmed projection")
-    app.state["inventory_data"] = {"stash": [{"id": "forged", "name": "FORGED"}]}
+    check(app.fixture_provider_for_route(
+        "inventory", ZUIRouteIntent.Origin.PRODUCTION) == null,
+        "production Character route cannot acquire the developer fixture provider")
     screen._refresh_body()
     await settle(2)
     check(screen._items_for("stash").size() == canonical_stash.size()
         and str(screen._items_for("stash")[0].get("name", "")) != "FORGED",
-        "live rendering ignores the historical app.state canonical fixture")
+        "live rendering remains sourced only from the injected immutable view")
 
     var search := screen._node("StashSearch") as LineEdit
     search.text = "bat"
@@ -268,7 +270,7 @@ func run() -> void:
             search.text, search.caret_column, search.has_focus()])
     check(int(screen._selected_live_item.get("item_id", 0))
         == int(selected.get("item_id", 0)),
-        "route replacement restores the valid selection without app.state")
+        "route replacement restores the valid selection without fixture storage")
 
     var controller := runtime.inventory_controller()
     check(controller.set_loot_container(&"crate") and controller.open_loot_container(),

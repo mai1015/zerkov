@@ -1,7 +1,7 @@
 extends SceneTree
 ## Task 4.7b contract: the retained UI can bind to confirmed inventory
 ## projections, carries scoped native identities through drag data, and emits
-## only strict adapter intents. Fixture app.state remains untouched in live
+## only strict adapter intents. Explicit fixture-provider state remains untouched in live
 ## mode and unavailable cross-authority actions fail closed.
 
 const Controller = preload("res://game/inventory/presentation/inventory_presentation_controller.gd")
@@ -239,7 +239,8 @@ func run() -> void:
 	await process_frame
 	await process_frame
 	var screen: Control = app.screen
-	var fixture_before: Dictionary = (app.state.get("inventory_data", {}) as Dictionary).duplicate(true)
+	var fixture_before: Dictionary = (app.fixture_state_for_test().get(
+		"inventory_data", {}) as Dictionary).duplicate(true)
 	var authored_stash_scroll := screen._grid_for_source("stash").get_parent() as ScrollContainer
 	var authored_scroll_position := authored_stash_scroll.position if authored_stash_scroll != null else Vector2.ZERO
 	var authored_scroll_size := authored_stash_scroll.size if authored_stash_scroll != null else Vector2.ZERO
@@ -289,7 +290,8 @@ func run() -> void:
 		var selected_pockets_grid: Control = screen._grid_for_source("pockets")
 		check(adapter.tracked_request_count() == before_keyboard_rotate + 1 and bool(player_rotated_after.get("rotated", player_rotated_before)) != player_rotated_before and str(app.toast_label.text) == "Inventory confirmed", "R keyboard input submits exactly one rotate intent and renders the confirmed orientation")
 		check(int(screen._selected_live_item.get("item_id", 0)) == int(player_rotatable.get("item_id", 0)) and selected_pockets_grid.selected_id == str(player_rotatable.get("item_id", 0)), "selection survives the accepted projection refresh")
-	var preview_fixture := (app.state.get("inventory_data", {}) as Dictionary).duplicate(true)
+	var preview_fixture := (app.fixture_state_for_test().get(
+		"inventory_data", {}) as Dictionary).duplicate(true)
 	var preview_requests := adapter.tracked_request_count()
 	var preview_raid_revision := bridge.confirmed_revision(InventoryProjectionBridge.SCOPE_RAID, owner.raid_player_inventory_id)
 	var preview_profile_revision := bridge.confirmed_revision(InventoryProjectionBridge.SCOPE_PROFILE, owner.profile_inventory_id)
@@ -300,7 +302,7 @@ func run() -> void:
 	screen._sort_stash()
 	screen._organize_stash()
 	screen._quick_heal()
-	check(adapter.tracked_request_count() == preview_requests and bridge.confirmed_revision(InventoryProjectionBridge.SCOPE_RAID, owner.raid_player_inventory_id) == preview_raid_revision and bridge.confirmed_revision(InventoryProjectionBridge.SCOPE_PROFILE, owner.profile_inventory_id) == preview_profile_revision and (app.state.get("inventory_data", {}) as Dictionary) == preview_fixture, "guarded preview actions mutate neither canonical authority nor fixture state in live mode")
+	check(adapter.tracked_request_count() == preview_requests and bridge.confirmed_revision(InventoryProjectionBridge.SCOPE_RAID, owner.raid_player_inventory_id) == preview_raid_revision and bridge.confirmed_revision(InventoryProjectionBridge.SCOPE_PROFILE, owner.profile_inventory_id) == preview_profile_revision and (app.fixture_state_for_test().get("inventory_data", {}) as Dictionary) == preview_fixture, "guarded preview actions mutate neither canonical authority nor fixture state in live mode")
 	var pockets_grid: Control = screen._grid_for_source("pockets")
 	var rig_grid: Control = screen._grid_for_source("rig")
 	var player_stack := _find_definition(screen._items_for("pockets"), str(corpse_ammo.definition_id))
@@ -427,7 +429,8 @@ func run() -> void:
 		var retained_stash_grid: Control = screen._grid_for_source("stash")
 		var retained_scroll: ScrollContainer = retained_stash_grid.get_parent() as ScrollContainer
 		check(assigned_scroll == 123 and retained_scroll != null and retained_scroll.name == "DesktopStashScroll" and retained_scroll.scroll_vertical == assigned_scroll, "desktop scroll offset survives retained live refresh parent=" + (retained_scroll.name if retained_scroll != null else "null") + " offset=" + str(retained_scroll.scroll_vertical if retained_scroll != null else -1) + " assigned=" + str(assigned_scroll) + " viewport=" + str(root.get_viewport().size))
-	var fixture_after_bind: Dictionary = (app.state.get("inventory_data", {}) as Dictionary).duplicate(true)
+	var fixture_after_bind: Dictionary = (app.fixture_state_for_test().get(
+		"inventory_data", {}) as Dictionary).duplicate(true)
 	screen._set_filter("guns")
 	if search != null:
 		search.text = "akm"
@@ -437,7 +440,9 @@ func run() -> void:
 		await process_frame
 	screen._set_loot_mode(true)
 	screen._set_loot_mode(false)
-	check(fixture_after_bind == (app.state.get("inventory_data", {}) as Dictionary), "filter/search/mode never mutate live fixture state")
+	check(fixture_after_bind == (app.fixture_state_for_test().get(
+		"inventory_data", {}) as Dictionary),
+		"filter/search/mode never mutate live fixture state")
 	check(fixture_before == fixture_after_bind, "live bind never replaces fixture data")
 	check(screen._current_filter == "guns" and screen._search_query == "akm" and (search == null or (search.text == "akm" and search.caret_column == 2 and search.get_viewport().gui_get_focus_owner() == search)), "live section changes retain filter, query, search focus, and caret")
 	# Retention is the behavior under test above. Clear presentation-only filters

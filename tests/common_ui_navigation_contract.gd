@@ -88,6 +88,9 @@ func run() -> void:
 		"navigation contract runs at the exact first-playable canvas")
 	app = load("res://ui/main.tscn").instantiate() as Control
 	app.name = "CommonUINavigationHost"
+	# This contract exercises the authored preview interactions. Opt in before
+	# the host enters the tree so production navigation never acquires fixtures.
+	app.prototype_fixture_mode = true
 	root.add_child(app)
 	await settle()
 	app.navigator.rejected.connect(reject_record)
@@ -155,7 +158,7 @@ func run() -> void:
 	check(screen_root.hud_layer().get_top_screen() == hud, "HUD uses the HUD layer")
 	check(screen_root.menu_layer().get_depth() == 0, "HUD does not occupy menu history")
 	check(context_is(hud, &"screen/hud"), "HUD route context is active")
-	app.state.raid_ammo = 17
+	app.fixture_state_for_test().raid_ammo = 17
 	await key(KEY_ESCAPE)
 	var pause := app.screen as CommonActivatableScreen
 	check(app.current_route == "pause", "physical Back opens pause through CommonUI")
@@ -166,7 +169,7 @@ func run() -> void:
 	check(root.gui_get_focus_owner() == pause.get_node_or_null("ActionsPanel/ResumeRow/Hit"),
 		"pause activation focuses Resume")
 	await key(KEY_R)
-	check(not bool(app.state.get("raid_reloading", false)),
+	check(not bool(app.fixture_state_for_test().get("raid_reloading", false)),
 		"covered HUD cannot receive physical reload input")
 	await key(KEY_ESCAPE)
 	check(app.screen == hud and app.current_route == "hud",
@@ -287,7 +290,8 @@ func run() -> void:
 			hud_handle.is_suspended(),
 			str(hud_handle.get_context()),
 		])
-	check(app.state.raid_ammo == 17, "layer transitions preserve HUD presentation state")
+	check(app.fixture_state_for_test().raid_ammo == 17,
+		"layer transitions preserve HUD preview state")
 
 	print("COMMON_UI_NAVIGATION_RESULT checks=", checks,
 		" failures=", failures, " routes=", ZRouteCatalog.ROUTES.size())

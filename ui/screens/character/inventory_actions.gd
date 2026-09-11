@@ -1,7 +1,6 @@
 extends "res://ui/core/screen.gd"
 ## Character actions. The shared scene controller owns retained view binding.
 
-const InventoryFixture = preload("res://ui/dev/fixtures/inventory_fixture.gd")
 const Adaptive = preload("res://ui/core/adaptive.gd")
 const InventoryPresentationController = preload("res://game/inventory/presentation/inventory_presentation_controller.gd")
 
@@ -64,21 +63,16 @@ func _tab_name() -> String:
 
 
 func _state() -> Dictionary:
-    if app != null:
-        var value = app.get("state")
-        if value is Dictionary:
-            return value as Dictionary
+    if app != null and app.has_fixture_provider():
+        return app.fixture_state()
     return _local_state
 
 
 func _ensure_inventory_state() -> void:
     if _live_inventory_binding:
         return
-    var state: Dictionary = _state()
-    if not state.has("inventory_data"):
-        state["inventory_data"] = InventoryFixture.create()
-    if not state.has("inventory_tab"):
-        state["inventory_tab"] = "gear"
+    if app != null:
+        app.prepare_fixture_route()
 
 
 func _inventory_data() -> Dictionary:
@@ -88,9 +82,7 @@ func _inventory_data() -> Dictionary:
     var value = state.get("inventory_data", {})
     if value is Dictionary:
         return value as Dictionary
-    var fresh: Dictionary = InventoryFixture.create()
-    state["inventory_data"] = fresh
-    return fresh
+    return {}
 
 
 func _items_for(key: String) -> Array:
@@ -1184,7 +1176,7 @@ func unbind_inventory_runtime() -> void:
     _selected_live_source = ""
     _close_tip()
     _cancel_split_quantity()
-    # Live presentation state is deliberately not written into app.state.
+    # Live presentation state is deliberately not written into fixture storage.
     # Returning to the fixture must therefore restore its own retained choices
     # instead of leaking the live loot tab/query into the preview controller.
     if was_live:
@@ -1283,7 +1275,7 @@ func _on_live_acceptance(_info: Dictionary) -> void:
 
 func _on_live_binding_invalidated(reason: StringName) -> void:
     # Keep the screen in the explicit live/read-only state after teardown or a
-    # generation change. Falling back to app.state here would expose fixture
+    # generation change. Falling back to fixture storage here would expose sample
     # identity and re-enable mutations while the authority is disconnected.
     _active_binding_token = 0
     # Keep an already-open loot tab visible as DISCONNECTED so the retained

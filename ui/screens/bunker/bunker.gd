@@ -14,8 +14,8 @@ func build() -> void:
 	if _route.is_empty():
 		_route = "bunker"
 	_ensure_state()
-	if app.state.has("bunker_selected_station"):
-		_selected_station = clampi(int(app.state.get("bunker_selected_station", _selected_station)), 1, 6)
+	if app.fixture_has("bunker_selected_station"):
+		_selected_station = clampi(int(app.fixture_get("bunker_selected_station", _selected_station)), 1, 6)
 	_install_scale_safe_styles()
 	_bind_static_scene()
 	queue_adaptive_layout()
@@ -163,4 +163,3 @@ func _wire_button(button: Button, callback: Callable) -> void:
 		return
 	if not button.pressed.is_connected(callback):
 		button.pressed.connect(callback)
-

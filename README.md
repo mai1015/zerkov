@@ -66,6 +66,9 @@ Replace `godot` below with your Godot executable. The local editor used for this
 
 ```sh
 godot --headless --path . --editor --import --quit
+python3 tests/tooling/test_ui_first_playable_scope.py
+godot --headless --path . --script res://tests/presentation/ui_state_8_11_contract.gd
+godot --headless --path . --script res://tests/presentation/ui_production_unavailable_8_11_contract.gd
 godot --headless --path . -- --smoke
 godot --headless --path . --script res://tests/common_ui_integration_smoke.gd
 godot --headless --path . --script res://tests/common_ui_navigation_contract.gd
@@ -85,7 +88,7 @@ godot --path . --script res://tests/ui_component_states.gd -- --capture-dir=/tmp
 godot --path . --resolution 1920x1080 -- --qa --capture-dir=/tmp/zerkov-ui-qa
 ```
 
-`--screen=<route>` starts any route registered in `ui/core/route_catalog.gd`; paths are not constructed from IDs. `--smoke` instantiates all screens and exits. `--qa` also supports PNG captures using the actual Godot renderer; captures require a graphical session. Runtime errors in console output must be treated as failures even when the process exits successfully.
+`--screen=<route>` starts any route registered in `ui/core/route_catalog.gd`; paths are not constructed from IDs. `--smoke` instantiates all screens and exits. Both CLI review paths pin the window to the exact 1920×1080 first-playable target before constructing a route. `--qa` also supports PNG captures using the actual Godot renderer; captures require a graphical session. Runtime errors in console output must be treated as failures even when the process exits successfully.
 
 Historical small-window sources (`tests/responsive_smoke.gd` and the dedicated
 `tests/compact_*_smoke.gd` files) and their existing captures remain for audit

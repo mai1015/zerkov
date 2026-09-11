@@ -7,7 +7,10 @@ var current_route: String
 var _host: WeakRef
 var _feedback_owner: WeakRef
 var _feedback_capability: RefCounted
-var fixtures: ZUIFixtureStore
+var _fixture_provider: WeakRef
+var _fixture_generation: int = 0
+var _presentation_provider: WeakRef
+var _presentation_generation: int = 0
 ## Records that this view was entered from the explicit developer catalog.
 ## It does not confer permission to forge later catalog selections.
 var developer_context: bool = false
@@ -17,8 +20,6 @@ var _character_runtime: WeakRef
 ## return target when it replaced a view. CommonUI remains stack authority.
 var return_route: String = ""
 
-var state: Dictionary:
-	get: return fixtures.state
 var qa_mode: bool:
 	get: return bool(_service().qa_mode) if _service() != null else true
 var modal: Control:
@@ -37,14 +38,20 @@ func input_service() -> ZerkovInputService:
 func _init(
 	host: Node,
 	route: String,
-	store: ZUIFixtureStore,
+	fixture_provider: ZUIFixtureProvider = null,
 	is_developer_context: bool = false,
 	payload: ZUIRoutePayload = null,
-	character_runtime: CharacterUIRuntime = null
+	character_runtime: CharacterUIRuntime = null,
+	presentation_provider: ZUIPresentationProvider = null
 ) -> void:
 	_host = weakref(host)
 	current_route = route
-	fixtures = store
+	_fixture_provider = weakref(fixture_provider) if fixture_provider != null else null
+	_fixture_generation = fixture_provider.generation() if fixture_provider != null else 0
+	_presentation_provider = weakref(presentation_provider) \
+			if presentation_provider != null else null
+	_presentation_generation = presentation_provider.generation() \
+			if presentation_provider != null else 0
 	developer_context = is_developer_context
 	route_payload = payload if payload != null else ZUIRoutePayload.empty()
 	_character_runtime = weakref(character_runtime) if character_runtime != null else null
@@ -69,6 +76,140 @@ func _feedback_owner_for(capability: RefCounted) -> ZScreen:
 
 func _service() -> Node:
 	return _host.get_ref() as Node
+
+
+func has_fixture_provider() -> bool:
+	var provider := _fixture_service()
+	return provider != null and provider.is_current(_fixture_generation)
+
+
+func fixture_generation() -> int:
+	return _fixture_generation
+
+
+## Mutable fixture access is intentionally conspicuous and generation-gated.
+## It exists only for developer/test contexts; production screens receive no
+## fixture provider and therefore cannot read or write this document.
+func fixture_state() -> Dictionary:
+	var provider := _fixture_service()
+	if provider == null:
+		return {}
+	var value: Variant = provider.state(_fixture_generation)
+	return value as Dictionary if value is Dictionary else {}
+
+
+func fixture_get(key: String, fallback: Variant = null) -> Variant:
+	var provider := _fixture_service()
+	if provider == null:
+		return null
+	var value: Variant = provider.state(_fixture_generation)
+	return (value as Dictionary).get(key, fallback) \
+			if value is Dictionary else null
+
+
+func fixture_has(key: String) -> bool:
+	var provider := _fixture_service()
+	if provider == null:
+		return false
+	var value: Variant = provider.state(_fixture_generation)
+	return value is Dictionary and (value as Dictionary).has(key)
+
+
+func fixture_set(key: String, value: Variant) -> bool:
+	var provider := _fixture_service()
+	if provider == null:
+		return false
+	var document: Variant = provider.state(_fixture_generation)
+	if not document is Dictionary:
+		return false
+	(document as Dictionary)[key] = value
+	return true
+
+
+func prepare_fixture_route() -> bool:
+	var provider := _fixture_service()
+	return provider != null \
+			and provider.prepare_route(current_route, _fixture_generation)
+
+
+func fixture_catalog(name: StringName) -> Variant:
+	var provider := _fixture_service()
+	return provider.catalog(name, _fixture_generation) \
+			if provider != null else null
+
+
+func presentation_generation() -> int:
+	return _presentation_generation
+
+
+func presentation_view() -> ZReadOnlyView:
+	var provider := _presentation_service()
+	return provider.view_for_route(current_route, _presentation_generation) \
+			if provider != null else null
+
+
+func bunker_view() -> BunkerView:
+	var provider := _presentation_service()
+	return provider.bunker_view(_presentation_generation) \
+			if provider != null else BunkerView.unavailable(
+				ZReadOnlyView.SyncState.UNBOUND,
+				&"ui_presentation_provider_missing")
+
+
+func raid_view() -> RaidView:
+	var provider := _presentation_service()
+	return provider.raid_view(_presentation_generation) \
+			if provider != null else RaidView.unavailable(
+				ZReadOnlyView.SyncState.UNBOUND,
+				&"ui_presentation_provider_missing")
+
+
+func task_view() -> TaskView:
+	var provider := _presentation_service()
+	return provider.task_view(_presentation_generation) \
+			if provider != null else TaskView.unavailable(
+				ZReadOnlyView.SyncState.UNBOUND,
+				&"ui_presentation_provider_missing")
+
+
+func map_view() -> MapView:
+	var provider := _presentation_service()
+	return provider.map_view(_presentation_generation) \
+			if provider != null else MapView.unavailable(
+				ZReadOnlyView.SyncState.UNBOUND,
+				&"ui_presentation_provider_missing")
+
+
+func summary_view() -> SummaryView:
+	var provider := _presentation_service()
+	return provider.summary_view(_presentation_generation) \
+			if provider != null else SummaryView.unavailable(
+				ZReadOnlyView.SyncState.UNBOUND,
+				&"ui_presentation_provider_missing")
+
+
+func presentation_diagnostic() -> StringName:
+	var view := presentation_view()
+	if view != null:
+		return view.diagnostic()
+	var provider := _presentation_service()
+	if provider == null:
+		return &"ui_presentation_provider_missing"
+	if provider.generation() != _presentation_generation:
+		return &"ui_presentation_provider_stale_generation"
+	if not provider.is_active():
+		return &"ui_presentation_provider_released"
+	return &"ui_route_service_not_injected"
+
+
+func _fixture_service() -> ZUIFixtureProvider:
+	return _fixture_provider.get_ref() as ZUIFixtureProvider \
+			if _fixture_provider != null else null
+
+
+func _presentation_service() -> ZUIPresentationProvider:
+	return _presentation_provider.get_ref() as ZUIPresentationProvider \
+			if _presentation_provider != null else null
 
 func navigate(
 	route: String,

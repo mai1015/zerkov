@@ -9,21 +9,28 @@ const ABILITY_MICROUNITS_PER_WHOLE: int = 1_000_000
 const WEAPON_MILLIUNITS_PER_WORLD_UNIT: int = 1_000
 const WEAPON_DIRECTION_SCALE: int = 1_000_000
 const WEAPON_DAMAGE_MILLIUNITS_PER_WHOLE: int = 1_000
+# Shared weapon, tile and scalar-distance consumers retain the accepted world
+# domain. Common Vision points cross a Vector2i API, so their smaller bound is
+# explicit and local instead of silently narrowing every other subsystem.
 const MAX_GODOT_COORDINATE_PX: float = 1_048_576.0
 const MAX_CANONICAL_RAW: int = 32_768_000_000
+const MAX_VISION_GODOT_COORDINATE_PX: float = 65_536.0
+const MAX_VISION_CANONICAL_RAW: int = 2_048_000_000
 
 
 static func godot_to_canonical(point_px: Vector2) -> ZUnitConversion:
-	if not _is_valid_godot_point(point_px):
+	if not _is_valid_vision_godot_point(point_px):
 		return ZUnitConversion.failure(&"invalid_godot_position")
-	return ZUnitConversion.point_i(Vector2i(
-		_round_half_away_from_zero(
-			point_px.x * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
-		),
-		_round_half_away_from_zero(
-			point_px.y * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
-		)
-	))
+	var raw_x := _round_half_away_from_zero(
+		point_px.x * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
+	)
+	var raw_y := _round_half_away_from_zero(
+		point_px.y * VISION_MICROUNITS_PER_WORLD_UNIT / GODOT_PIXELS_PER_WORLD_UNIT
+	)
+	if absi(raw_x) > MAX_VISION_CANONICAL_RAW \
+			or absi(raw_y) > MAX_VISION_CANONICAL_RAW:
+		return ZUnitConversion.failure(&"canonical_position_out_of_range")
+	return ZUnitConversion.point_i(Vector2i(raw_x, raw_y))
 
 
 static func canonical_to_godot(point_raw: Vector2i) -> ZUnitConversion:
@@ -127,7 +134,14 @@ static func _is_valid_godot_point(point: Vector2) -> bool:
 
 
 static func _is_valid_canonical_point(point: Vector2i) -> bool:
-	return absi(point.x) <= MAX_CANONICAL_RAW and absi(point.y) <= MAX_CANONICAL_RAW
+	return absi(point.x) <= MAX_VISION_CANONICAL_RAW \
+		and absi(point.y) <= MAX_VISION_CANONICAL_RAW
+
+
+static func _is_valid_vision_godot_point(point: Vector2) -> bool:
+	return _is_valid_godot_point(point) \
+		and absf(point.x) <= MAX_VISION_GODOT_COORDINATE_PX \
+		and absf(point.y) <= MAX_VISION_GODOT_COORDINATE_PX
 
 
 static func _round_half_away_from_zero(value: float) -> int:

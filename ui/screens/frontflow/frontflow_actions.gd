@@ -40,7 +40,7 @@ func _install_authored_scale_safe_styles() -> void:
 
 
 func _compact_section(section: String) -> void:
-	app.state["frontflow_compact_" + active_route] = section
+	app.fixture_set("frontflow_compact_" + active_route, section)
 	go(active_route)
 
 
@@ -111,36 +111,34 @@ func _rule(parent: Control, x: float, y: float, width: float, color: Color = U.L
 
 
 func _state_string(key: String, fallback: String) -> String:
-	var value: Variant = app.state.get(key, fallback)
+	var value: Variant = app.fixture_get(key, fallback)
 	return str(value)
 
 
 func _worlds() -> Array[Dictionary]:
-	var stored: Variant = app.state.get("frontflow_worlds", null)
+	var stored: Variant = app.fixture_get("frontflow_worlds", [])
 	if stored is Array:
 		var worlds: Array[Dictionary] = []
 		for item in stored:
 			if item is Dictionary:
 				worlds.append(item)
 		return worlds
-	var fallback: Array[Dictionary] = preload("res://ui/dev/fixtures/frontflow_fixture.gd").worlds()
-	app.state["frontflow_worlds"] = fallback
-	return fallback
+	return []
 
 func _selected_world_data() -> Dictionary:
 	var worlds = _worlds()
 	if worlds.is_empty(): return {"name": "NO WORLD YET", "bunker": "—", "character": "—", "playtime": "—", "last": "never", "difficulty": "STANDARD"}
-	return worlds[clampi(int(app.state.get("frontflow_selected_world", 0)), 0, worlds.size() - 1)]
+	return worlds[clampi(int(app.fixture_get("frontflow_selected_world", 0)), 0, worlds.size() - 1)]
 
 func _advance_deploy() -> void:
 	if deploy_bar == null:
 		return
-	var progress: float = float(app.state.get("frontflow_deploy_percent", 68.0)) + 8.0
+	var progress: float = float(app.fixture_get("frontflow_deploy_percent", 68.0)) + 8.0
 	if progress >= 100.0:
 		progress = 100.0
 	deploy_bar.value = progress
 	deploy_value_label.text = "%d%%" % int(progress)
-	app.state["frontflow_deploy_percent"] = progress
+	app.fixture_set("frontflow_deploy_percent", progress)
 	if progress < 80.0:
 		deploy_phase_label.text = "MATCHING SQUAD   ›   LOADING ZONE   ›   SPAWNING"
 	elif progress < 96.0:
@@ -148,7 +146,7 @@ func _advance_deploy() -> void:
 	else:
 		deploy_phase_label.text = "MATCHING SQUAD   ✓   LOADING ZONE   ✓   SPAWNING"
 	if progress >= 100.0:
-		app.state["frontflow_deploy_percent"] = 0.0
+		app.fixture_set("frontflow_deploy_percent", 0.0)
 		go("hud")
 
 
@@ -158,25 +156,25 @@ func _back_to_menu() -> void:
 
 func _continue_world() -> void:
 	if _worlds().is_empty() and (get_viewport_rect().size.x < 1920 or get_viewport_rect().size.y < 1080):
-		app.state["frontflow_compact_saves"] = "new"
+		app.fixture_set("frontflow_compact_saves", "new")
 	go("saves" if _worlds().is_empty() else "session")
 
 
 func _open_saves() -> void:
-	app.state["frontflow_save_tab"] = "worlds"
-	app.state["frontflow_compact_saves"] = "worlds"
+	app.fixture_set("frontflow_save_tab", "worlds")
+	app.fixture_set("frontflow_compact_saves", "worlds")
 	go("saves")
 
 
 func _open_join_friend() -> void:
-	app.state["frontflow_join_mode"] = "friends"
-	app.state["frontflow_compact_join_friend"] = "friends"
+	app.fixture_set("frontflow_join_mode", "friends")
+	app.fixture_set("frontflow_compact_join_friend", "friends")
 	go("join_friend")
 
 
 func _open_join_code() -> void:
-	app.state["frontflow_join_mode"] = "code"
-	app.state["frontflow_compact_join_friend"] = "friends"
+	app.fixture_set("frontflow_join_mode", "code")
+	app.fixture_set("frontflow_compact_join_friend", "friends")
 	go("join_friend")
 
 
@@ -201,18 +199,18 @@ func _quit_to_desktop() -> void:
 
 
 func _join_kevin() -> void:
-	app.state["frontflow_joined_friend"] = "KEVIN_J"
+	app.fixture_set("frontflow_joined_friend", "KEVIN_J")
 	toast("JOINING KEV'S HOLE · SESSION READY")
 	go("session")
 
 
 func _request_denz() -> void:
-	app.state["frontflow_denz_requested"] = true
+	app.fixture_set("frontflow_denz_requested", true)
 	toast("REQUEST SENT TO DENZ · INVITE ONLY")
 
 func _join_denz() -> void:
-	app.state["frontflow_join_mode"] = "friend"
-	app.state["frontflow_join_host"] = "DENZ"
+	app.fixture_set("frontflow_join_mode", "friend")
+	app.fixture_set("frontflow_join_host", "DENZ")
 	go("session")
 
 
@@ -248,15 +246,15 @@ func _submit_friend_code(code: String) -> void:
 		friend_code_field.add_theme_color_override("font_color", U.TEXT)
 	if friend_code_error != null:
 		friend_code_error.text = ""
-	app.state["frontflow_join_code"] = normalized
-	app.state["frontflow_join_mode"] = "code"
+	app.fixture_set("frontflow_join_code", normalized)
+	app.fixture_set("frontflow_join_mode", "code")
 	toast("WORLD CODE ACCEPTED · JOINING %s" % normalized)
 	go("session")
 
 
 func _select_world(index: int) -> void:
 	selected_world = index
-	app.state["frontflow_selected_world"] = index
+	app.fixture_set("frontflow_selected_world", index)
 	go("saves")
 
 
@@ -272,7 +270,7 @@ func _load_selected_world() -> void:
 	if _worlds().is_empty():
 		_new_world_hint()
 		return
-	app.state["frontflow_selected_world"] = selected_world
+	app.fixture_set("frontflow_selected_world", selected_world)
 	toast("LOADING %s" % str(_worlds()[selected_world].get("name", "WORLD")))
 	go("session")
 
@@ -285,7 +283,7 @@ func _rename_world() -> void:
 			toast("WORLD NAME REQUIRED")
 			return
 		worlds[selected_world].name = value.to_upper()
-		app.state["frontflow_worlds"] = worlds
+		app.fixture_set("frontflow_worlds", worlds)
 		go("saves"))
 
 
@@ -296,8 +294,8 @@ func _duplicate_world() -> void:
 	copy.name = str(copy.name).left(17) + " (COPY)"
 	copy.last = "just now"
 	worlds.append(copy)
-	app.state["frontflow_worlds"] = worlds
-	app.state["frontflow_selected_world"] = worlds.size() - 1
+	app.fixture_set("frontflow_worlds", worlds)
+	app.fixture_set("frontflow_selected_world", worlds.size() - 1)
 	go("saves")
 	toast("WORLD DUPLICATED")
 
@@ -311,23 +309,23 @@ func _delete_world_confirmed() -> void:
 	if worlds.is_empty():
 		return
 	worlds.remove_at(clampi(selected_world, 0, worlds.size() - 1))
-	app.state["frontflow_worlds"] = worlds
+	app.fixture_set("frontflow_worlds", worlds)
 	selected_world = 0
-	app.state["frontflow_selected_world"] = 0
+	app.fixture_set("frontflow_selected_world", 0)
 	toast("WORLD SLOT DELETED")
 	go("saves")
 
 
 func _world_name_changed(value: String) -> void:
-	app.state["frontflow_new_world_name"] = value
+	app.fixture_set("frontflow_new_world_name", value)
 
 
 func _world_seed_changed(value: String) -> void:
-	app.state["frontflow_new_seed"] = value
+	app.fixture_set("frontflow_new_seed", value)
 
 
 func _set_world_choice(key: String, value: String) -> void:
-	app.state["frontflow_new_%s" % key] = value
+	app.fixture_set("frontflow_new_%s" % key, value)
 	go("saves")
 
 
@@ -357,8 +355,8 @@ func _create_world_confirmed(name: String) -> void:
 		"seed": _state_string("frontflow_new_seed", "ZK-4A91-KX")
 	}
 	worlds.append(created)
-	app.state["frontflow_worlds"] = worlds
-	app.state["frontflow_selected_world"] = worlds.size() - 1
+	app.fixture_set("frontflow_worlds", worlds)
+	app.fixture_set("frontflow_selected_world", worlds.size() - 1)
 	toast("WORLD CREATED · ENTERING BUNKER")
 	go("session")
 

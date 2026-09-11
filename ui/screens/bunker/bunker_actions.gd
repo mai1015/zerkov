@@ -56,22 +56,22 @@ func _on_menu() -> void:
 ## ---------- Shared state ----------
 
 func _ensure_state() -> void:
-	preload("res://ui/dev/fixtures/bunker_fixture.gd").initialize(app.state)
+	app.prepare_fixture_route()
 
 func _max_players() -> int:
-	var worlds: Array = app.state.get("frontflow_worlds", [])
-	var selected: int = int(app.state.get("frontflow_selected_world", 0))
+	var worlds: Array = app.fixture_get("frontflow_worlds", [])
+	var selected: int = int(app.fixture_get("frontflow_selected_world", 0))
 	if selected >= 0 and selected < worlds.size(): return int(worlds[selected].get("max_players", 4))
 	return 4
 
 
 func _craft_queue() -> Array:
-	var queue: Array = app.state.get("bunker_craft_queue", [])
+	var queue: Array = app.fixture_get("bunker_craft_queue", [])
 	return queue
 
 
 func _save_craft_queue(queue: Array) -> void:
-	app.state["bunker_craft_queue"] = queue
+	app.fixture_set("bunker_craft_queue", queue)
 
 
 func _queue_entry(name: String, asset: String, duration_ms: int) -> Dictionary:
@@ -83,8 +83,8 @@ func _queue_entry(name: String, asset: String, duration_ms: int) -> Dictionary:
 		var queued_finish: int = int(last.get("finish_at", now))
 		if queued_finish > start_at:
 			start_at = queued_finish
-	var serial: int = int(app.state.get("bunker_craft_serial", 0)) + 1
-	app.state["bunker_craft_serial"] = serial
+	var serial: int = int(app.fixture_get("bunker_craft_serial", 0)) + 1
+	app.fixture_set("bunker_craft_serial", serial)
 	return {"id": "craft_%d" % serial, "name": name, "asset": asset, "started_at": start_at, "finish_at": start_at + duration_ms, "duration": duration_ms, "claimed": false}
 
 
@@ -101,7 +101,7 @@ func _format_code() -> String:
 
 
 func _rebuild_route() -> void:
-	app.state["bunker_selected_station"] = _selected_station
+	app.fixture_set("bunker_selected_station", _selected_station)
 	refresh_view()
 
 
@@ -127,7 +127,7 @@ func _on_use_station() -> void:
 	elif _selected_station == 1:
 		go("inventory")
 	elif _selected_station == 5:
-		app.state["bunker_water"] = int(app.state.get("bunker_water", 0)) + 4
+		app.fixture_set("bunker_water", int(app.fixture_get("bunker_water", 0)) + 4)
 		toast("Collected 4 clean water into stash.")
 	else:
 		toast("Station interface is a local prototype.")
@@ -165,7 +165,7 @@ func _on_place_building() -> void:
 
 
 func _confirm_place_building() -> void:
-	app.state["bunker_placed"] = int(app.state.get("bunker_placed", 7)) + 1
+	app.fixture_set("bunker_placed", int(app.fixture_get("bunker_placed", 7)) + 1)
 	toast("%s placed (mock)." % _build_selection)
 	_rebuild_route()
 
@@ -272,9 +272,9 @@ func _on_collect_queue(id: String) -> void:
 			if int(data.get("finish_at", 0)) > Time.get_ticks_msec():
 				toast("This craft is still running.")
 				return
-			var collected: Array = app.state.get("bunker_collected", [])
+			var collected: Array = app.fixture_get("bunker_collected", [])
 			collected.append(data.get("name", "Craft"))
-			app.state["bunker_collected"] = collected
+			app.fixture_set("bunker_collected", collected)
 			queue.remove_at(i)
 			break
 	_save_craft_queue(queue)
@@ -320,29 +320,29 @@ func _on_upgrade_recipe() -> void:
 ## ---------- Shared session actions ----------
 
 func _on_privacy(option: String) -> void:
-	app.state["bunker_privacy"] = option
-	var worlds: Array = app.state.get("frontflow_worlds", [])
-	var selected: int = int(app.state.get("frontflow_selected_world", 0))
+	app.fixture_set("bunker_privacy", option)
+	var worlds: Array = app.fixture_get("frontflow_worlds", [])
+	var selected: int = int(app.fixture_get("frontflow_selected_world", 0))
 	if selected >= 0 and selected < worlds.size(): worlds[selected]["privacy"] = option
 	toast("Session privacy: %s" % option)
 	_rebuild_route()
 
 
 func _on_copy_code() -> void:
-	DisplayServer.clipboard_set(str(app.state.get("bunker_code", "ZK-7F2Q")))
+	DisplayServer.clipboard_set(str(app.fixture_get("bunker_code", "ZK-7F2Q")))
 	toast("World code copied.")
 
 
 func _on_new_code() -> void:
-	app.state["bunker_code"] = _format_code()
+	app.fixture_set("bunker_code", _format_code())
 	toast("New world code generated.")
 	_rebuild_route()
 
 
 func _on_invite(friend: String) -> void:
-	var invited: Array = app.state.get("bunker_invited", [])
+	var invited: Array = app.fixture_get("bunker_invited", [])
 	if not invited.has(friend): invited.append(friend)
-	app.state["bunker_invited"] = invited
+	app.fixture_set("bunker_invited", invited)
 	toast("Invite sent to %s (mock)." % friend)
 	_rebuild_route()
 
@@ -356,13 +356,13 @@ func _on_kick_guest() -> void:
 
 
 func _confirm_kick_guest() -> void:
-	app.state["bunker_guest_present"] = false
+	app.fixture_set("bunker_guest_present", false)
 	toast("KEVIN_J was kicked from the world.")
 	_rebuild_route()
 
 
 func _on_deploy() -> void:
-	app.state["deploy_source"] = "session"
+	app.fixture_set("deploy_source", "session")
 	toast("Deploying squad…")
 	go("deploying")
 
