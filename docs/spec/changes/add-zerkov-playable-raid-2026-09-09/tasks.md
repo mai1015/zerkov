@@ -425,7 +425,7 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   modal and popup layers while retaining the F1 developer catalog.
 - [ ] 8.3 `[LUNA]` Author logical action definitions, default bindings, glyph
   metadata and rebinding persistence for gameplay and UI contexts.
-- [ ] 8.4 `[SOL]` Define typed/read-only `RaidView`, `InventoryView`,
+- [x] 8.4 `[SOL]` Define typed/read-only `RaidView`, `InventoryView`,
   `HealthView`, `TaskView`, `MapView`, `BunkerView` and `SummaryView` contracts.
 - [ ] 8.5 `[LUNA]` Bind the HUD to real raid, weapon, health, task and extraction
   projections with reversible prediction/correction states.
