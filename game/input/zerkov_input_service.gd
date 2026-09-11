@@ -45,6 +45,7 @@ var _specs: Array[Dictionary] = []
 var _spec_by_id: Dictionary = {}
 var _request_history: Dictionary = {}
 var _request_order: Array[String] = []
+var _next_request_sequence: int = 0
 var _contexts: Dictionary = {}
 var _next_generation: int = 0
 var _next_capability: int = 0
@@ -218,6 +219,22 @@ func persistence_descriptor() -> Dictionary:
 		"recovery": "CommonUI native target/temp/backup atomic replacement; invalid candidates are rejected as a whole",
 		"migration": "known override formats up to the current version are schema-compatible; exact definition version only; a changed action/slot/protection schema fails closed and keeps defaults",
 	}
+
+
+## Allocates a process-scoped request identity for presentation callers.
+## Request history intentionally survives screen replacement, so callers must
+## not derive IDs from a screen-local generation. The sequence is owned by this
+## service and is monotonic for the entire host lifecycle.
+func allocate_request_id(operation: String = "request") -> StringName:
+	_next_request_sequence += 1
+	var stem := operation.strip_edges()
+	if stem.is_empty():
+		stem = "request"
+	var suffix := "_" + str(_next_request_sequence)
+	var maximum_stem_length := maxi(1, MAX_REQUEST_ID_LENGTH - suffix.length())
+	if stem.length() > maximum_stem_length:
+		stem = stem.left(maximum_stem_length)
+	return StringName(stem + suffix)
 
 
 ## Reload the fixed persistence candidate through the same game-owned
