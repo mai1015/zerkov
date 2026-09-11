@@ -184,7 +184,7 @@ animation/combat/readability/cursor-mapping acceptance is claimed.
   cancellation and rollback without duplication or loss.
 - [x] 4.10 `[SOL]` Implement inventory-to-ability equipment grants and revoke
   them idempotently from full snapshots and accepted deltas.
-- [ ] 4.11 `[LUNA]` After 4.12 and 4.12a are accepted, extend the existing
+- [x] 4.11 `[LUNA]` After 4.12 and 4.12a are accepted, extend the existing
   designed inventory/loot UI with loot-container open/search/close
   presentation, including inaccessible, stale, overweight, disconnected and
   resynchronizing states. Do not introduce a replacement inventory screen;

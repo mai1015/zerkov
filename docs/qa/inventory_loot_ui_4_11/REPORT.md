@@ -79,3 +79,15 @@ session_lifecycle_contract                checks=44 failures=0
 Import/check gate also passed with Godot 4.7.2 and no diagnostics. The focused
 capture/contract scripts are 1920×1080-only; compact layouts remain deferred
 and were not used as an acceptance gate.
+
+## Independent acceptance
+
+Accepted on 2026-09-10 at implementation commit `a81cc1794de3eb9adf3a6ae6f66ba161a94ed3b0`.
+The independent domain re-review passed `3433/0`, including a `64/0` callback
+stage/return matrix proving lifecycle invalidation outranks policy denials and
+causal hints with zero submissions. The Astra visual re-review accepted the
+unchanged exact 1920×1080 workspace at `26/0` plus a `23/0` hover/click probe:
+the full status tooltip is reachable, header geometry is unchanged, Close
+restores Stash without submitting an intent, and no replacement inventory
+screen exists. `human_approval` remains `false`; no compact, responsive,
+smaller-output, or deferred visual packet was run.
