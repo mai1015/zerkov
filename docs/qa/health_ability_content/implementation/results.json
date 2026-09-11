@@ -1,0 +1,86 @@
+{
+  "all_passed": true,
+  "commands": [
+    {
+      "checks": 392,
+      "log": "health_ability_content_contract.log",
+      "name": "health_ability_content_contract",
+      "passed": true,
+      "returncode": 0,
+      "runner": "health_ability_content_contract_runner.json",
+      "runtime_errors": false,
+      "warnings": false
+    },
+    {
+      "checks": 79,
+      "log": "combat_content_contract.log",
+      "name": "combat_content_contract",
+      "passed": true,
+      "returncode": 0,
+      "runner": "combat_content_contract_runner.json",
+      "runtime_errors": false,
+      "warnings": false
+    },
+    {
+      "checks": 546,
+      "log": "inventory_ability_reconciliation_contract.log",
+      "name": "inventory_ability_reconciliation_contract",
+      "passed": true,
+      "returncode": 0,
+      "runner": "inventory_ability_reconciliation_contract_runner.json",
+      "runtime_errors": false,
+      "warnings": false
+    },
+    {
+      "checks": 155,
+      "log": "combined_addons_smoke.log",
+      "name": "combined_addons_smoke",
+      "passed": true,
+      "returncode": 0,
+      "runner": "combined_addons_smoke_runner.json",
+      "runtime_errors": false,
+      "warnings": false
+    },
+    {
+      "checks": null,
+      "log": "editor_import.log",
+      "name": "editor_import",
+      "passed": true,
+      "returncode": 0,
+      "runner": "editor_import_runner.json",
+      "runtime_errors": false,
+      "warnings": false
+    },
+    {
+      "checks": null,
+      "log": "spec_strict.log",
+      "name": "spec_strict",
+      "passed": true,
+      "returncode": 0,
+      "runner": "spec_strict_runner.json",
+      "runtime_errors": false,
+      "warnings": false
+    },
+    {
+      "checks": null,
+      "log": "diff_check.log",
+      "name": "diff_check",
+      "passed": true,
+      "returncode": 0,
+      "runner": "diff_check_runner.json",
+      "runtime_errors": false,
+      "warnings": false
+    }
+  ],
+  "generated_at": "2026-09-11T01:58:56.462329+00:00",
+  "git_head_before_task_checkpoint": "2079a075a73e4cfc16682526d223eef92a2aa4df",
+  "godot": "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+  "godot_version": "4.7.2.stable.official.ed1daf0bf",
+  "implementation_hashes": {
+    "expected": 10,
+    "log": "hash_verification.log",
+    "matched": 10
+  },
+  "schema_version": 2,
+  "total_assertions": 1172
+}

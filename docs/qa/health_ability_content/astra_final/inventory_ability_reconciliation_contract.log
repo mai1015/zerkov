@@ -1,0 +1,7 @@
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tests/raid/inventory_ability_reconciliation_contract.gd
+EXECUTION_CONTEXT: escalated (exact command; normal Godot user logging/certificate access)
+EXIT_CODE: 0
+OUTPUT:
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+INVENTORY_ABILITY_RECONCILIATION_RESULT checks=546 failures=0 real_inventory=true real_gameplay_abilities=true
