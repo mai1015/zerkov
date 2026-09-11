@@ -196,14 +196,19 @@ class ContainerRecord extends RefCounted:
 			return null
 		if not ZReadOnlyView.enum_value_is_valid(int(p_kind), ContainerKind.size()):
 			return null
+		var staged_items: Array[ItemRecord] = []
 		var seen: Dictionary = {}
 		for item in p_items:
-			if item == null or seen.has(item.instance_id()):
+			if item == null or not item._sealed:
 				return null
-			if item.position().x + item.size().x > p_grid_size.x \
-					or item.position().y + item.size().y > p_grid_size.y:
+			var staged_item := item.snapshot()
+			if staged_item == null or seen.has(staged_item.instance_id()):
 				return null
-			seen[item.instance_id()] = true
+			if staged_item.position().x + staged_item.size().x > p_grid_size.x \
+					or staged_item.position().y + staged_item.size().y > p_grid_size.y:
+				return null
+			seen[staged_item.instance_id()] = true
+			staged_items.append(staged_item)
 		var result := ContainerRecord.new()
 		result._inventory_id = p_inventory_id
 		result._container_id = p_container_id
@@ -213,8 +218,7 @@ class ContainerRecord extends RefCounted:
 		result._display_name = p_display_name
 		result._grid_size = p_grid_size
 		result._read_only = p_read_only
-		for item in p_items:
-			result._items.append(item.snapshot())
+		result._items.assign(staged_items)
 		result._items.make_read_only()
 		result._seal_record()
 		return result
@@ -280,24 +284,36 @@ static func create(
 		return null
 	if not enum_value_is_valid(int(p_scope), Scope.size()):
 		return null
+	var staged_containers: Array[ContainerRecord] = []
 	var seen: Dictionary = {}
 	var inventory_revisions: Dictionary = {}
+	var inventory_item_ids: Dictionary = {}
 	for container in p_containers:
-		if container == null:
+		if container == null or not container._sealed:
 			return null
-		var key := "%d:%d" % [container.inventory_id(), container.container_id()]
+		var staged_container := container.snapshot()
+		if staged_container == null:
+			return null
+		var inventory_id := staged_container.inventory_id()
+		var key := "%d:%d" % [inventory_id, staged_container.container_id()]
 		if seen.has(key):
 			return null
-		if inventory_revisions.has(container.inventory_id()) \
-				and int(inventory_revisions[container.inventory_id()]) != container.inventory_revision():
+		if inventory_revisions.has(inventory_id) \
+				and int(inventory_revisions[inventory_id]) != staged_container.inventory_revision():
 			return null
-		inventory_revisions[container.inventory_id()] = container.inventory_revision()
+		inventory_revisions[inventory_id] = staged_container.inventory_revision()
+		var item_ids: Dictionary = inventory_item_ids.get(inventory_id, {}) as Dictionary
+		for item in staged_container.items():
+			if item_ids.has(item.instance_id()):
+				return null
+			item_ids[item.instance_id()] = true
+		inventory_item_ids[inventory_id] = item_ids
 		seen[key] = true
+		staged_containers.append(staged_container)
 	var result := InventoryView.new()
 	result._scope = p_scope
 	result._actor_key = p_actor_id.canonical_key()
-	for container in p_containers:
-		result._containers.append(container.snapshot())
+	result._containers.assign(staged_containers)
 	result._containers.make_read_only()
 	if not result._initialize_view(p_generation, p_revision, p_source_tick, SyncState.READY):
 		return null
@@ -340,8 +356,9 @@ func _ready_payload_is_valid() -> bool:
 		return false
 	var keys: Dictionary = {}
 	var revisions: Dictionary = {}
+	var inventory_item_ids: Dictionary = {}
 	for container in _containers:
-		if container == null or container.snapshot() == null:
+		if container == null or not container._sealed or container.snapshot() == null:
 			return false
 		var key := "%d:%d" % [container.inventory_id(), container.container_id()]
 		if keys.has(key):
@@ -351,6 +368,12 @@ func _ready_payload_is_valid() -> bool:
 				and int(revisions[container.inventory_id()]) != container.inventory_revision():
 			return false
 		revisions[container.inventory_id()] = container.inventory_revision()
+		var item_ids: Dictionary = inventory_item_ids.get(container.inventory_id(), {}) as Dictionary
+		for item in container.items():
+			if item_ids.has(item.instance_id()):
+				return false
+			item_ids[item.instance_id()] = true
+		inventory_item_ids[container.inventory_id()] = item_ids
 	return true
 
 

@@ -288,28 +288,36 @@ static func create(
 	if not content_id_is_valid(p_map_id) or p_display_name.is_empty() \
 			or p_time_of_day.is_empty() or p_zoom_permille <= 0 or p_zones.is_empty():
 		return null
+	var staged_zones: Array[Zone] = []
 	var zone_ids: Dictionary = {}
 	for zone in p_zones:
-		if zone == null or zone_ids.has(zone.zone_id()):
+		if zone == null or not zone._sealed:
 			return null
-		zone_ids[zone.zone_id()] = true
+		var staged_zone := zone.snapshot()
+		if staged_zone == null or zone_ids.has(staged_zone.zone_id()):
+			return null
+		zone_ids[staged_zone.zone_id()] = true
+		staged_zones.append(staged_zone)
 	if not zone_ids.has(p_selected_zone_id):
 		return null
+	var staged_markers: Array[Marker] = []
 	var marker_ids: Dictionary = {}
 	for marker in p_markers:
-		if marker == null or marker_ids.has(marker.marker_id()):
+		if marker == null or not marker._sealed:
 			return null
-		marker_ids[marker.marker_id()] = true
+		var staged_marker := marker.snapshot()
+		if staged_marker == null or marker_ids.has(staged_marker.marker_id()):
+			return null
+		marker_ids[staged_marker.marker_id()] = true
+		staged_markers.append(staged_marker)
 	var result := MapView.new()
 	result._map_id = p_map_id
 	result._display_name = p_display_name
 	result._selected_zone_id = p_selected_zone_id
 	result._time_of_day = p_time_of_day
 	result._zoom_permille = p_zoom_permille
-	for zone in p_zones:
-		result._zones.append(zone.snapshot())
-	for marker in p_markers:
-		result._markers.append(marker.snapshot())
+	result._zones.assign(staged_zones)
+	result._markers.assign(staged_markers)
 	result._zones.make_read_only()
 	result._markers.make_read_only()
 	if not result._initialize_view(p_generation, p_revision, p_source_tick, SyncState.READY):
@@ -345,14 +353,16 @@ func _ready_payload_is_valid() -> bool:
 		return false
 	var zone_ids: Dictionary = {}
 	for zone in _zones:
-		if zone == null or zone.snapshot() == null or zone_ids.has(zone.zone_id()):
+		if zone == null or not zone._sealed or zone.snapshot() == null \
+				or zone_ids.has(zone.zone_id()):
 			return false
 		zone_ids[zone.zone_id()] = true
 	if not zone_ids.has(_selected_zone_id):
 		return false
 	var marker_ids: Dictionary = {}
 	for marker in _markers:
-		if marker == null or marker.snapshot() == null or marker_ids.has(marker.marker_id()):
+		if marker == null or not marker._sealed or marker.snapshot() == null \
+				or marker_ids.has(marker.marker_id()):
 			return false
 		marker_ids[marker.marker_id()] = true
 	return true

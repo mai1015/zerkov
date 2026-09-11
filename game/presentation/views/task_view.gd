@@ -228,16 +228,27 @@ class Entry extends RefCounted:
 		if (p_status == Status.LOCKED or p_status == Status.FEATURE_GATED) \
 				and p_gate_reason.is_empty():
 			return null
+		var staged_objectives: Array[Objective] = []
 		var objective_ids: Dictionary = {}
 		for objective in p_objectives:
-			if objective == null or objective_ids.has(objective.objective_id()):
+			if objective == null or not objective._sealed:
 				return null
-			objective_ids[objective.objective_id()] = true
+			var staged_objective := objective.snapshot()
+			if staged_objective == null \
+					or objective_ids.has(staged_objective.objective_id()):
+				return null
+			objective_ids[staged_objective.objective_id()] = true
+			staged_objectives.append(staged_objective)
+		var staged_rewards: Array[Reward] = []
 		var reward_ids: Dictionary = {}
 		for reward in p_rewards:
-			if reward == null or reward_ids.has(reward.reward_id()):
+			if reward == null or not reward._sealed:
 				return null
-			reward_ids[reward.reward_id()] = true
+			var staged_reward := reward.snapshot()
+			if staged_reward == null or reward_ids.has(staged_reward.reward_id()):
+				return null
+			reward_ids[staged_reward.reward_id()] = true
+			staged_rewards.append(staged_reward)
 		var result := Entry.new()
 		result._task_key = p_task_id.canonical_key()
 		result._title = p_title
@@ -247,10 +258,8 @@ class Entry extends RefCounted:
 		result._status = p_status
 		result._tracked = p_tracked
 		result._gate_reason = p_gate_reason
-		for objective in p_objectives:
-			result._objectives.append(objective.snapshot())
-		for reward in p_rewards:
-			result._rewards.append(reward.snapshot())
+		result._objectives.assign(staged_objectives)
+		result._rewards.assign(staged_rewards)
 		result._objectives.make_read_only()
 		result._rewards.make_read_only()
 		result._seal_record()
@@ -322,20 +331,24 @@ static func create(
 ) -> TaskView:
 	if not content_id_is_valid(p_scope_id):
 		return null
+	var staged_tasks: Array[Entry] = []
 	var task_ids: Dictionary = {}
 	for task in p_tasks:
-		if task == null:
+		if task == null or not task._sealed:
 			return null
-		var key := task.task_id().canonical_key()
+		var staged_task := task.snapshot()
+		if staged_task == null:
+			return null
+		var key := staged_task.task_id().canonical_key()
 		if task_ids.has(key):
 			return null
 		task_ids[key] = true
+		staged_tasks.append(staged_task)
 	if p_selected_task_id != null and not task_ids.has(p_selected_task_id.canonical_key()):
 		return null
 	var result := TaskView.new()
 	result._scope_id = p_scope_id
-	for task in p_tasks:
-		result._tasks.append(task.snapshot())
+	result._tasks.assign(staged_tasks)
 	result._tasks.make_read_only()
 	result._selected_task_key = p_selected_task_id.canonical_key() \
 		if p_selected_task_id != null else ""
@@ -386,7 +399,7 @@ func _ready_payload_is_valid() -> bool:
 		return false
 	var ids: Dictionary = {}
 	for task in _tasks:
-		if task == null or task.snapshot() == null:
+		if task == null or not task._sealed or task.snapshot() == null:
 			return false
 		var key := task.task_id().canonical_key()
 		if ids.has(key):

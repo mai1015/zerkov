@@ -12,11 +12,16 @@ Review the exact source set sealed by `frozen_sources.sha256` against Ledger
 4. identity and nested collection return values cannot mutate retained view
    state, and direct writes to retained child/provenance members are sealed;
 5. each inventory represented in a scope carries its exact independent revision;
-6. raid summary data covers the audit-backed settlement fields required by the
+6. malformed, uninitialized, or manually populated but unsealed nested records
+   fail atomically before dereference even when snapshot-able, and item identities
+   cannot repeat across containers of one inventory;
+7. health consistency does not infer the future lethal-zone policy from aggregate
+   health while still rejecting impossible body-part and non-dead zero states;
+8. raid summary data covers the audit-backed settlement fields required by the
    approved delta;
-7. feature-gated meta state is explicit and non-color-only;
-8. focused and adjacent evidence is sufficient and free of runtime errors;
-9. no sibling task or excluded product/release scope is claimed.
+9. feature-gated meta state is explicit and non-color-only;
+10. focused and adjacent evidence is sufficient and free of runtime errors;
+11. no sibling task or excluded product/release scope is claimed.
 
 This is a contract-only task. No visual geometry changed, so review source and
 headless/process evidence; do not require a screenshot as proof of an unchanged

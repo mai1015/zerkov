@@ -367,17 +367,36 @@ static func create(
 		return null
 	if not enum_value_is_valid(int(p_lifecycle), Lifecycle.size()):
 		return null
+	var staged_weapon: WeaponState = null
+	if p_weapon != null:
+		if not p_weapon._sealed:
+			return null
+		staged_weapon = p_weapon.snapshot()
+		if staged_weapon == null:
+			return null
+	var staged_extractions: Array[Extraction] = []
 	var extraction_ids: Dictionary = {}
 	for extraction in p_extractions:
-		if extraction == null or extraction_ids.has(extraction.extract_id()):
+		if extraction == null or not extraction._sealed:
 			return null
-		extraction_ids[extraction.extract_id()] = true
+		var staged_extraction := extraction.snapshot()
+		if staged_extraction == null or extraction_ids.has(staged_extraction.extract_id()):
+			return null
+		extraction_ids[staged_extraction.extract_id()] = true
+		staged_extractions.append(staged_extraction)
+	var staged_feed: Array[FeedEntry] = []
 	var feed_ids: Dictionary = {}
 	for entry in p_feed:
-		if entry == null or entry.tick() > p_source_tick \
-				or feed_ids.has(entry.event_id().canonical_key()):
+		if entry == null or not entry._sealed:
 			return null
-		feed_ids[entry.event_id().canonical_key()] = true
+		var staged_entry := entry.snapshot()
+		if staged_entry == null or staged_entry.tick() > p_source_tick:
+			return null
+		var event_key := staged_entry.event_id().canonical_key()
+		if feed_ids.has(event_key):
+			return null
+		feed_ids[event_key] = true
+		staged_feed.append(staged_entry)
 	var result := RaidView.new()
 	result._raid_key = p_raid_id.canonical_key()
 	result._actor_key = p_actor_id.canonical_key()
@@ -386,11 +405,9 @@ static func create(
 	result._map_name = p_map_name
 	result._elapsed_ticks = p_elapsed_ticks
 	result._limit_ticks = p_limit_ticks
-	result._weapon = p_weapon.snapshot() if p_weapon != null else null
-	for extraction in p_extractions:
-		result._extractions.append(extraction.snapshot())
-	for entry in p_feed:
-		result._feed.append(entry.snapshot())
+	result._weapon = staged_weapon
+	result._extractions.assign(staged_extractions)
+	result._feed.assign(staged_feed)
 	result._extractions.make_read_only()
 	result._feed.make_read_only()
 	if not result._initialize_view(p_generation, p_revision, p_source_tick, SyncState.READY):
@@ -425,17 +442,18 @@ func _ready_payload_is_valid() -> bool:
 			or _map_name.is_empty() or _elapsed_ticks < 0 or _limit_ticks < _elapsed_ticks \
 			or not enum_value_is_valid(int(_lifecycle), Lifecycle.size()):
 		return false
-	if _weapon != null and _weapon.snapshot() == null:
+	if _weapon != null and (not _weapon._sealed or _weapon.snapshot() == null):
 		return false
 	var extraction_ids: Dictionary = {}
 	for extraction in _extractions:
-		if extraction == null or extraction.snapshot() == null \
+		if extraction == null or not extraction._sealed or extraction.snapshot() == null \
 				or extraction_ids.has(extraction.extract_id()):
 			return false
 		extraction_ids[extraction.extract_id()] = true
 	var feed_ids: Dictionary = {}
 	for entry in _feed:
-		if entry == null or entry.snapshot() == null or entry.tick() > source_tick() \
+		if entry == null or not entry._sealed or entry.snapshot() == null \
+				or entry.tick() > source_tick() \
 				or feed_ids.has(entry.event_id().canonical_key()):
 			return false
 		feed_ids[entry.event_id().canonical_key()] = true

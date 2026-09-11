@@ -75,6 +75,8 @@ class BodyPart extends RefCounted:
 			return null
 		if p_state == BodyPartState.DESTROYED and p_current_health != 0:
 			return null
+		if p_current_health == 0 and p_state != BodyPartState.DESTROYED:
+			return null
 		if p_state == BodyPartState.HEALTHY and (p_current_health != p_maximum_health \
 				or p_heavy_bleed or p_fractured):
 			return null
@@ -259,22 +261,31 @@ static func create(
 			or not _resource_pair_is_valid(p_hydration, p_maximum_hydration) \
 			or not _resource_pair_is_valid(p_energy, p_maximum_energy):
 		return null
+	var staged_parts: Array[BodyPart] = []
 	var seen_parts: Dictionary = {}
 	var current_health := 0
 	var maximum_health := 0
 	for part in p_body_parts:
-		if part == null or seen_parts.has(part.part_id()):
+		if part == null or not part._sealed:
 			return null
-		seen_parts[part.part_id()] = true
-		current_health += part.current_health()
-		maximum_health += part.maximum_health()
+		var staged_part := part.snapshot()
+		if staged_part == null or seen_parts.has(staged_part.part_id()):
+			return null
+		seen_parts[staged_part.part_id()] = true
+		current_health += staged_part.current_health()
+		maximum_health += staged_part.maximum_health()
+		staged_parts.append(staged_part)
+	var staged_effects: Array[StatusEffect] = []
 	var seen_effects: Dictionary = {}
 	for effect in p_effects:
-		if effect == null or seen_effects.has(effect.effect_id()):
+		if effect == null or not effect._sealed:
 			return null
-		seen_effects[effect.effect_id()] = true
-	if (p_life_state == LifeState.DEAD and current_health > 0) \
-			or (p_life_state != LifeState.DEAD and current_health == 0):
+		var staged_effect := effect.snapshot()
+		if staged_effect == null or seen_effects.has(staged_effect.effect_id()):
+			return null
+		seen_effects[staged_effect.effect_id()] = true
+		staged_effects.append(staged_effect)
+	if not _life_state_is_valid(p_life_state, current_health):
 		return null
 	var result := HealthView.new()
 	result._actor_key = p_actor_id.canonical_key()
@@ -287,10 +298,8 @@ static func create(
 	result._maximum_hydration = p_maximum_hydration
 	result._energy = p_energy
 	result._maximum_energy = p_maximum_energy
-	for part in p_body_parts:
-		result._body_parts.append(part.snapshot())
-	for effect in p_effects:
-		result._effects.append(effect.snapshot())
+	result._body_parts.assign(staged_parts)
+	result._effects.assign(staged_effects)
 	result._body_parts.make_read_only()
 	result._effects.make_read_only()
 	if not result._initialize_view(p_generation, p_revision, p_source_tick, SyncState.READY):
@@ -321,6 +330,15 @@ static func _resource_pair_is_valid(current: int, maximum: int) -> bool:
 	return maximum > 0 and current >= 0 and current <= maximum
 
 
+static func _life_state_is_valid(value: LifeState, aggregate_health: int) -> bool:
+	# Aggregate health does not define lethal-zone policy. Task 5.6 owns the
+	# configured lethal zones; an authoritative DEAD state may therefore retain
+	# positive health elsewhere, while zero aggregate health cannot be non-dead.
+	if value == LifeState.DEAD:
+		return true
+	return aggregate_health > 0
+
+
 func actor_id() -> ZEntityId:
 	return ZEntityId.parse(_actor_key) if not _actor_key.is_empty() else null
 
@@ -336,18 +354,19 @@ func _ready_payload_is_valid() -> bool:
 	var maximum := 0
 	var part_ids: Dictionary = {}
 	for part in _body_parts:
-		if part == null or part.snapshot() == null or part_ids.has(part.part_id()):
+		if part == null or not part._sealed or part.snapshot() == null \
+				or part_ids.has(part.part_id()):
 			return false
 		part_ids[part.part_id()] = true
 		current += part.current_health()
 		maximum += part.maximum_health()
 	if current != _current_health or maximum != _maximum_health \
-			or (_life_state == LifeState.DEAD and current > 0) \
-			or (_life_state != LifeState.DEAD and current == 0):
+			or not _life_state_is_valid(_life_state, current):
 		return false
 	var effect_ids: Dictionary = {}
 	for effect in _effects:
-		if effect == null or effect.snapshot() == null or effect_ids.has(effect.effect_id()):
+		if effect == null or not effect._sealed or effect.snapshot() == null \
+				or effect_ids.has(effect.effect_id()):
 			return false
 		effect_ids[effect.effect_id()] = true
 	return true

@@ -178,11 +178,16 @@ static func create(
 		return null
 	if not p_deployment_ready and p_deployment_reason.is_empty():
 		return null
+	var staged_stations: Array[Station] = []
 	var station_ids: Dictionary = {}
 	for station in p_stations:
-		if station == null or station_ids.has(station.station_id()):
+		if station == null or not station._sealed:
 			return null
-		station_ids[station.station_id()] = true
+		var staged_station := station.snapshot()
+		if staged_station == null or station_ids.has(staged_station.station_id()):
+			return null
+		station_ids[staged_station.station_id()] = true
+		staged_stations.append(staged_station)
 	if not p_selected_station_id.is_empty() and not station_ids.has(p_selected_station_id):
 		return null
 	var result := BunkerView.new()
@@ -196,8 +201,7 @@ static func create(
 	result._deployment_ready = p_deployment_ready
 	result._deployment_reason = p_deployment_reason
 	result._selected_station_id = p_selected_station_id
-	for station in p_stations:
-		result._stations.append(station.snapshot())
+	result._stations.assign(staged_stations)
 	result._stations.make_read_only()
 	if not result._initialize_view(p_generation, p_revision, p_source_tick, SyncState.READY):
 		return null
@@ -238,7 +242,8 @@ func _ready_payload_is_valid() -> bool:
 		return false
 	var ids: Dictionary = {}
 	for station in _stations:
-		if station == null or station.snapshot() == null or ids.has(station.station_id()):
+		if station == null or not station._sealed or station.snapshot() == null \
+				or ids.has(station.station_id()):
 			return false
 		ids[station.station_id()] = true
 	return _selected_station_id.is_empty() or ids.has(_selected_station_id)

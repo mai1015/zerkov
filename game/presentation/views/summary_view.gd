@@ -304,20 +304,40 @@ static func create(
 	for injury in p_injuries:
 		if not content_id_is_valid(injury):
 			return null
+	var staged_loot: Array[LootLine] = []
 	for line in p_loot:
-		if line == null:
+		if line == null or not line._sealed:
 			return null
+		var staged_line := line.snapshot()
+		if staged_line == null:
+			return null
+		staged_loot.append(staged_line)
+	var staged_task_results: Array[TaskResult] = []
 	var task_ids: Dictionary = {}
 	for task_result in p_task_results:
-		if task_result == null or task_ids.has(task_result.task_id().canonical_key()):
+		if task_result == null or not task_result._sealed:
 			return null
-		task_ids[task_result.task_id().canonical_key()] = true
+		var staged_task_result := task_result.snapshot()
+		if staged_task_result == null:
+			return null
+		var task_key := staged_task_result.task_id().canonical_key()
+		if task_ids.has(task_key):
+			return null
+		task_ids[task_key] = true
+		staged_task_results.append(staged_task_result)
+	var staged_corrections: Array[Correction] = []
 	var correction_ids: Dictionary = {}
 	for correction in p_corrections:
-		if correction == null \
-				or correction_ids.has(correction.correction_id().canonical_key()):
+		if correction == null or not correction._sealed:
 			return null
-		correction_ids[correction.correction_id().canonical_key()] = true
+		var staged_correction := correction.snapshot()
+		if staged_correction == null:
+			return null
+		var correction_key := staged_correction.correction_id().canonical_key()
+		if correction_ids.has(correction_key):
+			return null
+		correction_ids[correction_key] = true
+		staged_corrections.append(staged_correction)
 	var result := SummaryView.new()
 	result._raid_key = p_raid_id.canonical_key()
 	result._settlement_key = p_settlement_id.canonical_key()
@@ -327,12 +347,9 @@ static func create(
 	result._damage_dealt = p_damage_dealt
 	result._damage_taken = p_damage_taken
 	result._injuries = read_only_string_names(p_injuries)
-	for line in p_loot:
-		result._loot.append(line.snapshot())
-	for task_result in p_task_results:
-		result._task_results.append(task_result.snapshot())
-	for correction in p_corrections:
-		result._corrections.append(correction.snapshot())
+	result._loot.assign(staged_loot)
+	result._task_results.assign(staged_task_results)
+	result._corrections.assign(staged_corrections)
 	result._loot.make_read_only()
 	result._task_results.make_read_only()
 	result._corrections.make_read_only()
@@ -395,11 +412,11 @@ func _ready_payload_is_valid() -> bool:
 		if not content_id_is_valid(injury):
 			return false
 	for line in _loot:
-		if line == null or line.snapshot() == null:
+		if line == null or not line._sealed or line.snapshot() == null:
 			return false
 	var task_ids: Dictionary = {}
 	for task_result in _task_results:
-		if task_result == null or task_result.snapshot() == null:
+		if task_result == null or not task_result._sealed or task_result.snapshot() == null:
 			return false
 		var task_key := task_result.task_id().canonical_key()
 		if task_ids.has(task_key):
@@ -407,7 +424,7 @@ func _ready_payload_is_valid() -> bool:
 		task_ids[task_key] = true
 	var correction_ids: Dictionary = {}
 	for correction in _corrections:
-		if correction == null or correction.snapshot() == null:
+		if correction == null or not correction._sealed or correction.snapshot() == null:
 			return false
 		var correction_key := correction.correction_id().canonical_key()
 		if correction_ids.has(correction_key):

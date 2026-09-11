@@ -23,9 +23,16 @@ This packet covers only Ledger 8.4: the typed/read-only `RaidView`,
 - Stale, resynchronizing, and disconnected views require and retain the subject
   identity appropriate to the contract; loading/unbound views may lack one.
 - Inventory containers retain the exact revision of their native inventory and
-  reject conflicting revisions for containers belonging to the same inventory.
-- Health views reject contradictory healthy/injured/destroyed and alive/dead
-  combinations.
+  reject conflicting revisions or repeated item-instance IDs across containers
+  belonging to the same inventory. Identical native item numbers remain valid
+  across distinct inventory identities.
+- Every supplied child is snapshot-validated before its identity is read or it
+  is appended. Factory initialization is checked independently from snapshot
+  validity, so even a manually populated, snapshot-able but uninitialized child
+  fails the whole factory without producing a partially ready view.
+- Health views require every zero-health body part to be destroyed and reject
+  zero aggregate health for non-dead states. An authoritative dead state may
+  retain aggregate health because task 5.6, not presentation, owns lethal zones.
 - `SummaryView` requires raid and settlement identities plus a SHA-256 audit
   digest and exposes outcome, kills, damage, injuries, loot value, task results,
   rewards, losses and exceptional corrections.
@@ -45,7 +52,7 @@ The accepted pinned executable was:
 
 | Check | Result |
 | --- | ---: |
-| View contracts | 75 checks, 0 failures |
+| View contracts | 111 checks, 0 failures |
 | Inventory immutable projection | 99 checks, 0 failures |
 | Raid authority replay | 81 checks, 0 failures |
 | Combined add-on load | 155 checks, 0 failures |
@@ -59,7 +66,12 @@ unavailable states, checks typed identities/enums/accessors, verifies collection
 read-only flags, attempts writes through detached and retained nested records and
 through sealed provenance, rejects incomplete direct ready initialization,
 checks per-inventory revisions and stale subject identity, and rejects invalid
-IDs, bounds, health combinations, feature gates and digests.
+IDs, bounds, health combinations, feature gates and digests. The permanent
+malformed-child matrix covers weapon, extraction, feed, item, container,
+body-part/effect, task/objective/reward, map zone/marker, bunker station, and
+summary loot/task/correction records without a script diagnostic.
+It also forges a valid-looking, snapshot-able but factory-uninitialized instance
+of every nested record type and confirms that each enclosing factory rejects it.
 
 Exact command output is in [automated_checks.log](automated_checks.log), import
 output is in [editor_import.log](editor_import.log), and the diagnostic policy

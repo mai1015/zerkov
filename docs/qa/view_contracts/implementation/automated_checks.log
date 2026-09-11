@@ -1,7 +1,7 @@
 COMMAND: Godot --headless --path . --audio-driver Dummy --script res://tests/presentation/view_contracts_contract.gd
 EXIT: 0
 Godot Engine v4.7.2.stable.official.ed1daf0bf
-VIEW_CONTRACTS_CONTRACT_RESULT checks=75 failures=0
+VIEW_CONTRACTS_CONTRACT_RESULT checks=111 failures=0
 
 COMMAND: Godot --headless --path . --audio-driver Dummy --script res://tests/raid/inventory_projection_contract.gd
 EXIT: 0

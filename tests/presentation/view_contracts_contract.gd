@@ -34,6 +34,7 @@ func run() -> void:
 	_test_bunker_view()
 	_test_summary_view()
 	_test_rejections()
+	_test_adversarial_children()
 	print("VIEW_CONTRACTS_CONTRACT_RESULT checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
 
@@ -381,3 +382,322 @@ func _test_rejections() -> void:
 		1, 0, 0, stale_actor, HealthViewContract.LifeState.ALIVE,
 		1, 1, 1, 1, 1, 1, destroyed_parts, no_effects) == null,
 		"alive health projection rejects zero aggregate health")
+	check(HealthViewContract.BodyPart.create(
+		&"arm", "Arm", 0, 40, HealthViewContract.BodyPartState.INJURED) == null,
+		"zero-health body part must be destroyed")
+	var healthy_torso := HealthViewContract.BodyPart.create(
+		&"torso", "Torso", 85, 85, HealthViewContract.BodyPartState.HEALTHY)
+	var lethal_parts: Array[HealthViewContract.BodyPart] = [destroyed, healthy_torso]
+	check(HealthViewContract.create(
+		1, 1, 1, stale_actor, HealthViewContract.LifeState.DEAD,
+		1, 1, 1, 1, 1, 1, lethal_parts, no_effects) != null,
+		"dead state permits positive aggregate health without inventing lethal-zone policy")
+
+
+func _test_adversarial_children() -> void:
+	var raid_id := ZRaidId.from_parts(PackedStringArray(["view", "child_raid"]))
+	var actor_id := ZEntityId.from_parts(PackedStringArray(["view", "child_actor"]))
+	var no_extractions: Array[RaidViewContract.Extraction] = []
+	var no_feed: Array[RaidViewContract.FeedEntry] = []
+	check(RaidViewContract.create(1, 1, 1, raid_id, actor_id,
+		RaidViewContract.Lifecycle.ACTIVE, &"zerkov.level.sawmill_yard", "Sawmill",
+		0, 60, RaidViewContract.WeaponState.new(), no_extractions, no_feed) == null,
+		"uninitialized weapon fails cleanly")
+	var weapon_id := ZWeaponId.from_parts(PackedStringArray(["view", "forged_weapon"]))
+	var forged_weapon := RaidViewContract.WeaponState.new()
+	forged_weapon._weapon_key = weapon_id.canonical_key()
+	forged_weapon._content_id = &"zerkov.weapon.rifle.ak74"
+	forged_weapon._display_name = "AK-74"
+	forged_weapon._status = RaidViewContract.WeaponStatus.READY
+	forged_weapon._magazine_rounds = 30
+	forged_weapon._magazine_capacity = 30
+	forged_weapon._reserve_rounds = 60
+	forged_weapon._fire_mode = &"auto"
+	check(forged_weapon.snapshot() != null and RaidViewContract.create(
+		1, 1, 1, raid_id, actor_id, RaidViewContract.Lifecycle.ACTIVE,
+		&"zerkov.level.sawmill_yard", "Sawmill", 0, 60, forged_weapon,
+		no_extractions, no_feed) == null,
+		"snapshot-able but factory-uninitialized weapon is rejected")
+	var bad_feed: Array[RaidViewContract.FeedEntry] = [RaidViewContract.FeedEntry.new()]
+	check(RaidViewContract.create(1, 1, 1, raid_id, actor_id,
+		RaidViewContract.Lifecycle.ACTIVE, &"zerkov.level.sawmill_yard", "Sawmill",
+		0, 60, null, no_extractions, bad_feed) == null,
+		"uninitialized feed entry fails cleanly")
+	var event_id := ZConsequenceId.from_parts(PackedStringArray(["view", "forged_feed"]))
+	var forged_feed_entry := RaidViewContract.FeedEntry.new()
+	forged_feed_entry._event_key = event_id.canonical_key()
+	forged_feed_entry._kind = RaidViewContract.FeedKind.SYSTEM
+	forged_feed_entry._text = "Forged"
+	forged_feed_entry._tick = 1
+	var forged_feed: Array[RaidViewContract.FeedEntry] = [forged_feed_entry]
+	check(forged_feed_entry.snapshot() != null and RaidViewContract.create(
+		1, 1, 1, raid_id, actor_id, RaidViewContract.Lifecycle.ACTIVE,
+		&"zerkov.level.sawmill_yard", "Sawmill", 0, 60, null,
+		no_extractions, forged_feed) == null,
+		"snapshot-able but factory-uninitialized feed entry is rejected")
+	var bad_extractions: Array[RaidViewContract.Extraction] = [RaidViewContract.Extraction.new()]
+	check(RaidViewContract.create(1, 1, 1, raid_id, actor_id,
+		RaidViewContract.Lifecycle.ACTIVE, &"zerkov.level.sawmill_yard", "Sawmill",
+		0, 60, null, bad_extractions, no_feed) == null,
+		"uninitialized extraction fails cleanly")
+	var forged_extraction := RaidViewContract.Extraction.new()
+	forged_extraction._extract_id = &"zerkov.extraction.gate"
+	forged_extraction._display_name = "Gate"
+	forged_extraction._status = RaidViewContract.ExtractionStatus.AVAILABLE
+	forged_extraction._required_ticks = 1
+	var forged_extractions: Array[RaidViewContract.Extraction] = [forged_extraction]
+	check(forged_extraction.snapshot() != null and RaidViewContract.create(
+		1, 1, 1, raid_id, actor_id, RaidViewContract.Lifecycle.ACTIVE,
+		&"zerkov.level.sawmill_yard", "Sawmill", 0, 60, null,
+		forged_extractions, no_feed) == null,
+		"snapshot-able but factory-uninitialized extraction is rejected")
+
+	var bad_items: Array[InventoryViewContract.ItemRecord] = [
+		InventoryViewContract.ItemRecord.new()]
+	check(InventoryViewContract.ContainerRecord.create(1, 1, 1,
+		InventoryViewContract.ContainerKind.POCKETS, &"zerkov.container.player.pockets",
+		"Pockets", Vector2i.ONE, false, bad_items) == null,
+		"uninitialized item fails cleanly")
+	var forged_item := InventoryViewContract.ItemRecord.new()
+	forged_item._instance_id = 45
+	forged_item._content_id = &"zerkov.item.junk.battery"
+	forged_item._display_name = "Battery"
+	forged_item._quantity = 1
+	forged_item._size = Vector2i.ONE
+	var forged_items: Array[InventoryViewContract.ItemRecord] = [forged_item]
+	check(forged_item.snapshot() != null and InventoryViewContract.ContainerRecord.create(
+		1, 1, 1, InventoryViewContract.ContainerKind.POCKETS,
+		&"zerkov.container.player.pockets", "Pockets", Vector2i.ONE,
+		false, forged_items) == null,
+		"snapshot-able but factory-uninitialized item is rejected")
+	var bad_containers: Array[InventoryViewContract.ContainerRecord] = [
+		InventoryViewContract.ContainerRecord.new()]
+	check(InventoryViewContract.create(1, 1, 1, InventoryViewContract.Scope.RAID,
+		actor_id, bad_containers) == null, "uninitialized container fails cleanly")
+	var forged_container := InventoryViewContract.ContainerRecord.new()
+	forged_container._inventory_id = 1
+	forged_container._container_id = 1
+	forged_container._inventory_revision = 1
+	forged_container._kind = InventoryViewContract.ContainerKind.POCKETS
+	forged_container._content_id = &"zerkov.container.player.pockets"
+	forged_container._display_name = "Pockets"
+	forged_container._grid_size = Vector2i.ONE
+	var forged_containers: Array[InventoryViewContract.ContainerRecord] = [forged_container]
+	check(forged_container.snapshot() != null and InventoryViewContract.create(
+		1, 1, 1, InventoryViewContract.Scope.RAID, actor_id,
+		forged_containers) == null,
+		"snapshot-able but factory-uninitialized container is rejected")
+	var duplicate_item := InventoryViewContract.ItemRecord.create(44,
+		&"zerkov.item.junk.battery", "Battery", 1, Vector2i.ZERO, Vector2i.ONE,
+		false, &"battery", &"utility")
+	var duplicated_items: Array[InventoryViewContract.ItemRecord] = [duplicate_item]
+	var first_container := InventoryViewContract.ContainerRecord.create(7, 1, 3,
+		InventoryViewContract.ContainerKind.POCKETS, &"zerkov.container.player.pockets",
+		"Pockets", Vector2i.ONE, false, duplicated_items)
+	var second_container := InventoryViewContract.ContainerRecord.create(7, 2, 3,
+		InventoryViewContract.ContainerKind.RIG, &"zerkov.container.player.rig",
+		"Rig", Vector2i.ONE, false, duplicated_items)
+	var duplicate_containers: Array[InventoryViewContract.ContainerRecord] = [
+		first_container, second_container]
+	check(InventoryViewContract.create(1, 1, 1, InventoryViewContract.Scope.RAID,
+		actor_id, duplicate_containers) == null,
+		"item instance identity is unique across one inventory")
+	var foreign_container := InventoryViewContract.ContainerRecord.create(8, 1, 9,
+		InventoryViewContract.ContainerKind.CRATE, &"zerkov.container.world.crate",
+		"Crate", Vector2i.ONE, true, duplicated_items)
+	var distinct_inventory_containers: Array[InventoryViewContract.ContainerRecord] = [
+		first_container, foreign_container]
+	check(InventoryViewContract.create(1, 1, 1, InventoryViewContract.Scope.RAID,
+		actor_id, distinct_inventory_containers) != null,
+		"same native item number is valid in distinct inventories")
+
+	var bad_parts: Array[HealthViewContract.BodyPart] = [HealthViewContract.BodyPart.new()]
+	var no_effects: Array[HealthViewContract.StatusEffect] = []
+	check(HealthViewContract.create(1, 1, 1, actor_id, HealthViewContract.LifeState.ALIVE,
+		1, 1, 1, 1, 1, 1, bad_parts, no_effects) == null,
+		"uninitialized body part fails cleanly")
+	var forged_part := HealthViewContract.BodyPart.new()
+	forged_part._part_id = &"torso"
+	forged_part._display_name = "Torso"
+	forged_part._current_health = 85
+	forged_part._maximum_health = 85
+	forged_part._state = HealthViewContract.BodyPartState.HEALTHY
+	var forged_parts: Array[HealthViewContract.BodyPart] = [forged_part]
+	check(forged_part.snapshot() != null and HealthViewContract.create(
+		1, 1, 1, actor_id, HealthViewContract.LifeState.ALIVE,
+		1, 1, 1, 1, 1, 1, forged_parts, no_effects) == null,
+		"snapshot-able but factory-uninitialized body part is rejected")
+	var good_part := HealthViewContract.BodyPart.create(
+		&"torso", "Torso", 85, 85, HealthViewContract.BodyPartState.HEALTHY)
+	var good_parts: Array[HealthViewContract.BodyPart] = [good_part]
+	var bad_effects: Array[HealthViewContract.StatusEffect] = [
+		HealthViewContract.StatusEffect.new()]
+	check(HealthViewContract.create(1, 1, 1, actor_id, HealthViewContract.LifeState.ALIVE,
+		1, 1, 1, 1, 1, 1, good_parts, bad_effects) == null,
+		"uninitialized health effect fails cleanly")
+	var forged_effect := HealthViewContract.StatusEffect.new()
+	forged_effect._effect_id = &"zerkov.effect.test"
+	forged_effect._display_name = "Test"
+	forged_effect._severity = HealthViewContract.Severity.INFO
+	var forged_effects: Array[HealthViewContract.StatusEffect] = [forged_effect]
+	check(forged_effect.snapshot() != null and HealthViewContract.create(
+		1, 1, 1, actor_id, HealthViewContract.LifeState.ALIVE,
+		1, 1, 1, 1, 1, 1, good_parts, forged_effects) == null,
+		"snapshot-able but factory-uninitialized health effect is rejected")
+
+	var task_id := ZTaskId.from_parts(PackedStringArray(["view", "child_task"]))
+	var bad_objectives: Array[TaskViewContract.Objective] = [TaskViewContract.Objective.new()]
+	var no_rewards: Array[TaskViewContract.Reward] = []
+	check(TaskViewContract.Entry.create(task_id, "Task", "Description", "Fence",
+		&"zerkov.level.sawmill_yard", TaskViewContract.Status.ACTIVE, false,
+		bad_objectives, no_rewards) == null, "uninitialized objective fails cleanly")
+	var forged_objective := TaskViewContract.Objective.new()
+	forged_objective._objective_id = &"objective"
+	forged_objective._description = "Do it"
+	forged_objective._target = 1
+	var forged_objectives: Array[TaskViewContract.Objective] = [forged_objective]
+	check(forged_objective.snapshot() != null and TaskViewContract.Entry.create(
+		task_id, "Task", "Description", "Fence", &"zerkov.level.sawmill_yard",
+		TaskViewContract.Status.ACTIVE, false, forged_objectives,
+		no_rewards) == null,
+		"snapshot-able but factory-uninitialized objective is rejected")
+	var good_objective := TaskViewContract.Objective.create(&"objective", "Do it", 0, 1)
+	var good_objectives: Array[TaskViewContract.Objective] = [good_objective]
+	var bad_rewards: Array[TaskViewContract.Reward] = [TaskViewContract.Reward.new()]
+	check(TaskViewContract.Entry.create(task_id, "Task", "Description", "Fence",
+		&"zerkov.level.sawmill_yard", TaskViewContract.Status.ACTIVE, false,
+		good_objectives, bad_rewards) == null, "uninitialized reward fails cleanly")
+	var forged_reward := TaskViewContract.Reward.new()
+	forged_reward._reward_id = &"reward"
+	forged_reward._kind = TaskViewContract.RewardKind.CURRENCY
+	forged_reward._content_id = &"zerkov.currency.rouble"
+	forged_reward._display_name = "Roubles"
+	forged_reward._amount = 1
+	var forged_rewards: Array[TaskViewContract.Reward] = [forged_reward]
+	check(forged_reward.snapshot() != null and TaskViewContract.Entry.create(
+		task_id, "Task", "Description", "Fence", &"zerkov.level.sawmill_yard",
+		TaskViewContract.Status.ACTIVE, false, good_objectives,
+		forged_rewards) == null,
+		"snapshot-able but factory-uninitialized reward is rejected")
+	var bad_tasks: Array[TaskViewContract.Entry] = [TaskViewContract.Entry.new()]
+	check(TaskViewContract.create(1, 1, 1, bad_tasks) == null,
+		"uninitialized task entry fails cleanly")
+	var forged_task := TaskViewContract.Entry.new()
+	forged_task._task_key = task_id.canonical_key()
+	forged_task._title = "Task"
+	forged_task._description = "Description"
+	forged_task._trader_name = "Fence"
+	forged_task._zone_id = &"zerkov.level.sawmill_yard"
+	forged_task._status = TaskViewContract.Status.ACTIVE
+	var forged_tasks: Array[TaskViewContract.Entry] = [forged_task]
+	check(forged_task.snapshot() != null and TaskViewContract.create(
+		1, 1, 1, forged_tasks) == null,
+		"snapshot-able but factory-uninitialized task entry is rejected")
+
+	var bad_zones: Array[MapViewContract.Zone] = [MapViewContract.Zone.new()]
+	var no_markers: Array[MapViewContract.Marker] = []
+	check(MapViewContract.create(1, 1, 1, &"zerkov.map.sawmill", "Sawmill",
+		&"zerkov.level.sawmill_yard", &"day", 1000, bad_zones, no_markers) == null,
+		"uninitialized map zone fails cleanly")
+	var forged_zone := MapViewContract.Zone.new()
+	forged_zone._zone_id = &"zerkov.level.sawmill_yard"
+	forged_zone._display_name = "Sawmill"
+	forged_zone._summary = "Yard"
+	forged_zone._risk_label = "LOW"
+	forged_zone._duration_ticks = 60
+	forged_zone._state = MapViewContract.ZoneState.SELECTED
+	var forged_zones: Array[MapViewContract.Zone] = [forged_zone]
+	check(forged_zone.snapshot() != null and MapViewContract.create(
+		1, 1, 1, &"zerkov.map.sawmill", "Sawmill",
+		&"zerkov.level.sawmill_yard", &"day", 1000,
+		forged_zones, no_markers) == null,
+		"snapshot-able but factory-uninitialized map zone is rejected")
+	var good_zone := MapViewContract.Zone.create(&"zerkov.level.sawmill_yard", "Sawmill",
+		"Yard", "LOW", 60, 1, 1, Vector2.ZERO, MapViewContract.ZoneState.SELECTED)
+	var good_zones: Array[MapViewContract.Zone] = [good_zone]
+	var bad_markers: Array[MapViewContract.Marker] = [MapViewContract.Marker.new()]
+	check(MapViewContract.create(1, 1, 1, &"zerkov.map.sawmill", "Sawmill",
+		&"zerkov.level.sawmill_yard", &"day", 1000, good_zones, bad_markers) == null,
+		"uninitialized map marker fails cleanly")
+	var forged_marker := MapViewContract.Marker.new()
+	forged_marker._marker_id = &"marker"
+	forged_marker._kind = MapViewContract.MarkerKind.PLAYER
+	forged_marker._content_id = &"zerkov.marker.player"
+	forged_marker._label = "Player"
+	var forged_markers: Array[MapViewContract.Marker] = [forged_marker]
+	check(forged_marker.snapshot() != null and MapViewContract.create(
+		1, 1, 1, &"zerkov.map.sawmill", "Sawmill",
+		&"zerkov.level.sawmill_yard", &"day", 1000,
+		good_zones, forged_markers) == null,
+		"snapshot-able but factory-uninitialized map marker is rejected")
+
+	var bad_stations: Array[BunkerViewContract.Station] = [BunkerViewContract.Station.new()]
+	check(BunkerViewContract.create(1, 1, 1, "Profile", 1, 1, 0, 0, 1,
+		true, &"", &"", bad_stations) == null,
+		"uninitialized bunker station fails cleanly")
+	var forged_station := BunkerViewContract.Station.new()
+	forged_station._station_id = &"zerkov.station.generator"
+	forged_station._display_name = "Generator"
+	forged_station._maximum_level = 1
+	forged_station._state = BunkerViewContract.StationState.AVAILABLE
+	forged_station._summary = "Ready"
+	var forged_stations: Array[BunkerViewContract.Station] = [forged_station]
+	check(forged_station.snapshot() != null and BunkerViewContract.create(
+		1, 1, 1, "Profile", 1, 1, 0, 0, 1, true, &"", &"",
+		forged_stations) == null,
+		"snapshot-able but factory-uninitialized bunker station is rejected")
+
+	var settlement_id := ZSettlementId.from_parts(PackedStringArray(["view", "child_settlement"]))
+	var digest := "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	var no_injuries: Array[StringName] = []
+	var bad_loot: Array[SummaryViewContract.LootLine] = [SummaryViewContract.LootLine.new()]
+	var no_task_results: Array[SummaryViewContract.TaskResult] = []
+	var no_corrections: Array[SummaryViewContract.Correction] = []
+	check(SummaryViewContract.create(1, 1, 1, raid_id, settlement_id,
+		SummaryViewContract.Outcome.EXTRACTED, 1, 0, 0, 0, no_injuries, bad_loot,
+		no_task_results, 0, 0, digest, no_corrections) == null,
+		"uninitialized summary loot line fails cleanly")
+	var forged_loot_line := SummaryViewContract.LootLine.new()
+	forged_loot_line._content_id = &"zerkov.item.junk.battery"
+	forged_loot_line._display_name = "Battery"
+	forged_loot_line._quantity = 1
+	forged_loot_line._disposition = SummaryViewContract.LootDisposition.RETAINED
+	var forged_loot: Array[SummaryViewContract.LootLine] = [forged_loot_line]
+	check(forged_loot_line.snapshot() != null and SummaryViewContract.create(
+		1, 1, 1, raid_id, settlement_id, SummaryViewContract.Outcome.EXTRACTED,
+		1, 0, 0, 0, no_injuries, forged_loot, no_task_results,
+		0, 0, digest, no_corrections) == null,
+		"snapshot-able but factory-uninitialized summary loot line is rejected")
+	var no_loot: Array[SummaryViewContract.LootLine] = []
+	var bad_task_results: Array[SummaryViewContract.TaskResult] = [
+		SummaryViewContract.TaskResult.new()]
+	check(SummaryViewContract.create(1, 1, 1, raid_id, settlement_id,
+		SummaryViewContract.Outcome.EXTRACTED, 1, 0, 0, 0, no_injuries, no_loot,
+		bad_task_results, 0, 0, digest, no_corrections) == null,
+		"uninitialized summary task result fails cleanly")
+	var forged_task_result := SummaryViewContract.TaskResult.new()
+	forged_task_result._task_key = task_id.canonical_key()
+	forged_task_result._title = "Task"
+	forged_task_result._total_objectives = 1
+	var forged_task_results: Array[SummaryViewContract.TaskResult] = [forged_task_result]
+	check(forged_task_result.snapshot() != null and SummaryViewContract.create(
+		1, 1, 1, raid_id, settlement_id, SummaryViewContract.Outcome.EXTRACTED,
+		1, 0, 0, 0, no_injuries, no_loot, forged_task_results,
+		0, 0, digest, no_corrections) == null,
+		"snapshot-able but factory-uninitialized summary task result is rejected")
+	var bad_corrections: Array[SummaryViewContract.Correction] = [
+		SummaryViewContract.Correction.new()]
+	check(SummaryViewContract.create(1, 1, 1, raid_id, settlement_id,
+		SummaryViewContract.Outcome.EXTRACTED, 1, 0, 0, 0, no_injuries, no_loot,
+		no_task_results, 0, 0, digest, bad_corrections) == null,
+		"uninitialized summary correction fails cleanly")
+	var forged_correction := SummaryViewContract.Correction.new()
+	forged_correction._correction_key = event_id.canonical_key()
+	forged_correction._code = &"test"
+	forged_correction._description = "Test"
+	var forged_corrections: Array[SummaryViewContract.Correction] = [forged_correction]
+	check(forged_correction.snapshot() != null and SummaryViewContract.create(
+		1, 1, 1, raid_id, settlement_id, SummaryViewContract.Outcome.EXTRACTED,
+		1, 0, 0, 0, no_injuries, no_loot, no_task_results,
+		0, 0, digest, forged_corrections) == null,
+		"snapshot-able but factory-uninitialized summary correction is rejected")
