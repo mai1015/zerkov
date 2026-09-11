@@ -4,16 +4,18 @@ All final commands are accepted only when their named result reports zero
 failures, the process exits zero, and the combined output has no parse, script,
 runtime, warning, extension-load, assertion, leak, or missing-resource marker.
 
-Result: **PASS**. The clean post-merge editor import and the five rerun headless
-domain contracts contain no diagnostic matches. The retained repair matrix,
-toolchain, vendored-add-on destination, strict spec, and diff checks also exited
-zero. Earlier authoring runs are not acceptance evidence and are excluded from
-this packet. The 4.11 UI/viewport and visual-capture contracts were not run.
+Result: **PASS**. The clean post-merge editor import and all 17 final headless
+domain contracts contain no diagnostic matches. Toolchain, vendored-add-on
+destination, strict spec, and diff checks also exited zero. Earlier authoring
+runs are not acceptance evidence and are excluded from this packet. No UI,
+viewport, or visual-capture contract was run.
 
 The concurrency repair additionally completes synchronized configure/save and
-close-during-save probes with five-second arrival/join bounds. The final
-25-repeat run reports no assertion failure, timeout, deadlock, leaked Thread,
-or lost lease.
+close-during-save probes with five-second arrival/join bounds. Each final
+ProfileStore execution includes 439 checks, including the 32-case durability
+result cross-product, v1 lineage attacks, and recursively immutable admission
+receipts. The final 25-repeat run reports 10,975 checks with no assertion
+failure, timeout, deadlock, leaked Thread, or lost lease.
 
 The ProfileStore contract intentionally injects storage failures through a
 trusted `ProfileFileOperations` test seam. Those expected outcomes are returned

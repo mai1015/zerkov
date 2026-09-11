@@ -1,17 +1,16 @@
 # Task 7.9 — ProfileStore implementation evidence
 
-Status: **P1 concurrency repair complete; post-merge verification passed**
+Status: **independent-review repairs complete; post-merge verification passed**
 
 Task: `7.9` from `add-zerkov-playable-raid-2026-09-09`
 
-Repair base: current `main` `f94222068ec398e4480e049563c496cedb13ff41`
-merged as `2f5c9a3`
+Rejected candidate reviewed: `d6d8603d1df2ede88a409a089b6c2f674660146b`
 
-Repair commit: `78ce8ecd3a8479fffc8daef2c3e441b457d2abee`
+Correctness repair commit: `f20d8b9b33b1cb428f45d87dbeec917de7a36e01`
 
 Post-repair integration base: accepted `main`
-`c08a39b9026c9f45fd666d61a5c5d96b211e178b`, merged as
-`19af13a9b1ad10862d9ac5b21f732396d766972d`
+`c265d3a4efd9b49f840b87e201ceb8f4b661d26b`, merged as
+`9c9201fa67f4f5b54d71bd897370531f5e9e1790`
 
 Engine: Godot `4.7.2.stable.official.ed1daf0bf`
 
@@ -37,6 +36,28 @@ encoding and hashing, and every storage operation run outside both locks.
 instead of releasing a lease while work is in flight. Failure exits clear their
 admission state under the instance mutex; a contender can acquire the lease
 after the active operation finishes and close is retried.
+
+## Independent-review correctness repair
+
+Review of `d6d8603` found four remaining contract gaps. The repair reserves
+`committed_durable` for the exact conjunction of a successful and committed
+primary replacement, candidate-file durability, and supported successful
+directory synchronization. If replacement reports `committed=true` together
+with an operation error, the verified primary is retained but the receipt is
+`committed_durability_uncertain` with that error preserved. All 32 combinations
+of the five boolean result dimensions are asserted.
+
+Version 1 now has one explicit lineage: the first write is generation/revision
+`1/1`, and both counters increment together. Unequal counters are rejected
+before primary/backup selection, payload hashing, or fingerprint comparison;
+tests recompute a valid fingerprint around forged newer mismatched copies and
+prove that each remains ineligible to beat the other valid copy.
+
+All public receipts and capability snapshots are recursively read-only,
+including unconfigured calls, pre-selection validation failures, and the loser
+of a concurrent same-store save. Finally, the replay documentation now states
+the implemented guarantee precisely: an exact replay independently reads and
+validates both copies, but performs no writes, rotation, or other mutation.
 
 ## Delivered boundary
 
@@ -70,11 +91,13 @@ not authentication, signing, or encryption.
 
 ## Write and recovery contract
 
-A save is a generation compare-and-swap. It targets
-`expected_generation + 1`, while revision must advance exactly once. An exact
-candidate already present at that generation returns `replayed_exact_write`
-with `committed=true` and `write_performed=false`; a divergent replay or stale
-generation fails before file mutation.
+A save is a generation compare-and-swap. Version 1 starts at generation and
+revision `1/1`; each save targets `expected_generation + 1`, and revision must
+equal that candidate generation. An exact candidate already present at that
+generation returns `replayed_exact_write` with `committed=true` and
+`write_performed=false`; it still reads and independently validates primary and
+backup. A divergent replay, stale generation, or impossible lineage fails
+before file mutation.
 
 The save order is:
 
@@ -97,7 +120,7 @@ Write status is explicit:
 | Status | Meaning |
 | --- | --- |
 | `pre_commit_failed` | Candidate did not replace primary. Backup rotation may have completed, but a validated old primary/backup remains. |
-| `committed_durable` | The injected adapter proved both file and directory durability. Production Godot I/O does not claim this. |
+| `committed_durable` | Primary replacement reported both success and commitment, and the injected adapter proved file and directory durability. Production Godot I/O does not claim this. |
 | `committed_durability_uncertain` | Candidate replaced primary and read-back verified, but power-loss durability is not proven or the operation reported failure after replacement. |
 | `committed_recovery_required` | Replacement occurred, but candidate read-back could not be verified. The receipt never misreports this as an atomic rejection. |
 | `replayed_exact_write` | Exact bytes were already committed; no write or rotation ran. |
@@ -141,12 +164,12 @@ Godot API references used for the guarantee boundary:
 
 ## Automated results
 
-The repair-validation ten-program Godot matrix on the `f942220` base executed
-**20,056 checks with zero failures**:
+The final post-merge headless domain matrix executed **21,259 checks with zero
+failures**:
 
 | Contract | Checks | Failures |
 | --- | ---: | ---: |
-| ProfileStore promoted contract | 258 | 0 |
+| ProfileStore promoted contract | 439 | 0 |
 | Inventory persistence/replacement adjacency | 97 | 0 |
 | Inventory authority adjacency | 79 | 0 |
 | Offline session lifecycle adjacency | 44 | 0 |
@@ -156,6 +179,13 @@ The repair-validation ten-program Godot matrix on the `f942220` base executed
 | Inventory projection adjacency | 99 | 0 |
 | Combined add-on load | 155 | 0 |
 | Stable identity collision suite | 18,442 | 0 |
+| 4.11 inventory intent/lifecycle compatibility | 162 | 0 |
+| Body hitbox contract | 111 | 0 |
+| Body hitbox adversarial contract | 173 | 0 |
+| Body hitbox review regression | 72 | 0 |
+| Combat content contract | 80 | 0 |
+| Health/ability content contract | 392 | 0 |
+| Units/clock contract | 32 | 0 |
 
 The promoted contract includes deterministic serialization; checksum and
 fingerprint tamper; invalid UTF-8; duplicate, unknown, malformed, truncated,
@@ -166,35 +196,25 @@ equal-generation conflict; corrupt primary/good backup; good primary/corrupt
 backup; both corrupt; both missing; preservation of the sole good backup;
 safe temp cleanup and blocked cleanup; a real symlink fixture; injected failure
 before/after candidate write, backup replacement, and primary replacement;
-post-commit verification corruption; directory-sync failure; a seam-proven
-durable result; fresh-instance host reload and host backup recovery; eight-way
-synchronized lease acquisition; synchronized same-store save admission; bounded
-thread joins; close during blocked storage I/O; validation-error admission
-cleanup; and lease reacquisition after both ordinary and raced teardown.
+post-commit verification corruption; the complete 32-case durability result
+cross-product; a seam-proven durable result; re-fingerprinted unequal-counter
+lineage attacks; recursively immutable public success, failure, capability, and
+admission results; fresh-instance host reload and host backup recovery;
+eight-way synchronized lease acquisition; synchronized same-store save
+admission; bounded thread joins; close during blocked storage I/O;
+validation-error admission cleanup; and lease reacquisition after both ordinary
+and raced teardown.
 
-After the repair was preserved and accepted `main` `c08a39b` was merged, the
-focused post-merge headless domain matrix executed **660 checks with zero
-failures**:
+The ProfileStore contract was also repeated 25 times in one bounded headless
+run (`10,975` assertions, zero failures, zero join timeouts, and zero deadlocks)
+to check scheduling behavior. These repetitions are supplementary and are not
+double-counted in the matrix.
 
-| Post-merge contract | Checks | Failures |
-| --- | ---: | ---: |
-| ProfileStore promoted contract and concurrency probes | 258 | 0 |
-| 4.11 inventory intent/lifecycle compatibility | 162 | 0 |
-| Inventory projection lifecycle compatibility | 99 | 0 |
-| Offline session lifecycle compatibility | 44 | 0 |
-| Inventory persistence/replacement compatibility | 97 | 0 |
+All tests in the final matrix are headless domain contracts. No UI scene or
+viewport/visual-capture contract was run.
 
-The 4.11 compatibility rerun deliberately targets the headless adapter,
-projection, session, and persistence boundaries. It does not run
-`inventory_loot_ui_4_11_contract.gd`, instantiate its UI scene, exercise a
-viewport, or regenerate visual captures.
-
-The post-merge concurrency contract was also repeated 25 times in one bounded
-headless run (`6,450` assertions, zero failures and zero join timeouts) to check
-for scheduling flakiness. These repetitions are supplementary and are not
-double-counted in either matrix.
-
-The clean post-merge editor import exited `0`. Every accepted log was scanned for
+The clean post-merge editor import exited `0`, registering 309 global script
+classes and importing 547 assets. Every accepted log was scanned for
 `SCRIPT ERROR`, `ERROR:`, warnings, extension-load failures, assertion failure
 markers, ObjectDB/RID/resource leaks, and nonzero exits; there were no matches.
 Strict change validation returned `Valid`. Toolchain and vendored-destination

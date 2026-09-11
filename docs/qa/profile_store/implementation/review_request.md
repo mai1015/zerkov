@@ -1,8 +1,10 @@
 # Task 7.9 integration review request
 
-Review repair commit `78ce8ecd3a8479fffc8daef2c3e441b457d2abee`
-after accepted `main` `c08a39b9026c9f45fd666d61a5c5d96b211e178b`
-was integrated by merge `19af13a9b1ad10862d9ac5b21f732396d766972d`.
+Review correctness repair commit
+`f20d8b9b33b1cb428f45d87dbeec917de7a36e01` after accepted `main`
+`c265d3a4efd9b49f840b87e201ceb8f4b661d26b` was integrated by merge
+`9c9201fa67f4f5b54d71bd897370531f5e9e1790`. The repair preserves the
+previous mutex-backed lease and operation-admission correction.
 
 Review the exact files sealed by `frozen_sources.sha256` against task 7.9 and
 the raid-progression/runtime-foundation deltas. Confirm that:
@@ -17,20 +19,32 @@ the raid-progression/runtime-foundation deltas. Confirm that:
 6. candidate and backup staging are flushed and verified before primary commit;
 7. receipts distinguish pre-commit failure, verified-but-durability-uncertain
    commit, unverified committed state, exact replay, and backup recovery;
-8. generation/revision CAS and equal-generation divergence fail closed;
-9. injected failures cover both sides of write/backup/primary replacement
+8. `committed_durable` requires replacement `ok=true` and `committed=true`,
+   file durability, and supported successful directory synchronization; every
+   other committed result tuple stays durability-uncertain;
+9. all 32 file-durable/replace-ok/replace-committed/sync-supported/sync-ok
+   tuples assert status, commitment, verification, durability, mutation, sync,
+   error reporting, and recursive immutability;
+10. version-1 generation/revision starts at `1/1`, remains equal, and rejects
+    recomputed-fingerprint mismatches before copy selection;
+11. every public receipt/capability snapshot is recursively read-only,
+    including early failures and the concurrent-save loser;
+12. exact replay reads and validates both copies but performs no write,
+    rotation, or other mutation;
+13. generation/revision CAS and equal-generation divergence fail closed;
+14. injected failures cover both sides of write/backup/primary replacement
    without replacing production globals;
-10. host claims stop at same-directory APFS rename plus Godot flush/read-back,
+15. host claims stop at same-directory APFS rename plus Godot flush/read-back,
     and do not imply directory fsync, real power-cut proof, authentication,
     encryption, or interprocess locking;
-11. no settlement, loss-policy, loadout, summary, UI, add-on, task-ledger, or
+16. no settlement, loss-policy, loadout, summary, UI, add-on, task-ledger, or
     truth-spec scope entered the change.
-12. the static lease mutex makes same-identity configure acquisition/release a
+17. the static lease mutex makes same-identity configure acquisition/release a
     single linearization point across Godot Threads;
-13. the instance mutex admits at most one load/save and prevents close from
+18. the instance mutex admits at most one load/save and prevents close from
     releasing the lease while configuration or an operation is active;
-14. no mutex remains held while calling the file-operation seam, hashing,
+19. no mutex remains held while calling the file-operation seam, hashing,
     serializing, reading, flushing, replacing, verifying, or syncing;
-15. bounded synchronized thread probes prove one eight-way configure winner,
+20. bounded synchronized thread probes prove one eight-way configure winner,
     one same-store save winner, explicit loser receipts, no deadlock, and lease
     reacquisition only after successful teardown.

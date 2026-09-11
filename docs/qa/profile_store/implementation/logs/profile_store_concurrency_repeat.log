@@ -1,4 +1,4 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf
-Post-merge base: c08a39b9026c9f45fd666d61a5c5d96b211e178b (merged as 19af13a)
+Post-merge base: c265d3a4efd9b49f840b87e201ceb8f4b661d26b (merged as 9c9201fa67f4f5b54d71bd897370531f5e9e1790)
 Command: 25 sequential headless executions of res://tests/raid/profile_store_contract.gd
-PROFILE_STORE_CONCURRENCY_REPEAT runs=25 checks_per_run=258 aggregate_checks=6450 failures=0 join_timeouts=0 deadlocks=0
+PROFILE_STORE_CONCURRENCY_REPEAT runs=25 checks_per_run=439 aggregate_checks=10975 failures=0 join_timeouts=0 deadlocks=0

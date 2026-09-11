@@ -9,7 +9,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  83% ] first_scan_filesystem | Starting file scan...
 [ DONE ] first_scan_filesystem
 
-[   0% ] update_scripts_classes | Started Registering global classes... (302 steps)
+[   0% ] update_scripts_classes | Started Registering global classes... (309 steps)
 [   0% ] update_scripts_classes | ActionBar
 [   0% ] update_scripts_classes | BindingEntry
 [   0% ] update_scripts_classes | CommonBindingText
@@ -44,124 +44,128 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  10% ] update_scripts_classes | GARewritePlanner
 [  10% ] update_scripts_classes | GATagHierarchy
 [  10% ] update_scripts_classes | GAUsageScanner
-[  11% ] update_scripts_classes | GameplayCueAdapterAnimation
+[  10% ] update_scripts_classes | GameplayCueAdapterAnimation
 [  11% ] update_scripts_classes | GameplayCueAdapterAudio
 [  11% ] update_scripts_classes | GameplayCueAdapterHud
-[  12% ] update_scripts_classes | GameplayCueAdapterVfx
+[  11% ] update_scripts_classes | GameplayCueAdapterVfx
 [  12% ] update_scripts_classes | GameplayAbilityDefinitionBridge
 [  12% ] update_scripts_classes | GameplayCueAdapter
-[  13% ] update_scripts_classes | GameplayNetworkPolicyBridge
+[  12% ] update_scripts_classes | GameplayNetworkPolicyBridge
 [  13% ] update_scripts_classes |
 [  13% ] update_scripts_classes | InventoryContextActions
-[  14% ] update_scripts_classes | InventoryContextMenu
+[  13% ] update_scripts_classes | InventoryContextMenu
 [  14% ] update_scripts_classes | InventoryDragGhost
 [  14% ] update_scripts_classes | InventoryItemCard
-[  15% ] update_scripts_classes | InventoryItemDetails
+[  14% ] update_scripts_classes | InventoryItemDetails
 [  15% ] update_scripts_classes | InventoryModal
 [  15% ] update_scripts_classes | InventoryPendingOverlay
-[  16% ] update_scripts_classes | InventoryQuantitySpinner
+[  15% ] update_scripts_classes | InventoryQuantitySpinner
 [  16% ] update_scripts_classes | InventorySelectionOverlay
 [  16% ] update_scripts_classes | InventoryTooltip
-[  17% ] update_scripts_classes | InventoryDesignTokens
+[  16% ] update_scripts_classes | InventoryDesignTokens
 [  17% ] update_scripts_classes | InventoryDiscoveryContainerControl
 [  17% ] update_scripts_classes | InventoryNamedSlotsControl
-[  18% ] update_scripts_classes | InventoryOrderedListControl
+[  17% ] update_scripts_classes | InventoryOrderedListControl
 [  18% ] update_scripts_classes | InventoryRendererRegistry
 [  18% ] update_scripts_classes | InventorySpatialGridControl
-[  19% ] update_scripts_classes | InventoryStateGlyphs
+[  18% ] update_scripts_classes | InventoryStateGlyphs
 [  19% ] update_scripts_classes | InventoryStateIcons
 [  19% ] update_scripts_classes | InventoryThemeFactory
-[  20% ] update_scripts_classes | InventoryTwoPaneView
+[  19% ] update_scripts_classes | InventoryTwoPaneView
 [  20% ] update_scripts_classes |
 [  20% ] update_scripts_classes | InventoryInteractionController
-[  21% ] update_scripts_classes | InventoryPresentationModel
-[  21% ] update_scripts_classes | LtsBreadcrumbItem
+[  20% ] update_scripts_classes | InventoryPresentationModel
+[  20% ] update_scripts_classes | LtsBreadcrumbItem
 [  21% ] update_scripts_classes | LtsCommandButton
-[  22% ] update_scripts_classes |
-[  22% ] update_scripts_classes |
+[  21% ] update_scripts_classes |
+[  21% ] update_scripts_classes |
 [  22% ] update_scripts_classes | LtsDegradedState
-[  23% ] update_scripts_classes | LtsDrawer
-[  23% ] update_scripts_classes | LtsEmptyState
+[  22% ] update_scripts_classes | LtsDrawer
+[  22% ] update_scripts_classes | LtsEmptyState
 [  23% ] update_scripts_classes | LtsFindingRow
-[  24% ] update_scripts_classes | LtsGraphNodeCard
-[  24% ] update_scripts_classes | LtsIconButton
+[  23% ] update_scripts_classes | LtsGraphNodeCard
+[  23% ] update_scripts_classes | LtsIconButton
 [  24% ] update_scripts_classes | LtsInspectorField
-[  25% ] update_scripts_classes | LtsPortRow
-[  25% ] update_scripts_classes | LtsResourceRow
+[  24% ] update_scripts_classes | LtsPortRow
+[  24% ] update_scripts_classes | LtsResourceRow
 [  25% ] update_scripts_classes | LtsSearchField
-[  26% ] update_scripts_classes | LtsStatusBadge
-[  26% ] update_scripts_classes | LtsConversationCommandIntent
+[  25% ] update_scripts_classes | LtsStatusBadge
+[  25% ] update_scripts_classes | LtsConversationCommandIntent
 [  26% ] update_scripts_classes | LtsConversationEditor
-[  27% ] update_scripts_classes | LtsConversationProjection
-[  27% ] update_scripts_classes | LtsConversationTextView
+[  26% ] update_scripts_classes | LtsConversationProjection
+[  26% ] update_scripts_classes | LtsConversationTextView
 [  27% ] update_scripts_classes | LtsConversationTimeline
-[  28% ] update_scripts_classes | LtsLiveRuntimeDebugger
-[  28% ] update_scripts_classes | LtsLiveRuntimeDebuggerModel
+[  27% ] update_scripts_classes | LtsLiveRuntimeDebugger
+[  27% ] update_scripts_classes | LtsLiveRuntimeDebuggerModel
 [  28% ] update_scripts_classes | LtsDocumentCommand
-[  29% ] update_scripts_classes | LtsDocumentFixtures
-[  29% ] update_scripts_classes | LtsDocumentHistory
+[  28% ] update_scripts_classes | LtsDocumentFixtures
+[  28% ] update_scripts_classes | LtsDocumentHistory
 [  29% ] update_scripts_classes | LtsDocumentModel
-[  30% ] update_scripts_classes | LtsDocumentPersistence
-[  30% ] update_scripts_classes | LtsDocumentProjection
+[  29% ] update_scripts_classes | LtsDocumentPersistence
+[  29% ] update_scripts_classes | LtsDocumentProjection
 [  30% ] update_scripts_classes | LtsLocalizationBoundary
-[  31% ] update_scripts_classes | LtsGraphCanvas
-[  31% ] update_scripts_classes | LtsGraphCanvasLogic
-[  31% ] update_scripts_classes | LtsGraphNodeView
-[  32% ] update_scripts_classes | LtsConversationPreview
-[  32% ] update_scripts_classes | LtsConversationPreviewModel
-[  32% ] update_scripts_classes | LtsGraphDebugLogic
-[  33% ] update_scripts_classes | LtsGraphDebugModel
-[  33% ] update_scripts_classes | LtsTaskRuntimeBridge
-[  33% ] update_scripts_classes | LtsTaskSimulator
+[  30% ] update_scripts_classes | LtsGraphCanvas
+[  30% ] update_scripts_classes | LtsGraphCanvasLogic
+[  30% ] update_scripts_classes | LtsGraphNodeView
+[  31% ] update_scripts_classes | LtsConversationPreview
+[  31% ] update_scripts_classes | LtsConversationPreviewModel
+[  31% ] update_scripts_classes | LtsGraphDebugLogic
+[  32% ] update_scripts_classes | LtsGraphDebugModel
+[  32% ] update_scripts_classes | LtsTaskRuntimeBridge
+[  32% ] update_scripts_classes | LtsTaskSimulator
 [  33% ] update_scripts_classes | LtsTaskSimulatorPanel
-[  34% ] update_scripts_classes | LtsDocumentValidator
-[  34% ] update_scripts_classes | LtsFindingsPanel
+[  33% ] update_scripts_classes | LtsDocumentValidator
+[  33% ] update_scripts_classes | LtsFindingsPanel
 [  34% ] update_scripts_classes | LtsFindingsStore
-[  35% ] update_scripts_classes | LtsWorkspace
+[  34% ] update_scripts_classes | LtsWorkspace
+[  34% ] update_scripts_classes |
 [  35% ] update_scripts_classes |
+[  35% ] update_scripts_classes | LtsComponentShowcase
 [  35% ] update_scripts_classes |
-[  36% ] update_scripts_classes | LtsComponentShowcase
-[  36% ] update_scripts_classes |
 [  36% ] update_scripts_classes | WeaponAmmoHudPresenter
-[  37% ] update_scripts_classes | WeaponCorrectionFlashPresenter
-[  37% ] update_scripts_classes | WeaponDiagnosticsPanel
+[  36% ] update_scripts_classes | WeaponCorrectionFlashPresenter
+[  36% ] update_scripts_classes | WeaponDiagnosticsPanel
 [  37% ] update_scripts_classes | WeaponInspectorPanel
-[  38% ] update_scripts_classes | WeaponMuzzleFlashPresenter
-[  38% ] update_scripts_classes | WeaponReloadProgressPresenter
+[  37% ] update_scripts_classes | WeaponMuzzleFlashPresenter
+[  37% ] update_scripts_classes | WeaponReloadProgressPresenter
 [  38% ] update_scripts_classes | WeaponTracerImpactPresenter
-[  39% ] update_scripts_classes |
-[  39% ] update_scripts_classes | OfflineSessionIngress
+[  38% ] update_scripts_classes |
+[  38% ] update_scripts_classes | OfflineSessionIngress
 [  39% ] update_scripts_classes | SessionCoordinator
-[  40% ] update_scripts_classes | ZerkovCombatContent
-[  40% ] update_scripts_classes | ZerkovHealthAbilityContent
+[  39% ] update_scripts_classes | ZerkovCombatContent
+[  39% ] update_scripts_classes | ZerkovHealthAbilityContent
+[  40% ] update_scripts_classes | BodyHitboxWorld2D
+[  40% ] update_scripts_classes | ZerkovBodyHitboxProfile
 [  40% ] update_scripts_classes | WeaponInstanceContextAdapter
-[  41% ] update_scripts_classes | ZerkovAssetRegistry
+[  40% ] update_scripts_classes | ZerkovAssetRegistry
 [  41% ] update_scripts_classes | ZerkovEquipmentAbilityContent
 [  41% ] update_scripts_classes | ZerkovGameplayAbilityContent
-[  42% ] update_scripts_classes | ZerkovInventoryCatalog
+[  41% ] update_scripts_classes | ZerkovInventoryCatalog
 [  42% ] update_scripts_classes | EquipmentAbilityParticipantPort
 [  42% ] update_scripts_classes | ZInventoryIdentityPort
-[  43% ] update_scripts_classes | ZInventoryWorldPolicyPort
+[  42% ] update_scripts_classes | ZInventoryWorldPolicyPort
 [  43% ] update_scripts_classes | ZSessionIngressPort
 [  43% ] update_scripts_classes | WeaponReloadParticipantPort
-[  44% ] update_scripts_classes | ZCanonicalValue
+[  43% ] update_scripts_classes | ZCanonicalValue
 [  44% ] update_scripts_classes | ZConsequenceId
 [  44% ] update_scripts_classes | ZEntityId
+[  44% ] update_scripts_classes | ZHitboxId
 [  45% ] update_scripts_classes | ZIdentityRules
 [  45% ] update_scripts_classes | ZInventoryId
-[  45% ] update_scripts_classes | ZRaidEvent
+[  45% ] update_scripts_classes | ZObstructionId
+[  46% ] update_scripts_classes | ZRaidEvent
 [  46% ] update_scripts_classes | ZRaidId
 [  46% ] update_scripts_classes | ZRaidIntent
-[  46% ] update_scripts_classes | ZRequestId
+[  47% ] update_scripts_classes | ZRequestId
 [  47% ] update_scripts_classes | ZSessionAdmission
 [  47% ] update_scripts_classes | ZSessionId
-[  47% ] update_scripts_classes | ZSessionRequest
+[  48% ] update_scripts_classes | ZSessionRequest
 [  48% ] update_scripts_classes | ZSettlementId
 [  48% ] update_scripts_classes | ZStableId
-[  48% ] update_scripts_classes | ZTaskId
+[  49% ] update_scripts_classes | ZTaskId
 [  49% ] update_scripts_classes | ZUnitConversion
 [  49% ] update_scripts_classes | ZWeaponId
-[  49% ] update_scripts_classes | ZWorldUnits
+[  50% ] update_scripts_classes | ZWorldUnits
 [  50% ] update_scripts_classes | EquippedItemReconciler
 [  50% ] update_scripts_classes | GameplayAbilityEquipmentPort
 [  50% ] update_scripts_classes | InventoryAbilityAdapter
@@ -195,6 +199,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  60% ] update_scripts_classes |
 [  60% ] update_scripts_classes |
 [  60% ] update_scripts_classes |
+[  60% ] update_scripts_classes |
 [  61% ] update_scripts_classes |
 [  61% ] update_scripts_classes |
 [  61% ] update_scripts_classes |
@@ -213,7 +218,6 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  66% ] update_scripts_classes |
 [  66% ] update_scripts_classes |
 [  66% ] update_scripts_classes |
-[  66% ] update_scripts_classes |
 [  67% ] update_scripts_classes |
 [  67% ] update_scripts_classes |
 [  67% ] update_scripts_classes |
@@ -223,6 +227,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  69% ] update_scripts_classes |
 [  69% ] update_scripts_classes |
 [  69% ] update_scripts_classes |
+[  70% ] update_scripts_classes |
 [  70% ] update_scripts_classes |
 [  70% ] update_scripts_classes |
 [  70% ] update_scripts_classes |
@@ -247,21 +252,22 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  77% ] update_scripts_classes |
 [  77% ] update_scripts_classes |
 [  77% ] update_scripts_classes |
+[  78% ] update_scripts_classes |
+[  78% ] update_scripts_classes |
 [  78% ] update_scripts_classes | ZParallaxBackground
-[  78% ] update_scripts_classes | ZerkovButton
-[  78% ] update_scripts_classes | ZerkovDialog
+[  79% ] update_scripts_classes | ZerkovButton
+[  79% ] update_scripts_classes | ZerkovDialog
 [  79% ] update_scripts_classes | ZNavigationChrome
-[  79% ] update_scripts_classes | ZAdaptive
-[  79% ] update_scripts_classes | ZUIFeedback
+[  80% ] update_scripts_classes | ZAdaptive
+[  80% ] update_scripts_classes | ZUIFeedback
 [  80% ] update_scripts_classes | ZLayoutSnapshot
 [  80% ] update_scripts_classes | ZUINavigator
-[  80% ] update_scripts_classes | ZRouteCatalog
+[  81% ] update_scripts_classes | ZRouteCatalog
 [  81% ] update_scripts_classes | ZUIRouteIntent
 [  81% ] update_scripts_classes | ZUIRoutePayload
-[  81% ] update_scripts_classes | ZScreen
+[  82% ] update_scripts_classes | ZScreen
 [  82% ] update_scripts_classes | ZUIContext
 [  82% ] update_scripts_classes |
-[  82% ] update_scripts_classes |
 [  83% ] update_scripts_classes |
 [  83% ] update_scripts_classes |
 [  83% ] update_scripts_classes |
@@ -271,18 +277,19 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  85% ] update_scripts_classes |
 [  85% ] update_scripts_classes |
 [  85% ] update_scripts_classes |
+[  86% ] update_scripts_classes |
 [  86% ] update_scripts_classes | ZUIFixtureStore
 [  86% ] update_scripts_classes |
-[  86% ] update_scripts_classes |
+[  87% ] update_scripts_classes |
 [  87% ] update_scripts_classes | ZTopChrome
 [  87% ] update_scripts_classes |
-[  87% ] update_scripts_classes |
 [  88% ] update_scripts_classes |
 [  88% ] update_scripts_classes |
 [  88% ] update_scripts_classes |
 [  89% ] update_scripts_classes |
 [  89% ] update_scripts_classes |
 [  89% ] update_scripts_classes |
+[  90% ] update_scripts_classes |
 [  90% ] update_scripts_classes |
 [  90% ] update_scripts_classes |
 [  90% ] update_scripts_classes | ZMenuActionCard

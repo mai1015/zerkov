@@ -1,7 +1,7 @@
-PASS: no matches in the clean post-merge editor import, five rerun headless domain contracts, retained Godot contract logs, concurrency-repeat, toolchain, vendor, or strict-spec logs.
+PASS: no matches in the clean post-merge editor import, 17 final headless domain contracts, concurrency-repeat, toolchain, vendor, or strict-spec logs.
 
-Post-merge base: c08a39b9026c9f45fd666d61a5c5d96b211e178b (merged as 19af13a)
-Excluded by instruction: 4.11 UI/viewport contract and visual capture scripts
+Post-merge base: c265d3a4efd9b49f840b87e201ceb8f4b661d26b (merged as 9c9201fa67f4f5b54d71bd897370531f5e9e1790)
+Excluded by instruction: all UI, viewport, and visual-capture contracts
 
 Scanned patterns:
 SCRIPT ERROR
