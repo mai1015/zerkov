@@ -90,6 +90,7 @@ func run() -> void:
 	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate() as Control
 	app.name = "CommonUINavigation1080Host"
+	app.prototype_fixture_mode = true
 	root.add_child(app)
 	await settle()
 	app.navigator.rejected.connect(_record_rejection)
@@ -110,7 +111,8 @@ func run() -> void:
 	var retained_saves := app.screen as ZScreen
 	var retained_saves_context := retained_saves.app
 	var retained_saves_capability: RefCounted = retained_saves_context._feedback_capability
-	var world_count_before := int(app.state.get("frontflow_worlds", []).size())
+	var world_count_before := int(
+		app.fixture_state_for_test().get("frontflow_worlds", []).size())
 	check(world_count_before == 3, "retained-caller fixture begins with three worlds")
 	check(app.request_route("session"), "Session push over Saves is admitted")
 	await settle()
@@ -125,12 +127,14 @@ func run() -> void:
 	check(app.modal == null and screen_root.modal_layer().get_depth() == 0,
 		"inactive retained Saves cannot acquire a prompt")
 	check(app.current_route == "session" \
-			and int(app.state.get("frontflow_worlds", []).size()) == world_count_before,
+			and int(app.fixture_state_for_test().get(
+				"frontflow_worlds", []).size()) == world_count_before,
 		"inactive Saves cannot commit its hidden delete callback")
 	check("does not own" in app.toast_label.text.to_lower(),
 		"inactive request fails with an ownership diagnostic")
 
-	var forged_context := ZUIContext.new(app, "session", app.fixtures)
+	var forged_context := ZUIContext.new(
+		app, "session", app.fixture_provider_for_test())
 	var forged_callback_count := {"value": 0}
 	check(not app.request_confirm(
 		forged_context,
@@ -190,7 +194,8 @@ func run() -> void:
 		func() -> void: forged_callback_count.value += 10
 	), "a captured context capability cannot replay after owner teardown")
 	check(app.modal == null \
-			and int(app.state.get("frontflow_worlds", []).size()) == world_count_before \
+			and int(app.fixture_state_for_test().get(
+				"frontflow_worlds", []).size()) == world_count_before \
 			and forged_callback_count.value == 0,
 		"teardown replay cannot open or commit")
 
@@ -267,7 +272,7 @@ func run() -> void:
 		"confirm completion clears modal reference and layer together")
 	check(app.screen == summary and app.current_route == "summary_solo",
 		"summary callback owner remains current until callback completion")
-	check(bool(app.state.get("raid_loadout_insured", false)),
+	check(bool(app.fixture_state_for_test().get("raid_loadout_insured", false)),
 		"summary callback executes after the modal pop")
 	check(duplicate_callback_count == 0, "rejected duplicate callback never executes")
 	check(root.gui_get_focus_owner() == summary_focus,

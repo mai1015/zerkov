@@ -1,6 +1,8 @@
 extends SceneTree
 ## Captures one lifecycle-active shared screen without re-opening the initial route.
 
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+
 var failures: int = 0
 
 
@@ -20,6 +22,9 @@ func settle() -> void:
 
 
 func run() -> void:
+	root.size = FIRST_PLAYABLE_SIZE
+	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
+		"capture is gated to exact 1920x1080")
 	var capture_path := "res://screen_lifecycle_capture.png"
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture-path="):

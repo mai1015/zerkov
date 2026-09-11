@@ -135,7 +135,7 @@ func _open(intent: ZUIRouteIntent) -> void:
 	# Character workspace routes replace one another on the CommonUI menu
 	# layer. Capture presentation-only selection/focus/caret/scroll coordinates
 	# before staging the replacement so the new screen can restore them from the
-	# injected runtime without touching app.state.
+	# injected runtime without touching fixture storage.
 	if host.screen != null and host.screen.has_method("stash_character_interaction_state"):
 		host.screen.call("stash_character_interaction_state")
 	if host.current_route == route and host.screen is ZScreen:
@@ -147,14 +147,19 @@ func _open(intent: ZUIRouteIntent) -> void:
 		instance.free()
 		_reject(route, "Route does not contain a ZScreen: " + route)
 		return
+	var fixture_provider: ZUIFixtureProvider = host.fixture_provider_for_route(
+		route, intent.origin)
+	var presentation_provider: ZUIPresentationProvider = \
+			host.presentation_provider_for_route(intent.origin)
 	next.app = ZUIContext.new(
 		host,
 		route,
-		host.fixtures,
+		fixture_provider,
 		intent.origin == ZUIRouteIntent.Origin.DEVELOPER_CATALOG \
 				or ZRouteCatalog.is_developer_only(route),
 		intent.payload,
-		host.character_runtime_for_route(route, intent.origin)
+		host.character_runtime_for_route(route, intent.origin),
+		presentation_provider
 	)
 	if not next.app._bind_feedback_owner(next):
 		next.free()

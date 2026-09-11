@@ -22,7 +22,7 @@ func build() -> void:
 func _bind_dynamic_data() -> void:
 	var placement: Control = get_node("PlacementPanel") as Control
 	(placement.get_node("Title") as Label).text = "PLACING · %s" % _build_selection
-	(get_node("PlacedHint") as Label).text = "Placed %d / 12 · space unlocks with Bunker LVL" % int(app.state.get("bunker_placed", 7))
+	(get_node("PlacedHint") as Label).text = "Placed %d / 12 · space unlocks with Bunker LVL" % int(app.fixture_get("bunker_placed", 7))
 
 	var preview_size: Vector2 = Vector2(124, 84) if _build_rotation % 2 == 0 else Vector2(84, 124)
 	var preview: Panel = get_node("Preview") as Panel
@@ -120,4 +120,3 @@ func _wire_button(button: Button, callback: Callable) -> void:
 		return
 	if not button.pressed.is_connected(callback):
 		button.pressed.connect(callback)
-
