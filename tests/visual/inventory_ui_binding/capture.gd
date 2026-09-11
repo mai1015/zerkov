@@ -1,4 +1,8 @@
 extends "res://tests/raid/inventory_ui_binding_contract.gd"
+## HISTORICAL / DEFERRED VISUAL PACKET: retained smaller-resolution inventory
+## binding evidence. This source is not a current first-playable runner and
+## MUST NOT be invoked or regenerated until task 11.8 or a later approved
+## display-support proposal.
 ## Independent Astra gate evidence. Graphical Godot only. This reuses identity
 ## and world-policy test ports, but dispatches native viewport input itself.
 const OUTPUT := "res://docs/qa/inventory_ui_binding/astra_gate"
@@ -6,6 +10,13 @@ var app: Control
 var screen: Control
 var records: Array[Dictionary] = []
 var capture_key := ""
+
+func _initialize() -> void:
+	# This base owns the lifecycle for every retained visual inventory probe.
+	# Keep the historical source readable, but make accidental current-matrix
+	# invocation fail before setup, resizing or capture can begin.
+	push_error("DEFERRED_DISPLAY_SUITE: inventory_ui_binding visual packet is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 func setup_runtime() -> void:
 	owner = RaidInventoryOwner.new()

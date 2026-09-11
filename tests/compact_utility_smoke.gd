@@ -1,12 +1,16 @@
 extends SceneTree
-## Run natively for PNG evidence, or with --headless for input/state checks.
+## DEFERRED / HISTORICAL SUITE: compact utility regression.
+## Do not invoke or regenerate smaller-window evidence until task 11.8 or a
+## later approved display-support proposal explicitly reopens this suite.
+## Historical runs were native PNG evidence or headless input/state checks.
 var app: Control
 var failures := 0
 var checks := 0
 var capture_dir := "/tmp/zerkov-compact-utility"
 
 func _initialize() -> void:
-    call_deferred("run")
+    push_error("DEFERRED_DISPLAY_SUITE: compact_utility_smoke is historical; reopen only through task 11.8 or an approved display-support proposal")
+    quit(2)
 
 func check(value: bool, message: String) -> void:
     checks += 1

@@ -25,7 +25,7 @@ Player movement, collision, facing, stance, and interaction eligibility SHALL be
 - **THEN** authority validates identity, range, line of interaction, and current eligibility before changing state
 
 ### Requirement: Independent World and Interface Presentation
-The game SHALL render the pixel-world presentation independently from the crisp interface layer. World scaling, camera shake, hit stop, color treatment, and pixel snapping MUST NOT distort interface layout, text legibility, pointer mapping, or safe-area behavior.
+The game SHALL render the pixel-world presentation independently from the crisp interface layer. World scaling, camera shake, hit stop, color treatment, and pixel snapping MUST NOT distort interface layout, text legibility, pointer mapping, or safe-area behavior. The current first-playable verification target is exact 1920x1080; retained smaller-output/adaptive behavior is compatibility-only and current agents, tasks and tests MUST NOT execute or regenerate it before task 11.8 or a later approved display-support proposal.
 
 #### Scenario: Combat presentation affects the world camera
 - **WHEN** recoil, damage, or an explosion applies camera shake or hit stop
@@ -36,7 +36,8 @@ The game SHALL render the pixel-world presentation independently from the crisp 
 - **WHEN** the viewport is 1920x1080
 - **THEN** the 640x360 world presentation uses its declared exact 3x pixel-scaling policy
 - **AND** the interface remains an independent crisp 1920x1080 composition
-- **AND** smaller-output scaling and adaptive layout remain deferred
+- **AND** current acceptance executes only the exact 1920x1080 path
+- **AND** smaller-output scaling and adaptive-layout suites remain deferred until task 11.8 or a later approved display-support proposal
 
 ### Requirement: Explicit Vision Occlusion Bake
 Vision-blocking geometry SHALL be authored or generated as an explicit, inspectable occluder representation consumed by the perception system. The bake process MUST be deterministic for unchanged source geometry and MUST expose invalid or ambiguous occluders before a raid ships.

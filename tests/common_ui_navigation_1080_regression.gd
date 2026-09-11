@@ -2,6 +2,7 @@ extends SceneTree
 ## Exact 1920x1080 regressions from the independent task 8.2 review.
 ## Run with: godot --headless --path . --audio-driver Dummy \
 ##   --script res://tests/common_ui_navigation_1080_regression.gd
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
 
 var app: Control
 var checks := 0
@@ -86,7 +87,7 @@ func _record_rejection(route: String, reason: String) -> void:
 
 
 func run() -> void:
-	root.size = Vector2i(1920, 1080)
+	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate() as Control
 	app.name = "CommonUINavigation1080Host"
 	root.add_child(app)
@@ -94,7 +95,7 @@ func run() -> void:
 	app.navigator.rejected.connect(_record_rejection)
 
 	var screen_root := app.common_ui_root as CommonUIScreenRoot
-	check(root.get_visible_rect().size == Vector2(1920, 1080),
+	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
 		"regression runs at the exact independent-review canvas")
 
 	# Exact retained-caller repro: title -> main menu reset -> Saves push ->

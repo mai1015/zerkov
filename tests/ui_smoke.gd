@@ -1,5 +1,6 @@
 extends SceneTree
 ## Run with: godot --headless --path . --script res://tests/ui_smoke.gd
+const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
 
 var failures: int = 0
 var checks: int = 0
@@ -42,12 +43,12 @@ func press_key(code: Key) -> void:
 	await settle()
 
 func run() -> void:
-	root.size = Vector2i(1920, 1080)
+	root.size = FIRST_PLAYABLE_SIZE
 	app = load("res://ui/main.tscn").instantiate()
 	root.add_child(app)
 	app.qa_mode = true
 	await settle()
-	await click_at(Vector2(960, 540))
+	await click_at(Vector2(FIRST_PLAYABLE_SIZE) / 2.0)
 	check(app.current_route == "main_menu", "Click anywhere on title enters main menu")
 	await click_at(Vector2(160, 274))
 	check(app.current_route == "session", "Main menu Continue button enters bunker session")

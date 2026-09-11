@@ -163,6 +163,8 @@ func run() -> void:
 		runtime["ammo_profiles"],
 	)
 	check(bool(configured.get("ok", false)), "live WeaponAuthority accepts the authored configuration")
+	check(authority.content_fingerprint() == int(native_report.get("fingerprint", 0)),
+		"live WeaponAuthority fingerprint exactly matches task-5.1 resource content")
 	# configure() seals a native copy. Mutating every caller-owned Dictionary
 	# family afterward must not change instance creation or attachment rules.
 	(runtime["shot_profiles"][0] as Dictionary)["damage_milliunits"] = 1

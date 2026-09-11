@@ -1,10 +1,16 @@
 extends "res://tests/visual/inventory_ui_binding/capture.gd"
+## HISTORICAL / DEFERRED presentation packet across smaller outputs; current
+## first-playable verification MUST NOT invoke or regenerate this source.
 
 ## Committed regression evidence for the two presentation-honesty P2 repairs.
 ## This probe keeps the live authority empty, captures the retained gear panel
 ## at every required native size, then explicitly returns to fixture preview.
 ## It never writes icon metadata into a native snapshot and writes only to the
 ## separate repair_honesty evidence directory.
+
+func _initialize() -> void:
+	push_error("DEFERRED_DISPLAY_SUITE: presentation_honesty_probe is historical; reopen only through task 11.8 or an approved display-support proposal")
+	quit(2)
 
 const HONESTY_OUTPUT := "res://docs/qa/inventory_ui_binding/repair_honesty"
 const PLACEHOLDER_ICON := "res://assets/handoff/item_box.png"
