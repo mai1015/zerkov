@@ -230,12 +230,13 @@ func _runtime_contract() -> void:
 		CommonUIActionValidator.validate_runtime(runtime, false)),
 		"active CommonUI lifecycle registrations resolve to declared bound actions")
 	if runtime != null:
-		var runtime_findings := CommonUIActionValidator.validate(runtime.get_input_config(), true)
+		var runtime_findings := CommonUIActionValidator.validate(runtime.get_input_config(), false)
 		var unexpected_collisions := 0
 		for finding_variant in runtime_findings:
 			var finding: Dictionary = finding_variant
 			if finding.get("severity") == CommonUIActionValidator.SEVERITY_WARNING \
-					and not (finding.get("action") in [ZerkovInputActions.UI_BACK, ZerkovInputActions.UI_CONFIRM]):
+					and str(finding.get("action", "")) not in [
+						String(ZerkovInputActions.UI_BACK), String(ZerkovInputActions.UI_CONFIRM)]:
 				unexpected_collisions += 1
 		check(unexpected_collisions == 0,
 			"installed defaults enforce ui_* collision findings except documented framework Back/Confirm overlap")
@@ -327,8 +328,25 @@ func _runtime_contract() -> void:
 	check(app.current_route == "maps", "keyboard UI action opens maps through CommonUI")
 	await key(KEY_J)
 	check(app.current_route == "tasks", "keyboard UI action opens tasks through CommonUI")
-	await joypad_button(JOY_BUTTON_Y)
+	await joypad_button(JOY_BUTTON_START)
 	check(app.current_route == "inventory", "controller UI action opens inventory through CommonUI")
+	check(service.effective_binding(ZerkovInputActions.UI_OPEN_INVENTORY,
+		CommonUIBinding.SLOT_SECONDARY).get_code() == JOY_BUTTON_START,
+		"inventory controller default avoids Godot's ui_select reservation")
+	check(service.effective_binding(ZerkovInputActions.UI_OPEN_TASKS,
+		CommonUIBinding.SLOT_SECONDARY).get_code() == JOY_BUTTON_RIGHT_STICK,
+		"tasks controller default avoids Godot's ui_down reservation")
+	check(app.request_route("inventory", false), "focused-button controller probe enters inventory at exact 1920x1080")
+	await settle()
+	var focused_button := app.screen.get_node_or_null("NavigationChrome/Tasks") as BaseButton
+	if focused_button != null:
+		focused_button.grab_focus()
+	await settle()
+	check(focused_button != null and root.gui_get_focus_owner() == focused_button,
+		"exact-1920 controller probe owns a focused CommonUI button")
+	await joypad_button(JOY_BUTTON_RIGHT_STICK)
+	check(app.current_route == "tasks",
+		"non-reserved controller UI action reaches CommonUI with a focused button")
 
 	var keyboard_candidate := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_M, &"key_m")
 	var conflicts := service.preview_conflicts(
@@ -356,6 +374,28 @@ func _runtime_contract() -> void:
 	check(not collision_result.get("ok", false)
 			and str(collision_result.get("error", "")).contains("ui_"),
 		"rebinds that target a Godot ui_* focus key are rejected before registry mutation")
+	var controller_focus_collision := make_binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON,
+		JOY_BUTTON_DPAD_UP, &"pad_dpad_up")
+	var controller_collision_result := service.rebind(ZerkovInputActions.UI_OPEN_MAP,
+		CommonUIBinding.SLOT_PRIMARY, controller_focus_collision)
+	check(not controller_collision_result.get("ok", false)
+			and str(controller_collision_result.get("error", "")).contains("ui_"),
+		"rebinds that target a Godot ui_* controller focus button are rejected")
+	var controller_select_collision := make_binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON,
+		JOY_BUTTON_Y, &"pad_y")
+	var controller_select_result := service.rebind(ZerkovInputActions.UI_OPEN_INVENTORY,
+		CommonUIBinding.SLOT_SECONDARY, controller_select_collision)
+	check(not controller_select_result.get("ok", false)
+			and str(controller_select_result.get("error", "")).contains("ui_"),
+		"rebinds that target a Godot ui_* controller select button are rejected")
+	var controller_axis_collision := make_binding(CommonUIBinding.DEVICE_GAMEPAD_AXIS,
+		JOY_AXIS_LEFT_Y, &"pad_ls_up")
+	controller_axis_collision.set_axis_direction(CommonUIBinding.AXIS_DIRECTION_NEGATIVE)
+	var controller_axis_result := service.rebind(ZerkovInputActions.UI_OPEN_MAP,
+		CommonUIBinding.SLOT_SECONDARY, controller_axis_collision)
+	check(not controller_axis_result.get("ok", false)
+			and str(controller_axis_result.get("error", "")).contains("ui_"),
+		"rebinds that target a Godot ui_* controller focus axis are rejected")
 	var confirm_focus_collision := make_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_TAB,
 		&"key_tab")
 	var confirm_collision_result := service.rebind(ZerkovInputActions.UI_CONFIRM,
@@ -382,11 +422,14 @@ func _runtime_contract() -> void:
 		"replace policy preserves another binding on a protected conflicting action")
 	check(service.restore_defaults().get("ok", false),
 		"policy probe restores the complete default set")
+	var duplicate_before := service.active_bindings_bytes()
 	var duplicate_allowed := service.rebind(ZerkovInputActions.UI_OPEN_TASKS,
 		CommonUIBinding.SLOT_PRIMARY, keyboard_candidate,
 		CommonInputBindingRegistry.CONFLICT_ALLOW_DUPLICATE, true)
-	check(duplicate_allowed.get("ok", false),
-		"allow-duplicate policy is explicit and transactional")
+	check(not duplicate_allowed.get("ok", false)
+		and duplicate_allowed.get("error") == "duplicate_conflict_policy_not_persistable"
+		and service.active_bindings_bytes() == duplicate_before,
+		"unsupported allow-duplicate policy is rejected before mutation for round-trip safety")
 	var oversized_request := StringName("x".repeat(ZerkovInputService.MAX_REQUEST_ID_LENGTH + 1))
 	check(not service.restore_defaults(oversized_request).get("ok", false),
 		"oversized request id is rejected before persistence")
@@ -510,6 +553,21 @@ func _persistence_contract() -> void:
 	check(not service.reload_overrides(), "persisted same-context collisions are rejected before install")
 	check(service.active_bindings_bytes() == before,
 		"persisted collision leaves live bindings unchanged")
+	remove_persistence_candidates()
+	write_persistence(JSON.stringify({
+		"format_version": 2,
+		"definition_version": ZerkovInputActions.CONFIG_DEFINITION_VERSION,
+		"overrides": [{
+			"action": String(ZerkovInputActions.UI_OPEN_MAP),
+			"slot": 1,
+			"cleared": false,
+			"binding": persistence_binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON,
+				JOY_BUTTON_DPAD_UP, CommonUIBinding.AXIS_DIRECTION_NONE, "pad_dpad_up"),
+		}],
+	}))
+	check(not service.reload_overrides(), "persisted ui_* controller collision is rejected before install")
+	check(service.active_bindings_bytes() == before,
+		"persisted controller focus collision leaves live bindings unchanged")
 	remove_persistence_candidates()
 	write_persistence(JSON.stringify({
 		"format_version": 2,

@@ -390,10 +390,10 @@ static func action_definitions() -> Array[Dictionary]:
 
 	result.append(_definition(
 		UI_OPEN_INVENTORY, "Inventory", UI_CONTEXT, &"ui/navigation", CommonUIAction.PROTECTION_REQUIRED,
-		# I is intentionally outside Godot's built-in ui_* focus set.  Tab is
-		# reserved by CommonUI navigation and must never be a game default.
+		# I is intentionally outside Godot's built-in ui_* focus set. Tab and
+		# Joypad Y are reserved by Godot focus actions and must never be defaults.
 		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_I, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_i", FAMILY_KEYBOARD_MOUSE),
-		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_Y, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_y", FAMILY_GENERIC_GAMEPAD)],
+		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_START, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_start", FAMILY_GENERIC_GAMEPAD)],
 		0.0, false))
 	result.append(_definition(
 		UI_OPEN_MAP, "Map", UI_CONTEXT, &"ui/navigation", CommonUIAction.PROTECTION_REQUIRED,
@@ -403,12 +403,12 @@ static func action_definitions() -> Array[Dictionary]:
 	result.append(_definition(
 		UI_OPEN_TASKS, "Tasks", UI_CONTEXT, &"ui/navigation", CommonUIAction.PROTECTION_REQUIRED,
 		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_J, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_j", FAMILY_KEYBOARD_MOUSE),
-		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_DPAD_DOWN, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_dpad_down", FAMILY_GENERIC_GAMEPAD)],
+		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_RIGHT_STICK, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_rs", FAMILY_GENERIC_GAMEPAD)],
 		0.0, false))
 	result.append(_definition(
 		UI_OPEN_SETTINGS, "Settings", UI_CONTEXT, &"ui/navigation", CommonUIAction.PROTECTION_REQUIRED,
 		[_binding(CommonUIBinding.DEVICE_KEYBOARD, KEY_O, CommonUIBinding.AXIS_DIRECTION_NONE, &"key_o", FAMILY_KEYBOARD_MOUSE),
-		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_START, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_start", FAMILY_GENERIC_GAMEPAD)],
+		 _binding(CommonUIBinding.DEVICE_GAMEPAD_BUTTON, JOY_BUTTON_GUIDE, CommonUIBinding.AXIS_DIRECTION_NONE, &"pad_generic", FAMILY_GENERIC_GAMEPAD)],
 		0.0, false))
 	return result
 

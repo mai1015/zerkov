@@ -70,14 +70,20 @@ func _install_configuration() -> bool:
 	var native_errors := _config.validate()
 	if not native_errors.is_empty():
 		return _fail("Input configuration failed native validation: " + "; ".join(native_errors))
-	var findings := CommonUIActionValidator.validate(_config, true)
+	# The add-on validator remains a generic, read-only structural diagnostic.
+	# Project ownership lives here: UI focus reservations (including joypad
+	# buttons/axes) and the two documented framework overlaps are Zerkov policy,
+	# so a vendor snapshot cannot silently change this boundary.
+	var findings := CommonUIActionValidator.validate(_config, false)
 	for finding_variant in findings:
 		var finding: Dictionary = finding_variant
 		if finding.get("severity") == CommonUIActionValidator.SEVERITY_ERROR:
 			return _fail("Input configuration failed action validation: " + str(finding.get("message", "")))
-		if finding.get("severity") == CommonUIActionValidator.SEVERITY_WARNING \
-				and not _is_allowed_framework_finding(finding):
+		if finding.get("severity") == CommonUIActionValidator.SEVERITY_WARNING:
 			return _fail("Input configuration failed collision validation: " + str(finding.get("message", "")))
+	var project_collision_error := _validate_project_collisions(_config)
+	if not project_collision_error.is_empty():
+		return _fail(project_collision_error)
 
 	# The runtime setter configures the native registry, loads the fixed
 	# user:// document, and applies its InputMap projection.  Preflight the
@@ -247,6 +253,13 @@ func rebind(
 		return {"ok": false, "error": "request_id_exceeds_bound", "replayed": false}
 	if not _valid_policy(policy):
 		return {"ok": false, "error": "unknown_conflict_policy", "replayed": false}
+	if policy == CommonInputBindingRegistry.CONFLICT_ALLOW_DUPLICATE:
+		# The native persistence format intentionally stores a binding, not its
+		# one-shot conflict policy. Accepting this mode would commit a live
+		# duplicate that cannot be validated on reload, so reject it before any
+		# registry mutation or publication to keep public acceptance round-trip
+		# safe and deterministic.
+		return {"ok": false, "error": "duplicate_conflict_policy_not_persistable", "replayed": false}
 	if _registry == null:
 		return {"ok": false, "error": "Input binding registry is unavailable.", "replayed": false}
 	var fingerprint := _request_fingerprint("rebind", action_id, slot, candidate, policy, confirmed)
@@ -716,17 +729,6 @@ func _glyph_compatible(device_kind: int, glyph: StringName) -> bool:
 	return false
 
 
-func _is_allowed_framework_finding(finding: Dictionary) -> bool:
-	# CommonUI's Confirm action intentionally shares Enter with Godot's
-	# ui_accept focus action; the accepted navigation contract depends on that
-	# framework convention. Every other warning (including a game action's
-	# ui_* collision) is installation-fatal rather than silently discarded.
-	var action_id: StringName = finding.get("action", &"") as StringName
-	var message := str(finding.get("message", ""))
-	return (action_id == ACTIONS.UI_CONFIRM and message.contains("'ui_accept'")) \
-			or (action_id == ACTIONS.UI_BACK and message.contains("'ui_cancel'"))
-
-
 func _validate_persistence_candidate_on_disk() -> Dictionary:
 	var path := _persistence_candidate_path()
 	if path.is_empty():
@@ -949,32 +951,83 @@ func _contexts_conflict(left: StringName, right: StringName) -> bool:
 	return left == &"" or right == &"" or left == right
 
 
+func _validate_project_collisions(config: CommonUIInputConfig) -> String:
+	if config == null:
+		return "Input configuration is missing for project collision validation."
+	for action_variant in config.get_actions():
+		var action := action_variant as CommonUIAction
+		if action == null:
+			continue
+		var action_id := action.get_action_name()
+		var spec: Dictionary = _spec_by_id.get(action_id, {})
+		# Gameplay bindings are suspended whenever a UI context owns focus. The
+		# built-in navigation keys/axes are therefore a deliberate gameplay/UI
+		# separation seam; UI actions themselves must never share them.
+		if spec.get("context", ACTIONS.UI_CONTEXT) != ACTIONS.UI_CONTEXT:
+			continue
+		for binding_variant in action.get_default_bindings():
+			var binding := binding_variant as CommonUIBinding
+			var owner := _ui_collision_owner(action_id, binding)
+			if not owner.is_empty():
+				return "Input configuration has a project UI focus collision: " + owner
+	return ""
+
+
 func _ui_collision_owner(action_id: StringName, binding: CommonUIBinding) -> String:
-	if binding == null or binding.get_device_kind() != CommonUIBinding.DEVICE_KEYBOARD:
+	if binding == null:
 		return ""
-	# CommonUI Confirm/Enter is the only intentional framework overlap. Restrict
-	# that exception to the authored unmodified Enter default; a caller cannot
-	# use the framework action id to smuggle an arbitrary ui_* focus key into a
-	# rebind.
-	if action_id == ACTIONS.UI_CONFIRM and binding.get_code() == KEY_ENTER \
-			and not binding.is_shift_pressed() and not binding.is_ctrl_pressed() \
-			and not binding.is_alt_pressed() and not binding.is_meta_pressed():
+	var spec: Dictionary = _spec_by_id.get(action_id, {})
+	if spec.get("context", ACTIONS.UI_CONTEXT) != ACTIONS.UI_CONTEXT:
 		return ""
+	# CommonUI Back/Confirm intentionally mirror the authored keyboard and
+	# controller focus actions. Every other UI action must stay outside the
+	# built-in ui_* reservation set while a Control owns focus.
+	if action_id == ACTIONS.UI_BACK:
+		if binding.get_device_kind() == CommonUIBinding.DEVICE_KEYBOARD \
+				and binding.get_code() == KEY_ESCAPE and not _has_modifiers(binding):
+			return ""
+		if binding.get_device_kind() == CommonUIBinding.DEVICE_GAMEPAD_BUTTON \
+				and binding.get_code() == JOY_BUTTON_B:
+			return ""
+	if action_id == ACTIONS.UI_CONFIRM:
+		if binding.get_device_kind() == CommonUIBinding.DEVICE_KEYBOARD \
+				and binding.get_code() == KEY_ENTER and not _has_modifiers(binding):
+			return ""
+		if binding.get_device_kind() == CommonUIBinding.DEVICE_GAMEPAD_BUTTON \
+				and binding.get_code() == JOY_BUTTON_A:
+			return ""
 	for action in InputMap.get_actions():
 		if not String(action).begins_with("ui_"):
 			continue
 		for event in InputMap.action_get_events(action):
-			var key_event := event as InputEventKey
-			if key_event == null:
-				continue
-			var code := int(key_event.physical_keycode if key_event.physical_keycode != 0 else key_event.keycode)
-			if code == binding.get_code() \
-					and key_event.shift_pressed == binding.is_shift_pressed() \
-					and key_event.ctrl_pressed == binding.is_ctrl_pressed() \
-					and key_event.alt_pressed == binding.is_alt_pressed() \
-					and key_event.meta_pressed == binding.is_meta_pressed():
-				return "Candidate key is already claimed by Godot built-in '%s'." % action
+			if binding.get_device_kind() == CommonUIBinding.DEVICE_KEYBOARD:
+				var key_event := event as InputEventKey
+				if key_event == null:
+					continue
+				var code := int(key_event.physical_keycode if key_event.physical_keycode != 0 else key_event.keycode)
+				if code == binding.get_code() and key_event.shift_pressed == binding.is_shift_pressed() \
+						and key_event.ctrl_pressed == binding.is_ctrl_pressed() \
+						and key_event.alt_pressed == binding.is_alt_pressed() \
+						and key_event.meta_pressed == binding.is_meta_pressed():
+					return "Candidate keyboard binding is already claimed by Godot built-in '%s'." % action
+			elif binding.get_device_kind() == CommonUIBinding.DEVICE_GAMEPAD_BUTTON:
+				var button_event := event as InputEventJoypadButton
+				if button_event != null and int(button_event.button_index) == binding.get_code():
+					return "Candidate controller button is already claimed by Godot built-in '%s'." % action
+			elif binding.get_device_kind() == CommonUIBinding.DEVICE_GAMEPAD_AXIS:
+				var motion_event := event as InputEventJoypadMotion
+				if motion_event == null or int(motion_event.axis) != binding.get_code():
+					continue
+				var direction := CommonUIBinding.AXIS_DIRECTION_POSITIVE \
+						if motion_event.axis_value >= 0.0 else CommonUIBinding.AXIS_DIRECTION_NEGATIVE
+				if direction == binding.get_axis_direction():
+					return "Candidate controller axis is already claimed by Godot built-in '%s'." % action
 	return ""
+
+
+func _has_modifiers(binding: CommonUIBinding) -> bool:
+	return binding.is_shift_pressed() or binding.is_ctrl_pressed() \
+			or binding.is_alt_pressed() or binding.is_meta_pressed()
 
 
 func _fallback_glyph_for_kind(kind: int) -> StringName:

@@ -118,17 +118,9 @@ static func _validate_binding(binding: CommonUIBinding, name: StringName, contex
 	# A keyboard key the GUI stage already claims for a built-in ui_* action can
 	# never reach framework routing while a Control has focus.
 	if binding.get_device_kind() == CommonUIBinding.DEVICE_KEYBOARD and reserved_keys.has(binding.get_code()):
-		for claim_variant in reserved_keys[binding.get_code()]:
-			var claim: Dictionary = claim_variant
-			if bool(claim.get("shift", false)) != binding.is_shift_pressed() \
-					or bool(claim.get("ctrl", false)) != binding.is_ctrl_pressed() \
-					or bool(claim.get("alt", false)) != binding.is_alt_pressed() \
-					or bool(claim.get("meta", false)) != binding.is_meta_pressed():
-				continue
-			findings.append(_finding(SEVERITY_WARNING, name,
-				"Action '%s' binds key %s, which Godot's built-in '%s' already claims; framework routing cannot reach it while a Control has focus." % [
-					name, OS.get_keycode_string(binding.get_code()), claim["action"]]))
-			break
+		findings.append(_finding(SEVERITY_WARNING, name,
+			"Action '%s' binds key %s, which Godot's built-in '%s' already claims; framework routing cannot reach it while a Control has focus." % [
+				name, OS.get_keycode_string(binding.get_code()), reserved_keys[binding.get_code()]]))
 
 	return findings
 
@@ -145,17 +137,8 @@ static func _reserved_ui_keys() -> Dictionary:
 			if key == null:
 				continue
 			var code := key.physical_keycode if key.physical_keycode != 0 else key.keycode
-			if code == 0:
-				continue
-			if not reserved.has(code):
-				reserved[code] = []
-			(reserved[code] as Array).append({
-				"action": action,
-				"shift": key.shift_pressed,
-				"ctrl": key.ctrl_pressed,
-				"alt": key.alt_pressed,
-				"meta": key.meta_pressed,
-			})
+			if code != 0 and not reserved.has(code):
+				reserved[code] = action
 	return reserved
 
 
