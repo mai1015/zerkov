@@ -1,0 +1,6 @@
+COMMAND: Godot --headless --path . --editor --import --quit
+EXIT: 0
+Godot Engine v4.7.2.stable.official.ed1daf0bf
+[ DONE ] first_scan_filesystem
+[ DONE ] update_scripts_classes
+[ DONE ] loading_editor_layout
