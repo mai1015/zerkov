@@ -1,0 +1,908 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/sawmill/sawmill_greybox_atlas.svg" id="1_j0sun"]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_onev8"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_weodj"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_ow8ta"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_4mgeb"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_nxy28"]
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_pt23p"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_l0r07"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_qu06p"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_xa8ny"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_lhdxq"]
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_3mq24"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_l5kot"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_k2k2d"]
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_mprb8"]
+vertices = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_qcecu"]
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ip8sx"]
+texture = ExtResource("1_j0sun")
+texture_region_size = Vector2i(32, 32)
+0:0/next_alternative_id = 2
+0:0/0 = 0
+0:0/0/terrain_set = 0
+0:0/0/terrain = 0
+0:0/0/terrains_peering_bit/right_side = 0
+0:0/0/terrains_peering_bit/bottom_right_corner = 0
+0:0/0/terrains_peering_bit/bottom_side = 0
+0:0/0/terrains_peering_bit/bottom_left_corner = 0
+0:0/0/terrains_peering_bit/left_side = 0
+0:0/0/terrains_peering_bit/top_left_corner = 0
+0:0/0/terrains_peering_bit/top_side = 0
+0:0/0/terrains_peering_bit/top_right_corner = 0
+0:0/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_onev8")
+0:0/0/custom_data_0 = "zerkov.tile.sawmill.greybox.dirt"
+0:0/0/custom_data_1 = "walkable"
+0:0/0/custom_data_2 = "none"
+0:0/0/custom_data_3 = "ground"
+0:0/1 = 1
+0:0/1/terrain_set = 0
+0:0/1/terrain = 0
+0:0/1/terrains_peering_bit/right_side = 0
+0:0/1/terrains_peering_bit/bottom_right_corner = 0
+0:0/1/terrains_peering_bit/bottom_side = 0
+0:0/1/terrains_peering_bit/bottom_left_corner = 0
+0:0/1/terrains_peering_bit/left_side = 0
+0:0/1/terrains_peering_bit/top_left_corner = 0
+0:0/1/terrains_peering_bit/top_side = 0
+0:0/1/terrains_peering_bit/top_right_corner = 0
+0:0/1/navigation_layer_0/polygon = SubResource("NavigationPolygon_weodj")
+0:0/1/custom_data_0 = "zerkov.tile.sawmill.greybox.dirt_variant"
+0:0/1/custom_data_1 = "walkable"
+0:0/1/custom_data_2 = "none"
+0:0/1/custom_data_3 = "ground"
+1:0/0 = 0
+1:0/0/terrain_set = 0
+1:0/0/terrain = 1
+1:0/0/terrains_peering_bit/right_side = 1
+1:0/0/terrains_peering_bit/bottom_right_corner = 1
+1:0/0/terrains_peering_bit/bottom_side = 1
+1:0/0/terrains_peering_bit/bottom_left_corner = 1
+1:0/0/terrains_peering_bit/left_side = 1
+1:0/0/terrains_peering_bit/top_left_corner = 1
+1:0/0/terrains_peering_bit/top_side = 1
+1:0/0/terrains_peering_bit/top_right_corner = 1
+1:0/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_pt23p")
+1:0/0/custom_data_0 = "zerkov.tile.sawmill.greybox.grass"
+1:0/0/custom_data_1 = "walkable"
+1:0/0/custom_data_2 = "none"
+1:0/0/custom_data_3 = "ground"
+2:0/0 = 0
+2:0/0/terrain_set = 0
+2:0/0/terrain = 2
+2:0/0/terrains_peering_bit/right_side = 2
+2:0/0/terrains_peering_bit/bottom_right_corner = 2
+2:0/0/terrains_peering_bit/bottom_side = 2
+2:0/0/terrains_peering_bit/bottom_left_corner = 2
+2:0/0/terrains_peering_bit/left_side = 2
+2:0/0/terrains_peering_bit/top_left_corner = 2
+2:0/0/terrains_peering_bit/top_side = 2
+2:0/0/terrains_peering_bit/top_right_corner = 2
+2:0/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_xa8ny")
+2:0/0/custom_data_0 = "zerkov.tile.sawmill.greybox.stone_floor"
+2:0/0/custom_data_1 = "walkable"
+2:0/0/custom_data_2 = "none"
+2:0/0/custom_data_3 = "ground"
+3:0/0 = 0
+3:0/0/terrain_set = 0
+3:0/0/terrain = 3
+3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+3:0/0/terrains_peering_bit/right_side = 3
+3:0/0/terrains_peering_bit/bottom_right_corner = 3
+3:0/0/terrains_peering_bit/bottom_side = 3
+3:0/0/terrains_peering_bit/bottom_left_corner = 3
+3:0/0/terrains_peering_bit/left_side = 3
+3:0/0/terrains_peering_bit/top_left_corner = 3
+3:0/0/terrains_peering_bit/top_side = 3
+3:0/0/terrains_peering_bit/top_right_corner = 3
+3:0/0/custom_data_0 = "zerkov.tile.sawmill.greybox.water"
+3:0/0/custom_data_1 = "water"
+3:0/0/custom_data_2 = "solid"
+3:0/0/custom_data_3 = "ground"
+0:1/next_alternative_id = 2
+0:1/0 = 0
+0:1/0/terrain_set = 0
+0:1/0/terrain = 4
+0:1/0/terrains_peering_bit/right_side = 4
+0:1/0/terrains_peering_bit/bottom_right_corner = 4
+0:1/0/terrains_peering_bit/bottom_side = 4
+0:1/0/terrains_peering_bit/bottom_left_corner = 4
+0:1/0/terrains_peering_bit/left_side = 4
+0:1/0/terrains_peering_bit/top_left_corner = 4
+0:1/0/terrains_peering_bit/top_side = 4
+0:1/0/terrains_peering_bit/top_right_corner = 4
+0:1/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_ow8ta")
+0:1/0/custom_data_0 = "zerkov.tile.sawmill.greybox.road"
+0:1/0/custom_data_1 = "walkable"
+0:1/0/custom_data_2 = "none"
+0:1/0/custom_data_3 = "ground"
+0:1/1 = 1
+0:1/1/terrain_set = 0
+0:1/1/terrain = 4
+0:1/1/terrains_peering_bit/right_side = 4
+0:1/1/terrains_peering_bit/bottom_right_corner = 4
+0:1/1/terrains_peering_bit/bottom_side = 4
+0:1/1/terrains_peering_bit/bottom_left_corner = 4
+0:1/1/terrains_peering_bit/left_side = 4
+0:1/1/terrains_peering_bit/top_left_corner = 4
+0:1/1/terrains_peering_bit/top_side = 4
+0:1/1/terrains_peering_bit/top_right_corner = 4
+0:1/1/navigation_layer_0/polygon = SubResource("NavigationPolygon_4mgeb")
+0:1/1/custom_data_0 = "zerkov.tile.sawmill.greybox.road_variant"
+0:1/1/custom_data_1 = "walkable"
+0:1/1/custom_data_2 = "none"
+0:1/1/custom_data_3 = "ground"
+1:1/0 = 0
+1:1/0/terrain_set = 0
+1:1/0/terrain = 5
+1:1/0/terrains_peering_bit/right_side = 5
+1:1/0/terrains_peering_bit/bottom_right_corner = 5
+1:1/0/terrains_peering_bit/bottom_side = 5
+1:1/0/terrains_peering_bit/bottom_left_corner = 5
+1:1/0/terrains_peering_bit/left_side = 5
+1:1/0/terrains_peering_bit/top_left_corner = 5
+1:1/0/terrains_peering_bit/top_side = 5
+1:1/0/terrains_peering_bit/top_right_corner = 5
+1:1/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_l0r07")
+1:1/0/custom_data_0 = "zerkov.tile.sawmill.greybox.sand"
+1:1/0/custom_data_1 = "walkable"
+1:1/0/custom_data_2 = "none"
+1:1/0/custom_data_3 = "ground"
+2:1/0 = 0
+2:1/0/z_index = 20
+2:1/0/terrain_set = 0
+2:1/0/terrain = 2
+2:1/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_lhdxq")
+2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+2:1/0/terrains_peering_bit/right_side = 2
+2:1/0/terrains_peering_bit/bottom_right_corner = 2
+2:1/0/terrains_peering_bit/bottom_side = 2
+2:1/0/terrains_peering_bit/bottom_left_corner = 2
+2:1/0/terrains_peering_bit/left_side = 2
+2:1/0/terrains_peering_bit/top_left_corner = 2
+2:1/0/terrains_peering_bit/top_side = 2
+2:1/0/terrains_peering_bit/top_right_corner = 2
+2:1/0/custom_data_0 = "zerkov.tile.sawmill.greybox.log_wall"
+2:1/0/custom_data_1 = "blocked"
+2:1/0/custom_data_2 = "solid"
+2:1/0/custom_data_3 = "obstacle"
+3:1/0 = 0
+3:1/0/z_index = 20
+3:1/0/terrain_set = 0
+3:1/0/terrain = 2
+3:1/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_k2k2d")
+3:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+3:1/0/terrains_peering_bit/right_side = 2
+3:1/0/terrains_peering_bit/bottom_right_corner = 2
+3:1/0/terrains_peering_bit/bottom_side = 2
+3:1/0/terrains_peering_bit/bottom_left_corner = 2
+3:1/0/terrains_peering_bit/left_side = 2
+3:1/0/terrains_peering_bit/top_left_corner = 2
+3:1/0/terrains_peering_bit/top_side = 2
+3:1/0/terrains_peering_bit/top_right_corner = 2
+3:1/0/custom_data_0 = "zerkov.tile.sawmill.greybox.fence"
+3:1/0/custom_data_1 = "blocked"
+3:1/0/custom_data_2 = "solid"
+3:1/0/custom_data_3 = "obstacle"
+0:2/0 = 0
+0:2/0/z_index = 30
+0:2/0/terrain_set = 0
+0:2/0/terrain = 1
+0:2/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_nxy28")
+0:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+0:2/0/terrains_peering_bit/right_side = 1
+0:2/0/terrains_peering_bit/bottom_right_corner = 1
+0:2/0/terrains_peering_bit/bottom_side = 1
+0:2/0/terrains_peering_bit/bottom_left_corner = 1
+0:2/0/terrains_peering_bit/left_side = 1
+0:2/0/terrains_peering_bit/top_left_corner = 1
+0:2/0/terrains_peering_bit/top_side = 1
+0:2/0/terrains_peering_bit/top_right_corner = 1
+0:2/0/custom_data_0 = "zerkov.tile.sawmill.greybox.canopy"
+0:2/0/custom_data_1 = "blocked"
+0:2/0/custom_data_2 = "solid"
+0:2/0/custom_data_3 = "canopy"
+1:2/0 = 0
+1:2/0/z_index = 10
+1:2/0/terrain_set = 0
+1:2/0/terrain = 0
+1:2/0/terrains_peering_bit/right_side = 0
+1:2/0/terrains_peering_bit/bottom_right_corner = 0
+1:2/0/terrains_peering_bit/bottom_side = 0
+1:2/0/terrains_peering_bit/bottom_left_corner = 0
+1:2/0/terrains_peering_bit/left_side = 0
+1:2/0/terrains_peering_bit/top_left_corner = 0
+1:2/0/terrains_peering_bit/top_side = 0
+1:2/0/terrains_peering_bit/top_right_corner = 0
+1:2/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_qu06p")
+1:2/0/custom_data_0 = "zerkov.tile.sawmill.greybox.sawdust"
+1:2/0/custom_data_1 = "walkable"
+1:2/0/custom_data_2 = "none"
+1:2/0/custom_data_3 = "detail"
+2:2/0 = 0
+2:2/0/z_index = 10
+2:2/0/terrain_set = 0
+2:2/0/terrain = 1
+2:2/0/terrains_peering_bit/right_side = 1
+2:2/0/terrains_peering_bit/bottom_right_corner = 1
+2:2/0/terrains_peering_bit/bottom_side = 1
+2:2/0/terrains_peering_bit/bottom_left_corner = 1
+2:2/0/terrains_peering_bit/left_side = 1
+2:2/0/terrains_peering_bit/top_left_corner = 1
+2:2/0/terrains_peering_bit/top_side = 1
+2:2/0/terrains_peering_bit/top_right_corner = 1
+2:2/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_3mq24")
+2:2/0/custom_data_0 = "zerkov.tile.sawmill.greybox.lichen"
+2:2/0/custom_data_1 = "slow"
+2:2/0/custom_data_2 = "none"
+2:2/0/custom_data_3 = "detail"
+3:2/0 = 0
+3:2/0/z_index = 20
+3:2/0/terrain_set = 0
+3:2/0/terrain = 4
+3:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, 8, 16, 8, 16, 16, -16, 16)
+3:2/0/physics_layer_0/polygon_0/one_way = true
+3:2/0/terrains_peering_bit/right_side = 4
+3:2/0/terrains_peering_bit/bottom_right_corner = 4
+3:2/0/terrains_peering_bit/bottom_side = 4
+3:2/0/terrains_peering_bit/bottom_left_corner = 4
+3:2/0/terrains_peering_bit/left_side = 4
+3:2/0/terrains_peering_bit/top_left_corner = 4
+3:2/0/terrains_peering_bit/top_side = 4
+3:2/0/terrains_peering_bit/top_right_corner = 4
+3:2/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_mprb8")
+3:2/0/custom_data_0 = "zerkov.tile.sawmill.greybox.dock"
+3:2/0/custom_data_1 = "walkable"
+3:2/0/custom_data_2 = "one_way"
+3:2/0/custom_data_3 = "obstacle"
+0:3/0 = 0
+0:3/0/z_index = 40
+0:3/0/y_sort_origin = 16
+0:3/0/terrain_set = 0
+0:3/0/terrain = 0
+0:3/0/terrains_peering_bit/right_side = 0
+0:3/0/terrains_peering_bit/bottom_right_corner = 0
+0:3/0/terrains_peering_bit/bottom_side = 0
+0:3/0/terrains_peering_bit/bottom_left_corner = 0
+0:3/0/terrains_peering_bit/left_side = 0
+0:3/0/terrains_peering_bit/top_left_corner = 0
+0:3/0/terrains_peering_bit/top_side = 0
+0:3/0/terrains_peering_bit/top_right_corner = 0
+0:3/0/custom_data_0 = "zerkov.tile.sawmill.greybox.actor_marker"
+0:3/0/custom_data_1 = "blocked"
+0:3/0/custom_data_2 = "none"
+0:3/0/custom_data_3 = "actor"
+1:3/0 = 0
+1:3/0/z_index = 50
+1:3/0/terrain_set = 0
+1:3/0/terrain = 0
+1:3/0/terrains_peering_bit/right_side = 0
+1:3/0/terrains_peering_bit/bottom_right_corner = 0
+1:3/0/terrains_peering_bit/bottom_side = 0
+1:3/0/terrains_peering_bit/bottom_left_corner = 0
+1:3/0/terrains_peering_bit/left_side = 0
+1:3/0/terrains_peering_bit/top_left_corner = 0
+1:3/0/terrains_peering_bit/top_side = 0
+1:3/0/terrains_peering_bit/top_right_corner = 0
+1:3/0/custom_data_0 = "zerkov.tile.sawmill.greybox.fx_marker"
+1:3/0/custom_data_1 = "blocked"
+1:3/0/custom_data_2 = "none"
+1:3/0/custom_data_3 = "fx"
+2:3/0 = 0
+2:3/0/z_index = 40
+2:3/0/y_sort_origin = 16
+2:3/0/terrain_set = 0
+2:3/0/terrain = 4
+2:3/0/terrains_peering_bit/right_side = 4
+2:3/0/terrains_peering_bit/bottom_right_corner = 4
+2:3/0/terrains_peering_bit/bottom_side = 4
+2:3/0/terrains_peering_bit/bottom_left_corner = 4
+2:3/0/terrains_peering_bit/left_side = 4
+2:3/0/terrains_peering_bit/top_left_corner = 4
+2:3/0/terrains_peering_bit/top_side = 4
+2:3/0/terrains_peering_bit/top_right_corner = 4
+2:3/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_l5kot")
+2:3/0/custom_data_0 = "zerkov.tile.sawmill.greybox.extract"
+2:3/0/custom_data_1 = "walkable"
+2:3/0/custom_data_2 = "none"
+2:3/0/custom_data_3 = "actor"
+3:3/0 = 0
+3:3/0/z_index = 20
+3:3/0/terrain_set = 0
+3:3/0/terrain = 2
+3:3/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_qcecu")
+3:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+3:3/0/terrains_peering_bit/right_side = 2
+3:3/0/terrains_peering_bit/bottom_right_corner = 2
+3:3/0/terrains_peering_bit/bottom_side = 2
+3:3/0/terrains_peering_bit/bottom_left_corner = 2
+3:3/0/terrains_peering_bit/left_side = 2
+3:3/0/terrains_peering_bit/top_left_corner = 2
+3:3/0/terrains_peering_bit/top_side = 2
+3:3/0/terrains_peering_bit/top_right_corner = 2
+3:3/0/custom_data_0 = "zerkov.tile.sawmill.greybox.rock_blocked"
+3:3/0/custom_data_1 = "blocked"
+3:3/0/custom_data_2 = "solid"
+3:3/0/custom_data_3 = "obstacle"
+
+[resource]
+resource_name = "Sawmill Project-Owned Greybox TileSet"
+tile_size = Vector2i(32, 32)
+uv_clipping = true
+occlusion_layer_0/light_mask = 1
+physics_layer_0/collision_layer = 1
+physics_layer_0/collision_mask = 1
+physics_layer_0/collision_priority = 1.0
+terrain_set_0/mode = 0
+terrain_set_0/terrain_0/name = "dirt"
+terrain_set_0/terrain_0/color = Color(0.45490196, 0.32941177, 0.24705882, 1)
+terrain_set_0/terrain_1/name = "grass"
+terrain_set_0/terrain_1/color = Color(0.37254903, 0.5411765, 0.23921569, 1)
+terrain_set_0/terrain_2/name = "stone"
+terrain_set_0/terrain_2/color = Color(0.5372549, 0.5803922, 0.6039216, 1)
+terrain_set_0/terrain_3/name = "water"
+terrain_set_0/terrain_3/color = Color(0.20784314, 0.43529412, 0.5254902, 1)
+terrain_set_0/terrain_4/name = "road"
+terrain_set_0/terrain_4/color = Color(0.6431373, 0.48235294, 0.30980393, 1)
+terrain_set_0/terrain_5/name = "sand"
+terrain_set_0/terrain_5/color = Color(0.77254903, 0.63529414, 0.36862746, 1)
+navigation_layer_0/layers = 1
+custom_data_layer_0/name = "source_tile_id"
+custom_data_layer_0/type = 4
+custom_data_layer_1/name = "navigation_kind"
+custom_data_layer_1/type = 4
+custom_data_layer_2/name = "collision_kind"
+custom_data_layer_2/type = 4
+custom_data_layer_3/name = "draw_layer"
+custom_data_layer_3/type = 4
+sources/0 = SubResource("TileSetAtlasSource_ip8sx")
+metadata/sawmill_schema_version = 1
+metadata/sawmill_source_asset_id = "zerkov.asset.world.sawmill.greybox_atlas"
+metadata/sawmill_source_asset_alias = "world.sawmill.greybox_atlas"
+metadata/sawmill_source_registry_id = "zerkov.assets"
+metadata/sawmill_source_registry_path = "res://game/content/asset_registry.json"
+metadata/sawmill_semantic_manifest_path = "res://game/world/sawmill/sawmill_greybox_manifest.json"
+metadata/sawmill_source_provenance = {
+"filtering": "nearest",
+"mipmaps": false,
+"runtime_path": "res://assets/world/sawmill/sawmill_greybox_atlas.svg",
+"runtime_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad",
+"source_relative_path": "assets/world/sawmill/sawmill_greybox_atlas.svg",
+"source_root": "res://",
+"source_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad",
+"source_status": "available"
+}
+metadata/sawmill_source_license = {
+"name": "MIT",
+"reference": "res://licenses/zerkov-sawmill-greybox-MIT.txt"
+}
+metadata/sawmill_source_atlas = {
+"cell_size": [32.0, 32.0],
+"columns": 4.0,
+"frame_count": 16.0,
+"rows": 4.0,
+"source_size": [128.0, 128.0]
+}
+metadata/sawmill_terrain_metadata = {
+"index": 0.0,
+"mode": "match_corners_and_sides",
+"stable_id": "zerkov.terrain_set.sawmill.greybox",
+"terrains": [{
+"id": "dirt",
+"index": 0.0,
+"stable_id": "zerkov.terrain.sawmill.dirt",
+"walkable": true
+}, {
+"id": "grass",
+"index": 1.0,
+"stable_id": "zerkov.terrain.sawmill.grass",
+"walkable": true
+}, {
+"id": "stone",
+"index": 2.0,
+"stable_id": "zerkov.terrain.sawmill.stone",
+"walkable": true
+}, {
+"id": "water",
+"index": 3.0,
+"stable_id": "zerkov.terrain.sawmill.water",
+"walkable": false
+}, {
+"id": "road",
+"index": 4.0,
+"stable_id": "zerkov.terrain.sawmill.road",
+"walkable": true
+}, {
+"id": "sand",
+"index": 5.0,
+"stable_id": "zerkov.terrain.sawmill.sand",
+"walkable": true
+}]
+}
+metadata/sawmill_terrain_peering = {
+"dirt": ["dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt", "dirt"],
+"grass": ["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+"road": ["road", "road", "road", "road", "road", "road", "road", "road"],
+"sand": ["sand", "sand", "sand", "sand", "sand", "sand", "sand", "sand"],
+"stone": ["stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
+"water": ["water", "water", "water", "water", "water", "water", "water", "water"]
+}
+metadata/sawmill_navigation_metadata = {
+"kinds": [{
+"cost_milli": 1000.0,
+"id": "walkable",
+"stable_id": "zerkov.navigation.sawmill.walkable",
+"walkable": true
+}, {
+"cost_milli": 1500.0,
+"id": "slow",
+"stable_id": "zerkov.navigation.sawmill.slow",
+"walkable": true
+}, {
+"cost_milli": 0.0,
+"id": "blocked",
+"stable_id": "zerkov.navigation.sawmill.blocked",
+"walkable": false
+}, {
+"cost_milli": 0.0,
+"id": "water",
+"stable_id": "zerkov.navigation.sawmill.water",
+"walkable": false
+}],
+"layer_bit": 1.0,
+"layer_id": 0.0,
+"stable_id": "zerkov.navigation_layer.sawmill.walkable"
+}
+metadata/sawmill_collision_metadata = {
+"collision_layer": 1.0,
+"collision_mask": 1.0,
+"kinds": [{
+"enabled": false,
+"id": "none",
+"one_way": false,
+"stable_id": "zerkov.collision.sawmill.none"
+}, {
+"enabled": true,
+"id": "solid",
+"one_way": false,
+"stable_id": "zerkov.collision.sawmill.solid"
+}, {
+"enabled": true,
+"id": "one_way",
+"one_way": true,
+"stable_id": "zerkov.collision.sawmill.one_way"
+}],
+"physics_layer_id": 0.0,
+"stable_id": "zerkov.collision_layer.sawmill.world"
+}
+metadata/sawmill_draw_layer_metadata = [{
+"id": "ground",
+"occludes": false,
+"stable_id": "zerkov.draw.sawmill.ground",
+"y_sort": false,
+"z_index": 0.0
+}, {
+"id": "detail",
+"occludes": false,
+"stable_id": "zerkov.draw.sawmill.detail",
+"y_sort": false,
+"z_index": 10.0
+}, {
+"id": "obstacle",
+"occludes": true,
+"stable_id": "zerkov.draw.sawmill.obstacle",
+"y_sort": false,
+"z_index": 20.0
+}, {
+"id": "canopy",
+"occludes": true,
+"stable_id": "zerkov.draw.sawmill.canopy",
+"y_sort": false,
+"z_index": 30.0
+}, {
+"id": "actor",
+"occludes": false,
+"stable_id": "zerkov.draw.sawmill.actor",
+"y_sort": true,
+"z_index": 40.0
+}, {
+"id": "fx",
+"occludes": false,
+"stable_id": "zerkov.draw.sawmill.fx",
+"y_sort": false,
+"z_index": 50.0
+}]
+metadata/sawmill_tile_catalog = [{
+"alternative_id": 0.0,
+"atlas_coord": [0.0, 0.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 0.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.dirt",
+"terrain_id": "dirt",
+"terrain_peering_id": "dirt",
+"terrain_stable_id": "zerkov.terrain.sawmill.dirt",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [1.0, 0.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 1.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.grass",
+"terrain_id": "grass",
+"terrain_peering_id": "grass",
+"terrain_stable_id": "zerkov.terrain.sawmill.grass",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [2.0, 0.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 2.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.stone_floor",
+"terrain_id": "stone",
+"terrain_peering_id": "stone",
+"terrain_stable_id": "zerkov.terrain.sawmill.stone",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [3.0, 0.0],
+"collision_kind": "solid",
+"collision_polygon": "full_cell",
+"collision_stable_id": "zerkov.collision.sawmill.solid",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 3.0,
+"navigation_kind": "water",
+"navigation_polygon": null,
+"navigation_stable_id": "zerkov.navigation.sawmill.water",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.water",
+"terrain_id": "water",
+"terrain_peering_id": "water",
+"terrain_stable_id": "zerkov.terrain.sawmill.water",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [0.0, 1.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 4.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.road",
+"terrain_id": "road",
+"terrain_peering_id": "road",
+"terrain_stable_id": "zerkov.terrain.sawmill.road",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [1.0, 1.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 5.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.sand",
+"terrain_id": "sand",
+"terrain_peering_id": "sand",
+"terrain_stable_id": "zerkov.terrain.sawmill.sand",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [2.0, 1.0],
+"collision_kind": "solid",
+"collision_polygon": "full_cell",
+"collision_stable_id": "zerkov.collision.sawmill.solid",
+"draw_layer": "obstacle",
+"draw_stable_id": "zerkov.draw.sawmill.obstacle",
+"frame_index": 6.0,
+"navigation_kind": "blocked",
+"navigation_polygon": null,
+"navigation_stable_id": "zerkov.navigation.sawmill.blocked",
+"occludes": true,
+"stable_id": "zerkov.tile.sawmill.greybox.log_wall",
+"terrain_id": "stone",
+"terrain_peering_id": "stone",
+"terrain_stable_id": "zerkov.terrain.sawmill.stone",
+"y_sort_origin": 0.0,
+"z_index": 20.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [3.0, 1.0],
+"collision_kind": "solid",
+"collision_polygon": "full_cell",
+"collision_stable_id": "zerkov.collision.sawmill.solid",
+"draw_layer": "obstacle",
+"draw_stable_id": "zerkov.draw.sawmill.obstacle",
+"frame_index": 7.0,
+"navigation_kind": "blocked",
+"navigation_polygon": null,
+"navigation_stable_id": "zerkov.navigation.sawmill.blocked",
+"occludes": true,
+"stable_id": "zerkov.tile.sawmill.greybox.fence",
+"terrain_id": "stone",
+"terrain_peering_id": "stone",
+"terrain_stable_id": "zerkov.terrain.sawmill.stone",
+"y_sort_origin": 0.0,
+"z_index": 20.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [0.0, 2.0],
+"collision_kind": "solid",
+"collision_polygon": "full_cell",
+"collision_stable_id": "zerkov.collision.sawmill.solid",
+"draw_layer": "canopy",
+"draw_stable_id": "zerkov.draw.sawmill.canopy",
+"frame_index": 8.0,
+"navigation_kind": "blocked",
+"navigation_polygon": null,
+"navigation_stable_id": "zerkov.navigation.sawmill.blocked",
+"occludes": true,
+"stable_id": "zerkov.tile.sawmill.greybox.canopy",
+"terrain_id": "grass",
+"terrain_peering_id": "grass",
+"terrain_stable_id": "zerkov.terrain.sawmill.grass",
+"y_sort_origin": 0.0,
+"z_index": 30.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [1.0, 2.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "detail",
+"draw_stable_id": "zerkov.draw.sawmill.detail",
+"frame_index": 9.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.sawdust",
+"terrain_id": "dirt",
+"terrain_peering_id": "dirt",
+"terrain_stable_id": "zerkov.terrain.sawmill.dirt",
+"y_sort_origin": 0.0,
+"z_index": 10.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [2.0, 2.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "detail",
+"draw_stable_id": "zerkov.draw.sawmill.detail",
+"frame_index": 10.0,
+"navigation_kind": "slow",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.slow",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.lichen",
+"terrain_id": "grass",
+"terrain_peering_id": "grass",
+"terrain_stable_id": "zerkov.terrain.sawmill.grass",
+"y_sort_origin": 0.0,
+"z_index": 10.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [3.0, 2.0],
+"collision_kind": "one_way",
+"collision_polygon": "dock_edge",
+"collision_stable_id": "zerkov.collision.sawmill.one_way",
+"draw_layer": "obstacle",
+"draw_stable_id": "zerkov.draw.sawmill.obstacle",
+"frame_index": 11.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.dock",
+"terrain_id": "road",
+"terrain_peering_id": "road",
+"terrain_stable_id": "zerkov.terrain.sawmill.road",
+"y_sort_origin": 0.0,
+"z_index": 20.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [0.0, 3.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "actor",
+"draw_stable_id": "zerkov.draw.sawmill.actor",
+"frame_index": 12.0,
+"navigation_kind": "blocked",
+"navigation_polygon": null,
+"navigation_stable_id": "zerkov.navigation.sawmill.blocked",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.actor_marker",
+"terrain_id": "dirt",
+"terrain_peering_id": "dirt",
+"terrain_stable_id": "zerkov.terrain.sawmill.dirt",
+"y_sort_origin": 16.0,
+"z_index": 40.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [1.0, 3.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "fx",
+"draw_stable_id": "zerkov.draw.sawmill.fx",
+"frame_index": 13.0,
+"navigation_kind": "blocked",
+"navigation_polygon": null,
+"navigation_stable_id": "zerkov.navigation.sawmill.blocked",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.fx_marker",
+"terrain_id": "dirt",
+"terrain_peering_id": "dirt",
+"terrain_stable_id": "zerkov.terrain.sawmill.dirt",
+"y_sort_origin": 0.0,
+"z_index": 50.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [2.0, 3.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "actor",
+"draw_stable_id": "zerkov.draw.sawmill.actor",
+"frame_index": 14.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.extract",
+"terrain_id": "road",
+"terrain_peering_id": "road",
+"terrain_stable_id": "zerkov.terrain.sawmill.road",
+"y_sort_origin": 16.0,
+"z_index": 40.0
+}, {
+"alternative_id": 0.0,
+"atlas_coord": [3.0, 3.0],
+"collision_kind": "solid",
+"collision_polygon": "full_cell",
+"collision_stable_id": "zerkov.collision.sawmill.solid",
+"draw_layer": "obstacle",
+"draw_stable_id": "zerkov.draw.sawmill.obstacle",
+"frame_index": 15.0,
+"navigation_kind": "blocked",
+"navigation_polygon": null,
+"navigation_stable_id": "zerkov.navigation.sawmill.blocked",
+"occludes": true,
+"stable_id": "zerkov.tile.sawmill.greybox.rock_blocked",
+"terrain_id": "stone",
+"terrain_peering_id": "stone",
+"terrain_stable_id": "zerkov.terrain.sawmill.stone",
+"y_sort_origin": 0.0,
+"z_index": 20.0
+}, {
+"alternative_id": 1.0,
+"atlas_coord": [0.0, 0.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 0.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.dirt_variant",
+"terrain_id": "dirt",
+"terrain_peering_id": "dirt",
+"terrain_stable_id": "zerkov.terrain.sawmill.dirt",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}, {
+"alternative_id": 1.0,
+"atlas_coord": [0.0, 1.0],
+"collision_kind": "none",
+"collision_polygon": null,
+"collision_stable_id": "zerkov.collision.sawmill.none",
+"draw_layer": "ground",
+"draw_stable_id": "zerkov.draw.sawmill.ground",
+"frame_index": 4.0,
+"navigation_kind": "walkable",
+"navigation_polygon": "full_cell",
+"navigation_stable_id": "zerkov.navigation.sawmill.walkable",
+"occludes": false,
+"stable_id": "zerkov.tile.sawmill.greybox.road_variant",
+"terrain_id": "road",
+"terrain_peering_id": "road",
+"terrain_stable_id": "zerkov.terrain.sawmill.road",
+"y_sort_origin": 0.0,
+"z_index": 0.0
+}]
+metadata/sawmill_authoring = {
+"coordinate_order": "row_major_y_then_x",
+"external_source_dependency": false,
+"frame_index_formula": "y * columns + x",
+"kind": "project_owned_greybox",
+"method": "text-authored SVG",
+"task_9_3_dependency": false
+}

@@ -2210,6 +2210,49 @@
       "notes": "Selected 32 px source-tile sheet; TileSet authoring belongs to task 3.3."
     },
     {
+      "id": "zerkov.asset.world.sawmill.greybox_atlas",
+      "aliases": [
+        "world.sawmill.greybox_atlas"
+      ],
+      "runtime_path": "res://assets/world/sawmill/sawmill_greybox_atlas.svg",
+      "availability": "imported",
+      "provenance": {
+        "source_root": "res://",
+        "source_relative_path": "assets/world/sawmill/sawmill_greybox_atlas.svg",
+        "source_status": "available",
+        "source_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad"
+      },
+      "runtime_sha256": "1af26d2e20a781334ba155381bb64d5c750b84a375a84a4669feb9bbc1b071ad",
+      "family": "project_owned",
+      "kind": "atlas",
+      "filtering": {
+        "mode": "nearest",
+        "mipmaps": false
+      },
+      "license": {
+        "status": "cleared",
+        "name": "MIT",
+        "reference": "licenses/zerkov-sawmill-greybox-MIT.txt",
+        "reason": null
+      },
+      "content_links": [],
+      "atlas": {
+        "source_size": [
+          128,
+          128
+        ],
+        "cell_size": [
+          32,
+          32
+        ],
+        "columns": 4,
+        "rows": 4,
+        "frame_count": 16
+      },
+      "semantic_manifest": "res://game/world/sawmill/sawmill_greybox_manifest.json",
+      "notes": "Project-owned greybox source; semantic coordinates and TileData are explicit in the companion manifest."
+    },
+    {
       "id": "zerkov.asset.world.sawmill.prop_sheet",
       "aliases": [
         "world.sawmill.prop_sheet"
