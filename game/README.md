@@ -11,6 +11,7 @@ file here belongs to an add-on package, and add-ons must not import this tree.
 | `domain/ports/` | Replaceable ingress, persistence, and domain seams |
 | `raid/` | Canonical tick, raid lifecycle, ordering, and journal runtime |
 | `adapters/` | Explicit translations between Zerkov and public add-on APIs |
+| `ai/vision/` | Sealed Common Vision world configuration, tick budget, and ownership |
 | `presentation/` | Read-only projections and visual/audio presenters |
 
 The existing `ui/` tree stays in place until its individual screen families
