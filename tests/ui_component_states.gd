@@ -25,9 +25,14 @@ func capture(label: String) -> void:
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		var rendered := root.get_texture().get_image()
+		var root_exact := root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)
+		if not root_exact:
+			check(false, "exact 1920x1080 framebuffer before capture " + label)
+			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before write")
+			quit(2)
+			return
 		var exact_frame := rendered != null \
-			and rendered.get_size() == FIRST_PLAYABLE_SIZE \
-			and root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)
+			and rendered.get_size() == FIRST_PLAYABLE_SIZE
 		check(exact_frame, "exact 1920x1080 framebuffer before capture " + label)
 		if not exact_frame:
 			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before write")
@@ -53,8 +58,13 @@ func run() -> void:
 	if DisplayServer.get_name() != "headless":
 		RenderingServer.force_draw(true)
 		var preflight := root.get_texture().get_image()
-		var exact_preflight := root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE) \
-			and preflight != null and preflight.get_size() == FIRST_PLAYABLE_SIZE
+		var root_exact := root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)
+		if not root_exact:
+			check(false, "exact 1920x1080 framebuffer before paths or component setup")
+			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before paths or writes")
+			quit(2)
+			return
+		var exact_preflight := preflight != null and preflight.get_size() == FIRST_PLAYABLE_SIZE
 		check(exact_preflight, "exact 1920x1080 framebuffer before paths or component setup")
 		if not exact_preflight:
 			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before paths or writes")

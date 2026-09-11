@@ -164,22 +164,30 @@ Exact observed output and personally run commands are recorded in
 
 ## Source-policy escape hardening candidate
 
-This source-only candidate tightens the static exact-frame writer policy
-without changing an active runner. A pre-proof image reference may remain only
-as a direct local alias, an allowlisted read, or a direct known mutation that
-is followed by a fresh proof. Containers, maps, properties, indices,
-callables, bound methods, lambdas, constructors, returns, unknown calls, and
-computed expressions are treated as permanent escapes. The proof expression
-has its own inert-read check, closing calls hidden in a boolean condition.
+This source-only candidate tightens the static exact-frame writer policy.
+A pre-proof image reference may remain only as a direct local alias, an
+allowlisted read with inert arguments, or a direct known mutation with inert
+arguments that is followed by a fresh proof. Containers, maps, properties,
+indices, callables, bound methods, lambdas, constructors, returns, unknown
+calls, and computed expressions are permanent escapes. A fresh-image helper
+must also keep its returned image local and nonescaping.
 
-Reverse provenance is now enforced too: property/index/non-fresh-call
-initializers carry their possible owner forward, and every later owner access
-before the save is rejected unless it is a direct sibling-image read in the
-narrow allowlist. Permanent controls exercise list/map/nested retention,
-callable and method references, direct and nested lambdas, wrapped unknown
-origins, transitive aliases, owner mutation, and proof-expression side
-effects. Direct typed, untyped, and cast aliases remain covered positive
-controls.
+Reverse provenance unions conditional initializers, parses nested parameter
+defaults structurally, and carries property/index/non-fresh-call owners through
+retained sibling aliases and callables. Every later owner access before the
+save fails closed unless it is a direct sibling-image read in the narrow
+allowlist. The proof itself permits only the selected image readback, inert
+exact constants, and approved helpers; typed properties and raw visible-rect
+expressions are not proof operands. Direct typed, untyped, and cast aliases
+remain covered positive controls when that alias is the proven/saved receiver.
+
+The policy required guard-only source restructures in `ui/main.gd`,
+`tests/ui_component_states.gd`,
+`tests/visual/inventory_loot_ui_4_11/capture.gd`, and
+`tests/visual/live_character_ui_8_6/capture.gd`: each existing root predicate
+now terminates before a direct image-only proof. Static assertions preserve the
+exact-size markers and the separated shape. No layout, style, data, inventory,
+writer-inventory, or output-name branch changed.
 
 Python historical entry points now require precisely one inert string marker
 in the initial `SystemExit` call. Extra positional or starred arguments,
@@ -187,7 +195,10 @@ keywords, calls, comprehensions, f-strings, byte markers, and any `from`
 clause are rejected before an entry point can be classified as retired.
 
 The source-policy suite remains 12 tests and complete tooling remains 15.
-Discovery remains 25 active GDScript runners, 35 retired GDScript runners, 12
-retired Python entry points, and 9 active PNG writers. The direct Python-entry
-check confirmed all 12 leave only the required marker and no observed side
-effect. This is a branch-local candidate record; it makes no acceptance claim.
+Its permanent controls total 30 exact-write negatives, 33 pre-proof/reverse
+origin negatives, six fresh-helper escape negatives, and 23 Python-retirement
+negatives. Discovery remains 25 active GDScript runners, 35 retired GDScript
+runners, 12 retired Python entry points, and 9 active PNG writers. The direct
+Python-entry check confirmed all 12 leave only the required marker and no
+observed side effect. This is a branch-local candidate record; it makes no
+acceptance claim.

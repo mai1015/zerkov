@@ -127,29 +127,45 @@ checks are source/state evidence only and cannot establish visual acceptance.
 
 ## Source-policy escape hardening — 2026-09-11
 
-This source-only follow-up closes remaining lexical escape paths in the
+This source-only successor closes remaining lexical escape paths in the
 exact-frame writer policy. Before a proof, only a direct local image alias,
-an explicitly recognized read, or a direct known image mutation followed by a
-fresh proof is permitted. Lists/maps, nested values, properties, indices,
-callables, bound methods, lambdas, constructors, returns, unknown calls, and
-computed expressions permanently taint a later save. The proof expression
-itself is limited to inert reads, so an unrelated call cannot be smuggled into
-the boolean condition.
+an explicitly recognized read with inert arguments, or a direct known image
+mutation with inert arguments followed by a fresh proof is permitted.
+Lists/maps, nested values, properties, indices, callables, bound methods,
+lambdas, constructors, returns, unknown calls, and computed expressions
+permanently taint a later save. A no-argument fresh-image helper is recognized
+only when its allocated/read image stays local and its body is nonescaping.
 
-The policy now follows provenance in the reverse direction as well. An image
+The proof expression itself is limited to the selected receiver's `get_size()`
+readback, inert exact constants, and approved one-image helpers. Property
+reads, including a raw `get_visible_rect()` expression, cannot be folded into
+that proof. Provenance aggregates every local initializer, including
+conditional replacement paths, and function headers are parsed with balanced
+parentheses so nested defaults cannot hide an Image/Variant sibling. An image
 obtained through a property, index, or non-fresh call retains its owner as
-tainted; any later owner access before the save fails closed. Direct sibling
-image parameters retain only the narrow read-only method allowance needed for
-independently guarded writes. Permanent controls cover list/map/nested and
-lambda retention, callable and method references, transitive aliases, wrapped
-unknown origins, owner mutation, and a side effect inside a proof expression.
+tainted; retained owner-derived sibling aliases and callables are also tainted
+before the save. Direct typed, untyped, and cast aliases remain valid when that
+alias is itself proven and saved.
+
+Four active sources had an already-present root predicate separated from their
+selected image proof: `ui/main.gd`, `tests/ui_component_states.gd`,
+`tests/visual/inventory_loot_ui_4_11/capture.gd`, and
+`tests/visual/live_character_ui_8_6/capture.gd`. Each now rejects through the
+same existing failure path when the root predicate is false, then evaluates the
+unchanged direct image-size predicate before its path/write operation. The
+source assertions preserve the exact-size markers and reject any future fold of
+a visible-rect/property expression into those image proofs; the guard-only diff
+does not alter layout, style, data, inventory behavior, output names, or writer
+inventory.
 
 Historical Python entry points now require the first executable AST statement
 to be exactly `raise SystemExit(<one constant str marker>)`: one unstarred
 positional string, no keywords, and no cause. Extra expressions, f-strings,
 comprehensions, calls, byte markers, and `from` clauses fail the static gate.
 
-The source-policy checks remain 12 static tests and 15 complete-tooling tests.
-Discovery remains 25 active GDScript runners, 35 retired GDScript runners, 12
-retired Python entry points, and 9 active PNG writers. No runtime or artifact
-writer was invoked for this follow-up.
+Permanent controls now include 30 exact-write negatives, 33 pre-proof/reverse
+origin negatives, six fresh-helper escape negatives, and 23 Python-retirement
+negatives. The source-policy checks remain 12 static tests and 15
+complete-tooling tests. Discovery remains 25 active GDScript runners, 35
+retired GDScript runners, 12 retired Python entry points, and 9 active PNG
+writers. No runtime or artifact writer was invoked for this follow-up.

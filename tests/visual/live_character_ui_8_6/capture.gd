@@ -74,9 +74,14 @@ func run() -> void:
     await process_frame
     RenderingServer.force_draw(true)
     var preflight := root.get_texture().get_image()
-    var exact_preflight := root.size == EXACT_SIZE \
-        and root.get_visible_rect().size == Vector2(EXACT_SIZE) \
-        and preflight != null and preflight.get_size() == EXACT_SIZE
+    var root_exact := root.size == EXACT_SIZE \
+        and root.get_visible_rect().size == Vector2(EXACT_SIZE)
+    if not root_exact:
+        check(false, "capture root and framebuffer are exact 1920x1080 before setup")
+        push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: nonexact framebuffer rejected before paths or writes")
+        quit(2)
+        return
+    var exact_preflight := preflight != null and preflight.get_size() == EXACT_SIZE
     check(exact_preflight, "capture root and framebuffer are exact 1920x1080 before setup")
     if not exact_preflight:
         push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: nonexact framebuffer rejected before paths or writes")
@@ -136,8 +141,13 @@ func _capture(state: String, screen: Control) -> bool:
     await process_frame
     var image := root.get_texture().get_image()
     var file_name := "1920x1080_%s.png" % state
-    var exact_frame := image != null and image.get_size() == EXACT_SIZE \
-        and root.get_visible_rect().size == Vector2(EXACT_SIZE)
+    var root_exact := root.get_visible_rect().size == Vector2(EXACT_SIZE)
+    if not root_exact:
+        check(false, state + " image is exact 1920x1080")
+        push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: nonexact frame rejected before write: " + state)
+        quit(2)
+        return false
+    var exact_frame := image != null and image.get_size() == EXACT_SIZE
     check(exact_frame, state + " image is exact 1920x1080")
     if not exact_frame:
         push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: nonexact frame rejected before write: " + state)

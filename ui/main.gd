@@ -424,9 +424,13 @@ func _run_qa() -> void:
 	if not capture_dir.is_empty():
 		await RenderingServer.frame_post_draw
 		var preflight := get_viewport().get_texture().get_image()
+		var root_exact := get_viewport().get_visible_rect().size == Vector2(DESKTOP_CANVAS)
+		if not root_exact:
+			push_error("QA capture requires a genuine 1920x1080 framebuffer; rejected before paths or writes")
+			get_tree().quit(2)
+			return
 		var exact_preflight := preflight != null \
-				and preflight.get_size() == DESKTOP_CANVAS \
-				and get_viewport().get_visible_rect().size == Vector2(DESKTOP_CANVAS)
+				and preflight.get_size() == DESKTOP_CANVAS
 		if not exact_preflight:
 			push_error("QA capture requires a genuine 1920x1080 framebuffer; rejected before paths or writes")
 			get_tree().quit(2)
@@ -448,9 +452,13 @@ func _run_qa() -> void:
 		if not capture_dir.is_empty():
 			await RenderingServer.frame_post_draw
 			var capture = get_viewport().get_texture().get_image()
+			var root_exact := get_viewport().get_visible_rect().size == Vector2(DESKTOP_CANVAS)
+			if not root_exact:
+				push_error("QA capture framebuffer changed from exact 1920x1080; no image written")
+				get_tree().quit(2)
+				return
 			var exact_capture := capture != null \
-					and capture.get_size() == DESKTOP_CANVAS \
-					and get_viewport().get_visible_rect().size == Vector2(DESKTOP_CANVAS)
+					and capture.get_size() == DESKTOP_CANVAS
 			if not exact_capture:
 				push_error("QA capture framebuffer changed from exact 1920x1080; no image written")
 				get_tree().quit(2)

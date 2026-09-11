@@ -40,9 +40,14 @@ func _capture_411(state: String, extra: Dictionary = {}) -> bool:
     RenderingServer.force_draw(true)
     var rendered := root.get_texture().get_image()
     var file_name := "1920x1080_" + state + ".png"
+    var root_exact := root.get_visible_rect().size == Vector2(1920, 1080)
+    if not root_exact:
+        check(false, "1920x1080 native capture for " + state)
+        push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: nonexact frame rejected before write: " + state)
+        quit(2)
+        return false
     var exact_frame := rendered != null \
-        and rendered.get_size() == Vector2i(1920, 1080) \
-        and root.get_visible_rect().size == Vector2(1920, 1080)
+        and rendered.get_size() == Vector2i(1920, 1080)
     check(exact_frame, "1920x1080 native capture for " + state)
     if not exact_frame:
         push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: nonexact frame rejected before write: " + state)
@@ -110,8 +115,13 @@ func run() -> void:
     await process_frame
     RenderingServer.force_draw(true)
     var preflight := root.get_texture().get_image()
-    var exact_preflight := root.get_visible_rect().size == Vector2(1920, 1080) \
-        and preflight != null and preflight.get_size() == Vector2i(1920, 1080)
+    var root_exact := root.get_visible_rect().size == Vector2(1920, 1080)
+    if not root_exact:
+        check(false, "root and framebuffer are exact 1920x1080 before setup")
+        push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: nonexact framebuffer rejected before paths or writes")
+        quit(2)
+        return
+    var exact_preflight := preflight != null and preflight.get_size() == Vector2i(1920, 1080)
     check(exact_preflight, "root and framebuffer are exact 1920x1080 before setup")
     if not exact_preflight:
         push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: nonexact framebuffer rejected before paths or writes")
