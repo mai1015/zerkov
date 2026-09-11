@@ -13,6 +13,7 @@ file here belongs to an add-on package, and add-ons must not import this tree.
 | `profile/` | Versioned game-owned profile serialization and local file persistence |
 | `combat/` | Game-owned hit selection, combat content, and cross-domain policy |
 | `adapters/` | Explicit translations between Zerkov and public add-on APIs |
+| `ai/vision/` | Sealed Common Vision world configuration, tick budget, and ownership |
 | `presentation/` | Read-only projections and visual/audio presenters |
 
 The existing `ui/` tree stays in place until its individual screen families

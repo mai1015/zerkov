@@ -1,0 +1,386 @@
+# Task 6.1 authoritative Vision world evidence
+
+This packet records the implementation-level evidence for the approved change's task 6.1
+on branch `codex/vision-world-6-1`, originally based on `d947b40`. It
+incorporates all independent-review repairs and the integration of current
+main commit `abc9c107d91b7b01819a67da88add254de2e0bcf` on 2026-09-11. Human
+approval, encounter tuning, tasks 6.2 and 6.3, and whole-game acceptance are
+not claimed.
+
+## Outcome
+
+The game owns one sealed first-playable Common Vision configuration and one
+offline authority world. The live `CommonVisionWorld2D` exists solely in
+lexical state captured by an opaque Callable. No reflectively readable owner
+property contains the native Node, `Callable.get_object()` is the script
+resource, and the Callable has no bound arguments. Its operation protocol
+never returns the native value and advances only while the exact reserved
+authority callback is synchronously attested. `NOTIFICATION_PREDELETE`
+synchronously frees the native state only when Godot's engine-owned deletion
+queue proves that destruction is real, including for an owner configured
+off-tree; every retained copy of the Callable observes `alive == false`
+afterward. Direct `_notification`/`_exit_tree` calls cannot mint authority, and
+an unqueued direct `free()` is canceled before it can strand the reserved
+binding. A real `queue_free()` remains irrevocable and releases exactly once.
+When that owner is bound, dependency-free PREPARING destruction releases only
+the owner slot, while destruction that cannot safely release uses a transient,
+challenge-bound predelete attestation to fail-stop and seal the complete
+authority composition before the object disappears. No writable lifecycle
+boolean or publicly recoverable Callable is a disposal, release, PREDELETE, or
+terminal-cause bearer.
+
+Reflective compatibility helpers cannot split either half of the live binding:
+`_clear_authority_binding` and `_remove_reserved_vision_handler` are
+mutation-free traps, while their real state transitions are inlined inside the
+already authenticated two-sided release transaction. The shared internal
+registration commit requires its own fresh full-context authority-script
+attestation, so direct calls to the nominally unchecked helper cannot inject a
+reserved or generic callback.
+
+The production owner has no observer, target, occluder, transform, query, or
+projection port. Those belong to tasks 6.2/6.3. Native memory/budget behavior is
+tested through an explicitly test-only fixture that cannot be obtained from a
+normally configured owner.
+
+The first review regressions were captured before the earlier production
+repair. With those adversarial assertions in place, the original
+owner/authority behavior reported `VISION_WORLD_CONTRACT_RESULT checks=211
+failures=6`: a later-phase explicit teardown could discard native state after
+release rejection, PREPARING release could strand a declared consumer, and
+unavoidable destruction was not detected before tick commit. The inherited units behavior reported
+`UNITS_CLOCK_CONTRACT_RESULT checks=40 failures=4` for the restored shared
+limit and 100,000-pixel weapon/tile conversions. A subsequent independent
+PREDELETE probe then found one remaining destruction-only hole: when a
+PREPARING dependent made ordinary release reject, the owner still died while
+the reserved slot and dependent graph remained live, and the raid could later
+transition ACTIVE. A final independent review found that the destruction,
+release, and native-disposal claims were writable booleans discoverable through
+ordinary Godot reflection, and that same-callback reentry could overwrite
+`vision_owner_lost_during_tick` with `reentrant_tick`. The permanent repair
+removes those claim flags, challenges transient exact-script anonymous
+attestations at every mutating boundary, and stores the terminal cause in an
+opaque write-once lexical latch. The focused contract now covers PREPARING free
+both with and without dependents, active free, later-callback free/reentry,
+direct helper calls, reflected runtime/latch callables, arbitrary attacker
+callables, and `Object.set()` attempts. That repaired contract reported 262/0;
+the units contract
+remains 41/0.
+
+The next independent probe reproduced one remaining provenance gap by calling
+`owner.call("_notification", NOTIFICATION_PREDELETE)` on a live, in-tree,
+PREPARING owner. Because the helper itself minted an otherwise honest
+attestation, it tore down the native runtime, owner generation, authority slot,
+and dependent graph while the object remained valid and parented. The final
+repair gates PREDELETE on Godot's non-writable queued-for-deletion state, makes
+`_exit_tree` non-authorizing, cancels unqueued direct-free attempts, and detects
+a queued owner synchronously inside an authority tick. Permanent regressions
+cover direct helper sequences, built-in `Object.notification`, canceled direct
+free, dependency-free and dependent PREPARING queueing, ACTIVE queueing,
+later-callback queueing with and without reentry, frame-end destruction, exact
+slot/handler/generation results, and retained-runtime invalidation. The focused
+contract now reports 284/0; the units contract remains 41/0.
+
+A later independent review found three related reflective composition gaps.
+Ordinary calls to `_remove_reserved_vision_handler` could delete the live slot
+and let an ACTIVE tick commit without invoking its owner; calls to
+`_clear_authority_binding` could split the owner from the authority; and calls
+to `_register_phase_handler_unchecked` could occupy the reserved identity with
+an arbitrary callback. It also reproduced an owner queued immediately before a
+fresh ACTIVE advance being mislabeled `vision_owner_provenance_invalid`, with
+no immutable terminal cause. The permanent regressions now execute these direct
+paths across absent, attacker, and reflectively recovered pseudo-proofs, prove
+the exact owner still receives tick 1 after rejection, and exercise the
+pre-tick queued-owner path through frame-end destruction. The repair makes both
+clear/remove helpers unconditionally mutation-free, binds the internal
+registration commit to a one-call exact-script attestation, and uses the
+engine-owned queued state to commit `vision_owner_lost_during_tick` before the
+terminal seal. The focused contract now reports 305/0; the units contract
+remains 41/0.
+
+## Current-main integration
+
+The current main integration through `abc9c10` includes the earlier accepted
+integrations through `c265d3a`, `4accbd8a`, `6fc090e`, and `64e0105`, and
+touched the shared `RaidAuthority` without a textual conflict. Its resolved record preserves
+main's bounded handler priorities/dependencies, unregister lifecycle, weapon
+actor pose/status state,
+phase-5 context reads, 5.3 authorized actor-source query, digest contribution,
+and teardown. The reserved Vision registration now writes the same
+priority/dependency metadata shape as generic handlers, while generic
+registration and the newly merged generic unregister/preflight APIs all reject
+`raid_vision_world`. The specialized two-sided owner release remains the sole
+way to replace that slot. Main now contains independently accepted task 5.3
+capability encapsulation, task 8.6 Character UI binding, and task 8.10 CommonUI
+input regressions. Their ledger state arrived unchanged from main; task 6.1
+remains open for independent acceptance.
+
+`ZWorldUnits` keeps both accepted contracts: shared weapon, tile, and inventory
+scalar conversions retain the +/-1,048,576-pixel domain, while Vision point
+conversion has a separate +/-65,536-pixel bound before signed `Vector2i`
+construction. The combined units contract proves a previously valid
+100,000-pixel shared conversion still round-trips while Vision accepts its
+exact positive and negative bounds and rejects one outside atomically.
+
+`RaidAuthority` owns the fixed `raid_vision_world` slot. Generic phase handler
+registration rejects that ID in every phase and reserves capacity for it even
+when all generic Vision slots are occupied. A typed Vision-owner API derives
+the callback and checks the exact configured owner object, owner generation,
+raid generation, transient registration attestation, and callback provenance.
+Release and PREDELETE requests carry fresh, operation-specific owner-script
+attestations, while authority-to-owner release uses a separate authority-script
+attestation. The internal handler-table commit has a separate authority-script
+proof bound to the exact phase, identity, callback, priority, dependencies,
+authority, and generation. Receivers create the challenge and bind all context;
+no attestation is stored or returned, and the reflectively readable
+runtime/terminal dispatchers cannot answer those challenges. Safe PREPARING
+replacement occurs only after the same dependent-handler preflight used by
+generic unregister. Direct or replayed release calls are inert. A PREDELETE
+attestation is created only while the exact owner is irreversibly queued by
+Godot; direct `_notification`, `_exit_tree`, and queued-loss-helper calls cannot
+substitute caller-controlled state for that engine provenance. Explicit
+teardown during any authority callback fails atomically and retains the live owner,
+binding, and native state; PREPARING explicit teardown likewise preserves the
+complete composition while a dependent exists. Unavoidable PREDELETE is a
+separate, owner-attested path: a dependency-free PREPARING owner releases
+cleanly for replacement, while a dependent PREPARING, active, extracting, or
+settling owner synchronously commits an immutable owner-loss cause, fails and
+seals the raid, clears the owner slot and complete handler graph, and blocks
+replacement or later ACTIVE work. During a callback the authority stays in its
+advancing guard, detects the queued owner before dispatching another handler,
+and then finalizes the consumed tick when the callback unwinds. A queue committed
+immediately before a fresh advance is recognized before callback dispatch and
+latches the same owner-loss cause. Reentrant API calls and reflective writes
+cannot replace that first terminal cause. The reflectively callable clear/remove
+compatibility helpers never mutate; only the authenticated release transaction
+can clear the two-sided owner/slot composition.
+Direct callbacks, callbacks forged by an earlier handler in the same VISION
+phase, replayed callbacks, and reflected runtime calls outside dispatch cannot
+advance.
+
+Startup checks the exact project lock, installed debug/release artifacts,
+release manifest, API, protocol, algorithm contract, required feature bits,
+coordinate scale, and 60 Hz RaidClock before native creation. The accepted
+lock schema includes and hashes both claimed source paths, Git head, release
+revision, dirty state, package count/tree digest, manifest digest, integration
+fields, and every artifact field. Unknown entry/source/artifact fields,
+selected-field source replacements, relabels, mismatches, and malformed types
+fail closed. The returned fingerprint hashes the immutable accepted record.
+
+The repaired sealed configuration fingerprint is:
+
+```text
+3ead6e826bfd2552aa1396a4d266de3603524355c56620033cb1bd84b6df58f3
+```
+
+## Fixed configuration contract
+
+| Boundary | Sealed value |
+| --- | --- |
+| Godot / canonical relation | 32 px = one tile = 1,000,000 Vision microunits |
+| Shared scalar coordinate domain | +/-1,048,576 px = +/-32,768,000,000 raw |
+| Vision point coordinate domain | +/-65,536 px = +/-2,048,000,000 raw; one outside rejected atomically |
+| Spatial grid | four-tile cells; 256 visited cells maximum |
+| Per-evaluation budget | 16,384 deterministic work units |
+| Cadence | first tick 1; every 3 authority ticks; 20 Hz at RaidClock 60 Hz |
+| Telemetry | 64 evaluation rows; counters saturate at 9,007,199,254,740,000 |
+| Scav sight | 18 tiles; 120-degree total cone; 180 memory ticks; urgent priority 200 |
+| Mutant sight | 12 tiles; 160-degree total cone; 120 memory ticks; priority 100 |
+| Target samples | `ANY_SAMPLE`; center and vertical +/- quarter-tile; three of max eight |
+| Target masks | player bit 0; Scav bit 1; mutant bit 2 |
+| Occluder masks | structure bit 0; vegetation bit 1 |
+
+Godot's `Vector2i` components are signed 32-bit values, so a Vision point cannot
+represent the shared 1,048,576-pixel domain's 32,768,000,000 raw result. The
+shared scalar limit is therefore preserved for existing weapon, tile, and
+inventory behavior, and Vision alone uses an exact power-of-two 65,536-pixel
+bound that produces 2,048,000,000 raw. Both Vision point-conversion directions
+accept the positive and negative boundary and reject one pixel/raw unit outside
+without a partial value.
+
+## Scheduler, memory, and failure evidence
+
+The isolated native memory fixture sees a target at tick 1, hides it before
+tick 4, retains it at tick 181 where `181 - 1 == 180`, emits the position-free
+`MEMORY_EXPIRED` record at tick 184, and omits it at tick 187. The production
+owner receives RaidAuthority ticks 1 through 193 and records exactly 65
+evaluation attempts/completions plus 128 cadence skips. It exposes no process,
+physics-process, delta, or public direct-tick driver.
+
+The 16,384-work-unit fixture installs 128 synthetic segments and 43 matching
+three-sample targets. Each cadence evaluation requests 16,555: the expensive
+urgent observer defers whole, a later zero-candidate observer completes, and no
+partial expensive projection is published. Two isolated worlds yield identical
+metrics and projections. This fixture is not shipped Sawmill geometry and does
+not claim task 3.10.
+
+The native failure fixture advances observer 2 to tick 4, then schedules tick
+1. Observer 1 publishes before observer 2 rejects the regressed tick, reproducing
+the documented per-observer publication prefix:
+
+```text
+requested=0 consumed=0 completed=1 deferred=0 invalidated=0
+code=6 diagnostic=13 detail=1
+```
+
+The owner contract delivers that exact value record through a nested test-only
+owner/authority fixture (never a native handle); production RaidAuthority
+explicitly rejects configured owner subclasses. The owner records attempted tick 1
+versus successful tick 0, accounts every exact bounded metric in immutable
+history and totals, enters `QUARANTINED`, invalidates the opaque runtime
+synchronously, and refuses further advancement. Recovery requires teardown and
+a new owner/generation.
+
+## Accepted validation
+
+All Godot commands used
+`/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot`, version
+`4.7.2.stable.official.ed1daf0bf`, with Compatibility rendering configured by
+the project. Every accepted command exited zero. Output was reviewed for script
+errors, engine errors, extension failures, assertions, leaks, and timeouts; the
+accepted diagnostic count is zero.
+
+These are domain-only headless checks. No UI/composition/screen suite, visual
+capture, or viewport-setting test was invoked, so this integration run created
+no alternate-resolution artifact; the project's exact 1920x1080 UI boundary
+was not exercised. Historical UI evidence files arrived unchanged through the
+requested main merge and are not evidence for this run. Main's accepted 8.6
+presentation/composition contracts, visual capture, and 8.10 CommonUI input
+regression were deliberately not run because they construct UI/viewports. In
+particular,
+`inventory_loot_ui_4_11_contract.gd` and
+`inventory_multi_controller_contract.gd` were excluded because their fixture
+constructs the inventory screen even in headless mode. Adjacent 4.11 behavior
+was covered only through its domain authority, adapter, projection, routing,
+and catalog contracts.
+
+| Validation | Result |
+| --- | ---: |
+| Final editor import / script registration | exit 0; diagnostics 0 |
+| Vision world focused contract | 305 / 0 |
+| Deterministic focused repeat | 305 / 0; identical seal/failure metrics |
+| Combined six-add-on smoke | 155 / 0 |
+| Units and clock contract | 41 / 0; shared 100,000px round trips pass |
+| Session lifecycle domain contract | 44 / 0 |
+| Authority replay/tick-order contract | 81 / 0; 4 expected reentrant rejections |
+| Weapon instance context contract (5.2) | 306 / 0 |
+| Weapon instance adversarial contract (5.2) | 49 / 0 |
+| Weapon persistence integration contract (5.2) | 43 / 0 |
+| Inventory/weapon reload contract | 176 / 0 |
+| Inventory/ability reconciliation contract | 562 / 0 |
+| Inventory intent adapter contract (4.11 adjacent) | 162 / 0 |
+| Inventory projection contract (4.11 adjacent) | 99 / 0 |
+| Inventory mutation routing contract (4.11 adjacent) | 146 / 0 |
+| Inventory authority contract (4.11 adjacent) | 79 / 0 |
+| Inventory catalog contract (4.11 adjacent) | 543 / 0 |
+| Body hitbox domain contract (accepted 5.3) | 111 / 0 |
+| Body hitbox adversarial contract (accepted 5.3) | 173 / 0 |
+| Body hitbox reviewer regression contract (accepted 5.3) | 72 / 0 |
+| Body hitbox capability encapsulation contract (accepted 5.3) | 14 / 0 |
+| Toolchain lock | 7 / 0 |
+| Locked destination packages | 6 passed; 0 failed |
+| Vendor tooling unit tests | 4 passed; 0 failed |
+| Reviewed source/dependency hashes | 45 / 45 verified |
+| Strict approved-change validation | `Valid` |
+| `git diff --check` | exit 0 |
+| Accepted Godot assertion executions | **3,466 / 0** |
+
+## Reproduction
+
+From the isolated repository root:
+
+```sh
+export ZERKOV_GODOT=/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot
+$ZERKOV_GODOT --headless --path . --editor --import --audio-driver Dummy --quit
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/ai/vision_world_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/addons/combined_addons_smoke.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/units_clock_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/session_lifecycle_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/authority_replay_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/weapon_instance_context_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/weapon_instance_context_adversarial_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/weapon_persistence_integration_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_weapon_reload_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_ability_reconciliation_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_intent_adapter_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_projection_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_mutation_routing_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_authority_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/inventory_catalog_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_adversarial_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_review_regression_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_capability_encapsulation_contract.gd
+python3 tools/check_toolchain.py
+python3 tools/vendor_addons.py check --scope destination
+python3 -m unittest tests/addons/test_vendor_addons.py
+shasum -a 256 -c docs/qa/vision_world_6_1/reviewed_hashes.sha256
+python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py \
+  validate add-zerkov-playable-raid-2026-09-09 --type change --strict
+git diff --check
+git diff --cached --check
+```
+
+## Boundaries and remaining risks
+
+- Task 6.2 still owns the concrete lifecycle capability, actor identities,
+  transform revisions/liveness, and observer/target/occluder orchestration.
+- Task 6.3 still owns the AI-facing immutable projection adapter. There is no AI
+  state, decision, navigation, combat, hearing/noise, UI, or overlay here.
+- Authored Sawmill occluders remain task 3.10; all geometry in this evidence is
+  synthetic and test-only.
+- The native package publishes atomically per observer, not scheduler call. The
+  owner therefore fail-stops on any whole-call failure and never recovers the
+  partial native instance in place.
+- Exact source paths intentionally make the accepted local macOS provenance
+  non-portable. A relocated SDK, Windows/Linux artifacts, or a changed package
+  must be explicitly re-attested and resealed rather than silently accepted.
+- The requested main merge through `abc9c10` brings `project.godot`, accepted
+  5.3 hitbox capability isolation, accepted 8.6 Character UI composition,
+  accepted 8.10 CommonUI input regression coverage, inventory, weapon context,
+  documentation, and task history into this branch.
+  The current reflective composition repair changed only the Vision
+  owner/README/tests, shared `RaidAuthority`, and this QA packet. It did not
+  independently edit `project.godot`, bootstrap, central identity,
+  add-on/vendor source, truth specs, the approved task ledger, UI, inventory,
+  combat, or a world scene.
+
+Exact source, test, dependency, lock, toolchain, manifest, and artifact hashes
+are recorded in `reviewed_hashes.sha256` beside this report.
+
+## Independent acceptance — 2026-09-11
+
+Fresh detached review accepted exact candidate
+`75b663247a0df2984bdfa66b4c4a6eea6ce80139` with no P0, P1, or P2
+findings. The reviewer reproduced the four previously rejected lifecycle cases:
+unauthenticated reserved-slot registration, direct reserved-handler removal,
+direct owner-binding clear, and owner deletion immediately before an ACTIVE
+tick. All now fail closed or follow the authenticated two-sided lifecycle path;
+the deletion case immutably reports `vision_owner_lost_during_tick` and releases
+the runtime exactly once.
+
+The focused Vision contract passed `305/0` twice with identical fingerprints,
+the adjacent domain matrix passed `2856/0`, and a disposable independent repair
+probe passed `30/0`, for `3496/0` reviewed assertions. Fresh and incremental
+imports, toolchain `7/0`, six locked packages, vendor unit tests `4/4`, all
+`45/45` reviewed hashes, strict spec validation, and diff/clean-tree gates
+passed. The probe was removed. No UI, screen, viewport, visual, capture,
+compact, responsive, or size command was run.

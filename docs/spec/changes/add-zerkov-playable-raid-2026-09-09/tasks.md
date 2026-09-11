@@ -408,7 +408,7 @@ and medical inventory transactions remain task 5.6. See
 
 ## 6. AI, perception and encounter behavior
 
-- [ ] 6.1 `[SOL]` Configure the authoritative Vision world with fixed units,
+- [x] 6.1 `[SOL]` Configure the authoritative Vision world with fixed units,
   masks, ranges, cones, samples, memory duration and per-tick work budgets.
 - [ ] 6.2 `[LUNA]` Register/update/remove player and NPC observers/targets from
   authoritative transforms with exact revision progression.
