@@ -133,7 +133,7 @@ static func configuration() -> Dictionary:
 			"role": OFFLINE_AUTHORITY_ROLE,
 			"spatial_cell_size_raw": SPATIAL_CELL_SIZE_RAW,
 			"max_visited_cells": MAX_VISITED_CELLS,
-			"canonical_coordinate_limit_raw": ZWorldUnits.MAX_CANONICAL_RAW,
+			"canonical_coordinate_limit_raw": ZWorldUnits.MAX_VISION_CANONICAL_RAW,
 		},
 		"schedule": {
 			"authority_tick_rate": AUTHORITY_TICK_RATE,
@@ -352,7 +352,8 @@ static func _validate_configuration_semantics(configuration_record: Dictionary) 
 		return "world_configuration_invalid"
 	if int(world["role"]) != OFFLINE_AUTHORITY_ROLE:
 		return "world_role_invalid"
-	if int(world["canonical_coordinate_limit_raw"]) != ZWorldUnits.MAX_CANONICAL_RAW:
+	if int(world["canonical_coordinate_limit_raw"]) \
+			!= ZWorldUnits.MAX_VISION_CANONICAL_RAW:
 		return "world_coordinate_limit_invalid"
 	var cell_size := int(world["spatial_cell_size_raw"])
 	var visited_cells := int(world["max_visited_cells"])
@@ -476,7 +477,7 @@ static func _validate_observer_profile(
 		return "observer_profile_id_invalid"
 	var range_raw := int(profile["range_raw"])
 	if range_raw <= 0 or range_raw > MAX_PROFILE_RANGE_RAW \
-			or range_raw > ZWorldUnits.MAX_CANONICAL_RAW:
+			or range_raw > ZWorldUnits.MAX_VISION_CANONICAL_RAW:
 		return "observer_range_invalid"
 	# Add two cells to cover both inclusive edges at an adverse cell boundary.
 	var worst_axis_cells := (range_raw * 2 + cell_size - 1) / cell_size + 2

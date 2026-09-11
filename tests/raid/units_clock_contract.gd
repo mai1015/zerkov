@@ -44,11 +44,31 @@ func _test_units() -> void:
 		"negative weapon aim preserves direction after normalization")
 	check(not WorldUnits.godot_direction_to_weapon(Vector2.ZERO).ok,
 		"zero weapon aim fails closed")
+	var far_shared_point := Vector2(100_000.0, -100_000.0)
+	check(WorldUnits.MAX_GODOT_COORDINATE_PX == 1_048_576.0
+		and WorldUnits.MAX_CANONICAL_RAW == 32_768_000_000,
+		"shared world limits retain the accepted units contract")
+	var far_weapon := WorldUnits.godot_to_weapon(far_shared_point)
+	check(far_weapon.ok
+		and far_weapon.vector2i_value == Vector2i(3_125_000, -3_125_000),
+		"shared weapon conversion retains the accepted 100,000px domain")
+	var far_weapon_round_trip := WorldUnits.weapon_to_godot(
+		far_weapon.vector2i_value
+	)
+	check(far_weapon_round_trip.ok
+		and far_weapon_round_trip.vector2_value == far_shared_point,
+		"shared weapon conversion round-trips 100,000px")
 	var restored := WorldUnits.canonical_to_godot(canonical.vector2i_value)
 	check(restored.ok and restored.vector2_value.is_equal_approx(Vector2(32.0, -64.0)),
 		"canonical coordinates round-trip")
 	var tile := WorldUnits.godot_to_tile(Vector2(-0.1, 63.9))
 	check(tile.ok and tile.vector2i_value == Vector2i(-1, 1), "tile conversion floors negatives")
+	var far_tile := WorldUnits.godot_to_tile(far_shared_point)
+	check(far_tile.ok and far_tile.vector2i_value == Vector2i(3125, -3125),
+		"shared tile conversion retains the accepted 100,000px domain")
+	var far_tile_origin := WorldUnits.tile_origin_to_godot(far_tile.vector2i_value)
+	check(far_tile_origin.ok and far_tile_origin.vector2_value == far_shared_point,
+		"shared tile origin round-trips 100,000px")
 	var center := WorldUnits.tile_center_to_godot(Vector2i(-1, 2))
 	check(center.ok and center.vector2_value == Vector2(-16.0, 80.0), "tile center is stable")
 	var half_pixel := 0.5 * WorldUnits.GODOT_PIXELS_PER_WORLD_UNIT / float(
@@ -63,26 +83,26 @@ func _test_units() -> void:
 	check(not WorldUnits.godot_to_canonical(Vector2(2_000_000.0, 0.0)).ok,
 		"out-of-bounds position is rejected")
 	var boundary := WorldUnits.godot_to_canonical(Vector2(
-		WorldUnits.MAX_GODOT_COORDINATE_PX,
-		-WorldUnits.MAX_GODOT_COORDINATE_PX,
+		WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
+		-WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
 	))
 	check(boundary.ok and boundary.vector2i_value == Vector2i(
-		WorldUnits.MAX_CANONICAL_RAW,
-		-WorldUnits.MAX_CANONICAL_RAW,
+		WorldUnits.MAX_VISION_CANONICAL_RAW,
+		-WorldUnits.MAX_VISION_CANONICAL_RAW,
 	), "exact signed safe boundary converts without Vector2i wrap")
 	var restored_boundary := WorldUnits.canonical_to_godot(boundary.vector2i_value)
 	check(restored_boundary.ok and restored_boundary.vector2_value == Vector2(
-		WorldUnits.MAX_GODOT_COORDINATE_PX,
-		-WorldUnits.MAX_GODOT_COORDINATE_PX,
+		WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
+		-WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
 	), "exact signed safe boundary round-trips")
 	var outside := WorldUnits.godot_to_canonical(Vector2(
-		WorldUnits.MAX_GODOT_COORDINATE_PX + 1.0,
+		WorldUnits.MAX_VISION_GODOT_COORDINATE_PX + 1.0,
 		17.0,
 	))
 	check(not outside.ok and outside.vector2i_value == Vector2i.ZERO,
 		"one pixel outside rejects without a wrapped or partial result")
 	check(not WorldUnits.canonical_to_godot(Vector2i(
-		WorldUnits.MAX_CANONICAL_RAW + 1,
+		WorldUnits.MAX_VISION_CANONICAL_RAW + 1,
 		0,
 	)).ok, "one canonical raw unit outside rejects before float conversion")
 	var damage := WorldUnits.weapon_damage_to_ability(42_500)

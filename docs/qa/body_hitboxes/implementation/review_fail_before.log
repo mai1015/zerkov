@@ -1,0 +1,20 @@
+BASE_SOURCE_HEAD: 09463f291cfe70fddbd59d48e0592655194a272a
+TEST_STATE: initial reviewer-regression contract revision, added before production repair
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/combat/body_hitbox_review_regression_contract.gd
+EXIT_CODE: 1
+BODY_HITBOX_REVIEW_REGRESSION_RESULT checks=9 failures=9
+
+EXPECTED FAILURE FINDINGS:
+- unauthorized well-formed body entity was accepted
+- stale same-number publication provenance was accepted by a fresh world
+- world-A query authenticated to same-ID generation-1/token-1 world B
+- profile declaration collection/entries were mutable
+- profile validation/findings were mutable
+- built world-hitbox collection/entries were mutable
+- snapshot metadata was mutable
+- accepted result was mutable
+- rejection result was mutable
+
+NOTE: ERROR lines were emitted by the test's expected failing assertions. This
+fail-before run is not included in accepted diagnostics or assertion totals.
+The final permanent contract expands these cases and passes 53/0.

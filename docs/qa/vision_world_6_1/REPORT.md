@@ -2,10 +2,10 @@
 
 This packet records the implementation-level evidence for approved task 6.1
 on branch `codex/vision-world-6-1`, originally based on `d947b40`. It
-incorporates both independent-review repair rounds and the integration of
-accepted main commit `c08a39b9026c9f45fd666d61a5c5d96b211e178b` on
-2026-09-11. Human approval, encounter tuning, tasks 6.2 and 6.3, and whole-game
-acceptance are not claimed.
+incorporates all independent-review repairs and the integration of accepted
+main commit `c265d3a4efd9b49f840b87e201ceb8f4b661d26b` on 2026-09-11. Human
+approval, encounter tuning, tasks 6.2 and 6.3, and whole-game acceptance are
+not claimed.
 
 ## Outcome
 
@@ -24,21 +24,35 @@ projection port. Those belong to tasks 6.2/6.3. Native memory/budget behavior is
 tested through an explicitly test-only fixture that cannot be obtained from a
 normally configured owner.
 
+The final review regressions were captured before the production repair. With
+the new adversarial assertions in place, the prior owner/authority behavior
+reported `VISION_WORLD_CONTRACT_RESULT checks=211 failures=6`: a later-phase
+teardown could discard native state after release rejection, PREPARING release
+could strand a declared consumer, and unavoidable destruction was not detected
+before tick commit. The inherited units behavior reported
+`UNITS_CLOCK_CONTRACT_RESULT checks=40 failures=4` for the restored shared
+limit and 100,000-pixel weapon/tile conversions. Those same permanent contracts
+now report 211/0 and 41/0 respectively.
+
 ## Accepted-main integration
 
-The only content conflict while merging `c08a39b` was the shared
-`RaidAuthority`. Its resolved record preserves main's bounded handler
-priorities/dependencies, unregister lifecycle, weapon actor pose/status state,
-phase-5 context reads, digest contribution, and teardown. The reserved Vision
-registration now writes the same priority/dependency metadata shape as generic
-handlers, while generic registration and the newly merged generic
-unregister/preflight APIs all reject `raid_vision_world`. The specialized
-two-sided owner release remains the sole way to replace that slot.
+The accepted main integration through `c265d3a` touched the shared
+`RaidAuthority` without a textual conflict. Its resolved record preserves
+main's bounded handler priorities/dependencies, unregister lifecycle, weapon
+actor pose/status state,
+phase-5 context reads, 5.3 authorized actor-source query, digest contribution,
+and teardown. The reserved Vision registration now writes the same
+priority/dependency metadata shape as generic handlers, while generic
+registration and the newly merged generic unregister/preflight APIs all reject
+`raid_vision_world`. The specialized two-sided owner release remains the sole
+way to replace that slot.
 
-The independently merged `ZWorldUnits` keeps both accepted contracts: weapon
-aim normalization at scale 1,000,000 and the repaired +/-65,536-pixel Vision
-domain. The combined units contract proves both without widening the signed
-`Vector2i` range.
+`ZWorldUnits` keeps both accepted contracts: shared weapon, tile, and inventory
+scalar conversions retain the +/-1,048,576-pixel domain, while Vision point
+conversion has a separate +/-65,536-pixel bound before signed `Vector2i`
+construction. The combined units contract proves a previously valid
+100,000-pixel shared conversion still round-trips while Vision accepts its
+exact positive and negative bounds and rejects one outside atomically.
 
 `RaidAuthority` owns the fixed `raid_vision_world` slot. Generic phase handler
 registration rejects that ID in every phase and reserves capacity for it even
@@ -46,7 +60,12 @@ when all generic Vision slots are occupied. A typed Vision-owner API derives
 the callback and checks the exact configured owner object, owner generation,
 raid generation, provisional binding, and callback provenance. A two-sided
 release claim plus synchronous authority attestation permits safe PREPARING
-replacement; direct/replayed release calls are inert. Direct callbacks,
+replacement, but only after the same dependent-handler preflight used by
+generic unregister. Direct/replayed release calls are inert. Explicit teardown
+during any authority callback fails atomically and retains the live owner,
+binding, and native state. If unavoidable object destruction occurs during a
+later callback, the authority detects the lost sole Vision owner after that
+callback and terminalizes the current raid tick. Direct callbacks,
 callbacks forged by an earlier handler in the same VISION phase, replayed
 callbacks, and reflected runtime calls outside dispatch cannot advance.
 
@@ -70,7 +89,8 @@ The repaired sealed configuration fingerprint is:
 | Boundary | Sealed value |
 | --- | --- |
 | Godot / canonical relation | 32 px = one tile = 1,000,000 Vision microunits |
-| Checked coordinate domain | +/-65,536 px = +/-2,048,000,000 raw; one outside rejected atomically |
+| Shared scalar coordinate domain | +/-1,048,576 px = +/-32,768,000,000 raw |
+| Vision point coordinate domain | +/-65,536 px = +/-2,048,000,000 raw; one outside rejected atomically |
 | Spatial grid | four-tile cells; 256 visited cells maximum |
 | Per-evaluation budget | 16,384 deterministic work units |
 | Cadence | first tick 1; every 3 authority ticks; 20 Hz at RaidClock 60 Hz |
@@ -81,12 +101,13 @@ The repaired sealed configuration fingerprint is:
 | Target masks | player bit 0; Scav bit 1; mutant bit 2 |
 | Occluder masks | structure bit 0; vegetation bit 1 |
 
-The coordinate limit remains the repaired bound from the first review.
-Godot's `Vector2i` components are signed 32-bit values, so the inherited
-1,048,576-pixel domain could wrap its 32,768,000,000 raw result. The exact
-power-of-two 65,536-pixel bound produces 2,048,000,000 raw. Both conversion
-directions accept the positive/negative boundary and reject one pixel/raw unit
-outside without a partial value.
+Godot's `Vector2i` components are signed 32-bit values, so a Vision point cannot
+represent the shared 1,048,576-pixel domain's 32,768,000,000 raw result. The
+shared scalar limit is therefore preserved for existing weapon, tile, and
+inventory behavior, and Vision alone uses an exact power-of-two 65,536-pixel
+bound that produces 2,048,000,000 raw. Both Vision point-conversion directions
+accept the positive and negative boundary and reject one pixel/raw unit outside
+without a partial value.
 
 ## Scheduler, memory, and failure evidence
 
@@ -115,10 +136,11 @@ code=6 diagnostic=13 detail=1
 
 The owner contract delivers that exact value record through a nested test-only
 owner/authority fixture (never a native handle); production RaidAuthority
-explicitly rejects subclass claim methods. The owner records attempted tick 1 versus successful
-tick 0, accounts every exact bounded metric in immutable history and totals,
-enters `QUARANTINED`, invalidates the opaque runtime synchronously, and refuses
-further advancement. Recovery requires teardown and a new owner/generation.
+explicitly rejects subclass claim methods. The owner records attempted tick 1
+versus successful tick 0, accounts every exact bounded metric in immutable
+history and totals, enters `QUARANTINED`, invalidates the opaque runtime
+synchronously, and refuses further advancement. Recovery requires teardown and
+a new owner/generation.
 
 ## Accepted validation
 
@@ -141,14 +163,15 @@ authority, adapter, projection, routing, catalog, and multi-controller tests.
 | Validation | Result |
 | --- | ---: |
 | Final editor import / script registration | exit 0; diagnostics 0 |
-| Vision world focused contract | 192 / 0 |
-| Deterministic focused repeat | 192 / 0; identical seal/failure metrics |
+| Vision world focused contract | 211 / 0 |
+| Deterministic focused repeat | 211 / 0; identical seal/failure metrics |
 | Combined six-add-on smoke | 155 / 0 |
-| Units and clock contract | 36 / 0 |
+| Units and clock contract | 41 / 0; shared 100,000px round trips pass |
 | Session lifecycle domain contract | 44 / 0 |
 | Authority replay/tick-order contract | 81 / 0; 4 expected reentrant rejections |
 | Weapon instance context contract (5.2) | 306 / 0 |
 | Weapon instance adversarial contract (5.2) | 49 / 0 |
+| Weapon persistence integration contract (5.2) | 43 / 0 |
 | Inventory/weapon reload contract | 176 / 0 |
 | Inventory/ability reconciliation contract | 562 / 0 |
 | Inventory intent adapter contract (4.11 adjacent) | 162 / 0 |
@@ -157,12 +180,16 @@ authority, adapter, projection, routing, catalog, and multi-controller tests.
 | Inventory multi-controller contract (4.11 adjacent) | 23 / 0 |
 | Inventory authority contract (4.11 adjacent) | 79 / 0 |
 | Inventory catalog contract (4.11 adjacent) | 543 / 0 |
+| Body hitbox contract (5.3) | 111 / 0 |
+| Body hitbox adversarial contract (5.3) | 173 / 0 |
+| Body hitbox reviewer regression contract (5.3) | 72 / 0 |
 | Toolchain lock | 7 / 0 |
 | Locked destination packages | 6 passed; 0 failed |
 | Vendor tooling unit tests | 4 passed; 0 failed |
+| Reviewed source/dependency hashes | 44 / 44 verified |
 | Strict approved-change validation | `Valid` |
 | `git diff --check` | exit 0 |
-| Accepted Godot assertion executions | **2,845 / 0** |
+| Accepted Godot assertion executions | **3,287 / 0** |
 
 ## Reproduction
 
@@ -186,6 +213,8 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/weapon_instance_context_adversarial_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/weapon_persistence_integration_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_weapon_reload_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_ability_reconciliation_contract.gd
@@ -201,12 +230,20 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_authority_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_catalog_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_adversarial_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_review_regression_contract.gd
 python3 tools/check_toolchain.py
 python3 tools/vendor_addons.py check --scope destination
 python3 -m unittest tests/addons/test_vendor_addons.py
+shasum -a 256 -c docs/qa/vision_world_6_1/reviewed_hashes.sha256
 python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py \
   validate add-zerkov-playable-raid-2026-09-09 --type change --strict
 git diff --check
+git diff --cached --check
 ```
 
 ## Boundaries and remaining risks
@@ -223,12 +260,14 @@ git diff --check
 - Exact source paths intentionally make the accepted local macOS provenance
   non-portable. A relocated SDK, Windows/Linux artifacts, or a changed package
   must be explicitly re-attested and resealed rather than silently accepted.
-- The requested main merge brings accepted `project.godot`, UI, inventory,
-  combat, documentation, and task-ledger history into this branch. The 6.1
-  integration resolution itself changed only `RaidAuthority`, its focused
-  Vision assertions, and this QA packet; it did not independently edit
-  `project.godot`, bootstrap, central identity, add-on/vendor source, truth
-  specs, the approved task ledger, UI, inventory, combat, or a world scene.
+- The requested main merge through `c265d3a` brings accepted `project.godot`,
+  UI, inventory, weapon context, body hitboxes, documentation, and task-ledger
+  history into this branch. The 6.1 integration repair itself changed only its
+  Vision owner/configuration/docs/tests, shared `RaidAuthority` and
+  `ZWorldUnits`, the combined units contract, and this QA packet. It did not
+  independently edit `project.godot`, bootstrap, central identity,
+  add-on/vendor source, truth specs, the approved task ledger, UI, inventory,
+  combat, or a world scene.
 
 Exact source, test, dependency, lock, toolchain, manifest, and artifact hashes
 are recorded in `reviewed_hashes.sha256` beside this report.

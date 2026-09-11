@@ -35,10 +35,12 @@ upstream release manifest remains pinned and hash-checked as provenance.
 ## Fixed first-playable values
 
 - One world unit is one 32 px tile and exactly 1,000,000 Vision microunits.
-- Godot positions are accepted only through the exact symmetric
-  `+/-65,536 px` boundary, mapping to `+/-2,048,000,000` canonical units before
-  `Vector2i` construction. One pixel/raw unit outside is rejected without wrap
-  or partial conversion.
+- Shared `ZWorldUnits` scalar conversions retain their accepted symmetric
+  `+/-1,048,576 px` (`+/-32,768,000,000` raw) domain for weapon, tile, and
+  inventory contracts. Vision point conversions use the narrower exact
+  `+/-65,536 px` (`+/-2,048,000,000` raw) boundary required before
+  `Vector2i` construction. One pixel/raw unit outside the Vision point bound is
+  rejected without wrap or partial conversion.
 - The target grid uses four-tile cells and rejects a query rectangle above 256
   visited cells. The 18-tile maximum authored range occupies at most 121 cells
   at an adverse cell boundary.

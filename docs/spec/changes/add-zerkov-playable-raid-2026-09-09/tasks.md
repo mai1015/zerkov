@@ -351,7 +351,7 @@ failure after mutation. No UI layout was changed. See
   using stable identifiers and bounded values.
 - [x] 5.2 `[SOL]` Create weapon instances from equipped inventory state and
   provide authoritative liveness, equipment, pose and usability context.
-- [ ] 5.3 `[SOL]` Implement body hitboxes for head, torso, arms and legs with a
+- [x] 5.3 `[SOL]` Implement body hitboxes for head, torso, arms and legs with a
   deterministic overlap/tie-break policy.
 - [ ] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
   committed shot once and emit one stable hit/miss consequence.

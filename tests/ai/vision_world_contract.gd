@@ -50,6 +50,7 @@ class FailureFixtureAuthority extends RaidAuthority:
 	var fixture_owner_ref: WeakRef
 	var fixture_owner_generation: int = 0
 	var fixture_raid_generation: int = 0
+	var fixture_releasing: bool = false
 
 	func register_vision_world_owner(
 		owner: RaidVisionWorldOwner,
@@ -87,6 +88,43 @@ class FailureFixtureAuthority extends RaidAuthority:
 				phase, tick, FIXTURE_HANDLER_ID, expected_generation
 			)
 
+	func release_vision_world_owner(
+		owner: RaidVisionWorldOwner,
+		owner_generation: int,
+		expected_generation: int
+	) -> bool:
+		last_error = &""
+		if fixture_owner_ref == null \
+				or fixture_owner_ref.get_ref() != owner \
+				or owner_generation != fixture_owner_generation \
+				or expected_generation != fixture_raid_generation \
+				or not owner.is_release_claim_current(
+					self, owner_generation, expected_generation
+				):
+			last_error = &"fixture_owner_release_invalid"
+			return false
+		fixture_releasing = true
+		var released := owner.release_registered_binding(
+			self, owner_generation, expected_generation, false
+		)
+		fixture_releasing = false
+		if released:
+			fixture_owner_ref = null
+			fixture_owner_generation = 0
+			fixture_raid_generation = 0
+		return released
+
+	func is_releasing_vision_world_owner(
+		owner: RaidVisionWorldOwner,
+		owner_generation: int,
+		expected_generation: int
+	) -> bool:
+		return fixture_releasing \
+			and fixture_owner_ref != null \
+			and fixture_owner_ref.get_ref() == owner \
+			and owner_generation == fixture_owner_generation \
+			and expected_generation == fixture_raid_generation
+
 	func _failure_fixture_handler(
 		raid: RaidAuthority,
 		phase: TickPhase,
@@ -105,6 +143,11 @@ class FailureFixtureAuthority extends RaidAuthority:
 var checks: int = 0
 var failures: int = 0
 var forged_callback_results: Array[bool] = []
+var later_teardown_owner: RaidVisionWorldOwner
+var later_teardown_generation: int = 0
+var later_teardown_result: bool = true
+var later_teardown_error: StringName = &""
+var later_free_owner: RaidVisionWorldOwner
 
 
 func _initialize() -> void:
@@ -127,6 +170,9 @@ func run() -> void:
 	_test_native_budget_defer_and_determinism()
 	await _test_owner_opaque_runtime_and_off_tree_free()
 	_test_reserved_slot_spoofing_and_replacement()
+	_test_bound_teardown_is_fail_atomic()
+	_test_preparing_release_respects_dependencies()
+	_test_forced_owner_loss_fails_current_tick()
 	_test_reserved_callback_provenance()
 	_test_authority_cadence_and_callback_attestation()
 	_test_partial_native_failure_quarantine()
@@ -408,30 +454,31 @@ func _test_units_masks_ranges_cones_and_samples() -> void:
 		and restored_tile.vector2_value == Vector2(32.0, -32.0),
 		"Vision tile coordinates round-trip through ZWorldUnits")
 
-	var boundary := WorldUnits.godot_to_canonical(Vector2(
-		WorldUnits.MAX_GODOT_COORDINATE_PX,
-		-WorldUnits.MAX_GODOT_COORDINATE_PX,
+	var boundary := WorldUnits.godot_to_vision(Vector2(
+		WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
+		-WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
 	))
 	check(boundary.ok and boundary.vector2i_value == Vector2i(
-		WorldUnits.MAX_CANONICAL_RAW, -WorldUnits.MAX_CANONICAL_RAW
+		WorldUnits.MAX_VISION_CANONICAL_RAW,
+		-WorldUnits.MAX_VISION_CANONICAL_RAW
 	), "exact positive/negative safety boundaries convert without wrap")
-	var restored_boundary := WorldUnits.canonical_to_godot(boundary.vector2i_value)
+	var restored_boundary := WorldUnits.vision_to_godot(boundary.vector2i_value)
 	check(restored_boundary.ok and restored_boundary.vector2_value == Vector2(
-		WorldUnits.MAX_GODOT_COORDINATE_PX,
-		-WorldUnits.MAX_GODOT_COORDINATE_PX,
+		WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
+		-WorldUnits.MAX_VISION_GODOT_COORDINATE_PX,
 	), "exact canonical boundaries round-trip")
 	for outside_x in [
-		WorldUnits.MAX_GODOT_COORDINATE_PX + 1.0,
-		-WorldUnits.MAX_GODOT_COORDINATE_PX - 1.0,
+		WorldUnits.MAX_VISION_GODOT_COORDINATE_PX + 1.0,
+		-WorldUnits.MAX_VISION_GODOT_COORDINATE_PX - 1.0,
 	]:
-		var rejected := WorldUnits.godot_to_canonical(Vector2(outside_x, 17.0))
+		var rejected := WorldUnits.godot_to_vision(Vector2(outside_x, 17.0))
 		check(not rejected.ok and rejected.vector2i_value == Vector2i.ZERO,
 			"one-pixel-outside point rejects atomically without partial wrap")
 	for outside_raw in [
-		WorldUnits.MAX_CANONICAL_RAW + 1,
-		-WorldUnits.MAX_CANONICAL_RAW - 1,
+		WorldUnits.MAX_VISION_CANONICAL_RAW + 1,
+		-WorldUnits.MAX_VISION_CANONICAL_RAW - 1,
 	]:
-		check(not WorldUnits.canonical_to_godot(Vector2i(outside_raw, 0)).ok,
+		check(not WorldUnits.vision_to_godot(Vector2i(outside_raw, 0)).ok,
 			"one-raw-unit-outside canonical point rejects")
 
 	var sample_raw := Vector2i(0, Config.MAX_SAMPLE_OFFSET_RAW)
@@ -447,7 +494,7 @@ func _test_units_masks_ranges_cones_and_samples() -> void:
 		"sealed 18-tile sight range is 576 Godot pixels")
 	check(int((Config.configuration()["world"] as Dictionary)[
 		"canonical_coordinate_limit_raw"
-	]) == WorldUnits.MAX_CANONICAL_RAW,
+	]) == WorldUnits.MAX_VISION_CANONICAL_RAW,
 		"Vision configuration records the checked Vector2i domain")
 
 	check(Config.TARGET_LAYER_PLAYER == 1 and Config.TARGET_LAYER_SCAV == 2
@@ -835,6 +882,119 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 	check(replacement.teardown(replacement.generation()),
 		"replacement owner tears down after authority release")
 	replacement.free()
+
+
+func _test_bound_teardown_is_fail_atomic() -> void:
+	var fixture := _new_bound_fixture(50_114, "later_teardown")
+	check(not fixture.is_empty(),
+		"later-phase teardown fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	later_teardown_owner = fixture["owner"] as RaidVisionWorldOwner
+	later_teardown_generation = later_teardown_owner.generation()
+	later_teardown_result = true
+	later_teardown_error = &""
+	var retained := later_teardown_owner.get("_runtime_dispatch") as Callable
+	check(raid.register_phase_handler(
+		RaidAuthority.TickPhase.AI_DECISIONS,
+		&"vision_later_teardown_probe",
+		Callable(self, "_attempt_later_phase_teardown"),
+		raid.generation(),
+	), "later phase teardown probe registers")
+	check(raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid.generation())
+		and raid.advance_one(raid.generation()),
+		"rejected later-phase teardown leaves the current raid tick valid")
+	var live_status := retained.call(&"status", {}) as Dictionary
+	check(not later_teardown_result
+		and later_teardown_error == &"vision_owner_release_during_tick"
+		and later_teardown_owner.lifecycle == VisionOwner.Lifecycle.ACTIVE
+		and later_teardown_owner.generation() == later_teardown_generation
+		and later_teardown_owner.is_registered_binding_current(
+			raid, later_teardown_generation, raid.generation()
+		)
+		and bool(live_status.get("alive", false)),
+		"in-tick release rejection preserves the complete owner and binding")
+	check(raid.advance_one(raid.generation())
+		and int(later_teardown_owner.telemetry_snapshot()["ticks_received"]) == 2,
+		"preserved Vision owner advances normally on the next authority tick")
+	check(raid.teardown(raid.generation()),
+		"later-phase teardown fixture authority tears down")
+	check(later_teardown_owner.teardown(later_teardown_generation),
+		"authority-released owner tears down explicitly")
+	later_teardown_owner.free()
+	later_teardown_owner = null
+
+
+func _test_preparing_release_respects_dependencies() -> void:
+	var fixture := _new_bound_fixture(50_115, "dependent_release")
+	check(not fixture.is_empty(),
+		"dependent-release fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	var owner := fixture["owner"] as RaidVisionWorldOwner
+	var owner_generation := owner.generation()
+	var dependencies := PackedStringArray([
+		String(RaidAuthority.RESERVED_VISION_HANDLER_ID),
+	])
+	check(raid.register_phase_handler(
+		RaidAuthority.TickPhase.VISION,
+		&"vision_projection_consumer",
+		Callable(self, "_noop_phase_handler"),
+		raid.generation(),
+		1,
+		dependencies,
+	), "Vision consumer declares the reserved owner as its provider")
+	var retained := owner.get("_runtime_dispatch") as Callable
+	check(not owner.teardown(owner_generation)
+		and owner.last_error == &"handler_has_dependents"
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid.generation()
+		)
+		and owner.is_registered_binding_current(
+			raid, owner_generation, raid.generation()
+		)
+		and bool((retained.call(&"status", {}) as Dictionary).get("alive", false)),
+		"specialized PREPARING release cannot strand a declared consumer")
+	check(raid.unregister_phase_handler(
+		&"vision_projection_consumer", raid.generation()
+	), "consumer unregisters before its reserved provider")
+	check(owner.teardown(owner_generation),
+		"owner teardown succeeds after dependent removal")
+	check(not raid.has_phase_handler(
+		RaidAuthority.RESERVED_VISION_HANDLER_ID, raid.generation()
+	), "successful specialized release removes the reserved slot")
+	check(raid.teardown(raid.generation()),
+		"dependent-release authority tears down")
+	owner.free()
+
+
+func _test_forced_owner_loss_fails_current_tick() -> void:
+	var fixture := _new_bound_fixture(50_116, "forced_owner_loss")
+	check(not fixture.is_empty(),
+		"forced owner-loss fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	later_free_owner = fixture["owner"] as RaidVisionWorldOwner
+	var retained := later_free_owner.get("_runtime_dispatch") as Callable
+	check(raid.register_phase_handler(
+		RaidAuthority.TickPhase.AI_DECISIONS,
+		&"vision_later_free_probe",
+		Callable(self, "_free_owner_in_later_phase"),
+		raid.generation(),
+	), "later phase forced-free probe registers")
+	check(raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid.generation())
+		and not raid.advance_one(raid.generation())
+		and raid.lifecycle == RaidAuthority.Lifecycle.FAILED
+		and raid.last_error == &"vision_owner_lost_during_tick",
+		"unavoidable owner destruction terminalizes the current authority tick")
+	check(not bool((retained.call(&"status", {}) as Dictionary).get("alive", true)),
+		"forced owner destruction invalidates every retained runtime capability")
+	later_free_owner = null
+	check(raid.teardown(raid.generation()),
+		"forced owner-loss authority tears down")
 
 
 func _test_reserved_callback_provenance() -> void:
@@ -1354,6 +1514,31 @@ func _forged_vision_handler(
 ) -> bool:
 	var result: Variant = owner.call("_handle_raid_phase", raid, phase, tick, intents)
 	forged_callback_results.append(result is bool and bool(result))
+	return true
+
+
+func _attempt_later_phase_teardown(
+	_raid: RaidAuthority,
+	_phase: RaidAuthority.TickPhase,
+	tick: int,
+	_intents: Array[ZRaidIntent]
+) -> bool:
+	if tick == 1 and later_teardown_owner != null:
+		later_teardown_result = later_teardown_owner.teardown(
+			later_teardown_generation
+		)
+		later_teardown_error = later_teardown_owner.last_error
+	return true
+
+
+func _free_owner_in_later_phase(
+	_raid: RaidAuthority,
+	_phase: RaidAuthority.TickPhase,
+	tick: int,
+	_intents: Array[ZRaidIntent]
+) -> bool:
+	if tick == 1 and later_free_owner != null:
+		later_free_owner.free()
 	return true
 
 

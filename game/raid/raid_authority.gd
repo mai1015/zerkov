@@ -165,6 +165,23 @@ func authorize_actor(
 	return true
 
 
+## Side-effect-free authorization port for game-owned boundaries that must
+## prove an actor/source belongs to this exact raid authority. The backing set
+## remains private so callers cannot enumerate or mutate authority ownership.
+func has_authorized_actor_source(
+	actor_id: ZEntityId,
+	source: ZRaidIntent.Source,
+	expected_generation: int
+) -> bool:
+	if not _is_current_generation(expected_generation):
+		return false
+	if int(source) < ZRaidIntent.Source.PLAYER or int(source) > ZRaidIntent.Source.SYSTEM:
+		return false
+	if actor_id == null or ZEntityId.parse(actor_id.canonical_key()) == null:
+		return false
+	return _authorized_actor_sources.has(_actor_source_key(actor_id, source))
+
+
 func register_phase_handler(
 	phase: TickPhase,
 	handler_id: StringName,
@@ -279,6 +296,8 @@ func release_vision_world_owner(
 	if _is_advancing:
 		return _reject(&"vision_owner_release_during_tick")
 	if lifecycle == Lifecycle.PREPARING:
+		if _phase_handler_has_dependents(RESERVED_VISION_HANDLER_ID):
+			return _reject(&"handler_has_dependents")
 		_remove_reserved_vision_handler()
 		_release_vision_owner_binding(false)
 		return true
@@ -396,11 +415,8 @@ func _phase_handler_removal_is_valid(
 		return _reject(&"handler_invalid")
 	if not _handler_ids.has(handler_id):
 		return true
-	for registered_value in _handler_ids.values():
-		var registered := registered_value as Dictionary
-		var dependencies := registered.get("after", PackedStringArray()) as PackedStringArray
-		if dependencies.has(String(handler_id)):
-			return _reject(&"handler_has_dependents")
+	if _phase_handler_has_dependents(handler_id):
+		return _reject(&"handler_has_dependents")
 	return true
 
 
@@ -706,6 +722,11 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	_is_advancing = true
 	_processing_tick = tick
 	last_phase_trace = PackedStringArray()
+	# Once a tick starts with the reserved Vision owner, no later callback may
+	# make that authority disappear and still let the tick commit. Capture the
+	# requirement before any reflectively reachable handler can mutate fields.
+	var vision_owner_required_for_tick := _vision_owner_instance_id != 0 \
+		or _handler_ids.has(RESERVED_VISION_HANDLER_ID)
 	var due_intents: Array[ZRaidIntent] = []
 	for phase_value in PHASE_NAMES.size():
 		var phase: TickPhase = phase_value
@@ -732,6 +753,9 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 			_processing_handler_id = &""
 			if typeof(outcome) != TYPE_BOOL or not outcome:
 				return _fail_current_tick(tick, &"phase_handler_failed")
+			if vision_owner_required_for_tick \
+					and not _reserved_vision_callback_is_current():
+				return _fail_current_tick(tick, &"vision_owner_lost_during_tick")
 		_processing_phase = -1
 	last_processed_tick = tick
 	_is_advancing = false
@@ -830,6 +854,19 @@ func _register_phase_handler_unchecked(
 		"after": after_handler_ids,
 	}
 	return true
+
+
+func _phase_handler_has_dependents(handler_id: StringName) -> bool:
+	for registered_value in _handler_ids.values():
+		if not registered_value is Dictionary:
+			continue
+		var registered := registered_value as Dictionary
+		var dependencies := registered.get(
+			"after", PackedStringArray()
+		) as PackedStringArray
+		if dependencies.has(String(handler_id)):
+			return true
+	return false
 
 
 func _vision_owner_matches(

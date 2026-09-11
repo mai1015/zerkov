@@ -241,7 +241,7 @@ func configuration_receipt() -> Dictionary:
 		"configuration_fingerprint": _configuration_fingerprint,
 		"provenance_fingerprint": _provenance_fingerprint,
 		"coordinate_scale": ZerkovVisionConfig.EXPECTED_COORDINATE_SCALE,
-		"canonical_coordinate_limit_raw": ZWorldUnits.MAX_CANONICAL_RAW,
+		"canonical_coordinate_limit_raw": ZWorldUnits.MAX_VISION_CANONICAL_RAW,
 		"cadence_first_tick": ZerkovVisionConfig.CADENCE_FIRST_TICK,
 		"cadence_interval_ticks": ZerkovVisionConfig.CADENCE_INTERVAL_TICKS,
 		"work_budget_per_evaluation": ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION,
@@ -550,7 +550,11 @@ func teardown(expected_generation: int) -> bool:
 		return _reject(&"stale_generation")
 	if _is_advancing or _inside_phase_handler:
 		return _reject(&"vision_teardown_during_tick")
-	_release_authority_for_teardown()
+	# Releasing the authority slot is the commit precondition. In particular, a
+	# later phase callback cannot ignore RaidAuthority's in-tick rejection and
+	# then destroy the runtime behind the still-registered Vision handler.
+	if not _release_authority_for_teardown():
+		return false
 	_dispose_native_runtime()
 	lifecycle = Lifecycle.TORN_DOWN
 	_generation += 1
@@ -608,16 +612,25 @@ func _bound_authority_matches(raid_authority: RaidAuthority) -> bool:
 			or raid_authority.lifecycle == RaidAuthority.Lifecycle.EXTRACTING)
 
 
-func _release_authority_for_teardown() -> void:
+func _release_authority_for_teardown() -> bool:
 	if not _binding_registered or _raid_authority_ref == null:
-		return
+		return true
 	var raid_value: Variant = _raid_authority_ref.get_ref()
-	if raid_value is RaidAuthority and is_instance_valid(raid_value):
-		_binding_release_pending = true
-		(raid_value as RaidAuthority).release_vision_world_owner(
-			self, _generation, _raid_authority_generation
-		)
-		_binding_release_pending = false
+	if not raid_value is RaidAuthority or not is_instance_valid(raid_value):
+		return true
+	var raid := raid_value as RaidAuthority
+	_binding_release_pending = true
+	var released := raid.release_vision_world_owner(
+		self, _generation, _raid_authority_generation
+	)
+	_binding_release_pending = false
+	if not released:
+		var reason := raid.last_error
+		return _reject(reason if not reason.is_empty() \
+			else &"vision_authority_release_failed")
+	if _binding_registered:
+		return _reject(&"vision_authority_release_incomplete")
+	return true
 
 
 func _clear_authority_binding() -> void:
