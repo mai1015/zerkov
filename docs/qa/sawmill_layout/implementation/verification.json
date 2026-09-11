@@ -1,0 +1,460 @@
+{
+  "task": "3.4",
+  "passed": true,
+  "human_approval": false,
+  "independent_acceptance": false,
+  "output": [
+    1920,
+    1080
+  ],
+  "world_surface": [
+    640,
+    360
+  ],
+  "world_scale": 3,
+  "launch_guard_negative_controls": 5,
+  "runs": [
+    {
+      "name": "editor_import",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--headless",
+        "--editor",
+        "--import",
+        "--quit"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [],
+      "log": "editor_import.log"
+    },
+    {
+      "name": "layout_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--headless",
+        "--script",
+        "res://tests/raid/sawmill_layout_contract.gd"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [
+        "SAWMILL_LAYOUT_RESULT checks=8006 failures=0 anchors=9 landmarks=3 routes=4 reachable_cells=548 native_cells=1073 physics_cells=252 occluder_cells=231 human_approval=false"
+      ],
+      "log": "layout_contract.log"
+    },
+    {
+      "name": "layout_repeat",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--headless",
+        "--script",
+        "res://tests/raid/sawmill_layout_contract.gd"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [
+        "SAWMILL_LAYOUT_RESULT checks=8006 failures=0 anchors=9 landmarks=3 routes=4 reachable_cells=548 native_cells=1073 physics_cells=252 occluder_cells=231 human_approval=false"
+      ],
+      "log": "layout_repeat.log"
+    },
+    {
+      "name": "tileset_contract",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--headless",
+        "--script",
+        "res://tests/raid/sawmill_tileset_contract.gd"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [
+        "SAWMILL_TILESET_RESULT checks=1319 failures=0 tiles=16 alternatives=2 cache_mode=ignore source_asset=zerkov.asset.world.sawmill.greybox_atlas source_status=available"
+      ],
+      "log": "tileset_contract.log"
+    },
+    {
+      "name": "asset_registry",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--headless",
+        "--script",
+        "res://tests/raid/asset_registry_contract.gd"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [
+        "ASSET_REGISTRY_RESULT checks=1447 failures=0 entries=75 imported=63 pending=12 atlases=8 warnings=64 negative_probes=13 integer_matrix=20"
+      ],
+      "log": "asset_registry.log"
+    },
+    {
+      "name": "native_capture",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [
+        "SAWMILL_CAPTURE_RESULT checks=74 failures=0 captures=6 output=1920x1080 world=640x360 scale=3 human_approval=false"
+      ],
+      "log": "native_capture.log"
+    },
+    {
+      "name": "display_scope",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/tooling",
+        "-p",
+        "test_ui_first_playable_scope.py"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [
+        "Ran 2 tests in 0.010s"
+      ],
+      "log": "display_scope.log"
+    },
+    {
+      "name": "spec_strict",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py",
+        "validate",
+        "add-zerkov-playable-raid-2026-09-09",
+        "--type",
+        "change",
+        "--strict"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [
+        "Valid"
+      ],
+      "log": "spec_strict.log"
+    },
+    {
+      "name": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "HEAD"
+      ],
+      "return_code": 0,
+      "passed": true,
+      "diagnostics": [],
+      "summaries": [],
+      "log": "diff_check.log"
+    }
+  ],
+  "images": [
+    {
+      "annotation_scope": "capture-only; no gameplay UI or task state",
+      "camera_px": [
+        320.0,
+        180.0
+      ],
+      "camera_zoom": [
+        1,
+        1
+      ],
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "file": "1920x1080_northwest.png",
+      "sha256": "226f6b21ce018ac49343bea06d77ee3e102eb86edeaa65fd07f41fe3e0838dd7",
+      "title": "01 / LOG RACKS",
+      "world_pixel_match": true,
+      "world_scale": 3,
+      "world_surface": [
+        640,
+        360
+      ],
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ]
+    },
+    {
+      "annotation_scope": "capture-only; no gameplay UI or task state",
+      "camera_px": [
+        704.0,
+        180.0
+      ],
+      "camera_zoom": [
+        1,
+        1
+      ],
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "file": "1920x1080_north.png",
+      "sha256": "c4a1878a2cd09dd189f203ed012df6d68b3918dcbbdfb2c918be7178d2d2fca3",
+      "title": "02 / SAW HOUSE",
+      "world_pixel_match": true,
+      "world_scale": 3,
+      "world_surface": [
+        640,
+        360
+      ],
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ]
+    },
+    {
+      "annotation_scope": "capture-only; no gameplay UI or task state",
+      "camera_px": [
+        960.0,
+        244.0
+      ],
+      "camera_zoom": [
+        1,
+        1
+      ],
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "file": "1920x1080_northeast.png",
+      "sha256": "26ee2a040ff42e76c75cdd8b6ae836c0a737c2017574f52dc58266e8f37a13c7",
+      "title": "ROAD GATE / NORTH APPROACH",
+      "world_pixel_match": true,
+      "world_scale": 3,
+      "world_surface": [
+        640,
+        360
+      ],
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ]
+    },
+    {
+      "annotation_scope": "capture-only; no gameplay UI or task state",
+      "camera_px": [
+        320.0,
+        460.0
+      ],
+      "camera_zoom": [
+        1,
+        1
+      ],
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "file": "1920x1080_southwest.png",
+      "sha256": "e4b99e46cd815444eada7661753f0817cc9729f2df7f28727cfff43d2810e5d2",
+      "title": "WEST SERVICE / ARRIVAL",
+      "world_pixel_match": true,
+      "world_scale": 3,
+      "world_surface": [
+        640,
+        360
+      ],
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ]
+    },
+    {
+      "annotation_scope": "capture-only; no gameplay UI or task state",
+      "camera_px": [
+        736.0,
+        460.0
+      ],
+      "camera_zoom": [
+        1,
+        1
+      ],
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "file": "1920x1080_south.png",
+      "sha256": "82f09ee1819c984550cc7811114fb0d2b2cbfafc42175dc11bc328f366fba4cd",
+      "title": "03 / SETTLING DOCK",
+      "world_pixel_match": true,
+      "world_scale": 3,
+      "world_surface": [
+        640,
+        360
+      ],
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ]
+    },
+    {
+      "annotation_scope": "capture-only; no gameplay UI or task state",
+      "camera_px": [
+        960.0,
+        460.0
+      ],
+      "camera_zoom": [
+        1,
+        1
+      ],
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "file": "1920x1080_southeast.png",
+      "sha256": "cb84674db357505fb711a2188f5c56d5dc14cf42a4ba3e8b27205da27e2c1cc4",
+      "title": "ROAD GATE / RETURN",
+      "world_pixel_match": true,
+      "world_scale": 3,
+      "world_surface": [
+        640,
+        360
+      ],
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ]
+    },
+    {
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "file": "1920x1080_contact_sheet.png",
+      "kind": "labeled native GPU montage; thumbnails are not gameplay output",
+      "sha256": "b9afe9cb43888c17ef60007495be46d77e4f9874d886d5b2f1232279d55b01fa",
+      "command": [
+        "/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot",
+        "--path",
+        "/Volumes/Data/codes/codex-workspace/zerkov-3-4",
+        "--resolution",
+        "1920x1080",
+        "--audio-driver",
+        "Dummy",
+        "--borderless",
+        "--position",
+        "0,0",
+        "--script",
+        "res://tests/visual/sawmill_yard/capture.gd"
+      ]
+    }
+  ],
+  "source_count": 37,
+  "implementation_base": "1b201cb031ec174dad616334b302e22cc7a744c5",
+  "current_main": "1b201cb031ec174dad616334b302e22cc7a744c5"
+}
