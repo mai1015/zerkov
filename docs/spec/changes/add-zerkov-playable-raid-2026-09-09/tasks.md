@@ -347,7 +347,7 @@ failure after mutation. No UI layout was changed. See
 
 - [x] 5.1 `[LUNA]` Author sealed AKM, machete, ammunition and attachment content
   using stable identifiers and bounded values.
-- [ ] 5.2 `[SOL]` Create weapon instances from equipped inventory state and
+- [x] 5.2 `[SOL]` Create weapon instances from equipped inventory state and
   provide authoritative liveness, equipment, pose and usability context.
 - [ ] 5.3 `[SOL]` Implement body hitboxes for head, torso, arms and legs with a
   deterministic overlap/tie-break policy.
@@ -376,6 +376,21 @@ failure after mutation. No UI layout was changed. See
 
 Evidence: combat authority suite; captured shot/reload/injury sequences; no
 duplicate consequences; documented tuning values; playtest notes.
+
+Completed task evidence (5.2, 2026-09-10): the accepted integration commit
+`8ab280f24a519923bd5e09321fd631990693ad2d` creates authoritative AKM instances
+from stable equipped-inventory mappings, preserves mechanics through supported
+custody changes, and exposes generation-checked liveness, equipment, pose and
+usability context. The final repair drains all 16 exact recovery bindings with
+retryable native-failure evidence and rejects a 17th live identity before any
+public record, outcome, native snapshot or binding changes. Permanent
+integration and adversarial regressions passed `43/0` and `49/0`; the fresh
+independent review accepted `21,892/0` focused and adjacent checks plus vendor,
+import, diagnostics, strict-spec and hash gates with no P0-P3 findings. The
+bounded context supports at most 16 concurrently live stable firearm identities;
+a genuine 17th fails closed through the established raid terminal transition.
+Input routing, hit consequences, melee and presentation remain later tasks. See
+`docs/qa/weapon_instance_context/implementation/REPORT.md`.
 
 Completed task evidence (5.5, 2026-09-10): the accepted content declares seven
 body zones, 12 attributes, 34 tags, 41 effects and 41 abilities. The final

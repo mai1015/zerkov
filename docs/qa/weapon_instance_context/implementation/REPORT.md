@@ -1,8 +1,7 @@
 # Task 5.2 implementation evidence
 
-Status: implementation complete; awaiting the mandated independent acceptance
-review and subsequent fresh Astra checkpoint. This packet is implementation
-evidence, not self-acceptance and not release evidence.
+Status: independently accepted after integration and adversarial repair. This
+packet remains task evidence, not milestone or release acceptance.
 
 ## Scope implemented
 
@@ -71,6 +70,28 @@ All Godot checks use the repository-pinned executable:
 The fourteen executable contracts total **20,836 checks and zero failures**. They
 were rerun outside the restricted filesystem sandbox so macOS certificate and
 user-log access denials do not contaminate the accepted engine logs.
+
+## Integration repair and independent acceptance
+
+The accepted integration commit is
+`8ab280f24a519923bd5e09321fd631990693ad2d`. It preserves task 4.12 live-authority
+replacement semantics and task 5.5 bounded health admission while repairing two
+fresh independent-review findings:
+
+- recovery teardown now boundedly drains all 16 exact-generation reload
+  bindings and receipts; an injected native-removal failure retains one
+  reachable record and exact retry removes it and the provider handler;
+- the 17th genuinely live identity is rejected by capacity preflight before
+  any public instance record, outcome, native snapshot or reload binding is
+  changed. The established `RaidAuthority` fail-stop then terminalizes the
+  tick and clears phase handlers.
+
+The permanent integration lifecycle contract passed `43/0`; the permanent
+repair regression passed `49/0` after demonstrating `10` fail-before failures.
+The final independent re-review added first/last sorted-failure probes and
+accepted the candidate with no P0-P3 findings. Focused and adjacent Godot
+suites passed `21,892/0`, vendor tests `4/4`, and fresh import, diagnostics,
+strict spec, unaffected evidence hashes, diff and worktree checks were clean.
 
 The promoted task contract covers real add-on state and ordered raid phases:
 creation from equipment; mutation-free binding; immutable context/publication;
