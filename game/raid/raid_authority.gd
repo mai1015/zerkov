@@ -55,9 +55,37 @@ const MAX_PHASE_HANDLER_PRIORITY: int = 1_024
 const RESERVED_VISION_HANDLER_ID: StringName = &"raid_vision_world"
 const VISION_OWNER_SCRIPT_PATH: String = \
 	"res://game/ai/vision/raid_vision_world_owner.gd"
+const _ATTEST_TERMINAL_READ: StringName = &"raid_terminal_cause_read"
+const _ATTEST_TERMINAL_COMMIT: StringName = &"raid_terminal_cause_commit"
+const _ATTEST_TERMINAL_SEAL: StringName = &"raid_terminal_runtime_seal"
+const _ATTEST_OWNER_RELEASE: StringName = &"raid_vision_owner_binding_release"
+const _ATTEST_OWNER_REGISTER_REQUEST: StringName = \
+	&"vision_owner_registration_request"
+const _ATTEST_OWNER_RELEASE_REQUEST: StringName = \
+	&"vision_owner_release_request"
+const _ATTEST_OWNER_PREDELETE_REQUEST: StringName = \
+	&"vision_owner_predelete_request"
+const _ANONYMOUS_CALLABLE_METHOD: StringName = &"<anonymous lambda>"
+const _TERMINAL_LATCH_INVALID: StringName = &"terminal_cause_latch_invalid"
 
 var lifecycle: Lifecycle = Lifecycle.PREPARING
-var last_error: StringName = &""
+var _last_operation_error: StringName = &""
+var _terminal_latch_dispatch: Callable = Callable():
+	set(value):
+		# Construction installs this once. Reflection may read the non-authorizing
+		# dispatcher for diagnostics, but cannot swap out its lexical cause state.
+		if not _terminal_latch_dispatch.is_valid():
+			_terminal_latch_dispatch = value
+var last_error: StringName:
+	get:
+		var terminal_cause := _read_terminal_cause()
+		return terminal_cause if not terminal_cause.is_empty() \
+			else _last_operation_error
+	set(value):
+		# Once the opaque terminal latch commits an owner-loss cause, neither
+		# ordinary API reentry nor Object.set() can replace the observable cause.
+		if _read_terminal_cause().is_empty():
+			_last_operation_error = value
 var last_processed_tick: int = 0
 var last_phase_trace: PackedStringArray = PackedStringArray()
 var clock: RaidClock
@@ -73,7 +101,6 @@ var _is_advancing: bool = false
 var _processing_tick: int = 0
 var _processing_phase: int = -1
 var _processing_handler_id: StringName = &""
-var _preterminalized_current_tick: bool = false
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _authorized_actor_sources: Dictionary = {}
@@ -82,7 +109,69 @@ var _vision_owner_ref: WeakRef
 var _vision_owner_instance_id: int = 0
 var _vision_owner_generation: int = 0
 var _vision_owner_raid_generation: int = 0
-var _releasing_vision_owner: bool = false
+
+
+func _init() -> void:
+	# The terminal cause lives only in lexical closure state. The reflected
+	# Callable permits authenticated reads, but commit requires a fresh,
+	# operation-bound anonymous proof created inside the validated failure path.
+	var terminal_state := {"cause": StringName()}
+	var captured_authority_id := get_instance_id()
+	var captured_authority_script: Variant = get_script()
+	_terminal_latch_dispatch = func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation == _ATTEST_TERMINAL_READ:
+			if not _has_exact_keys(request, PackedStringArray([
+				"authority_instance_id", "challenge",
+			])) or typeof(request.get("authority_instance_id", null)) != TYPE_INT \
+					or int(request["authority_instance_id"]) \
+						!= captured_authority_id \
+					or not request.get("challenge", null) is RefCounted:
+				return {"ok": false}
+			return {
+				"ok": true,
+				"challenge": request["challenge"],
+				"cause": terminal_state["cause"],
+			}
+		if operation != _ATTEST_TERMINAL_COMMIT \
+				or not _has_exact_keys(request, PackedStringArray([
+					"authority_instance_id", "raid_generation", "cause",
+					"owner_instance_id", "owner_generation", "attestation",
+					"challenge",
+				])) or typeof(request.get("authority_instance_id", null)) != TYPE_INT \
+				or int(request["authority_instance_id"]) != captured_authority_id \
+				or typeof(request.get("raid_generation", null)) != TYPE_INT \
+				or typeof(request.get("owner_instance_id", null)) != TYPE_INT \
+				or typeof(request.get("owner_generation", null)) != TYPE_INT \
+				or typeof(request.get("cause", null)) != TYPE_STRING_NAME \
+				or not request.get("challenge", null) is RefCounted:
+			return {"ok": false}
+		var candidate_cause := request["cause"] as StringName
+		if candidate_cause != &"vision_owner_destroyed" \
+				and candidate_cause != &"vision_owner_lost_during_tick":
+			return {"ok": false}
+		var commit_context := {
+			"authority_instance_id": captured_authority_id,
+			"raid_generation": int(request["raid_generation"]),
+			"owner_instance_id": int(request["owner_instance_id"]),
+			"owner_generation": int(request["owner_generation"]),
+			"cause": candidate_cause,
+		}
+		if not _transient_attestation_is_valid(
+			request.get("attestation", null),
+			captured_authority_script,
+			_ATTEST_TERMINAL_COMMIT,
+			commit_context,
+		):
+			return {"ok": false}
+		if (terminal_state["cause"] as StringName).is_empty():
+			terminal_state["cause"] = candidate_cause
+		return {
+			"ok": true,
+			"challenge": request["challenge"],
+			"cause": terminal_state["cause"],
+		}
 
 
 func configure(raid_id: ZRaidId, admission: ZSessionAdmission, seed: int) -> bool:
@@ -137,6 +226,16 @@ func transition(next: Lifecycle, expected_generation: int) -> bool:
 		return _reject(&"transition_during_tick")
 	if not _can_transition(lifecycle, next):
 		return _reject(&"lifecycle_transition_invalid")
+	var lifecycle_context := _authority_lifecycle_attestation_context()
+	var lifecycle_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation != _ATTEST_TERMINAL_SEAL \
+				and operation != _ATTEST_OWNER_RELEASE:
+			return {"ok": false}
+		return _answer_attestation(
+			operation, request, operation, lifecycle_context
+		)
 	lifecycle = next
 	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.EXTRACTING:
 		clock.resume()
@@ -144,7 +243,8 @@ func transition(next: Lifecycle, expected_generation: int) -> bool:
 		clock.pause()
 	if lifecycle == Lifecycle.COMPLETED or lifecycle == Lifecycle.FAILED:
 		clock.clear_pending()
-		_seal_terminal_runtime()
+		if not _seal_terminal_runtime(lifecycle_attestation):
+			return _reject(&"raid_terminal_seal_failed")
 	return true
 
 
@@ -243,7 +343,8 @@ func register_phase_handler(
 func register_vision_world_owner(
 	owner: RaidVisionWorldOwner,
 	owner_generation: int,
-	expected_generation: int
+	expected_generation: int,
+	attestation: Variant = Callable()
 ) -> bool:
 	last_error = &""
 	if not _is_current_generation(expected_generation):
@@ -259,10 +360,18 @@ func register_vision_world_owner(
 	if _vision_owner_instance_id != 0 \
 			or _handler_ids.has(RESERVED_VISION_HANDLER_ID):
 		return _reject(&"vision_owner_slot_claimed")
-	if not owner.is_registration_claim_current(
-		self, owner_generation, expected_generation
+	if not _transient_attestation_is_valid(
+		attestation,
+		VISION_OWNER_SCRIPT_PATH,
+		_ATTEST_OWNER_REGISTER_REQUEST,
+		{
+			"owner_instance_id": owner.get_instance_id(),
+			"owner_generation": owner_generation,
+			"authority_instance_id": get_instance_id(),
+			"raid_generation": expected_generation,
+		},
 	):
-		return _reject(&"vision_owner_claim_invalid")
+		return _reject(&"vision_owner_registration_attestation_invalid")
 	var callback := Callable(owner, "_handle_raid_phase")
 	if not callback.is_valid():
 		return _reject(&"vision_owner_callback_invalid")
@@ -283,28 +392,49 @@ func register_vision_world_owner(
 func release_vision_world_owner(
 	owner: RaidVisionWorldOwner,
 	owner_generation: int,
-	expected_generation: int
+	expected_generation: int,
+	attestation: Variant = Callable()
 ) -> bool:
 	last_error = &""
 	if not _is_current_generation(expected_generation):
 		return _reject(&"stale_generation")
 	if not _vision_owner_matches(owner, owner_generation, expected_generation):
 		return _reject(&"vision_owner_binding_invalid")
-	if not owner.is_release_claim_current(
-		self, owner_generation, expected_generation
+	if not _transient_attestation_is_valid(
+		attestation,
+		VISION_OWNER_SCRIPT_PATH,
+		_ATTEST_OWNER_RELEASE_REQUEST,
+		{
+			"owner_instance_id": owner.get_instance_id(),
+			"owner_generation": owner_generation,
+			"authority_instance_id": get_instance_id(),
+			"raid_generation": expected_generation,
+		},
 	):
-		return _reject(&"vision_owner_release_claim_invalid")
+		return _reject(&"vision_owner_release_attestation_invalid")
 	if _is_advancing:
 		return _reject(&"vision_owner_release_during_tick")
+	var lifecycle_context := _authority_lifecycle_attestation_context()
+	var lifecycle_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation != _ATTEST_TERMINAL_SEAL \
+				and operation != _ATTEST_OWNER_RELEASE:
+			return {"ok": false}
+		return _answer_attestation(
+			operation, request, operation, lifecycle_context
+		)
 	if lifecycle == Lifecycle.PREPARING:
 		if _phase_handler_has_dependents(RESERVED_VISION_HANDLER_ID):
 			return _reject(&"handler_has_dependents")
+		if not _release_vision_owner_binding(lifecycle_attestation):
+			return _reject(&"vision_owner_binding_release_failed")
 		_remove_reserved_vision_handler()
-		_release_vision_owner_binding(false)
 		return true
 	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.EXTRACTING:
 		lifecycle = Lifecycle.FAILED
-		_seal_terminal_runtime()
+		if not _seal_terminal_runtime(lifecycle_attestation):
+			return _reject(&"raid_terminal_seal_failed")
 		return true
 	return _reject(&"vision_owner_release_closed")
 
@@ -318,28 +448,63 @@ func release_vision_world_owner(
 func fail_vision_world_owner_predelete(
 	owner: RaidVisionWorldOwner,
 	owner_generation: int,
-	expected_generation: int
+	expected_generation: int,
+	attestation: Variant = Callable()
 ) -> bool:
 	last_error = &""
 	if not _is_current_generation(expected_generation):
 		return _reject(&"stale_generation")
 	if not _vision_owner_matches(owner, owner_generation, expected_generation):
 		return _reject(&"vision_owner_binding_invalid")
-	if not owner.is_predelete_claim_current(
-		self, owner_generation, expected_generation
+	if not _transient_attestation_is_valid(
+		attestation,
+		VISION_OWNER_SCRIPT_PATH,
+		_ATTEST_OWNER_PREDELETE_REQUEST,
+		{
+			"owner_instance_id": owner.get_instance_id(),
+			"owner_generation": owner_generation,
+			"authority_instance_id": get_instance_id(),
+			"raid_generation": expected_generation,
+		},
 	):
-		return _reject(&"vision_owner_predelete_claim_invalid")
+		return _reject(&"vision_owner_predelete_attestation_invalid")
 	if lifecycle != Lifecycle.PREPARING \
 			and lifecycle != Lifecycle.ACTIVE \
 			and lifecycle != Lifecycle.EXTRACTING \
 			and lifecycle != Lifecycle.SETTLING:
 		return _reject(&"vision_owner_predelete_closed")
+	var lifecycle_context := _authority_lifecycle_attestation_context()
 	var failure_reason := &"vision_owner_lost_during_tick" \
 		if _is_advancing else &"vision_owner_destroyed"
-	_preterminalized_current_tick = _is_advancing
+	var commit_context := lifecycle_context.duplicate()
+	commit_context["cause"] = failure_reason
+	var lifecycle_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation == _ATTEST_TERMINAL_COMMIT:
+			return _answer_attestation(
+				operation, request, operation, commit_context
+			)
+		if operation == _ATTEST_TERMINAL_SEAL \
+				or operation == _ATTEST_OWNER_RELEASE:
+			return _answer_attestation(
+				operation, request, operation, lifecycle_context
+			)
+		return {"ok": false}
+	# A dependency-free PREPARING owner can disappear without terminalizing
+	# the raid, but the old owner is still synchronously quarantined before the
+	# slot becomes reusable.
+	if lifecycle == Lifecycle.PREPARING \
+			and not _phase_handler_has_dependents(RESERVED_VISION_HANDLER_ID):
+		if not _release_vision_owner_binding(lifecycle_attestation):
+			return _reject(&"vision_owner_binding_release_failed")
+		_remove_reserved_vision_handler()
+		return true
+	if not _commit_terminal_cause(failure_reason, lifecycle_attestation):
+		return _reject(_TERMINAL_LATCH_INVALID)
 	lifecycle = Lifecycle.FAILED
-	_seal_terminal_runtime()
-	last_error = failure_reason
+	if not _seal_terminal_runtime(lifecycle_attestation):
+		return _reject(&"raid_terminal_seal_failed")
 	return true
 
 
@@ -386,18 +551,6 @@ func is_dispatching_vision_world_owner(
 	if not _vision_owner_matches(owner, owner_generation, expected_generation):
 		return false
 	return _reserved_vision_callback_is_current()
-
-
-## True only during this authority's synchronous release callback for the
-## exact registered object and generations. Direct/replayed owner callbacks
-## therefore cannot clear a live binding.
-func is_releasing_vision_world_owner(
-	owner: RaidVisionWorldOwner,
-	owner_generation: int,
-	expected_generation: int
-) -> bool:
-	return _releasing_vision_owner \
-		and _vision_owner_matches(owner, owner_generation, expected_generation)
 
 
 ## Phase-handler lifetimes are explicit and generation-scoped. A provider
@@ -511,9 +664,21 @@ func _drain_requested_ticks(expected_generation: int, limit: int) -> int:
 		last_error = &"raid_not_advancing"
 		return 0
 	if clock.current_tick != last_processed_tick:
+		var lifecycle_context := _authority_lifecycle_attestation_context()
+		var lifecycle_attestation := func(
+			operation: StringName, request: Dictionary
+		) -> Dictionary:
+			if operation != _ATTEST_TERMINAL_SEAL \
+					and operation != _ATTEST_OWNER_RELEASE:
+				return {"ok": false}
+			return _answer_attestation(
+				operation, request, operation, lifecycle_context
+			)
 		lifecycle = Lifecycle.FAILED
 		clock.reset(last_processed_tick, true)
-		_seal_terminal_runtime()
+		if not _seal_terminal_runtime(lifecycle_attestation):
+			last_error = &"raid_terminal_seal_failed"
+			return 0
 		last_error = &"clock_tick_out_of_sync"
 		return 0
 	var processed := 0
@@ -702,7 +867,18 @@ func teardown(expected_generation: int) -> bool:
 		return _reject(&"teardown_during_tick")
 	if lifecycle == Lifecycle.TORN_DOWN:
 		return _reject(&"already_torn_down")
-	_release_vision_owner_binding(true)
+	var lifecycle_context := _authority_lifecycle_attestation_context()
+	var lifecycle_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation != _ATTEST_TERMINAL_SEAL \
+				and operation != _ATTEST_OWNER_RELEASE:
+			return {"ok": false}
+		return _answer_attestation(
+			operation, request, operation, lifecycle_context
+		)
+	if not _release_vision_owner_binding(lifecycle_attestation):
+		return _reject(&"vision_owner_binding_release_failed")
 	lifecycle = Lifecycle.TORN_DOWN
 	clock.pause()
 	clock.clear_pending()
@@ -754,8 +930,17 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 	if tick != last_processed_tick + 1:
 		return _reject(&"tick_regressed_or_skipped")
 
+	var lifecycle_context := _authority_lifecycle_attestation_context()
+	var lifecycle_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation != _ATTEST_TERMINAL_SEAL \
+				and operation != _ATTEST_OWNER_RELEASE:
+			return {"ok": false}
+		return _answer_attestation(
+			operation, request, operation, lifecycle_context
+		)
 	_is_advancing = true
-	_preterminalized_current_tick = false
 	_processing_tick = tick
 	last_phase_trace = PackedStringArray()
 	# Once a tick starts with the reserved Vision owner, no later callback may
@@ -776,31 +961,40 @@ func _process_tick(tick: int, expected_generation: int) -> bool:
 			var callback: Callable = entry["callback"]
 			if _processing_handler_id == RESERVED_VISION_HANDLER_ID \
 					and not _reserved_vision_callback_is_current():
-				return _fail_current_tick(tick, &"vision_owner_provenance_invalid")
+				return _fail_current_tick(
+					tick, &"vision_owner_provenance_invalid", lifecycle_attestation
+				)
 			if not callback.is_valid():
-				return _fail_current_tick(tick, &"phase_handler_invalidated")
+				return _fail_current_tick(
+					tick, &"phase_handler_invalidated", lifecycle_attestation
+				)
 			var handler_intents: Array[ZRaidIntent] = []
 			for intent in due_intents:
 				var intent_copy := intent.snapshot()
 				if intent_copy == null:
-					return _fail_current_tick(tick, &"queued_intent_corrupted")
+					return _fail_current_tick(
+						tick, &"queued_intent_corrupted", lifecycle_attestation
+					)
 				handler_intents.append(intent_copy)
 			var outcome: Variant = callback.call(self, phase, tick, handler_intents)
 			_processing_handler_id = &""
 			# A PREDELETE fail-stop can terminalize and seal the authority from
 			# inside this callback. Finish only the already-consumed tick; do not
 			# dispatch another handler or replace the recorded terminal cause.
-			if _preterminalized_current_tick:
+			if not _read_terminal_cause().is_empty():
 				return _finish_preterminalized_tick(tick)
 			if typeof(outcome) != TYPE_BOOL or not outcome:
-				return _fail_current_tick(tick, &"phase_handler_failed")
+				return _fail_current_tick(
+					tick, &"phase_handler_failed", lifecycle_attestation
+				)
 			if vision_owner_required_for_tick \
 					and not _reserved_vision_callback_is_current():
-				return _fail_current_tick(tick, &"vision_owner_lost_during_tick")
+				return _fail_current_tick(
+					tick, &"vision_owner_lost_during_tick", lifecycle_attestation
+				)
 		_processing_phase = -1
 	last_processed_tick = tick
 	_is_advancing = false
-	_preterminalized_current_tick = false
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
@@ -839,33 +1033,46 @@ func _authorize_actor_source(actor_id: ZEntityId, source: ZRaidIntent.Source) ->
 	_authorized_actor_sources[_actor_source_key(actor_id, source)] = true
 
 
-func _fail_current_tick(tick: int, code: StringName) -> bool:
+func _fail_current_tick(
+	tick: int,
+	code: StringName,
+	lifecycle_attestation: Variant = Callable()
+) -> bool:
 	# The clock has already consumed this tick. A handler failure is terminal, so
 	# retain any committed audit prefix and keep the canonical tick invariant.
 	last_processed_tick = tick
 	_is_advancing = false
-	_preterminalized_current_tick = false
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
 	lifecycle = Lifecycle.FAILED
-	_seal_terminal_runtime()
+	if not _seal_terminal_runtime(lifecycle_attestation):
+		return _reject(&"raid_terminal_seal_failed")
 	return _reject(code)
 
 
 func _finish_preterminalized_tick(tick: int) -> bool:
-	var code := last_error if not last_error.is_empty() \
+	var terminal_cause := _read_terminal_cause()
+	var code := terminal_cause if not terminal_cause.is_empty() \
 		else &"raid_terminalized_during_tick"
 	last_processed_tick = tick
 	_is_advancing = false
-	_preterminalized_current_tick = false
 	_processing_tick = 0
 	_processing_phase = -1
 	_processing_handler_id = &""
 	return _reject(code)
 
 
-func _seal_terminal_runtime() -> void:
+func _seal_terminal_runtime(
+	lifecycle_attestation: Variant = Callable()
+) -> bool:
+	if not _transient_attestation_is_valid(
+		lifecycle_attestation,
+		get_script(),
+		_ATTEST_TERMINAL_SEAL,
+		_authority_lifecycle_attestation_context(),
+	):
+		return false
 	_processing_phase = -1
 	_processing_handler_id = &""
 	clock.pause()
@@ -874,9 +1081,10 @@ func _seal_terminal_runtime() -> void:
 	journal.seal()
 	rng.seal()
 	_intent_queue.clear()
-	_release_vision_owner_binding(true)
+	var released := _release_vision_owner_binding(lifecycle_attestation)
 	_phase_handlers.clear()
 	_handler_ids.clear()
+	return released
 
 
 func _register_phase_handler_unchecked(
@@ -1001,21 +1209,168 @@ func _remove_reserved_vision_handler() -> void:
 	_handler_ids.erase(RESERVED_VISION_HANDLER_ID)
 
 
-func _release_vision_owner_binding(seal_owner: bool) -> void:
+func _release_vision_owner_binding(
+	lifecycle_attestation: Variant = Callable()
+) -> bool:
+	if not _transient_attestation_is_valid(
+		lifecycle_attestation,
+		get_script(),
+		_ATTEST_TERMINAL_SEAL,
+		_authority_lifecycle_attestation_context(),
+	):
+		return false
 	var owner_value: Variant = _vision_owner_ref.get_ref() \
 		if _vision_owner_ref != null else null
 	var owner_generation := _vision_owner_generation
 	var raid_generation := _vision_owner_raid_generation
-	_releasing_vision_owner = true
 	if owner_value is RaidVisionWorldOwner and is_instance_valid(owner_value):
-		(owner_value as RaidVisionWorldOwner).release_registered_binding(
-			self, owner_generation, raid_generation, seal_owner
-		)
-	_releasing_vision_owner = false
+		if not (owner_value as RaidVisionWorldOwner).release_registered_binding(
+			self, owner_generation, raid_generation, lifecycle_attestation
+		):
+			return false
 	_vision_owner_ref = null
 	_vision_owner_instance_id = 0
 	_vision_owner_generation = 0
 	_vision_owner_raid_generation = 0
+	return true
+
+
+func _authority_lifecycle_attestation_context() -> Dictionary:
+	return {
+		"authority_instance_id": get_instance_id(),
+		"raid_generation": _generation,
+		"owner_instance_id": _vision_owner_instance_id,
+		"owner_generation": _vision_owner_generation,
+	}
+
+
+func _commit_terminal_cause(
+	cause: StringName,
+	attestation: Variant = Callable()
+) -> bool:
+	if not _callable_has_exact_script(
+		_terminal_latch_dispatch, get_script()
+	):
+		return false
+	var challenge := RefCounted.new()
+	var result: Variant = _terminal_latch_dispatch.call(
+		_ATTEST_TERMINAL_COMMIT,
+		{
+			"authority_instance_id": get_instance_id(),
+			"raid_generation": _generation,
+			"owner_instance_id": _vision_owner_instance_id,
+			"owner_generation": _vision_owner_generation,
+			"cause": cause,
+			"attestation": attestation,
+			"challenge": challenge,
+		},
+	)
+	if not result is Dictionary:
+		return false
+	var response := result as Dictionary
+	if not _has_exact_keys(response, PackedStringArray([
+		"ok", "challenge", "cause",
+	])) or typeof(response.get("ok", null)) != TYPE_BOOL \
+			or not bool(response["ok"]) \
+			or response.get("challenge", null) != challenge \
+			or typeof(response.get("cause", null)) != TYPE_STRING_NAME:
+		return false
+	var committed_cause := response["cause"] as StringName
+	return committed_cause == &"vision_owner_destroyed" \
+		or committed_cause == &"vision_owner_lost_during_tick"
+
+
+func _read_terminal_cause() -> StringName:
+	if not _callable_has_exact_script(
+		_terminal_latch_dispatch, get_script()
+	):
+		return _TERMINAL_LATCH_INVALID
+	var challenge := RefCounted.new()
+	var result: Variant = _terminal_latch_dispatch.call(
+		_ATTEST_TERMINAL_READ,
+		{
+			"authority_instance_id": get_instance_id(),
+			"challenge": challenge,
+		},
+	)
+	if not result is Dictionary:
+		return _TERMINAL_LATCH_INVALID
+	var response := result as Dictionary
+	if not _has_exact_keys(response, PackedStringArray([
+		"ok", "challenge", "cause",
+	])) or typeof(response.get("ok", null)) != TYPE_BOOL \
+			or not bool(response["ok"]) \
+			or response.get("challenge", null) != challenge \
+			or typeof(response.get("cause", null)) != TYPE_STRING_NAME:
+		return _TERMINAL_LATCH_INVALID
+	var cause := response["cause"] as StringName
+	if cause.is_empty() or cause == &"vision_owner_destroyed" \
+			or cause == &"vision_owner_lost_during_tick":
+		return cause
+	return _TERMINAL_LATCH_INVALID
+
+
+static func _transient_attestation_is_valid(
+	candidate: Variant,
+	expected_script: Variant,
+	operation: StringName,
+	context: Dictionary
+) -> bool:
+	if not candidate is Callable:
+		return false
+	var attestation := candidate as Callable
+	if not _callable_has_exact_script(attestation, expected_script):
+		return false
+	var challenge := RefCounted.new()
+	var request := context.duplicate(true)
+	request["challenge"] = challenge
+	var result: Variant = attestation.call(operation, request)
+	if not result is Dictionary:
+		return false
+	var response := result as Dictionary
+	return _has_exact_keys(response, PackedStringArray(["ok", "challenge"])) \
+		and typeof(response.get("ok", null)) == TYPE_BOOL \
+		and bool(response["ok"]) \
+		and response.get("challenge", null) == challenge
+
+
+static func _callable_has_exact_script(
+	candidate: Callable,
+	expected_script: Variant
+) -> bool:
+	if not candidate.is_valid() \
+			or candidate.get_method() != _ANONYMOUS_CALLABLE_METHOD \
+			or candidate.get_bound_arguments_count() != 0:
+		return false
+	var expected_resource: Variant = ResourceLoader.load(expected_script) \
+		if expected_script is String else expected_script
+	return expected_resource is Script \
+		and candidate.get_object() == expected_resource
+
+
+static func _answer_attestation(
+	operation: StringName,
+	request: Dictionary,
+	expected_operation: StringName,
+	expected_context: Dictionary
+) -> Dictionary:
+	if operation != expected_operation \
+			or request.size() != expected_context.size() + 1 \
+			or not request.get("challenge", null) is RefCounted:
+		return {"ok": false}
+	for key in expected_context:
+		if not request.has(key) or request[key] != expected_context[key]:
+			return {"ok": false}
+	return {"ok": true, "challenge": request["challenge"]}
+
+
+static func _has_exact_keys(value: Dictionary, expected: PackedStringArray) -> bool:
+	if value.size() != expected.size():
+		return false
+	for key in expected:
+		if not value.has(key):
+			return false
+	return true
 
 
 func _actor_source_key(actor_id: ZEntityId, source: ZRaidIntent.Source) -> String:

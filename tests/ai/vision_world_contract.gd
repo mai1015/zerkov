@@ -33,12 +33,7 @@ class FailureVisionOwner extends VisionOwner:
 
 
 class VisionOwnerSubclassImpostor extends VisionOwner:
-	func is_registration_claim_current(
-		_raid_authority: RaidAuthority,
-		_owner_generation: int,
-		_raid_generation: int
-	) -> bool:
-		return true
+	pass
 
 
 ## This test-only authority exists solely to deliver an exact documented
@@ -50,17 +45,14 @@ class FailureFixtureAuthority extends RaidAuthority:
 	var fixture_owner_ref: WeakRef
 	var fixture_owner_generation: int = 0
 	var fixture_raid_generation: int = 0
-	var fixture_releasing: bool = false
 
 	func register_vision_world_owner(
 		owner: RaidVisionWorldOwner,
 		owner_generation: int,
-		expected_generation: int
+		expected_generation: int,
+		_attestation: Variant = Callable()
 	) -> bool:
-		if not owner is FailureVisionOwner \
-				or not owner.is_registration_claim_current(
-					self, owner_generation, expected_generation
-				):
+		if not owner is FailureVisionOwner:
 			last_error = &"fixture_owner_invalid"
 			return false
 		fixture_owner_ref = weakref(owner)
@@ -91,39 +83,23 @@ class FailureFixtureAuthority extends RaidAuthority:
 	func release_vision_world_owner(
 		owner: RaidVisionWorldOwner,
 		owner_generation: int,
-		expected_generation: int
+		expected_generation: int,
+		_attestation: Variant = Callable()
 	) -> bool:
 		last_error = &""
 		if fixture_owner_ref == null \
 				or fixture_owner_ref.get_ref() != owner \
 				or owner_generation != fixture_owner_generation \
-				or expected_generation != fixture_raid_generation \
-				or not owner.is_release_claim_current(
-					self, owner_generation, expected_generation
-				):
+				or expected_generation != fixture_raid_generation:
 			last_error = &"fixture_owner_release_invalid"
 			return false
-		fixture_releasing = true
-		var released := owner.release_registered_binding(
-			self, owner_generation, expected_generation, false
-		)
-		fixture_releasing = false
-		if released:
-			fixture_owner_ref = null
-			fixture_owner_generation = 0
-			fixture_raid_generation = 0
-		return released
-
-	func is_releasing_vision_world_owner(
-		owner: RaidVisionWorldOwner,
-		owner_generation: int,
-		expected_generation: int
-	) -> bool:
-		return fixture_releasing \
-			and fixture_owner_ref != null \
-			and fixture_owner_ref.get_ref() == owner \
-			and owner_generation == fixture_owner_generation \
-			and expected_generation == fixture_raid_generation
+		# This fixture owns no production reserved slot. Clear only its test-local
+		# binding so the injected-result subclass can complete explicit teardown.
+		owner.call("_clear_authority_binding")
+		fixture_owner_ref = null
+		fixture_owner_generation = 0
+		fixture_raid_generation = 0
+		return true
 
 	func _failure_fixture_handler(
 		raid: RaidAuthority,
@@ -148,6 +124,8 @@ var later_teardown_generation: int = 0
 var later_teardown_result: bool = true
 var later_teardown_error: StringName = &""
 var later_free_owner: RaidVisionWorldOwner
+var later_reentry_result: bool = true
+var later_reentry_error: StringName = &""
 
 
 func _initialize() -> void:
@@ -170,6 +148,7 @@ func run() -> void:
 	_test_native_budget_defer_and_determinism()
 	await _test_owner_opaque_runtime_and_off_tree_free()
 	_test_reserved_slot_spoofing_and_replacement()
+	_test_reflective_lifecycle_authority_is_not_forgeable()
 	_test_preparing_predelete_without_dependents()
 	_test_bound_teardown_is_fail_atomic()
 	_test_preparing_release_respects_dependencies()
@@ -798,10 +777,10 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 	) and raid.last_error == &"phase_handler_limit",
 		"generic capacity exhaustion cannot block the reserved owner slot")
 	var signature_owner := VisionOwner.new()
-	check(_method_argument_count(raid, &"register_vision_world_owner") == 3
+	check(_method_argument_count(raid, &"register_vision_world_owner") == 4
 		and _method_argument_count(signature_owner, &"register_with_raid_authority")
 			== 1,
-		"specialized registration accepts owner/generations only; owner has no ID input")
+		"specialized registration adds only opaque attestation; owner has no ID input")
 	signature_owner.free()
 	check(_method_argument_class(
 		raid, &"register_vision_world_owner", 0
@@ -814,7 +793,7 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 	check(not raid.register_vision_world_owner(
 		impostor, impostor.generation(), raid.generation()
 	) and raid.last_error == &"vision_owner_type_invalid",
-		"configured subclass with forged claim method cannot claim production slot")
+		"configured subclass with a genuine runtime cannot claim production slot")
 	check(impostor.teardown(impostor.generation()),
 		"rejected adversarial subclass tears down")
 	impostor.free()
@@ -822,8 +801,8 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 	check(owner.configure(50_106), "legitimate owner configures")
 	check(not raid.register_vision_world_owner(
 		owner, owner.generation(), raid.generation()
-	) and raid.last_error == &"vision_owner_claim_invalid",
-		"direct specialized call cannot forge the owner's provisional claim")
+	) and raid.last_error == &"vision_owner_registration_attestation_invalid",
+		"direct specialized call cannot forge the owner's transient attestation")
 	check(owner.register_with_raid_authority(raid),
 		"owner-authenticated flow claims the authority-owned slot")
 	check(not raid.can_unregister_phase_handler(
@@ -839,22 +818,22 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 			raid, owner.generation(), raid.generation()
 		), "generic unregister cannot desynchronize the reserved owner binding")
 	check(not owner.release_registered_binding(
-		raid, owner.generation(), raid.generation(), false
+		raid, owner.generation(), raid.generation(), Callable()
 	) and owner.is_registered_binding_current(
 		raid, owner.generation(), raid.generation()
 	), "direct owner release callback is inert without authority attestation")
 	check(not raid.release_vision_world_owner(
 		owner, owner.generation(), raid.generation()
-	) and raid.last_error == &"vision_owner_release_claim_invalid"
+	) and raid.last_error == &"vision_owner_release_attestation_invalid"
 		and owner.is_registered_binding_current(
 			raid, owner.generation(), raid.generation()
-		), "direct authority release is inert without the owner's release claim")
+		), "direct authority release is inert without the owner's attestation")
 	check(not raid.fail_vision_world_owner_predelete(
 		owner, owner.generation(), raid.generation()
-	) and raid.last_error == &"vision_owner_predelete_claim_invalid"
+	) and raid.last_error == &"vision_owner_predelete_attestation_invalid"
 		and owner.is_registered_binding_current(
 			raid, owner.generation(), raid.generation()
-		), "direct PREDELETE fail-stop is inert without owner destruction proof")
+		), "direct PREDELETE fail-stop is inert without owner destruction attestation")
 	var second := VisionOwner.new()
 	check(second.configure(50_107), "second legitimate owner configures")
 	check(not second.register_with_raid_authority(raid)
@@ -865,6 +844,173 @@ func _test_reserved_slot_spoofing_and_replacement() -> void:
 	check(second.teardown(second.generation()), "rejected owner tears down")
 	owner.free()
 	second.free()
+
+
+func _test_reflective_lifecycle_authority_is_not_forgeable() -> void:
+	var fixture := _new_bound_fixture(50_122, "lifecycle_attestation")
+	check(not fixture.is_empty(),
+		"lifecycle-attestation fixture configures and binds")
+	if fixture.is_empty():
+		return
+	var raid := fixture["raid"] as RaidAuthority
+	var owner := fixture["owner"] as RaidVisionWorldOwner
+	var raid_generation := raid.generation()
+	var owner_generation := owner.generation()
+	var retained_runtime := owner.get("_runtime_dispatch") as Callable
+	var reflected_terminal_latch := raid.get(
+		"_terminal_latch_dispatch"
+	) as Callable
+	var attacker_attestation := func(
+		_operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return {"ok": true, "challenge": request.get("challenge", null)}
+	owner.set("_runtime_dispatch", attacker_attestation)
+	check(owner.get("_runtime_dispatch") == retained_runtime,
+		"Object.set cannot replace the installed opaque runtime dispatcher")
+	check(not _has_script_property(owner, &"_binding_claim_pending")
+		and not _has_script_property(owner, &"_binding_release_pending")
+		and not _has_script_property(owner, &"_runtime_disposal_authorized")
+		and not _has_script_property(owner, &"_predelete_started")
+		and not _has_script_property(raid, &"_releasing_vision_owner")
+		and not _has_script_property(raid, &"_preterminalized_current_tick"),
+		"no writable boolean is an effective lifecycle or release authority")
+
+	var empty_raid := _new_raid(50_123, "direct_registration_attestation")
+	var unbound_owner := VisionOwner.new()
+	check(empty_raid != null and unbound_owner.configure(50_123),
+		"direct-registration adversarial fixture configures")
+	if empty_raid != null:
+		var unbound_runtime := unbound_owner.get("_runtime_dispatch") as Callable
+		check(not empty_raid.register_vision_world_owner(
+			unbound_owner,
+			unbound_owner.generation(),
+			empty_raid.generation(),
+			unbound_runtime,
+		) and empty_raid.last_error \
+				== &"vision_owner_registration_attestation_invalid"
+			and not empty_raid.register_vision_world_owner(
+				unbound_owner,
+				unbound_owner.generation(),
+				empty_raid.generation(),
+				attacker_attestation,
+			) and empty_raid.last_error \
+				== &"vision_owner_registration_attestation_invalid"
+			and not empty_raid.has_phase_handler(
+				RaidAuthority.RESERVED_VISION_HANDLER_ID,
+				empty_raid.generation(),
+			), "reflected same-script runtime and attacker lambda cannot claim the slot")
+
+	check(not raid.release_vision_world_owner(
+		owner, owner_generation, raid_generation, retained_runtime
+	) and raid.last_error == &"vision_owner_release_attestation_invalid"
+		and not raid.release_vision_world_owner(
+			owner, owner_generation, raid_generation, attacker_attestation
+		) and raid.last_error == &"vision_owner_release_attestation_invalid"
+		and not raid.release_vision_world_owner(
+			owner, owner_generation, raid_generation, reflected_terminal_latch
+		) and raid.last_error == &"vision_owner_release_attestation_invalid",
+		"direct authority release rejects reflected and attacker callables")
+	check(not raid.fail_vision_world_owner_predelete(
+		owner, owner_generation, raid_generation, retained_runtime
+	) and raid.last_error == &"vision_owner_predelete_attestation_invalid"
+		and not raid.fail_vision_world_owner_predelete(
+			owner, owner_generation, raid_generation, attacker_attestation
+		) and raid.last_error == &"vision_owner_predelete_attestation_invalid",
+		"direct PREDELETE fail-stop rejects reflected and attacker callables")
+	var direct_owner_release_request: Variant = owner.call(
+		"_release_authority_for_teardown", retained_runtime
+	)
+	var direct_owner_predelete_request: Variant = owner.call(
+		"_fail_authority_for_predelete", retained_runtime
+	)
+	check(direct_owner_release_request is bool
+		and not bool(direct_owner_release_request)
+		and direct_owner_predelete_request is bool
+		and not bool(direct_owner_predelete_request),
+		"reflective owner-side release and PREDELETE helpers cannot mint authority")
+	check(not owner.release_registered_binding(
+		raid, owner_generation, raid_generation, reflected_terminal_latch
+	) and not owner.release_registered_binding(
+		raid, owner_generation, raid_generation, attacker_attestation
+	), "direct owner release callback rejects every recoverable pseudo-proof")
+
+	var direct_slot_release: Variant = raid.call(
+		"_release_vision_owner_binding", reflected_terminal_latch
+	)
+	var direct_terminal_seal: Variant = raid.call(
+		"_seal_terminal_runtime", reflected_terminal_latch
+	)
+	check(direct_slot_release is bool and not bool(direct_slot_release)
+		and direct_terminal_seal is bool and not bool(direct_terminal_seal)
+		and raid.lifecycle == RaidAuthority.Lifecycle.PREPARING
+		and raid.has_phase_handler(
+			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+		), "reflected terminal latch is readable but is not a release/seal bearer")
+
+	var direct_runtime_dispose: Variant = owner.call(
+		"_dispose_native_runtime", retained_runtime
+	)
+	var direct_quarantine: Variant = owner.call(
+		"_quarantine", retained_runtime
+	)
+	var retained_status := retained_runtime.call(&"status", {}) as Dictionary
+	check(direct_runtime_dispose is bool and not bool(direct_runtime_dispose)
+		and direct_quarantine is bool and not bool(direct_quarantine)
+		and owner.lifecycle == VisionOwner.Lifecycle.ACTIVE
+		and owner.is_registered_binding_current(
+			raid, owner_generation, raid_generation
+		)
+		and bool(retained_status.get("alive", false)),
+		"reflected runtime cannot dispose, quarantine, or desynchronize its owner")
+
+	var latch_challenge := RefCounted.new()
+	var latch_write: Variant = reflected_terminal_latch.call(
+		&"raid_terminal_cause_commit",
+		{
+			"authority_instance_id": raid.get_instance_id(),
+			"raid_generation": raid_generation,
+			"owner_instance_id": owner.get_instance_id(),
+			"owner_generation": owner_generation,
+			"cause": &"vision_owner_destroyed",
+			"attestation": reflected_terminal_latch,
+			"challenge": latch_challenge,
+		},
+	)
+	check(latch_write is Dictionary
+		and not bool((latch_write as Dictionary).get("ok", true))
+		and (raid.call("_read_terminal_cause") as StringName).is_empty(),
+		"publicly recoverable latch surface cannot commit its own terminal state")
+	var direct_commit: Variant = raid.call(
+		"_commit_terminal_cause",
+		&"vision_owner_destroyed",
+		reflected_terminal_latch,
+	)
+	check(direct_commit is bool and not bool(direct_commit)
+		and (raid.call("_read_terminal_cause") as StringName).is_empty(),
+		"reflective commit helper cannot promote the readable latch to a bearer")
+	raid.set("_terminal_latch_dispatch", attacker_attestation)
+	check(raid.get("_terminal_latch_dispatch") == reflected_terminal_latch
+		and (raid.call("_read_terminal_cause") as StringName).is_empty(),
+		"Object.set cannot replace the installed opaque terminal latch")
+	check(raid.has_phase_handler(
+		RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
+	) and owner.is_registered_binding_current(
+		raid, owner_generation, raid_generation
+	) and bool((retained_runtime.call(&"status", {}) as Dictionary).get(
+		"alive", false
+	)), "all rejected reflective attacks preserve one live reserved binding")
+
+	if empty_raid != null:
+		check(empty_raid.teardown(empty_raid.generation()),
+			"direct-registration authority tears down")
+	check(unbound_owner.teardown(unbound_owner.generation()),
+		"direct-registration owner tears down")
+	unbound_owner.free()
+	check(raid.teardown(raid_generation),
+		"lifecycle-attestation authority tears down through a fresh proof")
+	check(owner.teardown(owner_generation),
+		"authority-released lifecycle-attestation owner tears down")
+	owner.free()
 
 
 func _test_preparing_predelete_without_dependents() -> void:
@@ -1059,15 +1205,15 @@ func _test_preparing_predelete_with_dependents() -> void:
 	check(replacement.configure(50_118) and replacement.generation() == 1,
 		"replacement candidate configures at its first generation")
 	check(not replacement.register_with_raid_authority(raid)
-		and replacement.last_error == &"handler_registration_closed"
+		and replacement.last_error == &"vision_owner_destroyed"
 		and not raid.has_phase_handler(
 			RaidAuthority.RESERVED_VISION_HANDLER_ID, raid_generation
 		), "terminalized PREPARING authority cannot ambiguously replace its owner")
 	check(not raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid_generation)
-		and raid.last_error == &"lifecycle_transition_invalid",
-		"PREPARING fail-stop cannot later transition ACTIVE")
+		and raid.last_error == &"vision_owner_destroyed",
+		"PREPARING fail-stop cannot transition ACTIVE or replace its latched cause")
 	check(not raid.advance_one(raid_generation)
-		and raid.last_error == &"raid_not_advancing"
+		and raid.last_error == &"vision_owner_destroyed"
 		and raid.last_processed_tick == 0,
 		"PREPARING fail-stop cannot process a later tick")
 	check(raid.teardown(raid_generation)
@@ -1108,6 +1254,7 @@ func _test_active_predelete_fail_stop() -> void:
 			"alive", true
 		)), "active PREDELETE destroys exactly one owner generation and runtime")
 	check(raid.lifecycle == RaidAuthority.Lifecycle.FAILED
+		and raid.last_error == &"vision_owner_destroyed"
 		and raid.generation() == raid_generation
 		and raid.last_processed_tick == 0
 		and not raid.has_phase_handler(
@@ -1122,10 +1269,10 @@ func _test_active_predelete_fail_stop() -> void:
 	check(replacement.configure(50_120) and replacement.generation() == 1,
 		"active-loss replacement candidate configures independently")
 	check(not replacement.register_with_raid_authority(raid)
-		and replacement.last_error == &"handler_registration_closed",
+		and replacement.last_error == &"vision_owner_destroyed",
 		"active fail-stop rejects a replacement owner without slot ambiguity")
 	check(not raid.advance_one(raid_generation)
-		and raid.last_error == &"raid_not_advancing"
+		and raid.last_error == &"vision_owner_destroyed"
 		and raid.last_processed_tick == 0,
 		"active fail-stop cannot advance a first tick")
 	check(raid.teardown(raid_generation)
@@ -1144,6 +1291,8 @@ func _test_forced_owner_loss_fails_current_tick() -> void:
 		return
 	var raid := fixture["raid"] as RaidAuthority
 	later_free_owner = fixture["owner"] as RaidVisionWorldOwner
+	later_reentry_result = true
+	later_reentry_error = &""
 	var raid_generation := raid.generation()
 	var owner_generation := later_free_owner.generation()
 	var owner_ref: WeakRef = weakref(later_free_owner)
@@ -1162,6 +1311,10 @@ func _test_forced_owner_loss_fails_current_tick() -> void:
 		and raid.last_processed_tick == 1
 		and raid.generation() == raid_generation,
 		"later-callback destruction terminalizes the exact consumed tick and generation")
+	check(not later_reentry_result
+		and later_reentry_error == &"vision_owner_lost_during_tick"
+		and raid.last_error == &"vision_owner_lost_during_tick",
+		"same-callback reentry cannot overwrite the latched owner-loss cause")
 	later_free_owner = null
 	check(owner_generation == 1
 		and owner_ref.get_ref() == null
@@ -1178,15 +1331,19 @@ func _test_forced_owner_loss_fails_current_tick() -> void:
 	check(replacement.configure(50_121) and replacement.generation() == 1,
 		"later-callback replacement candidate configures independently")
 	check(not replacement.register_with_raid_authority(raid)
-		and replacement.last_error == &"handler_registration_closed",
+		and replacement.last_error == &"vision_owner_lost_during_tick",
 		"later-callback fail-stop rejects replacement binding")
 	check(not raid.transition(RaidAuthority.Lifecycle.ACTIVE, raid_generation)
-		and raid.last_error == &"lifecycle_transition_invalid",
-		"later-callback fail-stop cannot transition ACTIVE")
+		and raid.last_error == &"vision_owner_lost_during_tick",
+		"later-callback fail-stop cannot transition ACTIVE or replace its cause")
 	check(not raid.advance_one(raid_generation)
-		and raid.last_error == &"raid_not_advancing"
+		and raid.last_error == &"vision_owner_lost_during_tick"
 		and raid.last_processed_tick == 1,
 		"later-callback fail-stop cannot process tick 2")
+	raid.set("last_error", &"forged_reentrant_tick")
+	raid.set("_last_operation_error", &"forged_reentrant_tick")
+	check(raid.last_error == &"vision_owner_lost_during_tick",
+		"Object.set cannot overwrite the committed terminal cause")
 	check(raid.teardown(raid_generation)
 		and raid.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN
 		and raid.generation() == raid_generation + 1,
@@ -1686,6 +1843,14 @@ func _method_argument_count(object: Object, method_name: StringName) -> int:
 	return -1
 
 
+func _has_script_property(object: Object, property_name: StringName) -> bool:
+	for property_value in object.get_property_list():
+		if StringName((property_value as Dictionary).get("name", &"")) \
+				== property_name:
+			return true
+	return false
+
+
 func _method_argument_class(
 	object: Object,
 	method_name: StringName,
@@ -1731,13 +1896,15 @@ func _attempt_later_phase_teardown(
 
 
 func _free_owner_in_later_phase(
-	_raid: RaidAuthority,
+	raid: RaidAuthority,
 	_phase: RaidAuthority.TickPhase,
 	tick: int,
 	_intents: Array[ZRaidIntent]
 ) -> bool:
 	if tick == 1 and later_free_owner != null:
 		later_free_owner.free()
+		later_reentry_result = raid.advance_one(raid.generation())
+		later_reentry_error = raid.last_error
 	return true
 
 

@@ -3,7 +3,7 @@
 This packet records the implementation-level evidence for the approved change's task 6.1
 on branch `codex/vision-world-6-1`, originally based on `d947b40`. It
 incorporates all independent-review repairs and the integration of current
-main commit `4accbd8a92e9ad66900b3398fe97ab5b8fa47bb6` on 2026-09-11. Human
+main commit `64e01051e6676c9582ce5409b683d542dddc8686` on 2026-09-11. Human
 approval, encounter tuning, tasks 6.2 and 6.3, and whole-game acceptance are
 not claimed.
 
@@ -19,9 +19,11 @@ authority callback is synchronously attested. `NOTIFICATION_PREDELETE`
 synchronously frees the native state even for an owner configured off-tree;
 every retained copy of the Callable observes `alive == false` afterward.
 When that owner is bound, dependency-free PREPARING destruction releases only
-the owner slot, while destruction that cannot safely release uses an exact
-predelete-only proof to fail-stop and seal the complete authority composition
-before the object disappears.
+the owner slot, while destruction that cannot safely release uses a transient,
+challenge-bound predelete attestation to fail-stop and seal the complete
+authority composition before the object disappears. No writable lifecycle
+boolean or publicly recoverable Callable is a disposal, release, PREDELETE, or
+terminal-cause bearer.
 
 The production owner has no observer, target, occluder, transform, query, or
 projection port. Those belong to tasks 6.2/6.3. Native memory/budget behavior is
@@ -39,14 +41,22 @@ limit and 100,000-pixel weapon/tile conversions. A subsequent independent
 PREDELETE probe then found one remaining destruction-only hole: when a
 PREPARING dependent made ordinary release reject, the owner still died while
 the reserved slot and dependent graph remained live, and the raid could later
-transition ACTIVE. The final permanent contract now covers PREPARING free both
-with and without dependents, active free, and later-callback free, and reports
-241/0; the units contract remains 41/0.
+transition ACTIVE. A final independent review found that the destruction,
+release, and native-disposal claims were writable booleans discoverable through
+ordinary Godot reflection, and that same-callback reentry could overwrite
+`vision_owner_lost_during_tick` with `reentrant_tick`. The permanent repair
+removes those claim flags, challenges transient exact-script anonymous
+attestations at every mutating boundary, and stores the terminal cause in an
+opaque write-once lexical latch. The focused contract now covers PREPARING free
+both with and without dependents, active free, later-callback free/reentry,
+direct helper calls, reflected runtime/latch callables, arbitrary attacker
+callables, and `Object.set()` attempts, and reports 262/0; the units contract
+remains 41/0.
 
 ## Current-main integration
 
-The current main integration through `4accbd8a` includes the earlier accepted
-integration through `c265d3a` and touched the shared
+The current main integration through `64e0105` includes the earlier accepted
+integrations through `c265d3a`, `4accbd8a`, and `6fc090e`, and touched the shared
 `RaidAuthority` without a textual conflict. Its resolved record preserves
 main's bounded handler priorities/dependencies, unregister lifecycle, weapon
 actor pose/status state,
@@ -55,8 +65,9 @@ and teardown. The reserved Vision registration now writes the same
 priority/dependency metadata shape as generic handlers, while generic
 registration and the newly merged generic unregister/preflight APIs all reject
 `raid_vision_world`. The specialized two-sided owner release remains the sole
-way to replace that slot. Main's 5.3 ledger checkbox is intentionally reopened
-at `4accbd8a` and remains untouched by this repair.
+way to replace that slot. Main now contains independently accepted task 5.3
+capability encapsulation and task 8.6 Character UI binding. Their ledger state
+arrived unchanged from main; task 6.1 remains open for independent acceptance.
 
 `ZWorldUnits` keeps both accepted contracts: shared weapon, tile, and inventory
 scalar conversions retain the +/-1,048,576-pixel domain, while Vision point
@@ -69,21 +80,28 @@ exact positive and negative bounds and rejects one outside atomically.
 registration rejects that ID in every phase and reserves capacity for it even
 when all generic Vision slots are occupied. A typed Vision-owner API derives
 the callback and checks the exact configured owner object, owner generation,
-raid generation, provisional binding, and callback provenance. A two-sided
-release claim plus synchronous authority attestation permits safe PREPARING
-replacement, but only after the same dependent-handler preflight used by
-generic unregister. Direct/replayed release calls are inert. Explicit teardown
-during any authority callback fails atomically and retains the live owner,
+raid generation, transient registration attestation, and callback provenance.
+Release and PREDELETE requests carry fresh, operation-specific owner-script
+attestations, while authority-to-owner release uses a separate authority-script
+attestation. Receivers create the challenge and bind both object identities and
+generations; no attestation is stored or returned, and the reflectively readable
+runtime/terminal dispatchers cannot answer those challenges. Safe PREPARING
+replacement occurs only after the same dependent-handler preflight used by
+generic unregister. Direct or replayed release calls are inert. Explicit
+teardown during any authority callback fails atomically and retains the live owner,
 binding, and native state; PREPARING explicit teardown likewise preserves the
 complete composition while a dependent exists. Unavoidable PREDELETE is a
 separate, owner-attested path: a dependency-free PREPARING owner releases
 cleanly for replacement, while a dependent PREPARING, active, extracting, or
-settling owner synchronously fails and seals the raid, clears the owner slot and
-complete handler graph, and blocks replacement or later ACTIVE work. During a
-callback the authority stays in its advancing guard until the callback unwinds,
-then finalizes the consumed tick without dispatching another handler. Direct callbacks,
-callbacks forged by an earlier handler in the same VISION phase, replayed
-callbacks, and reflected runtime calls outside dispatch cannot advance.
+settling owner synchronously commits an immutable owner-loss cause, fails and
+seals the raid, clears the owner slot and complete handler graph, and blocks
+replacement or later ACTIVE work. During a callback the authority stays in its
+advancing guard until the callback unwinds,
+then finalizes the consumed tick without dispatching another handler. Reentrant
+API calls and reflective writes cannot replace that first terminal cause.
+Direct callbacks, callbacks forged by an earlier handler in the same VISION
+phase, replayed callbacks, and reflected runtime calls outside dispatch cannot
+advance.
 
 Startup checks the exact project lock, installed debug/release artifacts,
 release manifest, API, protocol, algorithm contract, required feature bits,
@@ -152,7 +170,7 @@ code=6 diagnostic=13 detail=1
 
 The owner contract delivers that exact value record through a nested test-only
 owner/authority fixture (never a native handle); production RaidAuthority
-explicitly rejects subclass claim methods. The owner records attempted tick 1
+explicitly rejects configured owner subclasses. The owner records attempted tick 1
 versus successful tick 0, accounts every exact bounded metric in immutable
 history and totals, enters `QUARANTINED`, invalidates the opaque runtime
 synchronously, and refuses further advancement. Recovery requires teardown and
@@ -171,7 +189,9 @@ These are domain-only headless checks. No UI/composition/screen suite, visual
 capture, or viewport-setting test was invoked, so this integration run created
 no alternate-resolution artifact; the project's exact 1920x1080 UI boundary
 was not exercised. Historical UI evidence files arrived unchanged through the
-requested main merge and are not evidence for this run. In particular,
+requested main merge and are not evidence for this run. Main's accepted 8.6
+presentation/composition contracts and visual capture were deliberately not
+run because they construct UI/viewports. In particular,
 `inventory_loot_ui_4_11_contract.gd` and
 `inventory_multi_controller_contract.gd` were excluded because their fixture
 constructs the inventory screen even in headless mode. Adjacent 4.11 behavior
@@ -181,8 +201,8 @@ and catalog contracts.
 | Validation | Result |
 | --- | ---: |
 | Final editor import / script registration | exit 0; diagnostics 0 |
-| Vision world focused contract | 241 / 0 |
-| Deterministic focused repeat | 241 / 0; identical seal/failure metrics |
+| Vision world focused contract | 262 / 0 |
+| Deterministic focused repeat | 262 / 0; identical seal/failure metrics |
 | Combined six-add-on smoke | 155 / 0 |
 | Units and clock contract | 41 / 0; shared 100,000px round trips pass |
 | Session lifecycle domain contract | 44 / 0 |
@@ -197,16 +217,17 @@ and catalog contracts.
 | Inventory mutation routing contract (4.11 adjacent) | 146 / 0 |
 | Inventory authority contract (4.11 adjacent) | 79 / 0 |
 | Inventory catalog contract (4.11 adjacent) | 543 / 0 |
-| Body hitbox domain contract (5.3 ledger open) | 111 / 0 |
-| Body hitbox adversarial contract (5.3 ledger open) | 173 / 0 |
-| Body hitbox reviewer regression contract (5.3 ledger open) | 72 / 0 |
+| Body hitbox domain contract (accepted 5.3) | 111 / 0 |
+| Body hitbox adversarial contract (accepted 5.3) | 173 / 0 |
+| Body hitbox reviewer regression contract (accepted 5.3) | 72 / 0 |
+| Body hitbox capability encapsulation contract (accepted 5.3) | 14 / 0 |
 | Toolchain lock | 7 / 0 |
 | Locked destination packages | 6 passed; 0 failed |
 | Vendor tooling unit tests | 4 passed; 0 failed |
-| Reviewed source/dependency hashes | 44 / 44 verified |
+| Reviewed source/dependency hashes | 45 / 45 verified |
 | Strict approved-change validation | `Valid` |
 | `git diff --check` | exit 0 |
-| Accepted Godot assertion executions | **3,324 / 0** |
+| Accepted Godot assertion executions | **3,380 / 0** |
 
 ## Reproduction
 
@@ -251,6 +272,8 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/combat/body_hitbox_adversarial_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/combat/body_hitbox_review_regression_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/combat/body_hitbox_capability_encapsulation_contract.gd
 python3 tools/check_toolchain.py
 python3 tools/vendor_addons.py check --scope destination
 python3 -m unittest tests/addons/test_vendor_addons.py
@@ -275,11 +298,11 @@ git diff --cached --check
 - Exact source paths intentionally make the accepted local macOS provenance
   non-portable. A relocated SDK, Windows/Linux artifacts, or a changed package
   must be explicitly re-attested and resealed rather than silently accepted.
-- The requested main merge through `4accbd8a` brings `project.godot`, UI,
-  inventory, weapon context, body-hitbox code and its reopened 5.3 ledger note,
-  documentation, and task history into this branch. The current PREDELETE
-  repair changed only the Vision owner/README/tests, shared `RaidAuthority`, and
-  this QA packet. It did not
+- The requested main merge through `64e0105` brings `project.godot`, accepted
+  5.3 hitbox capability isolation, accepted 8.6 Character UI composition,
+  inventory, weapon context, documentation, and task history into this branch.
+  The current lifecycle-attestation repair changed only the Vision
+  owner/README/tests, shared `RaidAuthority`, and this QA packet. It did not
   independently edit `project.godot`, bootstrap, central identity,
   add-on/vendor source, truth specs, the approved task ledger, UI, inventory,
   combat, or a world scene.

@@ -30,6 +30,16 @@ const NATIVE_MAX_OBSERVERS: int = 4_096
 const _RUNTIME_ADVANCE: StringName = &"advance_attested"
 const _RUNTIME_DISPOSE: StringName = &"dispose_attested"
 const _RUNTIME_STATUS: StringName = &"status"
+const _RAID_AUTHORITY_SCRIPT_PATH: String = "res://game/raid/raid_authority.gd"
+const _ANONYMOUS_CALLABLE_METHOD: StringName = &"<anonymous lambda>"
+const _ATTEST_REGISTER_REQUEST: StringName = \
+	&"vision_owner_registration_request"
+const _ATTEST_RELEASE_REQUEST: StringName = &"vision_owner_release_request"
+const _ATTEST_PREDELETE_REQUEST: StringName = &"vision_owner_predelete_request"
+const _ATTEST_QUARANTINE: StringName = &"vision_owner_quarantine"
+const _ATTEST_RUNTIME_DISPOSE: StringName = &"vision_runtime_dispose"
+const _ATTEST_AUTHORITY_RELEASE: StringName = \
+	&"raid_vision_owner_binding_release"
 
 var lifecycle: Lifecycle = Lifecycle.NOT_STARTED
 var last_error: StringName = &""
@@ -42,9 +52,14 @@ var _provenance_fingerprint: String = ""
 
 # The Callable owns inaccessible lexical state. Its bound-argument list is
 # empty and its Callable object is this script resource, never the native node.
-var _runtime_dispatch: Callable = Callable()
+var _runtime_dispatch: Callable = Callable():
+	set(value):
+		# configure() installs the dispatcher exactly once. It stays as an inert
+		# status capability after disposal so Object.set() cannot replace the
+		# only path that can destroy the captured native allocation.
+		if not _runtime_dispatch.is_valid():
+			_runtime_dispatch = value
 var _runtime_alive: bool = false
-var _runtime_disposal_authorized: bool = false
 
 var _last_attempted_tick: int = 0
 var _last_successful_tick: int = 0
@@ -57,11 +72,8 @@ var _inside_phase_handler: bool = false
 var _raid_authority_ref: WeakRef
 var _raid_authority_instance_id: int = 0
 var _raid_authority_generation: int = 0
-var _binding_claim_pending: bool = false
 var _binding_registered: bool = false
-var _binding_release_pending: bool = false
 var _binding_consumed: bool = false
-var _predelete_started: bool = false
 
 var _history: Array[Dictionary] = []
 var _last_native_status: Dictionary = {}
@@ -141,11 +153,17 @@ func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 		var owner := owner_value as RaidVisionWorldOwner
 		if operation == _RUNTIME_DISPOSE:
 			if not _has_exact_keys(request, PackedStringArray([
-				"owner", "owner_generation",
+				"owner", "owner_generation", "attestation",
 			])) or typeof(request.get("owner_generation", null)) != TYPE_INT \
 					or int(request["owner_generation"]) != captured_owner_generation \
-					or not owner.is_runtime_disposal_authorized(
-						captured_owner_generation
+					or not _transient_attestation_is_valid(
+						request.get("attestation", null),
+						owner.get_script(),
+						_ATTEST_RUNTIME_DISPOSE,
+						{
+							"owner_instance_id": captured_owner_id,
+							"owner_generation": captured_owner_generation,
+						},
 					):
 				return {"ok": false, "reason": "runtime_disposal_unauthorized"}
 			if not bool(runtime_state["alive"]):
@@ -254,47 +272,47 @@ func configuration_receipt() -> Dictionary:
 	return result
 
 
-## Claims the fixed Vision slot. The owner first publishes an exact provisional
-## binding that RaidAuthority authenticates, then the authority derives and
-## records the callback without accepting a caller-supplied identity/Callable.
+## Claims the fixed Vision slot with a one-call anonymous attestation. The
+## authority derives and records the callback without accepting a caller-
+## supplied identity or reusable capability.
 func register_with_raid_authority(raid_authority: RaidAuthority) -> bool:
 	last_error = &""
 	if not is_current_generation(_generation):
 		return _reject(&"vision_owner_inactive")
 	if raid_authority == null or not is_instance_valid(raid_authority):
 		return _reject(&"raid_authority_invalid")
-	if _binding_consumed or _binding_claim_pending or _binding_registered:
+	if _binding_consumed or _binding_registered:
 		return _reject(&"raid_authority_already_registered")
 	if _last_attempted_tick != 0:
 		return _reject(&"vision_tick_driver_already_started")
 	var captured_raid_generation := raid_authority.generation()
-	_binding_claim_pending = true
 	_raid_authority_ref = weakref(raid_authority)
 	_raid_authority_instance_id = raid_authority.get_instance_id()
 	_raid_authority_generation = captured_raid_generation
+	var attestation_context := {
+		"owner_instance_id": get_instance_id(),
+		"owner_generation": _generation,
+		"authority_instance_id": _raid_authority_instance_id,
+		"raid_generation": captured_raid_generation,
+	}
+	var registration_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation,
+			request,
+			_ATTEST_REGISTER_REQUEST,
+			attestation_context,
+		)
 	if not raid_authority.register_vision_world_owner(
-		self, _generation, captured_raid_generation
+		self, _generation, captured_raid_generation, registration_attestation
 	):
 		var reason := raid_authority.last_error
 		_clear_authority_binding()
 		return _reject(reason)
-	_binding_claim_pending = false
 	_binding_registered = true
 	_binding_consumed = true
 	return true
-
-
-## Read-only registration proofs consumed only by RaidAuthority's specialized
-## slot API. They expose no native world or mutation capability.
-func is_registration_claim_current(
-	raid_authority: RaidAuthority,
-	owner_generation: int,
-	raid_generation: int
-) -> bool:
-	return _binding_claim_pending \
-		and not _binding_registered \
-		and _binding_values_match(raid_authority, owner_generation, raid_generation) \
-		and is_current_generation(owner_generation)
 
 
 func is_registered_binding_current(
@@ -303,67 +321,52 @@ func is_registered_binding_current(
 	raid_generation: int
 ) -> bool:
 	return _binding_registered \
-		and not _binding_claim_pending \
 		and _binding_values_match(raid_authority, owner_generation, raid_generation) \
 		and lifecycle == Lifecycle.ACTIVE \
 		and _runtime_alive
 
 
-func is_release_claim_current(
-	raid_authority: RaidAuthority,
-	owner_generation: int,
-	raid_generation: int
-) -> bool:
-	return _binding_release_pending \
-		and _binding_registered \
-		and _binding_values_match(raid_authority, owner_generation, raid_generation)
-
-
-## PREDELETE-only proof for RaidAuthority's unavoidable-destruction fallback.
-## Explicit teardown never sets this bit and therefore remains fail-atomic.
-func is_predelete_claim_current(
-	raid_authority: RaidAuthority,
-	owner_generation: int,
-	raid_generation: int
-) -> bool:
-	return _predelete_started \
-		and _binding_registered \
-		and not _binding_claim_pending \
-		and not _binding_release_pending \
-		and _binding_values_match(raid_authority, owner_generation, raid_generation) \
-		and (lifecycle == Lifecycle.ACTIVE \
-			or lifecycle == Lifecycle.QUARANTINED)
-
-
 ## Authority-owned release callback. An owner that has already participated in
-## simulation is quarantined and loses the runtime synchronously; a PREPARING
-## replacement release only clears the binding.
+## simulation or merely held the reserved slot is quarantined and loses the
+## runtime synchronously. The proof is transient and bound to both objects and
+## generations; no writable property grants this authority.
 func release_registered_binding(
 	raid_authority: RaidAuthority,
 	owner_generation: int,
 	raid_generation: int,
-	seal_owner: bool
+	attestation: Variant = Callable()
 ) -> bool:
-	if not raid_authority.is_releasing_vision_world_owner(
-			self, owner_generation, raid_generation
-		) or not _binding_registered \
-			or not _binding_values_match(
+	if raid_authority == null or not is_instance_valid(raid_authority) \
+			or not _transient_attestation_is_valid(
+				attestation,
+				_RAID_AUTHORITY_SCRIPT_PATH,
+				_ATTEST_AUTHORITY_RELEASE,
+				{
+					"authority_instance_id": raid_authority.get_instance_id(),
+					"raid_generation": raid_generation,
+					"owner_instance_id": get_instance_id(),
+					"owner_generation": owner_generation,
+				},
+			) or not _binding_values_match(
 			raid_authority, owner_generation, raid_generation
 		):
 		return false
+	var disposal_context := {
+		"owner_instance_id": get_instance_id(),
+		"owner_generation": _generation,
+	}
+	var disposal_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation, request, _ATTEST_RUNTIME_DISPOSE, disposal_context
+		)
+	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
+		lifecycle = Lifecycle.QUARANTINED
+		if not _dispose_native_runtime(disposal_attestation):
+			return false
 	_clear_authority_binding()
-	if seal_owner and (lifecycle == Lifecycle.ACTIVE \
-			or lifecycle == Lifecycle.QUARANTINED):
-		_quarantine()
 	return true
-
-
-func is_runtime_disposal_authorized(expected_generation: int) -> bool:
-	return _runtime_disposal_authorized \
-		and expected_generation == _generation \
-		and (lifecycle == Lifecycle.ACTIVE \
-			or lifecycle == Lifecycle.QUARANTINED \
-			or _predelete_started)
 
 
 func _handle_raid_phase(
@@ -410,6 +413,19 @@ func _advance_attested_tick(
 	if tick != _last_attempted_tick + 1:
 		return _reject(&"vision_tick_regressed_or_skipped")
 
+	var lifecycle_context := {
+		"owner_instance_id": get_instance_id(),
+		"owner_generation": _generation,
+	}
+	var lifecycle_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		if operation != _ATTEST_QUARANTINE \
+				and operation != _ATTEST_RUNTIME_DISPOSE:
+			return {"ok": false}
+		return _answer_attestation(
+			operation, request, operation, lifecycle_context
+		)
 	_is_advancing = true
 	var evaluates := ZerkovVisionConfig.is_evaluation_tick(tick)
 	_last_attempted_tick = tick
@@ -428,7 +444,9 @@ func _advance_attested_tick(
 	if not _metrics_are_valid(native_result):
 		_failed_evaluations = _bounded_add(_failed_evaluations, 1)
 		_append_invalid_metrics_failure(tick, native_result)
-		_quarantine()
+		if not _quarantine(lifecycle_attestation):
+			_is_advancing = false
+			return _reject(&"vision_quarantine_attestation_failed")
 		_is_advancing = false
 		return _reject(&"vision_native_metrics_invalid")
 
@@ -446,7 +464,9 @@ func _advance_attested_tick(
 	_account_metrics(requested, consumed, completed, deferred, exhausted)
 	if not native_ok:
 		_failed_evaluations = _bounded_add(_failed_evaluations, 1)
-		_quarantine()
+		if not _quarantine(lifecycle_attestation):
+			_is_advancing = false
+			return _reject(&"vision_quarantine_attestation_failed")
 		_is_advancing = false
 		return _reject(&"vision_native_advance_failed")
 
@@ -566,12 +586,35 @@ func teardown(expected_generation: int) -> bool:
 		return _reject(&"stale_generation")
 	if _is_advancing or _inside_phase_handler:
 		return _reject(&"vision_teardown_during_tick")
+	var release_context := {
+		"owner_instance_id": get_instance_id(),
+		"owner_generation": _generation,
+		"authority_instance_id": _raid_authority_instance_id,
+		"raid_generation": _raid_authority_generation,
+	}
+	var release_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation, request, _ATTEST_RELEASE_REQUEST, release_context
+		)
 	# Releasing the authority slot is the commit precondition. In particular, a
 	# later phase callback cannot ignore RaidAuthority's in-tick rejection and
 	# then destroy the runtime behind the still-registered Vision handler.
-	if not _release_authority_for_teardown():
+	if not _release_authority_for_teardown(release_attestation):
 		return false
-	_dispose_native_runtime()
+	var disposal_context := {
+		"owner_instance_id": get_instance_id(),
+		"owner_generation": _generation,
+	}
+	var disposal_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation, request, _ATTEST_RUNTIME_DISPOSE, disposal_context
+		)
+	if not _dispose_native_runtime(disposal_attestation):
+		return _reject(&"vision_runtime_disposal_failed")
 	lifecycle = Lifecycle.TORN_DOWN
 	_generation += 1
 	_world_id = 0
@@ -583,18 +626,39 @@ func teardown(expected_generation: int) -> bool:
 
 
 func _exit_tree() -> void:
-	if not _predelete_started \
-			and (lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED):
+	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
 		teardown(_generation)
 
 
 func _notification(what: int) -> void:
-	if what != NOTIFICATION_PREDELETE or _predelete_started:
+	if what != NOTIFICATION_PREDELETE \
+			or (lifecycle != Lifecycle.ACTIVE \
+				and lifecycle != Lifecycle.QUARANTINED):
 		return
-	_predelete_started = true
-	if not _release_authority_for_teardown():
-		_fail_authority_for_predelete()
-	_dispose_native_runtime()
+	var predelete_context := {
+		"owner_instance_id": get_instance_id(),
+		"owner_generation": _generation,
+		"authority_instance_id": _raid_authority_instance_id,
+		"raid_generation": _raid_authority_generation,
+	}
+	var predelete_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation, request, _ATTEST_PREDELETE_REQUEST, predelete_context
+		)
+	_fail_authority_for_predelete(predelete_attestation)
+	var disposal_context := {
+		"owner_instance_id": get_instance_id(),
+		"owner_generation": _generation,
+	}
+	var disposal_attestation := func(
+		operation: StringName, request: Dictionary
+	) -> Dictionary:
+		return _answer_attestation(
+			operation, request, _ATTEST_RUNTIME_DISPOSE, disposal_context
+		)
+	_dispose_native_runtime(disposal_attestation)
 	if lifecycle == Lifecycle.ACTIVE or lifecycle == Lifecycle.QUARANTINED:
 		lifecycle = Lifecycle.TORN_DOWN
 		_generation += 1
@@ -629,18 +693,18 @@ func _bound_authority_matches(raid_authority: RaidAuthority) -> bool:
 			or raid_authority.lifecycle == RaidAuthority.Lifecycle.EXTRACTING)
 
 
-func _release_authority_for_teardown() -> bool:
+func _release_authority_for_teardown(
+	attestation: Variant = Callable()
+) -> bool:
 	if not _binding_registered or _raid_authority_ref == null:
 		return true
 	var raid_value: Variant = _raid_authority_ref.get_ref()
 	if not raid_value is RaidAuthority or not is_instance_valid(raid_value):
 		return true
 	var raid := raid_value as RaidAuthority
-	_binding_release_pending = true
 	var released := raid.release_vision_world_owner(
-		self, _generation, _raid_authority_generation
+		self, _generation, _raid_authority_generation, attestation
 	)
-	_binding_release_pending = false
 	if not released:
 		var reason := raid.last_error
 		return _reject(reason if not reason.is_empty() \
@@ -650,21 +714,21 @@ func _release_authority_for_teardown() -> bool:
 	return true
 
 
-func _fail_authority_for_predelete() -> void:
+func _fail_authority_for_predelete(
+	attestation: Variant = Callable()
+) -> bool:
 	if not _binding_registered or _raid_authority_ref == null:
-		return
+		return true
 	var raid_value: Variant = _raid_authority_ref.get_ref()
 	if not raid_value is RaidAuthority or not is_instance_valid(raid_value):
-		return
-	(raid_value as RaidAuthority).fail_vision_world_owner_predelete(
-		self, _generation, _raid_authority_generation
+		return true
+	return (raid_value as RaidAuthority).fail_vision_world_owner_predelete(
+		self, _generation, _raid_authority_generation, attestation
 	)
 
 
 func _clear_authority_binding() -> void:
-	_binding_claim_pending = false
 	_binding_registered = false
-	_binding_release_pending = false
 	_raid_authority_ref = null
 	_raid_authority_instance_id = 0
 	_raid_authority_generation = 0
@@ -732,11 +796,21 @@ func _account_metrics(
 		_budget_exhaustions = _bounded_add(_budget_exhaustions, 1)
 
 
-func _quarantine() -> void:
+func _quarantine(attestation: Variant = Callable()) -> bool:
+	if not _transient_attestation_is_valid(
+		attestation,
+		get_script(),
+		_ATTEST_QUARANTINE,
+		{
+			"owner_instance_id": get_instance_id(),
+			"owner_generation": _generation,
+		},
+	):
+		return false
 	lifecycle = Lifecycle.QUARANTINED
 	# Whole-call native failure may leave an immutable publication prefix. The
 	# opaque runtime is invalidated immediately; recovery requires a new owner.
-	_dispose_native_runtime()
+	return _dispose_native_runtime(attestation)
 
 
 func _metrics_are_valid(metrics: Dictionary) -> bool:
@@ -786,20 +860,14 @@ func _native_status_copy(status: Dictionary) -> Dictionary:
 	return result
 
 
-func _dispose_native_runtime() -> void:
+func _dispose_native_runtime(attestation: Variant = Callable()) -> bool:
 	if not _runtime_dispatch.is_valid():
-		_runtime_alive = false
-		return
-	_runtime_disposal_authorized = true
+		return not _runtime_alive
 	var result: Variant = _runtime_dispatch.call(_RUNTIME_DISPOSE, {
 		"owner": self,
 		"owner_generation": _generation,
+		"attestation": attestation,
 	})
-	_runtime_disposal_authorized = false
-	_runtime_alive = false
-	# Clearing the owner's copy plus the shared lexical `alive` bit makes every
-	# retained copy of the Callable inert synchronously.
-	_runtime_dispatch = Callable()
 	if not result is Dictionary or not bool((result as Dictionary).get("ok", false)):
 		_last_native_status = {
 			"ok": false,
@@ -807,6 +875,65 @@ func _dispose_native_runtime() -> void:
 			"diagnostic": 0,
 			"detail": 0,
 		}
+		return false
+	_runtime_alive = false
+	# The shared lexical `alive` bit makes both the owner-held status dispatcher
+	# and every retained copy inert synchronously.
+	return true
+
+
+static func _transient_attestation_is_valid(
+	candidate: Variant,
+	expected_script: Variant,
+	operation: StringName,
+	context: Dictionary
+) -> bool:
+	if not candidate is Callable:
+		return false
+	var attestation := candidate as Callable
+	if not _callable_has_exact_script(attestation, expected_script):
+		return false
+	var challenge := RefCounted.new()
+	var request := context.duplicate(true)
+	request["challenge"] = challenge
+	var result: Variant = attestation.call(operation, request)
+	if not result is Dictionary:
+		return false
+	var response := result as Dictionary
+	return _has_exact_keys(response, PackedStringArray(["ok", "challenge"])) \
+		and typeof(response.get("ok", null)) == TYPE_BOOL \
+		and bool(response["ok"]) \
+		and response.get("challenge", null) == challenge
+
+
+static func _callable_has_exact_script(
+	candidate: Callable,
+	expected_script: Variant
+) -> bool:
+	if not candidate.is_valid() \
+			or candidate.get_method() != _ANONYMOUS_CALLABLE_METHOD \
+			or candidate.get_bound_arguments_count() != 0:
+		return false
+	var expected_resource: Variant = ResourceLoader.load(expected_script) \
+		if expected_script is String else expected_script
+	return expected_resource is Script \
+		and candidate.get_object() == expected_resource
+
+
+static func _answer_attestation(
+	operation: StringName,
+	request: Dictionary,
+	expected_operation: StringName,
+	expected_context: Dictionary
+) -> Dictionary:
+	if operation != expected_operation \
+			or request.size() != expected_context.size() + 1 \
+			or not request.get("challenge", null) is RefCounted:
+		return {"ok": false}
+	for key in expected_context:
+		if not request.has(key) or request[key] != expected_context[key]:
+			return {"ok": false}
+	return {"ok": true, "challenge": request["challenge"]}
 
 
 func _reject(reason: StringName) -> bool:

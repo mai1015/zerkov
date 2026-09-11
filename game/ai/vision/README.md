@@ -4,29 +4,39 @@ Task 6.1 owns only the Common Vision world configuration and its deterministic
 tick/budget driver. `RaidVisionWorldOwner` retains one `OFFLINE_AUTHORITY`
 `CommonVisionWorld2D` solely as inaccessible lexical state in an opaque
 Callable. No owner Object/Resource property retains the native node, and the
-Callable never returns it. `NOTIFICATION_PREDELETE` invalidates the shared
-lexical state synchronously even when a configured owner was never placed in a
-scene tree.
+Callable never returns it. Runtime disposal accepts only a fresh anonymous
+owner-script attestation challenged inside the opaque runtime; the reflected
+runtime Callable cannot attest itself. `NOTIFICATION_PREDELETE` invalidates the
+shared lexical state synchronously even when a configured owner was never
+placed in a scene tree.
 
 `RaidAuthority` owns one reserved phase-3 (`VISION`) slot. Generic handler
 registration rejects that identity and cannot exhaust its reserved capacity;
-the typed owner API derives the callback
-instead of accepting a caller-supplied ID or Callable. Registration, dispatch,
-and release authenticate the exact checked-in base-script owner object plus
-owner/raid generations; configured subclasses cannot claim the production slot.
-Direct, forged, and replayed callbacks—including calls through a reflectively
-retained opaque Callable—are inert. The owner has no `_process()`, delta-time
-API, or public direct-tick driver.
+the typed owner API derives the callback instead of accepting a caller-supplied
+ID or callback. Registration, dispatch, release, PREDELETE failure, quarantine,
+and runtime disposal authenticate the exact objects, generations, operation,
+and a fresh receiver-owned challenge. Each mutating proof is an anonymous
+Callable created only on the validated synchronous call stack; it is never
+stored, returned, or derived from a writable boolean. The exact checked-in
+base-script owner remains mandatory for the production slot, so configured
+subclasses cannot claim it. Direct, forged, and replayed callbacks—including
+calls through a reflectively retained runtime or terminal-latch Callable—are
+inert. The owner has no `_process()`, delta-time API, or public direct-tick
+driver.
 
 Owner release has two deliberately different contracts. Explicit teardown is
 fail-atomic: while a PREPARING consumer depends on the reserved slot, rejection
 leaves the owner, native runtime, slot, and dependency graph unchanged. Object
 destruction cannot obey that contract because `NOTIFICATION_PREDELETE` must
 finish. A dependency-free PREPARING destruction releases the slot for a fresh
-owner; otherwise an exact predelete-only proof makes `RaidAuthority` enter
+owner only after the disappearing owner is quarantined; otherwise an exact
+predelete-only attestation makes `RaidAuthority` enter
 `FAILED`, synchronously seal the native runtime, and clear the reserved slot
 and every dependent handler together. If destruction occurs inside a tick,
 the already-consumed tick is finalized as failed and no later callback runs.
+The owner-loss cause is committed once in opaque lexical state; callback
+reentry and `Object.set()` cannot replace `vision_owner_lost_during_tick` with
+a secondary error such as `reentrant_tick`.
 
 `ZerkovVisionConfig` seals the complete configuration as SHA-256
 `3ead6e826bfd2552aa1396a4d266de3603524355c56620033cb1bd84b6df58f3`.
