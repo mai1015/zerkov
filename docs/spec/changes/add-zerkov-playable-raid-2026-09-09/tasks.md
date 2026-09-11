@@ -512,10 +512,12 @@ retained Task 8.10 input facade passed `57/0` domain/static and `109/0` native
 exact-1920 checks. The 28-route smoke passed `948/0`; Character UI,
 inventory-binding, CommonUI input/navigation/integration, composition,
 lifecycle, reflow and family suites remained green at exact 1920x1080. Strict
-spec, editor import and the 24-active/13-deferred runner gate passed. No compact,
+spec, editor import and the then-current 24-active/13-deferred runner gate
+passed. No compact,
 responsive, historical inventory-binding or smaller-output suite ran. See
 `docs/qa/remove_production_app_state_8_11/implementation/REPORT.md`. Task 8.11
-remains unchecked pending independent review.
+was subsequently accepted by independent review; later display-scope tightening
+is tracked in `docs/qa/1080-only-scope.md`.
 
 Completed task evidence (8.2, 2026-09-10): independent re-review accepted the
 final active-context repair at `e48f18baeede8687a96babc64fc9069016836a3d`.

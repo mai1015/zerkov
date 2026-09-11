@@ -35,13 +35,24 @@ class LootStateProbeController extends LootController:
         return super.loot_container_state()
 
 
-func _capture_411(state: String, extra: Dictionary = {}) -> void:
+func _capture_411(state: String, extra: Dictionary = {}) -> bool:
     await settle()
     RenderingServer.force_draw(true)
     var rendered := root.get_texture().get_image()
     var file_name := "1920x1080_" + state + ".png"
-    check(rendered.get_size() == Vector2i(1920, 1080), "1920x1080 native capture for " + state)
-    check(rendered.save_png(OUTPUT_411 + "/" + file_name) == OK, "save " + file_name)
+    var exact_frame := rendered != null \
+        and rendered.get_size() == Vector2i(1920, 1080) \
+        and root.get_visible_rect().size == Vector2(1920, 1080)
+    check(exact_frame, "1920x1080 native capture for " + state)
+    if not exact_frame:
+        push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: nonexact frame rejected before write: " + state)
+        quit(2)
+        return false
+    var save_error := rendered.save_png(OUTPUT_411 + "/" + file_name)
+    check(save_error == OK, "save " + file_name)
+    if save_error != OK:
+        quit(1)
+        return false
     var loot_grid: Control = screen._grid_for_source("loot")
     var loot_status := screen._node("StashCompatible") as Label
     var record := {
@@ -85,6 +96,7 @@ func _capture_411(state: String, extra: Dictionary = {}) -> void:
     }
     records_411.append(record)
     print("INVENTORY_LOOT_UI_4_11_CAPTURE ", file_name, " ", JSON.stringify(extra))
+    return true
 
 
 func run() -> void:
@@ -92,10 +104,20 @@ func run() -> void:
         push_error("Task 4.11 native captures require the graphical renderer")
         quit(1)
         return
-    DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT_411))
     root.borderless = true
     root.position = Vector2i.ZERO
     root.size = Vector2i(1920, 1080)
+    await process_frame
+    RenderingServer.force_draw(true)
+    var preflight := root.get_texture().get_image()
+    var exact_preflight := root.get_visible_rect().size == Vector2(1920, 1080) \
+        and preflight != null and preflight.get_size() == Vector2i(1920, 1080)
+    check(exact_preflight, "root and framebuffer are exact 1920x1080 before setup")
+    if not exact_preflight:
+        push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: nonexact framebuffer rejected before paths or writes")
+        quit(2)
+        return
+    DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT_411))
     setup_runtime()
     var production_controller := controller
     production_controller.unbind()
@@ -111,7 +133,7 @@ func run() -> void:
     screen._set_loot_mode(true)
     await settle(15)
     check(controller.is_loot_container_open(), "loot tab opens the selected crate")
-    await _capture_411("ready", {"source": str(controller.loot_container())})
+    if not await _capture_411("ready", {"source": str(controller.loot_container())}): return
 
     var search := screen._node("StashSearch") as LineEdit
     search.text = "battery"
@@ -120,20 +142,20 @@ func run() -> void:
     search.caret_column = 3
     var stash_scroll := screen._node("DesktopStashScroll") as ScrollContainer
     stash_scroll.scroll_vertical = 123
-    await _capture_411("searching", {"search_presentation_only": true})
+    if not await _capture_411("searching", {"search_presentation_only": true}): return
 
     controller.force_loot_state(Model.STATE_INACCESSIBLE)
-    await _capture_411("inaccessible")
+    if not await _capture_411("inaccessible"): return
     controller.clear_forced_loot_state()
     controller.force_loot_state(Model.STATE_STALE_CORRECTED)
-    await _capture_411("stale")
+    if not await _capture_411("stale"): return
     controller.clear_forced_loot_state()
     controller.force_loot_state(Model.STATE_OVERWEIGHT)
-    await _capture_411("overweight")
+    if not await _capture_411("overweight"): return
     controller.clear_forced_loot_state()
 
     bridge.begin_resynchronization(&"raid", owner.generation(), bridge.scope_generation(&"raid"))
-    await _capture_411("resynchronizing")
+    if not await _capture_411("resynchronizing"): return
     bridge.complete_resynchronization(&"raid", owner.generation(), bridge.scope_generation(&"raid"))
     await settle()
 
@@ -147,14 +169,14 @@ func run() -> void:
         slot._on_pressed()
     var focus_owner := screen.get_viewport().gui_get_focus_owner()
     var focus_path := str(screen.get_path_to(focus_owner)) if focus_owner != null and screen.is_ancestor_of(focus_owner) else ""
-    await _capture_411("selection_scroll", {"focus": focus_path, "selection_preserved": screen._selected_live_item.get("item_id", 0)})
+    if not await _capture_411("selection_scroll", {"focus": focus_path, "selection_preserved": screen._selected_live_item.get("item_id", 0)}): return
 
     screen._set_loot_mode(false)
-    await _capture_411("close")
+    if not await _capture_411("close"): return
     screen._set_loot_mode(true)
     await settle()
     bridge.release_binding()
-    await _capture_411("disconnected")
+    if not await _capture_411("disconnected"): return
 
     var report := {
         "engine": Engine.get_version_info(),

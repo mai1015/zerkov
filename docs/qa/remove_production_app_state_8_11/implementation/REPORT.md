@@ -50,9 +50,9 @@ provider.
   no sample identity; Character remains authored and sample-free; Controls
   remains live and fixture-free; and an explicit prototype session still
   renders the retained authored preview.
-- `test_ui_first_playable_scope.py` discovers UI runners from source. The
-  current inventory is 24 active exact-1920 runners plus 13 historical deferred
-  runners. Active sources require a 1920x1080 gate and reject known smaller
+- `test_ui_first_playable_scope.py` discovers UI runners from source. At Task
+  8.11 acceptance the inventory was 24 active exact-1920 runners plus 13
+  historical deferred runners. Active sources require a 1920x1080 gate and reject known smaller
   outputs/compact overrides. Deferred compact, responsive, and
   `tests/visual/inventory_ui_binding` sources must terminate with
   `DEFERRED_DISPLAY_SUITE` before retained runner logic; the historical contact
@@ -69,7 +69,7 @@ provider.
 | --- | --- |
 | Editor import/class registration | exit `0`; no parser or runtime diagnostic |
 | Strict spec validation | `Valid` |
-| Static first-playable scope contract | `2` tests, `0` failures; 24 active / 13 deferred runners |
+| Static first-playable scope contract at Task 8.11 acceptance | `2` tests, `0` failures; 24 active / 13 deferred runners |
 | Task 8.11 source/provider contract | `57` checks, `0` failures |
 | Task 8.11 native production/unavailable contract | `109` checks, `0` failures; exact `1920x1080` |
 | Read-only view contracts | `115` checks, `0` failures |
