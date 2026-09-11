@@ -171,6 +171,22 @@ func has_authorized_actor_source(
 	return _authorized_actor_sources.has(_actor_source_key(actor_id, source))
 
 
+## Read-only phase authentication for synchronous game-owned adapters.  A
+## signal emitted by a domain façade is admitted only while the exact raid
+## generation is executing the domain's documented phase and tick.
+func is_processing_tick_phase(
+	phase: TickPhase,
+	tick: int,
+	expected_generation: int
+) -> bool:
+	return _is_mutable_generation(expected_generation) \
+		and _is_advancing \
+		and int(phase) >= 0 \
+		and int(phase) < PHASE_NAMES.size() \
+		and _processing_phase == int(phase) \
+		and _processing_tick == tick
+
+
 func register_phase_handler(
 	phase: TickPhase,
 	handler_id: StringName,
@@ -389,6 +405,28 @@ func record_event(
 	if tick != expected_tick:
 		return _reject(&"event_tick_invalid")
 	if not journal.append(kind, event_id, tick, actor_id, payload):
+		last_error = journal.last_error
+		return false
+	return true
+
+
+## Exact journal preflight used immediately before a consequence-owning world
+## query.  No capacity or identity is consumed by this call.
+func can_record_event(
+	kind: ZRaidEvent.EventKind,
+	event_id: ZConsequenceId,
+	tick: int,
+	actor_id: ZEntityId,
+	payload: Dictionary,
+	expected_generation: int
+) -> bool:
+	last_error = &""
+	if not _is_mutable_generation(expected_generation):
+		return _reject(&"stale_or_terminal_generation")
+	var expected_tick := _processing_tick if _is_advancing else last_processed_tick
+	if tick != expected_tick:
+		return _reject(&"event_tick_invalid")
+	if not journal.can_append(kind, event_id, tick, actor_id, payload):
 		last_error = journal.last_error
 		return false
 	return true
