@@ -1,16 +1,20 @@
 # Task 5.6 implementation evidence
 
-Status: implementation candidate ready for independent acceptance. Task 5.6
-remains unchecked by design.
+Status: sealed-review repair candidate ready for renewed independent acceptance.
+Task 5.6 remains unchecked by design.
 
 - Recorded: 2026-09-11
-- Branch: `codex/damage-injury-healing-death-5-6`
+- Branch: `codex/damage-injury-healing-5-6-callback-repair`
 - Original base: `b0ead7da37dcf239c40dd3c706d94b0e457ca310`
-- Integrated main: `7acc971b7622f1a6580e51bcca27793f32e50d56`
+- Sealed candidate: `fb8b1cf3d1cb11abc0f8d99aea815296ed4b56e5`
+- Integrated main: `9cb602f0f5674deea7d5ad8739c67dda431006f4`
+- Main-integration checkpoint: `05e0d30d4f1f01c71ab375be882504aa8ec93259`
 - Intrinsic implementation checkpoint: `8a40030`
 - Canonical-outcome checkpoint: `7ea5695`
 - Reentrancy/recovery repair checkpoint: `21a5150`
 - Post-merge pre-evidence checkpoint: `3e829d5`
+- Native-cancellation repair checkpoint:
+  `9d6035cb0a84b6278b20d69f67203d380ff0b703`
 - Engine: Godot `4.7.2.stable.official.ed1daf0bf`, headless only
 
 ## Implemented authority boundary
@@ -63,6 +67,13 @@ remains unchecked by design.
   publication likewise revalidates its exact owner, authority, inventory,
   generation and identity after the native callback, reports a proven native
   publication as `committed`, and fail-stops instead of continuing stale work.
+- Explicit release now raises the same mutation fence before unregistering the
+  phase handler and keeps it raised across every medical-participant clear,
+  native component teardown, recovery publication and final invalidation
+  callback. Every guarded exit returns through one wrapper that clears the
+  fence, including retryable failure. A stable actor/record teardown plan is
+  captured before the first native callback boundary, so later actors are never
+  looked up through callback-mutable live storage.
 - Damage, treatment and event ledgers never evict replay history. Journal space,
   event identities, damage capacity, treatment queue capacity, bleed schedule
   capacity and native grants are preflighted before the applicable cross-domain
@@ -97,12 +108,14 @@ Gameplay Abilities component and real Inventory System authority. It covers:
   honest committed mutation reporting;
 - public signal reentry rejection plus bootstrap-grant release fencing;
 - callback-driven registration context change with exact snapshot cleanup;
+- two-actor native activation cancellation rejecting recursive release while
+  both captured components reach terminal cleanup exactly once;
 - refusal to treat owner lifecycle alone as proof of native inventory unload;
 - repeated ordered inputs producing equal normalized native state/event traces.
 
-Focused run 1: `409/0`.
+Focused run 1: `422/0`.
 
-Focused run 2: `409/0`.
+Focused run 2: `422/0`.
 
 ## Independent adversarial probe
 
@@ -117,7 +130,24 @@ Independent run 1: `197/0`.
 
 Independent run 2: `197/0`.
 
-## Adjacent headless contracts
+## Sealed-review native-cancellation probe
+
+The independent reproducer at
+`/private/tmp/zerkov-5-6-sealed-review.ROSLAk/additional_callback_probe.gd`
+was run unchanged. Its SHA-256 was
+`10d08bd68c828e7ba4d2489d92e22ab0321224e6083fb98273b5532e001ae631`.
+Both runs proved that the first actor's native `activation_cancelled` callback
+receives `health_binding_change_reentrant`, the outer release succeeds, the
+adapter retains no actors, and both registered components are torn down.
+
+Callback run 1: `11/0`.
+
+Callback run 2: `11/0`.
+
+## Sealed-candidate adjacent headless baseline
+
+The sealed candidate established the following unchanged baseline before this
+review repair:
 
 | Contract | Result |
 | --- | ---: |
@@ -147,24 +177,38 @@ Independent run 2: `197/0`.
 | Inventory mutation routing | 146/0 |
 | Equipped-item reconciliation | 123/0 |
 
-Adjacent result: `22,700/0` across 25 contracts.
+Sealed adjacent result: `22,700/0` across 25 contracts.
 
-Focused plus adjacent: `23,518/0`.
+Sealed focused plus adjacent: `23,518/0`.
 
-Focused, adjacent and independent adversarial: `23,912/0`.
+Sealed focused, adjacent and independent adversarial: `23,912/0`.
+
+For the post-repair adjacent gate,
+`tests/combat/health_ability_content_contract.gd` was byte-unchanged from the
+sealed candidate and passed `392/0`. Post-repair verification executed `1,652`
+assertions with zero failures: focused `844/0`, independent adversarial
+`394/0`, native-cancellation probe `22/0`, and adjacent health content `392/0`.
 
 ## Import, validation, hashes and diff
 
-- Fresh post-merge pinned headless editor import exited 0 with no diagnostic.
+- Exact main `9cb602f0f5674deea7d5ad8739c67dda431006f4` was merged before the
+  repair checkpoint and final evidence seal.
+- Fresh pinned headless import plus a warm headless import/check-only pass both
+  exited 0; the final pass emitted no warning, script error or engine error.
 - Strict validation of `add-zerkov-playable-raid-2026-09-09` returned `Valid`.
 - Vendored-add-on integrity tests passed `4/4`; no add-on source changed.
 - `git diff --check` passed. The task diff against integrated main contains no
   `RaidAuthority`, UI, viewport, visual or capture file. No UI, visual,
   viewport or renderer-backed test was run.
+- A narrow analogous-release audit found the Gameplay Ability equipment path
+  already fences native revokes with `_mutation_active`, while reload release
+  fences native cancellation and publication with `_transaction_active` and
+  `_public_signal_active`; neither has the unfenced multi-actor lookup pattern
+  repaired here.
 - `frozen_sources.sha256` seals the implementation, focused contracts,
   governing instructions, approved inputs and accepted Task 5.4/5.5 evidence.
   `packet.sha256` seals this report, the structured results and source manifest.
-- Task 5.6 remains unchecked pending independent review.
+- Task 5.6 remains unchecked pending renewed independent review.
 
 ## Limits and remaining risks
 
