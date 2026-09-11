@@ -1,6 +1,6 @@
 # Task 8.2 — CommonUI navigation implementation and repair evidence
 
-Status: implementation repair complete; independent re-review pending.
+Status: independently accepted after callback-ownership repair.
 
 Task: `8.2` from `add-zerkov-playable-raid-2026-09-09`.
 Implementation baseline: `39dcf3bba9aad7675b0cdf2f9d6925f06aa0d751`.
@@ -103,6 +103,14 @@ The focused lifecycle digest remains exactly
 `550b91a79fa9c5ae30bc3f736629e78429c25f56e0fc4c52bbecf38e60fa1e03`,
 matching accepted task 8.1 evidence. Its per-resolution geometry digests also
 remain unchanged at 1920x1080, 1600x900, 1280x720 and 960x540.
+
+Independent re-review accepted
+`e48f18baeede8687a96babc64fc9069016836a3d` with no P0-P3 findings. Its fresh
+adversarial context/capability probe passed `31/0`; it repeated the exact
+1920x1080 contract headless and native at `94/0`, confirmed the same geometry
+digest and byte-identical 1920x1080 capture, and reproduced every focused and
+adjacent result listed above. The review worktree was clean and no source was
+changed during review.
 
 Accepted logs were searched for `ERROR:`, `SCRIPT ERROR:`, `WARNING:`,
 `FATAL:`, failed-condition diagnostics, nonzero failure summaries, orphan
