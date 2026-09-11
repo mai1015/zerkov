@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" shape-rendering="crispEdges">
+  <title>Zerkov Sawmill project-owned greybox atlas</title>
+  <desc>Four by four 32 pixel source cells authored in SVG for deterministic greybox TileSet authoring.</desc>
+  <rect width="128" height="128" fill="#111820"/>
+
+  <!-- row 0: ground terrain -->
+  <rect x="0" y="0" width="32" height="32" fill="#74543f"/>
+  <path d="M3 7h4v3H3zM17 21h6v3h-6zM25 10h3v4h-3z" fill="#8b684d"/>
+  <rect x="32" y="0" width="32" height="32" fill="#5f8a3d"/>
+  <path d="M35 24h3v-7h2v7h4v3h-9zM52 9h3v7h-3zM59 22h2v5h-2z" fill="#82a957"/>
+  <rect x="64" y="0" width="32" height="32" fill="#89949a"/>
+  <path d="M66 8h12v3H66zM83 18h10v4H83zM69 25h6v3h-6z" fill="#aeb7ba"/>
+  <rect x="96" y="0" width="32" height="32" fill="#356f86"/>
+  <path d="M98 9h28v3H98zM98 21h28v3H98zM108 4h3v24h-3z" fill="#5794a2"/>
+
+  <!-- row 1: routes and cover -->
+  <rect x="0" y="32" width="32" height="32" fill="#a47b4f"/>
+  <path d="M0 39h32v3H0zM0 54h32v3H0zM8 32h3v32H8zM24 32h3v32h-3z" fill="#bf9865"/>
+  <rect x="32" y="32" width="32" height="32" fill="#c5a25e"/>
+  <path d="M35 38h7v3h-7zM50 52h10v4H50zM40 59h3v3h-3z" fill="#e0bf78"/>
+  <rect x="64" y="32" width="32" height="32" fill="#55443b"/>
+  <path d="M68 35h5v25h-5zM82 35h5v25h-5zM66 44h30v5H66z" fill="#80664d"/>
+  <rect x="96" y="32" width="32" height="32" fill="#3d3838"/>
+  <path d="M99 38h26v3H99zM99 52h26v3H99zM103 32h3v32h-3zM118 32h3v32h-3z" fill="#a36f4d"/>
+
+  <!-- row 2: detail and traversal variants -->
+  <rect x="0" y="64" width="32" height="32" fill="#2e5c35"/>
+  <path d="M16 68l-9 21h6l-5 7h16l-5-7h6z" fill="#4f8b4b"/>
+  <rect x="32" y="64" width="32" height="32" fill="#8d6a45"/>
+  <path d="M36 76h6v3h-6zM48 84h4v3h-4zM56 72h5v4h-5zM39 91h12v3H39z" fill="#d2a55b"/>
+  <rect x="64" y="64" width="32" height="32" fill="#4e6f3f"/>
+  <path d="M67 72h9v4h-9zM83 85h10v4H83zM72 91h4v3h-4z" fill="#7f9e52"/>
+  <rect x="96" y="64" width="32" height="32" fill="#6c5949"/>
+  <path d="M100 69h24v5h-24zM100 86h24v5h-24zM106 64h4v32h-4z" fill="#b08a5b"/>
+
+  <!-- row 3: authored markers and hard block -->
+  <rect x="0" y="96" width="32" height="32" fill="#182a3a"/>
+  <circle cx="16" cy="112" r="9" fill="#4db2d1"/>
+  <path d="M16 105v14M9 112h14" stroke="#e4f6ff" stroke-width="3"/>
+  <rect x="32" y="96" width="32" height="32" fill="#321c3f"/>
+  <path d="M48 102v20M38 112h20" stroke="#d77cff" stroke-width="3"/>
+  <rect x="42" y="106" width="12" height="12" fill="#f4b8ff"/>
+  <rect x="64" y="96" width="32" height="32" fill="#29404e"/>
+  <path d="M68 120h24v4H68zM74 102h12v4H74z" fill="#f5c96b"/>
+  <path d="M78 106v14M82 106v14" stroke="#f5c96b" stroke-width="3"/>
+  <rect x="96" y="96" width="32" height="32" fill="#3e4144"/>
+  <path d="M100 101l24 22M124 101l-24 22M108 99h8v26h-8z" stroke="#777d82" stroke-width="4"/>
+</svg>
