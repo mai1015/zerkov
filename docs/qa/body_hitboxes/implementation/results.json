@@ -1,0 +1,26 @@
+{
+  "task": "5.3",
+  "recorded_at": "2026-09-11T02:44:42Z",
+  "branch": "codex/body-hitboxes-5-3",
+  "base_commit": "150207bbf60d98358c8b1adc4412511eaedf68b3",
+  "godot": "4.7.2.stable.official.ed1daf0bf",
+  "accepted": true,
+  "human_approval": false,
+  "raw_checks": 19465,
+  "failures": 0,
+  "diagnostic_matches": 0,
+  "focused": {
+    "body_hitbox_contract": {"checks": 93, "failures": 0},
+    "body_hitbox_adversarial_contract": {"checks": 150, "failures": 0}
+  },
+  "adjacent": {
+    "combat_content": {"checks": 79, "failures": 0},
+    "health_ability_content": {"checks": 392, "failures": 0},
+    "authority_replay": {"checks": 81, "failures": 0},
+    "identity": {"checks": 18442, "failures": 0},
+    "session_lifecycle": {"checks": 44, "failures": 0},
+    "units_clock": {"checks": 29, "failures": 0},
+    "combined_addons": {"checks": 155, "failures": 0}
+  },
+  "strict_spec_validation": "Valid"
+}

@@ -1,0 +1,7 @@
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/combat/body_hitbox_contract.gd
+EXIT_CODE: 0
+BODY_HITBOX_RESULT checks=93 failures=0
+
+COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/combat/body_hitbox_adversarial_contract.gd
+EXIT_CODE: 0
+BODY_HITBOX_ADVERSARIAL_RESULT checks=150 failures=0

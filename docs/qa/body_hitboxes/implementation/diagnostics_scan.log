@@ -1,0 +1,6 @@
+ACCEPTED_OUTPUTS: editor import plus 9 Godot contract executions
+PATTERNS: SCRIPT ERROR|Parse Error|ERROR:|Invalid call|assertion failure
+MATCHES: 0
+PROCESS_EXIT_FAILURES: 0
+NAMED_RESULT_FAILURES: 0
+RAW_ASSERTION_EXECUTIONS: 19465

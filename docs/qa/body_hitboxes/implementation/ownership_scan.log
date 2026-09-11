@@ -1,0 +1,4 @@
+SCOPE: game/combat/hitboxes and task-5.3 tests
+SEARCH: WeaponAuthority|GameplayAbilityComponent|GameplayEffect|Node2D|global_position|PhysicsDirectSpaceState|intersect_ray|rand|Time.|await
+PRODUCTION_MATCHES: 0 executable references
+RESULT: hit selection is game-owned, fixed-input, synchronous, and consequence-free
