@@ -117,7 +117,7 @@ suite; replay digest; teardown/reentrancy regression tests.
   integer fit/centered matte and a rounded final presentation camera; human
   approval remains false and later animation, combat/readability and cursor
   mapping gates remain open.
-- [ ] 3.3 `[LUNA]` Create a 32 px Sawmill source TileSet with explicit terrain,
+- [x] 3.3 `[LUNA]` Create a 32 px Sawmill source TileSet with explicit terrain,
   navigation, collision and draw-layer metadata.
 - [ ] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
   spawn, objective landmarks, combat lanes, cover, loot and Road Gate extract.
@@ -353,7 +353,7 @@ failure after mutation. No UI layout was changed. See
   provide authoritative liveness, equipment, pose and usability context.
 - [x] 5.3 `[SOL]` Implement body hitboxes for head, torso, arms and legs with a
   deterministic overlap/tie-break policy.
-- [ ] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
+- [x] 5.4 `[SOL]` Implement `WeaponCombatAdapter` to resolve each non-replayed
   committed shot once and emit one stable hit/miss consequence.
 - [x] 5.5 `[SOL]` Author Gameplay Abilities attributes/tags/effects for body-part
   health, overall life state, stamina, hydration, heavy bleed, fracture,
