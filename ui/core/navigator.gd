@@ -4,41 +4,88 @@ extends Node
 signal committed(route: String, view: Control)
 signal rejected(route: String, reason: String)
 
+const MAX_PENDING_INTENTS := 32
+
 var host: Control
 var root: CommonUIScreenRoot
-var _pending: Array[Dictionary] = []
+var _pending: Array[ZUIRouteIntent] = []
 var busy: bool = false
 
 func configure(owner_host: Control, screen_root: CommonUIScreenRoot) -> void:
 	host = owner_host
 	root = screen_root
 
-func navigate(route: String, record: bool = true) -> void:
-	if not ZRouteCatalog.ROUTES.has(route):
-		rejected.emit(route, "Unknown prototype screen: " + route)
-		return
-	_pending.append({"route": route, "record": record})
-	if not busy: _drain.call_deferred()
+func submit(value: Variant) -> bool:
+	var reason := ZRouteCatalog.validate_intent(value)
+	var route := String(value.route_id) if value is ZUIRouteIntent else ""
+	if not reason.is_empty():
+		_reject(route, reason)
+		return false
+	var intent := value as ZUIRouteIntent
+	reason = _validate_live_origin(intent)
+	if not reason.is_empty():
+		_reject(route, reason)
+		return false
+	if _pending.size() >= MAX_PENDING_INTENTS:
+		_reject(route, "UI route intent queue is full.")
+		return false
+	# Queue a detached command value. Callers cannot mutate an already-admitted
+	# route or payload while a CommonUI transition is awaiting completion.
+	_pending.append(ZUIRouteIntent.new(
+		intent.kind,
+		intent.route_id,
+		intent.origin_route,
+		intent.origin,
+		intent.stack_mode,
+		intent.payload
+	))
+	if not busy:
+		_drain.call_deferred()
+	return true
 
-func back() -> void:
-	_pending.append({"back": true})
-	if not busy: _drain.call_deferred()
+
+func _validate_live_origin(intent: ZUIRouteIntent) -> String:
+	if intent.origin == ZUIRouteIntent.Origin.REVIEW \
+			or intent.origin == ZUIRouteIntent.Origin.SYSTEM:
+		return ""
+	var expected := String(intent.origin_route)
+	if expected.is_empty():
+		return "" if String(host.current_route).is_empty() else "Missing UI route intent origin."
+	if expected != String(host.current_route):
+		return "Stale UI route intent from '%s'; active route is '%s'." % [
+			expected,
+			str(host.current_route),
+		]
+	return ""
+
+
+func _reject(route: String, reason: String) -> void:
+	rejected.emit(route, reason)
 
 func _drain() -> void:
-	if busy: return
+	if busy:
+		return
 	busy = true
 	while not _pending.is_empty() and is_inside_tree():
-		var request: Dictionary = _pending.pop_front()
-		if request.has("back"):
-			await _pop()
+		var intent: ZUIRouteIntent = _pending.pop_front()
+		var reason := ZRouteCatalog.validate_intent(intent)
+		if reason.is_empty():
+			reason = _validate_live_origin(intent)
+		if not reason.is_empty():
+			_reject(String(intent.route_id), reason)
+			continue
+		if intent.kind == ZUIRouteIntent.Kind.BACK:
+			await _apply_back(intent)
 		else:
-			await _open(str(request.route), bool(request.record))
+			await _open(intent)
 	busy = false
 
-func _open(route: String, record: bool) -> void:
+
+func _open(intent: ZUIRouteIntent) -> void:
+	var route := String(intent.route_id)
 	var scene := ZRouteCatalog.scene_for(route)
 	if scene == null:
-		rejected.emit(route, "Unable to load UI screen: " + route)
+		_reject(route, "Unable to load UI screen: " + route)
 		return
 	if host.current_route == route and host.screen is ZScreen:
 		host.screen.refresh_view()
@@ -47,52 +94,99 @@ func _open(route: String, record: bool) -> void:
 	var next := instance as ZScreen
 	if next == null:
 		instance.free()
-		rejected.emit(route, "Route does not contain a ZScreen: " + route)
+		_reject(route, "Route does not contain a ZScreen: " + route)
 		return
-	next.app = ZUIContext.new(host, route, host.fixtures)
+	next.app = ZUIContext.new(
+		host,
+		route,
+		host.fixtures,
+		intent.origin == ZUIRouteIntent.Origin.DEVELOPER_CATALOG \
+				or ZRouteCatalog.is_developer_only(route),
+		intent.payload
+	)
 	var role := ZRouteCatalog.role_for(route)
-	var layer := root.hud_layer() if role == "hud" else root.menu_layer()
+	var layer := root.layer(ZRouteCatalog.layer_for(route))
+	if layer == null:
+		next.free()
+		_reject(route, "CommonUI layer is unavailable for route: " + route)
+		return
 	var old_role := ZRouteCatalog.role_for(str(host.current_route))
-	var reset := not record or role in ["root", "hud", "summary"] or (role == "bunker" and old_role in ["summary", "hud"])
+	var reset := intent.stack_mode == ZUIRouteIntent.StackMode.RESET \
+			or role in ["root", "hud", "summary"] \
+			or (role == "bunker" and old_role in ["summary", "hud"])
 	var replace := reset or (role == "workspace" and old_role == "workspace") or (role == "bunker" and old_role == "bunker")
 	if layer == root.menu_layer() and not reset:
 		next.lower_contexts = active_contexts([root.hud_layer()], true)
 		next.suspends_lower_contexts = not next.lower_contexts.is_empty()
 	var previous := layer.get_top_screen()
 	var result: Dictionary
+	var options := {
+		"route_id": intent.route_id,
+		"payload_type": intent.payload.type_id,
+	}
 	if replace:
-		result = await layer.replace_screen(next)
+		result = await layer.replace_screen(next, options)
 	else:
-		result = await layer.push_screen(next)
+		result = await layer.push_screen(next, options)
 	if int(result.get("status", -1)) != CommonUIStackRequest.Status.SUCCESS:
-		if is_instance_valid(next) and next.get_parent() == null: next.free()
-		rejected.emit(route, str(result.get("error", "Navigation canceled")))
+		if is_instance_valid(next) and next.get_parent() == null:
+			next.free()
+		_reject(route, str(result.get("error", "Navigation canceled")))
 		return
 	if reset:
-		await _keep_only(layer, next)
+		await _keep_only(layer, next, options)
 		var other := root.menu_layer() if role == "hud" else root.hud_layer()
-		if other.get_depth() > 0: await other.teardown()
+		if other.get_depth() > 0:
+			await other.teardown()
 	elif is_instance_valid(previous) and previous != next:
 		previous.hide()
 	_publish()
 
-func _keep_only(layer: CommonUILayer, view: CommonActivatableScreen) -> void:
-	if layer.get_depth() <= 1: return
+func _keep_only(
+	layer: CommonUILayer,
+	view: CommonActivatableScreen,
+	options: Dictionary
+) -> void:
+	if layer.get_depth() <= 1:
+		return
 	# Stage/activate the destination before discarding history. All removals still
 	# use CommonUI transactions; an invalid destination never clears the caller.
 	view.keep_alive_when_popped = true
 	await layer.pop_screen()
 	await layer.teardown()
-	await layer.push_screen(view)
+	await layer.push_screen(view, options)
 	view.keep_alive_when_popped = false
 
-func _pop() -> void:
+
+func _apply_back(intent: ZUIRouteIntent) -> void:
+	var route := String(intent.route_id)
+	var policy := ZRouteCatalog.back_policy_for(route)
+	if policy.get("operation") == ZRouteCatalog.BACK_OPEN:
+		var target := String(policy.get("target", ""))
+		await _open(ZUIRouteIntent.open_route(
+			StringName(target),
+			StringName(route),
+			ZUIRouteIntent.Origin.SYSTEM
+		))
+		return
+	await _pop(route)
+
+
+func _pop(route: String = "") -> void:
 	var menu := root.menu_layer()
 	if menu.get_depth() > 1 or (menu.get_depth() > 0 and root.hud_layer().get_depth() > 0):
-		await menu.pop_screen()
+		var result := await menu.pop_screen({"route_id": StringName(route), "operation": ZRouteCatalog.BACK_POP})
+		if int(result.get("status", -1)) != CommonUIStackRequest.Status.SUCCESS:
+			_reject(route, str(result.get("error", "Back navigation canceled")))
+			return
 		_publish()
 	else:
-		await _open("main_menu", false)
+		await _open(ZUIRouteIntent.open_route(
+			&"main_menu",
+			StringName(route),
+			ZUIRouteIntent.Origin.SYSTEM,
+			ZUIRouteIntent.StackMode.RESET
+		))
 
 func _publish() -> void:
 	var view := root.menu_layer().get_top_screen()

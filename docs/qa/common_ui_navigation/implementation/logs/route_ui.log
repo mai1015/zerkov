@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI_TEST_SCREEN title nodes=16
+UI_TEST_SCREEN main_menu nodes=96
+UI_TEST_SCREEN saves nodes=132
+UI_TEST_SCREEN join_friend nodes=112
+UI_TEST_SCREEN session nodes=176
+UI_TEST_SCREEN bunker nodes=319
+UI_TEST_SCREEN build_mode nodes=324
+UI_TEST_SCREEN crafting nodes=241
+UI_TEST_SCREEN deploying nodes=27
+UI_TEST_SCREEN hud nodes=85
+UI_TEST_SCREEN hud_coop nodes=119
+UI_TEST_SCREEN hud_detail nodes=61
+UI_TEST_SCREEN inventory nodes=568
+UI_TEST_SCREEN health nodes=568
+UI_TEST_SCREEN stats nodes=568
+UI_TEST_SCREEN maps nodes=279
+UI_TEST_SCREEN tasks nodes=171
+UI_TEST_SCREEN settings nodes=349
+UI_TEST_SCREEN controls nodes=208
+UI_TEST_SCREEN pause nodes=70
+UI_TEST_SCREEN summary_solo nodes=168
+UI_TEST_SCREEN summary_squad nodes=189
+UI_TEST_SCREEN crosshairs nodes=265
+UI_TEST_SCREEN status_icons nodes=57
+UI_TEST_SCREEN squad_list nodes=27
+UI_TEST_SCREEN reload nodes=11
+UI_TEST_SCREEN mag_empty nodes=13
+UI_TEST_SCREEN showcase nodes=72
+UI_TEST_COMPLETE checks=945 failures=0

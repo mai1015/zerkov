@@ -42,6 +42,7 @@ func confirm(title_text: String, message: String, callback: Callable) -> void:
 func prompt(title_text: String, initial_value: String, callback: Callable, max_length: int = 24) -> void:
 	var dialog := _new_dialog(title_text, "")
 	dialog.configure_prompt(initial_value, max_length)
+	dialog.screen_context = &"modal/prompt"
 	dialog.confirmed.connect(func() -> void:
 		var value := dialog.get_prompt_text(true)
 		_close_overlay(dialog)
@@ -52,6 +53,7 @@ func prompt(title_text: String, initial_value: String, callback: Callable, max_l
 func _new_dialog(title_text: String, message: String) -> ZerkovDialog:
 	var dialog := DialogScene.instantiate() as ZerkovDialog
 	dialog.configure(title_text.to_upper(), message, "CONFIRM", "CANCEL", true)
+	dialog.screen_context = &"modal/confirm"
 	dialog.resize_to_view(get_viewport_rect().size)
 	dialog.set_lower_contexts(ZUINavigator.active_contexts([
 		common_ui_root.hud_layer(), common_ui_root.menu_layer(), common_ui_root.popup_layer()]))
@@ -73,9 +75,17 @@ func toggle_picker() -> void:
 	picker.current_route = host.current_route
 	picker.lower_contexts = ZUINavigator.active_contexts([
 		common_ui_root.hud_layer(), common_ui_root.menu_layer(), common_ui_root.modal_layer()])
-	picker.selected.connect(host.navigate)
+	picker.selected.connect(_on_catalog_selected)
 	picker.dismissed.connect(func(): _close_overlay(picker))
 	common_ui_root.popup_layer().request_push(picker)
+
+
+func _on_catalog_selected(route: String) -> void:
+	# The popup is the sole compatibility entrance for developer study routes.
+	# Admission happens before dismissal, so an unknown catalog value leaves the
+	# current CommonUI composition and focus trap intact.
+	if host.open_developer_route(route):
+		_close_overlay(picker)
 
 func _close_overlay(control: Control) -> void:
 	if not is_instance_valid(control): return

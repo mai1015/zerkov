@@ -6,6 +6,8 @@ extends RefCounted
 var current_route: String
 var _host: WeakRef
 var fixtures: ZUIFixtureStore
+var developer_context: bool = false
+var route_payload: ZUIRoutePayload
 
 var state: Dictionary:
 	get: return fixtures.state
@@ -16,22 +18,50 @@ var modal: Control:
 var picker: Control:
 	get: return _service().picker if _service() != null else null
 
-func _init(host: Node, route: String, store: ZUIFixtureStore) -> void:
+func _init(
+	host: Node,
+	route: String,
+	store: ZUIFixtureStore,
+	is_developer_context: bool = false,
+	payload: ZUIRoutePayload = null
+) -> void:
 	_host = weakref(host)
 	current_route = route
 	fixtures = store
+	developer_context = is_developer_context
+	route_payload = payload if payload != null else ZUIRoutePayload.empty()
 
 func _service() -> Node:
 	return _host.get_ref() as Node
 
-func navigate(route: String, record: bool = true) -> void:
-	if _service() != null: _service().navigate(route, record)
+func navigate(
+	route: String,
+	record: bool = true,
+	payload: ZUIRoutePayload = null
+) -> bool:
+	var host := _service()
+	if host == null:
+		return false
+	var origin := ZUIRouteIntent.Origin.DEVELOPER_CATALOG \
+			if developer_context else ZUIRouteIntent.Origin.PRODUCTION
+	return bool(host.submit_navigation(ZUIRouteIntent.open_route(
+		StringName(route),
+		StringName(current_route),
+		origin,
+		ZUIRouteIntent.StackMode.AUTO if record else ZUIRouteIntent.StackMode.RESET,
+		payload
+	)))
 
-func back() -> void:
-	if _service() != null: _service().back()
-
-func handle_back_action() -> void:
-	if _service() != null: _service().handle_back_action()
+func back() -> bool:
+	var host := _service()
+	if host == null:
+		return false
+	var origin := ZUIRouteIntent.Origin.DEVELOPER_CATALOG \
+			if developer_context else ZUIRouteIntent.Origin.PRODUCTION
+	return bool(host.submit_navigation(ZUIRouteIntent.back(
+		StringName(current_route),
+		origin
+	)))
 
 func toast(message: String) -> void:
 	if _service() != null: _service().toast(message)

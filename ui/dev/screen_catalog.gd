@@ -6,7 +6,7 @@ var current_route := ""
 var lower_contexts: Array[CommonUIContextHandle] = []
 
 func _init() -> void:
-	screen_context = &"ui/catalog"
+	screen_context = &"developer/catalog"
 	context_priority = CommonUIDefaults.PRIORITY_POPUP
 	suspends_lower_contexts = true
 	handles_back = false

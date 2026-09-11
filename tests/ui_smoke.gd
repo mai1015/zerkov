@@ -96,7 +96,10 @@ func run() -> void:
 	check(app.current_route == "session", "Back from settings must preserve bunker context")
 	app.back()
 	await settle()
-	check(app.current_route == "main_menu", "Second back must return to main menu")
+	check(app.current_route == "pause", "Shared Back policy must open pause from a bunker session")
+	app.back()
+	await settle()
+	check(app.current_route == "session", "Pause Back must restore the retained bunker session")
 
 	app.toggle_picker()
 	await settle()
