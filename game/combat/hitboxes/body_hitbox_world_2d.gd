@@ -12,8 +12,13 @@ enum Lifecycle {
 	RELEASED,
 }
 
-const SNAPSHOT_SCHEMA: String = "zerkov.combat.body_hitbox_snapshot.v1"
-const RAY_QUERY_SCHEMA: String = "zerkov.combat.body_hitbox_ray_query.v1"
+class BindingCapability:
+	extends RefCounted
+
+
+const BINDING_SCHEMA: String = "zerkov.combat.body_hitbox_binding.v1"
+const SNAPSHOT_SCHEMA: String = "zerkov.combat.body_hitbox_snapshot.v2"
+const RAY_QUERY_SCHEMA: String = "zerkov.combat.body_hitbox_ray_query.v2"
 
 # Cross products in exact ray-fraction comparison remain below int64 max:
 # (2 * 1_500_000_000)^2 = 9_000_000_000_000_000_000.
@@ -29,6 +34,7 @@ const MAX_BINDING_TOKEN: int = 2_147_483_647
 
 const BODY_RECORD_KEYS: PackedStringArray = [
 	"entity_id",
+	"actor_source",
 	"profile_id",
 	"body_revision",
 	"origin_raw",
@@ -46,8 +52,15 @@ const OBSTRUCTION_RECORD_KEYS: PackedStringArray = [
 ]
 const RAY_QUERY_KEYS: PackedStringArray = [
 	"request_id",
+	"raid_id",
+	"session_id",
+	"authority_epoch",
 	"authority_generation",
 	"binding_token",
+	"owner_actor_id",
+	"owner_actor_source",
+	"query_actor_id",
+	"query_actor_source",
 	"tick",
 	"world_revision",
 	"origin_raw",
@@ -66,8 +79,14 @@ var _authority: RaidAuthority
 var _authority_instance_id: int = 0
 var _authority_generation: int = 0
 var _raid_id: ZRaidId
+var _session_id: ZSessionId
+var _authority_epoch: int = 0
+var _owner_actor_id: ZEntityId
+var _owner_actor_source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER
 var _binding_counter: int = 0
 var _active_binding_token: int = 0
+var _active_binding_capability: BindingCapability
+var _binding_provenance: Dictionary = {}
 
 var _snapshot_tick: int = -1
 var _snapshot_revision: int = 0
@@ -79,32 +98,44 @@ var _obstruction_history: Dictionary = {}
 var _query_ledger: Dictionary = {}
 
 
-## Binding is allowed only while RaidAuthority is preparing. The monotonically
-## increasing token prevents an old callback from passing an ABA rebind whose
-## replacement authority happens to use the same generation number.
+## Binding is allowed only while RaidAuthority is preparing. Numeric tokens
+## remain useful deterministic provenance, but authorization is carried by a
+## fresh exact-object capability. A capability from another or prior world can
+## never authenticate even when all public IDs and counters collide.
 func bind_raid_authority(
 	authority: RaidAuthority,
+	owner_actor_value: Variant,
+	owner_source_value: Variant,
 	expected_generation: int
-) -> bool:
+) -> BindingCapability:
 	last_error = &""
 	if lifecycle == Lifecycle.BOUND:
-		return _reject_bool(&"hitbox_world_already_bound")
+		return _reject_capability(&"hitbox_world_already_bound")
 	if authority == null or not is_instance_valid(authority):
-		return _reject_bool(&"raid_authority_invalid")
+		return _reject_capability(&"raid_authority_invalid")
 	if expected_generation <= 0 or authority.generation() != expected_generation:
-		return _reject_bool(&"authority_generation_mismatch")
+		return _reject_capability(&"authority_generation_mismatch")
 	if authority.lifecycle != RaidAuthority.Lifecycle.PREPARING:
-		return _reject_bool(&"authority_binding_closed")
+		return _reject_capability(&"authority_binding_closed")
 	var raid := authority.raid_id()
 	var admission := authority.admission()
 	if raid == null or not raid.is_initialized() or admission == null \
 			or not admission.is_usable() or not admission.raid_id.is_equal(raid):
-		return _reject_bool(&"authority_identity_invalid")
+		return _reject_capability(&"authority_identity_invalid")
 	var profile_report := ZerkovBodyHitboxProfile.validate()
 	if not bool(profile_report.get("ok", false)):
-		return _reject_bool(&"body_hitbox_profile_invalid")
+		return _reject_capability(&"body_hitbox_profile_invalid")
+	var owner := _validated_actor_source(
+		owner_actor_value, owner_source_value, &"binding_owner")
+	if owner.is_empty():
+		return null
+	var owner_actor := owner["actor_id"] as ZEntityId
+	var owner_source: ZRaidIntent.Source = int(owner["actor_source"])
+	if not authority.has_authorized_actor_source(
+		owner_actor, owner_source, expected_generation):
+		return _reject_capability(&"binding_owner_not_authorized")
 	if _binding_counter >= MAX_BINDING_TOKEN:
-		return _reject_bool(&"binding_token_exhausted")
+		return _reject_capability(&"binding_token_exhausted")
 
 	_clear_snapshot_state()
 	_binding_counter += 1
@@ -113,8 +144,27 @@ func bind_raid_authority(
 	_authority_instance_id = authority.get_instance_id()
 	_authority_generation = expected_generation
 	_raid_id = ZRaidId.parse(raid.canonical_key())
+	_session_id = ZSessionId.parse(admission.session_id.canonical_key())
+	_authority_epoch = admission.authority_epoch
+	_owner_actor_id = ZEntityId.parse(owner_actor.canonical_key())
+	_owner_actor_source = owner_source
+	_active_binding_capability = BindingCapability.new()
+	_binding_provenance = {
+		"schema": BINDING_SCHEMA,
+		"raid_id": _raid_id.canonical_key(),
+		"session_id": _session_id.canonical_key(),
+		"authority_epoch": _authority_epoch,
+		"authority_generation": _authority_generation,
+		"binding_token": _active_binding_token,
+		"owner_actor_id": _owner_actor_id.canonical_key(),
+		"owner_actor_source": int(_owner_actor_source),
+		"world_instance_id": get_instance_id(),
+		"authority_instance_id": _authority_instance_id,
+		"capability_instance_id": _active_binding_capability.get_instance_id(),
+	}
+	_make_deep_read_only(_binding_provenance)
 	lifecycle = Lifecycle.BOUND
-	return true
+	return _active_binding_capability
 
 
 func is_bound() -> bool:
@@ -125,36 +175,52 @@ func binding_token() -> int:
 	return _active_binding_token if lifecycle == Lifecycle.BOUND else 0
 
 
+func binding_provenance(capability: Variant) -> Dictionary:
+	last_error = &""
+	if not _guard_binding_capability(capability) or not _binding_identity_is_current():
+		if last_error.is_empty():
+			last_error = &"binding_generation_invalidated"
+		return _read_only_dictionary({})
+	return _read_only_dictionary(_binding_provenance)
+
+
 func authority_generation() -> int:
 	return _authority_generation if lifecycle == Lifecycle.BOUND else 0
 
 
 ## Release remains available after the captured authority terminalizes. It
-## requires the binding token, clears all geometry/replay state, and permits a
-## safe bind to a replacement authority.
+## requires the exact binding capability, invalidates it synchronously before
+## clearing geometry/replay state, and permits a safe replacement bind.
 func release_binding(
-	expected_binding_token: int,
+	capability: Variant,
 	reason: StringName = &"body_hitbox_world_released"
 ) -> bool:
 	last_error = &""
 	if lifecycle != Lifecycle.BOUND:
 		return _reject_bool(&"hitbox_world_not_bound")
-	if expected_binding_token <= 0 or expected_binding_token != _active_binding_token:
-		return _reject_bool(&"binding_token_mismatch")
+	if not _guard_binding_capability(capability):
+		return false
 	if reason.is_empty() or not ZIdentityRules.is_valid_part(String(reason)):
 		return _reject_bool(&"release_reason_invalid")
+	# Revoke the bearer before any other lifecycle state changes.
+	_active_binding_capability = null
 	_clear_snapshot_state()
 	_authority = null
 	_authority_instance_id = 0
 	_authority_generation = 0
 	_raid_id = null
+	_session_id = null
+	_authority_epoch = 0
+	_owner_actor_id = null
+	_owner_actor_source = ZRaidIntent.Source.PLAYER
 	_active_binding_token = 0
+	_binding_provenance = {}
 	lifecycle = Lifecycle.RELEASED
 	return true
 
 
-func teardown(expected_binding_token: int) -> bool:
-	return release_binding(expected_binding_token, &"body_hitbox_world_torn_down")
+func teardown(capability: Variant) -> bool:
+	return release_binding(capability, &"body_hitbox_world_torn_down")
 
 
 func snapshot_tick() -> int:
@@ -171,14 +237,23 @@ func snapshot_digest() -> String:
 
 ## Geometry-free metadata is safe to expose to audit/replay code. Actor poses
 ## and obstruction coordinates remain inside this owned query boundary.
-func snapshot_metadata() -> Dictionary:
-	if not is_bound():
-		return {}
-	return {
+func snapshot_metadata(capability: Variant) -> Dictionary:
+	last_error = &""
+	if not _guard_binding_capability(capability) or not _binding_identity_is_current():
+		if last_error.is_empty():
+			last_error = &"binding_generation_invalidated"
+		return _read_only_dictionary({})
+	return _read_only_dictionary({
 		"schema": SNAPSHOT_SCHEMA,
 		"raid_id": _raid_id.canonical_key() if _raid_id != null else "",
+		"session_id": _session_id.canonical_key() if _session_id != null else "",
+		"authority_epoch": _authority_epoch,
 		"authority_generation": _authority_generation,
 		"binding_token": _active_binding_token,
+		"owner_actor_id": _owner_actor_id.canonical_key()
+			if _owner_actor_id != null else "",
+		"owner_actor_source": int(_owner_actor_source),
+		"binding_provenance": _binding_provenance,
 		"tick": _snapshot_tick,
 		"world_revision": _snapshot_revision,
 		"snapshot_digest": _snapshot_digest,
@@ -186,7 +261,7 @@ func snapshot_metadata() -> Dictionary:
 		"body_count": _bodies_by_id.size(),
 		"obstruction_count": _obstructions_by_id.size(),
 		"query_result_count": _query_ledger.size(),
-	}
+	})
 
 
 ## Replaces the entire spatial snapshot fail-atomically. Input order does not
@@ -198,11 +273,17 @@ func publish_snapshot(
 	bodies_value: Variant,
 	obstructions_value: Variant,
 	expected_authority_generation: int,
-	expected_binding_token: int
+	expected_binding_token: int,
+	publisher_actor_value: Variant,
+	publisher_source_value: Variant,
+	capability: Variant
 ) -> bool:
 	last_error = &""
 	last_publication_duplicate = false
-	if not _guard_binding(expected_authority_generation, expected_binding_token):
+	if not _guard_binding(
+		capability, expected_authority_generation, expected_binding_token):
+		return false
+	if not _guard_publisher(publisher_actor_value, publisher_source_value):
 		return false
 	if not _authority_allows_publication():
 		return _reject_bool(&"authority_not_accepting_world_snapshot")
@@ -250,16 +331,20 @@ func publish_snapshot(
 ## Returns one authoritative body hit, one blocking obstruction, or a miss.
 ## Entry distances are exact rational ray fractions; floats and physics-engine
 ## enumeration order are never used to choose the winner.
-func raycast(query_value: Variant) -> Dictionary:
+func raycast(query_value: Variant, capability: Variant) -> Dictionary:
 	last_error = &""
 	last_query_duplicate = false
+	if not _guard_binding_capability(capability):
+		return _rejection(last_error)
+	if not _binding_identity_is_current():
+		return _rejection(&"binding_generation_invalidated")
 	var normalized := _normalize_ray_query(query_value)
 	if not bool(normalized.get("ok", false)):
 		return _rejection(last_error)
 	var query := normalized["record"] as Dictionary
 	var request_key := String(query["request_id"])
 	if not _guard_binding(
-		int(query["authority_generation"]), int(query["binding_token"])):
+		capability, int(query["authority_generation"]), int(query["binding_token"])):
 		return _rejection(last_error, request_key)
 	if not _authority_allows_query():
 		return _rejection(&"authority_not_accepting_world_query", request_key)
@@ -272,7 +357,7 @@ func raycast(query_value: Variant) -> Dictionary:
 		last_query_duplicate = true
 		var replay := (previous["result"] as Dictionary).duplicate(true)
 		replay["duplicate"] = true
-		return replay
+		return _read_only_dictionary(replay)
 	if int(query["world_revision"]) != _snapshot_revision:
 		return _rejection(&"world_revision_mismatch", request_key)
 	if int(query["tick"]) != _snapshot_tick \
@@ -353,7 +438,7 @@ func raycast(query_value: Variant) -> Dictionary:
 		"fingerprint": fingerprint,
 		"result": result.duplicate(true),
 	}
-	return result.duplicate(true)
+	return _read_only_dictionary(result)
 
 
 func _build_snapshot(bodies: Array, obstructions: Array) -> Dictionary:
@@ -416,7 +501,9 @@ func _normalize_body(value: Variant) -> Dictionary:
 	if not _has_exact_keys(source, BODY_RECORD_KEYS):
 		last_error = &"body_record_schema_invalid"
 		return {}
-	if not _is_text(source["entity_id"]) or not _is_text(source["profile_id"]) \
+	if not _is_text(source["entity_id"]) \
+			or typeof(source["actor_source"]) != TYPE_INT \
+			or not _is_text(source["profile_id"]) \
 			or typeof(source["body_revision"]) != TYPE_INT \
 			or typeof(source["origin_raw"]) != TYPE_VECTOR2I \
 			or typeof(source["facing_quarter_turns"]) != TYPE_INT \
@@ -427,6 +514,15 @@ func _normalize_body(value: Variant) -> Dictionary:
 	var entity := ZEntityId.parse(String(source["entity_id"]))
 	if entity == null:
 		last_error = &"body_entity_id_invalid"
+		return {}
+	var actor_source_value := int(source["actor_source"])
+	if not _actor_source_is_valid(actor_source_value):
+		last_error = &"body_actor_source_invalid"
+		return {}
+	var actor_source: ZRaidIntent.Source = actor_source_value
+	if _authority == null or not _authority.has_authorized_actor_source(
+		entity, actor_source, _authority_generation):
+		last_error = &"body_actor_not_authorized"
 		return {}
 	if StringName(source["profile_id"]) != ZerkovBodyHitboxProfile.PROFILE_HUMANOID_V1:
 		last_error = &"body_profile_unsupported"
@@ -459,6 +555,7 @@ func _normalize_body(value: Variant) -> Dictionary:
 			return {}
 	return {
 		"entity_id": entity.canonical_key(),
+		"actor_source": int(actor_source),
 		"profile_id": String(ZerkovBodyHitboxProfile.PROFILE_HUMANOID_V1),
 		"body_revision": body_revision,
 		"origin_raw": origin,
@@ -601,8 +698,15 @@ func _normalize_ray_query(query_value: Variant) -> Dictionary:
 		last_error = &"ray_query_schema_invalid"
 		return {}
 	if not _is_text(source["request_id"]) \
+			or not _is_text(source["raid_id"]) \
+			or not _is_text(source["session_id"]) \
+			or typeof(source["authority_epoch"]) != TYPE_INT \
 			or typeof(source["authority_generation"]) != TYPE_INT \
 			or typeof(source["binding_token"]) != TYPE_INT \
+			or not _is_text(source["owner_actor_id"]) \
+			or typeof(source["owner_actor_source"]) != TYPE_INT \
+			or not _is_text(source["query_actor_id"]) \
+			or typeof(source["query_actor_source"]) != TYPE_INT \
 			or typeof(source["tick"]) != TYPE_INT \
 			or typeof(source["world_revision"]) != TYPE_INT \
 			or typeof(source["origin_raw"]) != TYPE_VECTOR2I \
@@ -617,16 +721,53 @@ func _normalize_ray_query(query_value: Variant) -> Dictionary:
 	if request == null:
 		last_error = &"ray_query_request_id_invalid"
 		return {}
+	var raid := ZRaidId.parse(String(source["raid_id"]))
+	var session := ZSessionId.parse(String(source["session_id"]))
+	var owner_actor := ZEntityId.parse(String(source["owner_actor_id"]))
+	var query_actor := ZEntityId.parse(String(source["query_actor_id"]))
+	if raid == null or session == null or owner_actor == null or query_actor == null:
+		last_error = &"ray_query_provenance_id_invalid"
+		return {}
+	var authority_epoch := int(source["authority_epoch"])
 	var generation := int(source["authority_generation"])
 	var token := int(source["binding_token"])
+	var owner_source_value := int(source["owner_actor_source"])
+	var query_source_value := int(source["query_actor_source"])
 	var tick := int(source["tick"])
 	var revision := int(source["world_revision"])
 	var origin := source["origin_raw"] as Vector2i
 	var target := source["target_raw"] as Vector2i
 	var body_mask := int(source["body_mask"])
 	var obstruction_mask := int(source["obstruction_mask"])
-	if generation <= 0 or token <= 0:
+	if authority_epoch <= 0 or generation <= 0 or token <= 0:
 		last_error = &"ray_query_binding_invalid"
+		return {}
+	if not _actor_source_is_valid(owner_source_value) \
+			or not _actor_source_is_valid(query_source_value):
+		last_error = &"ray_query_actor_source_invalid"
+		return {}
+	var owner_actor_source: ZRaidIntent.Source = owner_source_value
+	var query_actor_source: ZRaidIntent.Source = query_source_value
+	if _raid_id == null or not raid.is_equal(_raid_id):
+		last_error = &"ray_query_raid_mismatch"
+		return {}
+	if _session_id == null or not session.is_equal(_session_id):
+		last_error = &"ray_query_session_mismatch"
+		return {}
+	if authority_epoch != _authority_epoch:
+		last_error = &"ray_query_authority_epoch_mismatch"
+		return {}
+	if _owner_actor_id == null or not owner_actor.is_equal(_owner_actor_id) \
+			or owner_source_value != int(_owner_actor_source):
+		last_error = &"ray_query_owner_mismatch"
+		return {}
+	if _authority == null or not _authority.has_authorized_actor_source(
+		owner_actor, owner_actor_source, _authority_generation):
+		last_error = &"ray_query_owner_not_authorized"
+		return {}
+	if not _authority.has_authorized_actor_source(
+		query_actor, query_actor_source, _authority_generation):
+		last_error = &"ray_query_actor_not_authorized"
 		return {}
 	if tick < 0 or revision <= 0:
 		last_error = &"ray_query_order_invalid"
@@ -671,8 +812,15 @@ func _normalize_ray_query(query_value: Variant) -> Dictionary:
 	var record := {
 		"schema": RAY_QUERY_SCHEMA,
 		"request_id": request.canonical_key(),
+		"raid_id": raid.canonical_key(),
+		"session_id": session.canonical_key(),
+		"authority_epoch": authority_epoch,
 		"authority_generation": generation,
 		"binding_token": token,
+		"owner_actor_id": owner_actor.canonical_key(),
+		"owner_actor_source": owner_source_value,
+		"query_actor_id": query_actor.canonical_key(),
+		"query_actor_source": query_source_value,
 		"tick": tick,
 		"world_revision": revision,
 		"origin_raw": origin,
@@ -776,8 +924,14 @@ func _build_query_result(
 		"reason": &"",
 		"request_id": String(query["request_id"]),
 		"raid_id": _raid_id.canonical_key(),
+		"session_id": _session_id.canonical_key(),
+		"authority_epoch": _authority_epoch,
 		"authority_generation": _authority_generation,
 		"binding_token": _active_binding_token,
+		"owner_actor_id": _owner_actor_id.canonical_key(),
+		"owner_actor_source": int(_owner_actor_source),
+		"query_actor_id": String(query["query_actor_id"]),
+		"query_actor_source": int(query["query_actor_source"]),
 		"tick": _snapshot_tick,
 		"world_revision": _snapshot_revision,
 		"snapshot_digest": _snapshot_digest,
@@ -890,9 +1044,13 @@ func _compare_fraction(
 	return 0
 
 
-func _guard_binding(expected_generation: int, expected_token: int) -> bool:
-	if lifecycle != Lifecycle.BOUND:
-		return _reject_bool(&"hitbox_world_not_bound")
+func _guard_binding(
+	capability: Variant,
+	expected_generation: int,
+	expected_token: int
+) -> bool:
+	if not _guard_binding_capability(capability):
+		return false
 	if expected_generation <= 0 or expected_generation != _authority_generation:
 		return _reject_bool(&"authority_generation_mismatch")
 	if expected_token <= 0 or expected_token != _active_binding_token:
@@ -902,15 +1060,73 @@ func _guard_binding(expected_generation: int, expected_token: int) -> bool:
 	return true
 
 
+func _guard_binding_capability(capability: Variant) -> bool:
+	if lifecycle != Lifecycle.BOUND:
+		return _reject_bool(&"hitbox_world_not_bound")
+	if capability == null or not capability is BindingCapability \
+			or capability != _active_binding_capability:
+		return _reject_bool(&"binding_capability_mismatch")
+	return true
+
+
+func _guard_publisher(actor_value: Variant, source_value: Variant) -> bool:
+	var publisher := _validated_actor_source(
+		actor_value, source_value, &"snapshot_publisher")
+	if publisher.is_empty():
+		return false
+	var actor := publisher["actor_id"] as ZEntityId
+	var source: ZRaidIntent.Source = int(publisher["actor_source"])
+	if _owner_actor_id == null or not actor.is_equal(_owner_actor_id) \
+			or int(source) != int(_owner_actor_source):
+		return _reject_bool(&"snapshot_publisher_mismatch")
+	if _authority == null or not _authority.has_authorized_actor_source(
+		actor, source, _authority_generation):
+		return _reject_bool(&"snapshot_publisher_not_authorized")
+	return true
+
+
+func _validated_actor_source(
+	actor_value: Variant,
+	source_value: Variant,
+	error_prefix: StringName
+) -> Dictionary:
+	if not actor_value is ZEntityId:
+		last_error = StringName("%s_actor_id_invalid" % String(error_prefix))
+		return {}
+	if typeof(source_value) != TYPE_INT or not _actor_source_is_valid(int(source_value)):
+		last_error = StringName("%s_actor_source_invalid" % String(error_prefix))
+		return {}
+	var actor := actor_value as ZEntityId
+	if actor == null or ZEntityId.parse(actor.canonical_key()) == null:
+		last_error = StringName("%s_actor_id_invalid" % String(error_prefix))
+		return {}
+	return {
+		"actor_id": ZEntityId.parse(actor.canonical_key()),
+		"actor_source": int(source_value),
+	}
+
+
+func _actor_source_is_valid(value: int) -> bool:
+	return value >= ZRaidIntent.Source.PLAYER and value <= ZRaidIntent.Source.SYSTEM
+
+
 func _binding_identity_is_current() -> bool:
 	if _authority == null or not is_instance_valid(_authority) \
 			or _authority.get_instance_id() != _authority_instance_id \
 			or _authority.generation() != _authority_generation \
 			or _authority.lifecycle == RaidAuthority.Lifecycle.TORN_DOWN \
-			or _raid_id == null:
+			or _raid_id == null or _session_id == null or _owner_actor_id == null:
 		return false
 	var current_raid := _authority.raid_id()
-	return current_raid != null and current_raid.is_equal(_raid_id)
+	var current_admission := _authority.admission()
+	return current_raid != null and current_raid.is_equal(_raid_id) \
+		and current_admission != null and current_admission.is_usable() \
+		and current_admission.raid_id.is_equal(_raid_id) \
+		and current_admission.session_id.is_equal(_session_id) \
+		and current_admission.authority_epoch == _authority_epoch \
+		and current_admission.generation == _authority_generation \
+		and _authority.has_authorized_actor_source(
+			_owner_actor_id, _owner_actor_source, _authority_generation)
 
 
 func _authority_allows_publication() -> bool:
@@ -950,6 +1166,26 @@ func _is_text(value: Variant) -> bool:
 	return typeof(value) == TYPE_STRING or typeof(value) == TYPE_STRING_NAME
 
 
+func _read_only_dictionary(value: Dictionary) -> Dictionary:
+	var publication := value.duplicate(true)
+	_make_deep_read_only(publication)
+	return publication
+
+
+func _make_deep_read_only(value: Variant) -> void:
+	match typeof(value):
+		TYPE_DICTIONARY:
+			var dictionary := value as Dictionary
+			for key in dictionary.keys():
+				_make_deep_read_only(dictionary[key])
+			dictionary.make_read_only()
+		TYPE_ARRAY:
+			var array := value as Array
+			for entry in array:
+				_make_deep_read_only(entry)
+			array.make_read_only()
+
+
 func _point_is_bounded(point: Vector2i) -> bool:
 	return absi(point.x) <= MAX_COORDINATE_RAW \
 		and absi(point.y) <= MAX_COORDINATE_RAW
@@ -975,16 +1211,21 @@ func _clear_snapshot_state() -> void:
 
 func _rejection(reason: StringName, request_id: String = "") -> Dictionary:
 	last_error = reason
-	return {
+	return _read_only_dictionary({
 		"accepted": false,
 		"duplicate": false,
 		"reason": reason,
 		"request_id": request_id,
 		"hit": false,
 		"blocked": false,
-	}
+	})
 
 
 func _reject_bool(reason: StringName) -> bool:
 	last_error = reason
 	return false
+
+
+func _reject_capability(reason: StringName) -> BindingCapability:
+	last_error = reason
+	return null

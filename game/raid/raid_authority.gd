@@ -149,6 +149,23 @@ func authorize_actor(
 	return true
 
 
+## Side-effect-free authorization port for game-owned boundaries that must
+## prove an actor/source belongs to this exact raid authority. The backing set
+## remains private so callers cannot enumerate or mutate authority ownership.
+func has_authorized_actor_source(
+	actor_id: ZEntityId,
+	source: ZRaidIntent.Source,
+	expected_generation: int
+) -> bool:
+	if not _is_current_generation(expected_generation):
+		return false
+	if int(source) < ZRaidIntent.Source.PLAYER or int(source) > ZRaidIntent.Source.SYSTEM:
+		return false
+	if actor_id == null or ZEntityId.parse(actor_id.canonical_key()) == null:
+		return false
+	return _authorized_actor_sources.has(_actor_source_key(actor_id, source))
+
+
 func register_phase_handler(
 	phase: TickPhase,
 	handler_id: StringName,

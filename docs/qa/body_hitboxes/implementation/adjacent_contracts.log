@@ -17,11 +17,11 @@ IDENTITY_CONTRACT_RESULT checks=18442 failures=0 unique=9216
 COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/raid/session_lifecycle_contract.gd
 EXIT_CODE: 0
 SESSION_LIFECYCLE_RESULT checks=44 failures=0
+SCOPE: domain-only; no viewport, UI, composition, inventory, or screen-size code
 
 COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/raid/units_clock_contract.gd
 EXIT_CODE: 0
 UNITS_CLOCK_CONTRACT_RESULT checks=29 failures=0
 
-COMMAND: /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path . --audio-driver Dummy --script res://tests/addons/combined_addons_smoke.gd
-EXIT_CODE: 0
-ADDON_SMOKE_RESULT checks=155 failures=0
+EXCLUDED: combined add-ons, UI, composition, inventory, visual, runtime capture,
+and all screen-size suites. No sub-1920x1080 output was generated.

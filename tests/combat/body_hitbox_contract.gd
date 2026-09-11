@@ -38,12 +38,18 @@ func _test_profile_contract() -> void:
 		"profile validation has no findings")
 	check(String(report.get("digest", "")).length() == 64,
 		"profile has a stable SHA-256 declaration digest")
+	check(report.is_read_only()
+		and (report.get("findings", []) as Array).is_read_only(),
+		"profile validation publication is recursively immutable")
 	check(ZIdentityRules.is_valid(
 		String(ZerkovBodyHitboxProfile.PROFILE_HUMANOID_V1), &"hitbox_profile"),
 		"humanoid profile identifier uses the stable identity grammar")
 
 	var declarations := ZerkovBodyHitboxProfile.declarations()
 	check(declarations.size() == 7, "profile authors all seven health zones")
+	check(declarations.is_read_only()
+		and (declarations[0] as Dictionary).is_read_only(),
+		"profile declaration collection and entries are recursively immutable")
 	var zone_ids := PackedStringArray()
 	var hitbox_ids := PackedStringArray()
 	var groups: Dictionary = {}
@@ -71,11 +77,17 @@ func _test_profile_contract() -> void:
 	check(ZObstructionId.parse("zerkov.obstruction.sawmill.wall_001") != null,
 		"combat obstruction identities use a separate typed namespace")
 
-	var detached := ZerkovBodyHitboxProfile.declarations()
-	detached[0]["body_zone"] = "forged"
+	var detached := ZerkovBodyHitboxProfile.declarations().duplicate(true)
+	(detached[0] as Dictionary)["body_zone"] = "forged"
 	check(StringName(ZerkovBodyHitboxProfile.declarations()[0]["body_zone"])
 		== ZerkovHealthAbilityContent.ZONE_HEAD,
 		"callers cannot mutate the sealed profile through returned dictionaries")
+	var head := ZerkovBodyHitboxProfile.declaration(
+		ZerkovBodyHitboxProfile.HITBOX_HEAD)
+	check(head.is_read_only(), "single profile declaration publication is immutable")
+	var built := ZerkovBodyHitboxProfile.build_world_hitboxes(Vector2i.ZERO, 0)
+	check(built.is_read_only() and (built[0] as Dictionary).is_read_only(),
+		"world-space profile declarations are recursively immutable")
 
 
 func _test_authoritative_world_contract() -> void:
@@ -91,11 +103,12 @@ func _test_authoritative_world_contract() -> void:
 		_body(target, 1, target_origin),
 		_body(decoy, 1, Vector2i(8_000_000, 0), 0, 4, false),
 	]
-	check(world.publish_snapshot(0, 1, bodies, [], generation, token),
+	_authorize_bodies(context, bodies)
+	check(_publish(context, 0, 1, bodies, []),
 		"complete tick-zero body snapshot publishes while preparing")
 	var digest := world.snapshot_digest()
 	check(digest.length() == 64, "published world snapshot has a stable digest")
-	var metadata := world.snapshot_metadata()
+	var metadata := world.snapshot_metadata(context["capability"])
 	check(int(metadata.get("body_count", -1)) == 2
 		and int(metadata.get("obstruction_count", -1)) == 0,
 		"metadata reports bounded body and obstruction counts")
@@ -104,6 +117,9 @@ func _test_authoritative_world_contract() -> void:
 	check(String(metadata.get("profile_digest", ""))
 		== ZerkovBodyHitboxProfile.declaration_digest(),
 		"snapshot is sealed against the exact hitbox profile")
+	check(metadata.is_read_only()
+		and (metadata.get("binding_provenance", {}) as Dictionary).is_read_only(),
+		"snapshot metadata and nested binding provenance are immutable")
 
 	# Input mutation after publication cannot change the stored snapshot.
 	bodies[0]["origin_raw"] = Vector2i(500_000_000, 500_000_000)
@@ -131,7 +147,7 @@ func _test_authoritative_world_contract() -> void:
 	for index in zone_points.size():
 		var row := zone_points[index] as Array
 		var start := target_origin + (row[1] as Vector2i)
-		var result := world.raycast(_query(
+		var result := _ray(context, _query(
 			context, "zone_%02d" % index, start, start + Vector2i(10_000, 0),
 			BODY_LAYER, 0))
 		check(bool(result.get("accepted", false)) and bool(result.get("hit", false)),
@@ -147,16 +163,23 @@ func _test_authoritative_world_contract() -> void:
 		check(int(result.get("ray_fraction_numerator", -1)) == 0
 			and int(result.get("ray_fraction_denominator", 0)) == 1,
 			"origin-inside hit returns normalized exact rational distance")
+		check(result.is_read_only(),
+			"zone %s hit publication is immutable" % String(row[0]))
 
 	var replay_query := _query(
 		context, "replay", target_origin + Vector2i(0, -600_000),
 		target_origin + Vector2i(10_000, -600_000), BODY_LAYER, 0)
-	var first := world.raycast(replay_query)
+	var first := _ray(context, replay_query)
 	var first_digest := String(first.get("resolution_digest", ""))
-	first["body_zone"] = &"forged"
-	var replay := world.raycast(replay_query)
+	var detached_result := first.duplicate(true)
+	detached_result["body_zone"] = &"forged"
+	detached_result["entity_id"] = "zerkov.entity.hitbox.forged"
+	detached_result["resolution_digest"] = String("0").repeat(64)
+	var replay := _ray(context, replay_query)
 	check(bool(replay.get("accepted", false)) and bool(replay.get("duplicate", false)),
 		"identical query-ID replay returns the recorded result")
+	check(first.is_read_only() and replay.is_read_only(),
+		"accepted and replayed result publications are immutable")
 	check(StringName(replay.get("body_zone", &"")) == ZerkovHealthAbilityContent.ZONE_HEAD,
 		"mutating a returned result cannot corrupt replay state")
 	check(String(replay.get("resolution_digest", "")) == first_digest,
@@ -165,21 +188,22 @@ func _test_authoritative_world_contract() -> void:
 
 	var divergent := replay_query.duplicate(true)
 	divergent["target_raw"] = target_origin + Vector2i(20_000, -600_000)
-	var divergent_result := world.raycast(divergent)
+	var divergent_result := _ray(context, divergent)
 	check(not bool(divergent_result.get("accepted", true))
 		and divergent_result.get("reason") == &"request_id_reused_with_different_query",
 		"same query identity with divergent geometry fails closed")
+	check(divergent_result.is_read_only(), "query rejection publication is immutable")
 
 	var excluded_query := _query(
 		context, "excluded", target_origin + Vector2i(0, -600_000),
 		target_origin + Vector2i(10_000, -600_000), BODY_LAYER, 0,
 		[target.canonical_key()])
-	var excluded_result := world.raycast(excluded_query)
+	var excluded_result := _ray(context, excluded_query)
 	check(bool(excluded_result.get("accepted", false))
 		and excluded_result.get("outcome") == &"miss",
 		"explicit stable entity exclusion removes that body from selection")
 
-	var miss := world.raycast(_query(
+	var miss := _ray(context, _query(
 		context, "miss", Vector2i(-1_000_000, -1_000_000),
 		Vector2i(-500_000, -1_000_000), BODY_LAYER, 0))
 	check(bool(miss.get("accepted", false)) and not bool(miss.get("hit", true))
@@ -193,7 +217,7 @@ func _test_authoritative_world_contract() -> void:
 		_body(decoy, 1, Vector2i(8_000_000, 0), 0, 4, false),
 		_body(target, 1, target_origin),
 	]
-	check(world.publish_snapshot(0, 1, canonical_bodies, [], generation, token),
+	check(_publish(context, 0, 1, canonical_bodies, []),
 		"same snapshot accepts reordered input as a duplicate")
 	check(world.last_publication_duplicate and world.snapshot_digest() == digest,
 		"snapshot input ordering cannot change canonical digest")
@@ -208,19 +232,21 @@ func _test_rotation_and_mask_contract() -> void:
 	var rotated := _entity("rotation_target")
 	var hidden := _entity("rotation_hidden")
 	var origin := Vector2i(2_000_000, 2_000_000)
-	check(world.publish_snapshot(0, 1, [
+	var bodies: Array = [
 		_body(rotated, 1, origin, 1, 4, true),
 		_body(hidden, 1, origin, 0, BODY_LAYER, false),
-	], [], generation, token), "rotated/masked fixture publishes")
+	]
+	_authorize_bodies(context, bodies)
+	check(_publish(context, 0, 1, bodies, []), "rotated/masked fixture publishes")
 	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, generation),
 		"rotated fixture activates")
 	var rotated_head_point := origin + Vector2i(600_000, 0)
-	var masked_out := world.raycast(_query(
+	var masked_out := _ray(context, _query(
 		context, "masked_out", rotated_head_point,
 		rotated_head_point + Vector2i(10_000, 0), BODY_LAYER, 0))
 	check(masked_out.get("outcome") == &"miss",
 		"collision masks and targetable state both fail closed")
-	var rotated_hit := world.raycast(_query(
+	var rotated_hit := _ray(context, _query(
 		context, "rotated_head", rotated_head_point,
 		rotated_head_point + Vector2i(10_000, 0), 4, 0))
 	check(bool(rotated_hit.get("hit", false))
@@ -237,13 +263,25 @@ func _new_context(label: String) -> Dictionary:
 	check(authority.configure(raid, admission, 11), "%s authority configures" % label)
 	var generation := authority.generation()
 	var world := BodyHitboxWorld2D.new()
-	check(world.bind_raid_authority(authority, generation),
+	var owner_actor := admission.actor_id
+	var owner_source := ZRaidIntent.Source.PLAYER
+	var capability := world.bind_raid_authority(
+		authority, owner_actor, owner_source, generation)
+	check(capability != null,
 		"%s body world binds during preparing" % label)
 	return {
 		"authority": authority,
 		"world": world,
 		"generation": generation,
 		"token": world.binding_token(),
+		"capability": capability,
+		"owner_actor": ZEntityId.parse(owner_actor.canonical_key()),
+		"owner_source": int(owner_source),
+		"raid_id": raid.canonical_key(),
+		"session_id": admission.session_id.canonical_key(),
+		"authority_epoch": admission.authority_epoch,
+		"query_actor": ZEntityId.parse(owner_actor.canonical_key()),
+		"query_source": int(owner_source),
 	}
 
 
@@ -261,6 +299,7 @@ func _body(
 ) -> Dictionary:
 	return {
 		"entity_id": entity.canonical_key(),
+		"actor_source": int(ZRaidIntent.Source.AI),
 		"profile_id": String(ZerkovBodyHitboxProfile.PROFILE_HUMANOID_V1),
 		"body_revision": revision,
 		"origin_raw": origin,
@@ -283,8 +322,15 @@ func _query(
 	var request := ZRequestId.from_parts(PackedStringArray(["hitbox", label]))
 	return {
 		"request_id": request.canonical_key(),
+		"raid_id": String(context["raid_id"]),
+		"session_id": String(context["session_id"]),
+		"authority_epoch": int(context["authority_epoch"]),
 		"authority_generation": int(context["generation"]),
 		"binding_token": int(context["token"]),
+		"owner_actor_id": (context["owner_actor"] as ZEntityId).canonical_key(),
+		"owner_actor_source": int(context["owner_source"]),
+		"query_actor_id": (context["query_actor"] as ZEntityId).canonical_key(),
+		"query_actor_source": int(context["query_source"]),
 		"tick": world.snapshot_tick(),
 		"world_revision": world.snapshot_revision(),
 		"origin_raw": origin,
@@ -293,3 +339,33 @@ func _query(
 		"obstruction_mask": obstruction_mask,
 		"excluded_entity_ids": exclusions.duplicate(),
 	}
+
+
+func _authorize_bodies(context: Dictionary, bodies: Array) -> void:
+	var authority := context["authority"] as RaidAuthority
+	for body_value in bodies:
+		var body := body_value as Dictionary
+		var actor := ZEntityId.parse(String(body.get("entity_id", "")))
+		var source: ZRaidIntent.Source = int(body.get("actor_source", -1))
+		check(actor != null and authority.authorize_actor(
+			actor, source, int(context["generation"])),
+			"body fixture actor is explicitly authorized")
+
+
+func _publish(
+	context: Dictionary,
+	tick: int,
+	revision: int,
+	bodies: Array,
+	obstructions: Array
+) -> bool:
+	return (context["world"] as BodyHitboxWorld2D).publish_snapshot(
+		tick, revision, bodies, obstructions,
+		int(context["generation"]), int(context["token"]),
+		context["owner_actor"], int(context["owner_source"]),
+		context["capability"])
+
+
+func _ray(context: Dictionary, query: Variant) -> Dictionary:
+	return (context["world"] as BodyHitboxWorld2D).raycast(
+		query, context["capability"])

@@ -36,6 +36,12 @@ const ZONE_PRIORITY_RIGHT_LEG: int = 6
 ## is one 32 px source tile. Only exact quarter turns are accepted by the world
 ## owner, so transforming this geometry never introduces floating-point state.
 static func declarations() -> Array[Dictionary]:
+	var result := _mutable_declarations()
+	_make_deep_read_only(result)
+	return result
+
+
+static func _mutable_declarations() -> Array[Dictionary]:
 	return [
 		_declaration(HITBOX_HEAD, ZerkovHealthAbilityContent.ZONE_HEAD,
 			GROUP_HEAD, ZONE_PRIORITY_HEAD, Vector2i(-220_000, -780_000),
@@ -64,8 +70,10 @@ static func declarations() -> Array[Dictionary]:
 static func declaration(hitbox_identifier: StringName) -> Dictionary:
 	for value in declarations():
 		if StringName(value["hitbox_id"]) == hitbox_identifier:
-			return value.duplicate(true)
-	return {}
+			return value
+	var missing: Dictionary = {}
+	missing.make_read_only()
+	return missing
 
 
 static func declaration_digest() -> String:
@@ -127,13 +135,15 @@ static func validate() -> Dictionary:
 	var digest := declaration_digest()
 	if digest.is_empty():
 		findings.append(&"declaration_digest_invalid")
-	return {
+	var report := {
 		"ok": findings.is_empty(),
 		"findings": findings.duplicate(),
 		"digest": digest,
 		"profile_id": String(PROFILE_HUMANOID_V1),
 		"content_version": CONTENT_VERSION,
 	}
+	_make_deep_read_only(report)
+	return report
 
 
 ## Produces detached world-space AABBs from an explicit canonical pose. This
@@ -143,7 +153,9 @@ static func build_world_hitboxes(
 	facing_quarter_turns: int
 ) -> Array[Dictionary]:
 	if facing_quarter_turns < 0 or facing_quarter_turns > 3:
-		return []
+		var invalid: Array[Dictionary] = []
+		invalid.make_read_only()
+		return invalid
 	var result: Array[Dictionary] = []
 	for value in declarations():
 		var local_min := value["local_min_raw"] as Vector2i
@@ -155,6 +167,7 @@ static func build_world_hitboxes(
 		world_hitbox["min_raw"] = origin_raw + (rotated["min_raw"] as Vector2i)
 		world_hitbox["max_raw"] = origin_raw + (rotated["max_raw"] as Vector2i)
 		result.append(world_hitbox)
+	_make_deep_read_only(result)
 	return result
 
 
@@ -202,3 +215,17 @@ static func _rotated_bounds(
 				"max_raw": Vector2i(local_max.y, -local_min.x),
 			}
 	return {}
+
+
+static func _make_deep_read_only(value: Variant) -> void:
+	match typeof(value):
+		TYPE_DICTIONARY:
+			var dictionary := value as Dictionary
+			for key in dictionary.keys():
+				_make_deep_read_only(dictionary[key])
+			dictionary.make_read_only()
+		TYPE_ARRAY:
+			var array := value as Array
+			for entry in array:
+				_make_deep_read_only(entry)
+			array.make_read_only()
