@@ -45,11 +45,11 @@ Full screens live under `ui/screens/<feature>/`; the seven review studies live u
 - `docs/DEVELOPMENT.md`: pinned engine/toolchain, add-on update workflow and
   foundation verification commands.
 
-PC is the primary target. Play defaults to a 1600×900 window showing the approved 1920×1080 composition, proportionally fitted without changing its columns or panels. Normal PC windows (1280×720 and larger) use this desktop layout; non-16:9 windows preserve the design aspect ratio. Only windows narrower than 1280 or shorter than 720 switch to the compact scrolling fallback, supported down to 960×540. Small sprites use nearest filtering; the compatibility renderer keeps this UI-only project lightweight.
+PC at 1920×1080 is the sole first-playable display target, and Play opens at that resolution. Existing responsive and compact paths remain in the project as nonblocking historical behavior, but smaller-output adaptation and acceptance are deferred. Small sprites use nearest filtering; the compatibility renderer keeps the project lightweight.
 
 In the compact fallback, use the mouse wheel or trackpad over a pane to scroll, and section tabs to access additional panels. Mock state survives resizing; dialogs preserve typed input. For explicit developer review, pass `--layout=compact` or `--layout=desktop` after `--`; normal Play uses `auto`. Restart a running preview to pick up the new default window settings.
 
-Square borders use a shared pixel-aligned style adapter when downscaled, keeping at least one physical pixel visible without changing the 1080p layout. Grid outer edges sit inside the clipping bounds. This works with Compatibility and does not require MSAA.
+Square borders and grid outer edges stay pixel-aligned inside clipping bounds at 1080p. This works with Compatibility and does not require MSAA.
 
 ## Verification and captures
 
