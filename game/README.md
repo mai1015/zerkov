@@ -10,6 +10,7 @@ file here belongs to an add-on package, and add-ons must not import this tree.
 | `domain/` | Engine-light value types, contracts, and ports |
 | `domain/ports/` | Replaceable ingress, persistence, and domain seams |
 | `raid/` | Canonical tick, raid lifecycle, ordering, and journal runtime |
+| `profile/` | Versioned game-owned profile serialization and local file persistence |
 | `combat/` | Game-owned hit selection, combat content, and cross-domain policy |
 | `adapters/` | Explicit translations between Zerkov and public add-on APIs |
 | `ai/vision/` | Sealed Common Vision world configuration, tick budget, and ownership |

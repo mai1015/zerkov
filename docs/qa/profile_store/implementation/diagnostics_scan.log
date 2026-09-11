@@ -1,0 +1,19 @@
+PASS: no matches in the clean final post-merge editor import, 17 final headless domain contracts, concurrency-repeat, toolchain, vendor, or strict-spec logs.
+
+Post-merge base: 4accbd8a92e9ad66900b3398fe97ab5b8fa47bb6 (merged as 99226f7a4c5df23f5488aa19e157e83100bab9fc)
+Excluded by instruction: all UI, viewport, and visual-capture contracts
+
+Scanned patterns:
+SCRIPT ERROR
+ERROR:
+WARNING:
+Unicode parsing error
+Failed to load
+GDExtension.*fail
+ObjectDB instances leaked
+RID allocations
+failures=[1-9]
+FAILED
+Traceback
+join_timeouts=[1-9]
+deadlocks=[1-9]

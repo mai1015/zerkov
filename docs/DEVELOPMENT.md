@@ -84,6 +84,8 @@ $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/raid/inventory_ability_reconciliation_contract.gd
 $ZERKOV_GODOT --headless --path . --audio-driver Dummy \
   --script res://tests/combat/content_contract.gd
+$ZERKOV_GODOT --headless --path . --audio-driver Dummy \
+  --script res://tests/raid/profile_store_contract.gd
 ```
 
 Godot may return exit code zero for a script parse error, so a run is successful
@@ -103,6 +105,36 @@ INVENTORY_ABILITY_RECONCILIATION_RESULT checks=546 failures=0
 IDENTITY_CONTRACT_RESULT checks=18442 failures=0
 COMBAT_CONTENT_RESULT checks=79 failures=0
 ```
+
+## ProfileStore checkpoint (task 7.9)
+
+The game-owned profile boundary is documented in
+[`game/profile/README.md`](../game/profile/README.md). Its promoted contract
+covers canonical bytes, strict malformed/tampered input rejection, primary and
+backup precedence, write-free exact replay, version-1 equal
+generation/revision lineage, monotonic CAS, and a fail-closed migration barrier
+for structurally recognizable unsupported schema/version/codec copies in
+either slot. Unsupported load/save/replay receipts are immutable, preserve both
+copies byte-for-byte, and perform reads only; migration remains an explicit
+future operation. The contract also covers temp and backup rotation, the full
+file-durability/replace-result/directory-sync cross-product, recursively
+read-only public results, normal recovery of malformed supported-version data,
+real symlink rejection, a restart-like host filesystem flow, synchronized
+concurrent lease acquisition, same-store operation admission, and
+close-during-save lease retention. Thread joins are bounded. A named
+zero-failure result and a clean diagnostics scan are both required:
+
+```text
+PROFILE_STORE_RESULT checks=527 failures=0
+```
+
+The production Godot adapter writes and flushes a same-directory temp before
+`DirAccess.rename_absolute()`. Godot exposes no directory-fsync API, so a
+verified production replacement is reported as
+`committed_durability_uncertain`; the checkpoint does not claim power-loss
+durability or an interprocess writer lock. Within one process, mutex-backed
+critical sections linearize lease ownership and admit one operation per store;
+no file-operation callback or storage I/O executes while those locks are held.
 
 ## Inventory UI binding checkpoint (task 4.7b)
 
