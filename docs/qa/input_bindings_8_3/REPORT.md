@@ -138,3 +138,16 @@ outside this task's evidence packet.
   headless run; synthetic keyboard/controller events prove CommonUI routing,
   while device profiles and deterministic glyph fallback are covered as pure
   catalog/service contracts.
+
+## Independent acceptance
+
+Accepted on 2026-09-11 at immutable implementation head
+`5159bdec6b119f46829b1d12dae7d34fe40de027` with no P0-P3 findings. The
+independent pass verified deterministic duplicate-policy rejection, keyboard
+and joypad `ui_*` collision protection, safe defaults, request reservation,
+bounded context leases, glyph mappings, persistence, the byte-identical locked
+CommonUI snapshot, and the retained Character inventory surface. Seventeen
+permitted runs passed `2,612/0`, vendor tests passed `4/4`, import diagnostics,
+strict spec validation, source hashes and diff checks were clean. Every UI run
+was exact 1920×1080; no compact, responsive, alternate-size or deferred visual
+suite ran.
