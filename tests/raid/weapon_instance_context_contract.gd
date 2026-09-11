@@ -212,6 +212,22 @@ func run() -> void:
 		scope_generation,
 		_raid_authority.generation()
 	), "task-5.2 adapter binds every exact authority generation")
+	check(_instance_adapter.authenticates_combat_binding(
+		_raid_authority, _weapon_authority, _admission.actor_id,
+		ZRaidIntent.Source.PLAYER, _instance_adapter.binding_generation()),
+		"combat consumer authenticates the exact raid, weapon, actor, and binding")
+	var forged_combat_actor := ZEntityId.from_parts(PackedStringArray([
+		"weapon_context", "forged_combat_actor"] ))
+	check(not _instance_adapter.authenticates_combat_binding(
+		_raid_authority, _weapon_authority, forged_combat_actor,
+		ZRaidIntent.Source.PLAYER, _instance_adapter.binding_generation()) \
+		and not _instance_adapter.authenticates_combat_binding(
+			_raid_authority, _weapon_authority, _admission.actor_id,
+			ZRaidIntent.Source.AI, _instance_adapter.binding_generation()) \
+		and not _instance_adapter.authenticates_combat_binding(
+			_raid_authority, _weapon_authority, _admission.actor_id,
+			ZRaidIntent.Source.PLAYER, _instance_adapter.binding_generation() + 1),
+		"combat binding proof rejects wrong actor, source, and generation")
 	check(bool(_weapon_authority.configure(
 		altered_runtime["shot_profiles"],
 		altered_runtime["weapons"],

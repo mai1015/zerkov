@@ -39,6 +39,47 @@ func append(
 	payload: Dictionary = {}
 ) -> bool:
 	last_error = &""
+	if not _validate_append(kind, event_id, tick, actor_id, payload):
+		return false
+
+	var event_key := event_id.canonical_key()
+	var event := ZRaidEvent.new()
+	event.event_id = ZConsequenceId.parse(event_key)
+	event.raid_id = _raid_id
+	event.actor_id = ZEntityId.parse(actor_id.canonical_key()) if actor_id != null else null
+	event.kind = kind
+	event.tick = tick
+	event.sequence = _next_sequence
+	event.payload = payload.duplicate(true)
+	_events.append(event)
+	_seen_event_ids[event_key] = true
+	_next_sequence += 1
+	_last_tick = tick
+	return true
+
+
+## Capacity/collision preflight for fail-atomic cross-domain adapters.  This
+## performs the exact append validation without reserving or publishing state;
+## synchronous single-writer callers may then complete their world query and
+## append without an intervening yield.
+func can_append(
+	kind: ZRaidEvent.EventKind,
+	event_id: ZConsequenceId,
+	tick: int,
+	actor_id: ZEntityId,
+	payload: Dictionary = {}
+) -> bool:
+	last_error = &""
+	return _validate_append(kind, event_id, tick, actor_id, payload)
+
+
+func _validate_append(
+	kind: ZRaidEvent.EventKind,
+	event_id: ZConsequenceId,
+	tick: int,
+	actor_id: ZEntityId,
+	payload: Dictionary
+) -> bool:
 	if _sealed:
 		return _reject(&"journal_sealed")
 	if _raid_id == null:
@@ -58,19 +99,6 @@ func append(
 	var event_key := event_id.canonical_key()
 	if _seen_event_ids.has(event_key):
 		return _reject(&"duplicate_event")
-
-	var event := ZRaidEvent.new()
-	event.event_id = ZConsequenceId.parse(event_id.canonical_key())
-	event.raid_id = _raid_id
-	event.actor_id = ZEntityId.parse(actor_id.canonical_key()) if actor_id != null else null
-	event.kind = kind
-	event.tick = tick
-	event.sequence = _next_sequence
-	event.payload = payload.duplicate(true)
-	_events.append(event)
-	_seen_event_ids[event_key] = true
-	_next_sequence += 1
-	_last_tick = tick
 	return true
 
 
