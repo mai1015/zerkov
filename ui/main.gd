@@ -44,6 +44,34 @@ var ui_layout_mode: String = "auto"
 var common_ui_root: CommonUIScreenRoot
 var input_service: ZerkovInputService
 
+
+## QA/review entry points may omit an explicit resolution because this host
+## pins the window below. If they do provide resolution/layout arguments, they
+## must still describe the one approved 1920x1080 desktop canvas. This parser is
+## pure so the non-visual contract can prove rejection without opening a
+## forbidden viewport.
+static func review_cli_uses_exact_canvas(arguments: PackedStringArray) -> bool:
+	var index := 0
+	while index < arguments.size():
+		var argument := arguments[index]
+		if argument == "--resolution":
+			index += 1
+			if index >= arguments.size() \
+					or arguments[index].to_lower() != "1920x1080":
+				return false
+		elif argument.begins_with("--resolution="):
+			if argument.trim_prefix("--resolution=").to_lower() != "1920x1080":
+				return false
+		elif argument == "--layout":
+			return false
+		elif argument.begins_with("--layout="):
+			var requested_layout := argument.trim_prefix("--layout=")
+			if requested_layout not in ["auto", "desktop"]:
+				return false
+		index += 1
+	return true
+
+
 func _ready() -> void:
 	_configure_presentation_provider()
 	common_ui_root = get_node("CommonUIScreenRoot") as CommonUIScreenRoot
@@ -55,11 +83,13 @@ func _ready() -> void:
 	navigator.rejected.connect(_on_route_rejected)
 	var start := initial_route
 	var review_start := initial_route != "title"
-	for arg in OS.get_cmdline_user_args():
+	var requested_layout := ui_layout_mode
+	var user_arguments := OS.get_cmdline_user_args()
+	for arg in user_arguments:
 		if arg.begins_with("--layout="):
 			var requested = arg.trim_prefix("--layout=")
 			if requested in ["auto", "desktop", "compact"]:
-				ui_layout_mode = requested
+				requested_layout = requested
 		if arg.begins_with("--screen="):
 			start = arg.trim_prefix("--screen=")
 			review_start = true
@@ -71,7 +101,18 @@ func _ready() -> void:
 	# before any route is constructed so they can never exercise a retained
 	# smaller-output path accidentally.
 	if qa_mode or review_start:
+		if not review_cli_uses_exact_canvas(OS.get_cmdline_args()):
+			push_error("QA/review UI accepts only exact 1920x1080 desktop output")
+			get_tree().quit(2)
+			return
 		get_window().size = DESKTOP_CANVAS
+		if get_window().size != DESKTOP_CANVAS:
+			push_error("QA/review UI could not establish exact 1920x1080 output")
+			get_tree().quit(2)
+			return
+		ui_layout_mode = "desktop"
+	else:
+		ui_layout_mode = requested_layout
 	if _character_runtime_override == null and not qa_mode \
 			and not review_start and not prototype_fixture_mode:
 		_character_composition = CharacterPresentationComposition.new()
@@ -221,9 +262,10 @@ func _on_presentation_provider_invalidated(
 
 
 func _refresh_unbound_production_screen() -> void:
-	if screen == null or not is_instance_valid(screen) or not screen is ZScreen:
+	if is_queued_for_deletion() or screen == null \
+			or not is_instance_valid(screen) or not screen is ZScreen:
 		return
-	if current_route in ["title", "inventory", "health", "stats"]:
+	if current_route in ["title", "controls", "inventory", "health", "stats"]:
 		return
 	(screen as ZScreen).refresh_view()
 

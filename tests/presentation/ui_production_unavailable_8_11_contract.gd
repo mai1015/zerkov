@@ -33,7 +33,12 @@ func run() -> void:
 	root.size = FIRST_PLAYABLE_SIZE
 	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
 		"runner is exact 1920x1080")
+	if root.get_visible_rect().size != Vector2(FIRST_PLAYABLE_SIZE):
+		quit(2)
+		return
 	await _test_production_routes()
+	await _test_injected_presentation_provider()
+	await _test_input_service_composition_is_preserved()
 	await _test_character_composition_is_preserved()
 	await _test_explicit_fixture_preview()
 	print("UI_PRODUCTION_UNAVAILABLE_8_11_RESULT checks=", checks,
@@ -138,6 +143,81 @@ func _visible_text(owner: Node) -> String:
 		if label != null and label.is_visible_in_tree():
 			values.append(label.text.to_upper())
 	return "\n".join(PackedStringArray(values))
+
+
+func _test_injected_presentation_provider() -> void:
+	var provider := ZUIPresentationProvider.new()
+	provider.name = "InjectedPresentation811Provider"
+	check(provider.start_unavailable(41, &"injected_services_missing"),
+		"external composition starts its typed provider before injection")
+	root.add_child(provider)
+	var app := load("res://ui/main.tscn").instantiate() as Control
+	app.name = "InjectedPresentation811Host"
+	check(app.inject_presentation_provider(provider),
+		"production host accepts one pre-tree typed provider")
+	root.add_child(app)
+	await settle()
+	check(not app.inject_presentation_provider(provider),
+		"provider injection closes when host composition enters the tree")
+	check(app.request_route("tasks", false),
+		"injected-provider route is admitted")
+	await settle()
+	var stale_screen := app.screen as ZScreen
+	check(stale_screen.app.presentation_generation() == 41
+			and stale_screen.app.task_view().diagnostic()
+				== &"injected_services_missing_tasks"
+			and not stale_screen.app.has_fixture_provider(),
+		"route context captures injected typed truth without a fixture")
+	check(provider.replace_unavailable(42, &"replacement_services_missing"),
+		"external composition advances its generation")
+	await settle()
+	check(stale_screen.app.presentation_diagnostic()
+			== &"ui_presentation_provider_stale_generation"
+			and stale_screen.get_node_or_null("ProductionUnavailableState") != null,
+		"retained screen fails closed after external generation replacement")
+	check(app.request_route("maps", false),
+		"new route acquires the replacement generation")
+	await settle()
+	var current_screen := app.screen as ZScreen
+	check(current_screen.app.presentation_generation() == 42
+			and current_screen.app.map_view().diagnostic()
+				== &"replacement_services_missing_map",
+		"replacement route observes only current typed truth")
+	app.queue_free()
+	await settle(3)
+	check(provider.is_active(),
+		"host teardown does not tear down its externally owned provider")
+	check(provider.teardown(42), "external owner tears down its provider")
+	provider.queue_free()
+	await settle(2)
+
+
+func _test_input_service_composition_is_preserved() -> void:
+	var app := load("res://ui/main.tscn").instantiate() as Control
+	app.name = "ProductionControls811Host"
+	root.add_child(app)
+	await settle()
+	check(app.request_route("controls", false),
+		"production Controls route remains admitted")
+	await settle()
+	var screen := app.screen as ZScreen
+	var service: ZerkovInputService = screen.app.input_service() \
+			if screen != null else null
+	var control_groups: Variant = screen.get("CONTROL_GROUPS") \
+			if screen != null else null
+	check(screen != null and app.current_route == "controls"
+			and screen.get_node_or_null("ProductionUnavailableState") == null,
+		"accepted Task 8.10 Controls composition remains active")
+	check(service != null and service.is_configured(),
+		"Controls receives the game-owned typed input facade")
+	check(control_groups is Array and (control_groups as Array).size() == 4
+			and screen.has_node("BindingsPane/BindingsBody/MapPrimary"),
+		"authored binding rows remain available without a utility fixture import")
+	check(screen.app.fixture_generation() == 0
+			and not screen.app.has_fixture_provider(),
+		"live Controls creates no prototype state provider")
+	app.queue_free()
+	await settle(3)
 
 
 func _test_character_composition_is_preserved() -> void:

@@ -25,6 +25,9 @@ func run() -> void:
 	root.size = FIRST_PLAYABLE_SIZE
 	check(root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE),
 		"capture is gated to exact 1920x1080")
+	if root.get_visible_rect().size != Vector2(FIRST_PLAYABLE_SIZE):
+		quit(2)
+		return
 	var capture_path := "res://screen_lifecycle_capture.png"
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture-path="):

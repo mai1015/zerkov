@@ -197,8 +197,8 @@ func run() -> void:
 	var controls := current_controls()
 	check(app.current_route == "controls" and screen_root.menu_layer().get_depth() == 1,
 		"controls is the active CommonUI menu screen")
-	check(not app.state.has("utility_bindings"),
-		"live controls does not hydrate the retained fixture binding table")
+	check(app.fixture_provider_for_test() == null,
+		"live controls creates no retained fixture binding table")
 	var map_primary := controls_button("map", "primary")
 	check(map_primary != null and map_primary.text == "M",
 		"map row resolves its default primary binding from CommonUI")

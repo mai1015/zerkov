@@ -12,7 +12,7 @@ var lower_contexts: Array[CommonUIContextHandle] = []
 var _production_state_locked: bool = false
 
 const PRODUCTION_SELF_MANAGED_ROUTES: PackedStringArray = [
-	"title", "inventory", "health", "stats",
+	"title", "controls", "inventory", "health", "stats",
 ]
 const LOCKED_STATE_NODE: StringName = &"ProductionUnavailableState"
 
@@ -162,6 +162,9 @@ func _should_render_locked_state() -> bool:
 	if app.current_route in PRODUCTION_SELF_MANAGED_ROUTES:
 		if app.current_route in ["inventory", "health", "stats"]:
 			return app.character_runtime() == null
+		if app.current_route == "controls":
+			var input := app.input_service()
+			return input == null or not input.is_configured()
 		return false
 	return true
 

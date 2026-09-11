@@ -123,7 +123,7 @@ func _compact_tab(key: String, value: String) -> void:
 
 
 func _state_value(key: String, fallback: Variant) -> Variant:
-	if app == null:
+	if app == null or not app.has_fixture_provider():
 		return fallback
 	return app.fixture_get(key, fallback)
 

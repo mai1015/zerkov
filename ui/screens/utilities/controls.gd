@@ -14,6 +14,38 @@ const ACTION_GROUPS: Array = [
 	["Interface", ["inventory", "map", "push_to_talk"]]
 ]
 
+## Static authored row metadata is presentation structure, not saved binding
+## state. Keeping it beside the live controller prevents the production input
+## surface from importing the developer utility fixture just to name its rows.
+const LIVE_CONTROL_GROUPS: Array = [
+	{"name": "MOVEMENT", "actions": [
+		{"id": "move", "label": "Move"},
+		{"id": "sprint", "label": "Sprint"},
+		{"id": "crouch", "label": "Crouch / cover"},
+		{"id": "interact", "label": "Interact / loot"},
+		{"id": "hold_interact", "label": "Hold interact"},
+	]},
+	{"name": "COMBAT", "actions": [
+		{"id": "fire", "label": "Fire"},
+		{"id": "aim", "label": "Aim"},
+		{"id": "reload", "label": "Reload"},
+		{"id": "fire_mode", "label": "Fire mode"},
+		{"id": "melee", "label": "Melee"},
+		{"id": "grenade", "label": "Grenade"},
+		{"id": "weapon_cycle", "label": "Weapon 1 / 2 / 3"},
+	]},
+	{"name": "SURVIVAL", "actions": [
+		{"id": "quick_heal", "label": "Quick heal"},
+		{"id": "quick_use", "label": "Quick use 5–0"},
+		{"id": "eat_drink", "label": "Eat / drink"},
+	]},
+	{"name": "INTERFACE", "actions": [
+		{"id": "inventory", "label": "Inventory"},
+		{"id": "map", "label": "Map"},
+		{"id": "push_to_talk", "label": "Push to talk"},
+	]},
+]
+
 const ZerkovActions = preload("res://game/input/zerkov_input_actions.gd")
 
 ## The authored controls rows remain the visual contract.  This table only
@@ -55,6 +87,8 @@ var last_binding_result: Dictionary = {}
 func build() -> void:
 	reset_adaptive_layout()
 	route = "controls"
+	if _uses_live_bindings():
+		CONTROL_GROUPS = LIVE_CONTROL_GROUPS.duplicate(true)
 	_bindings_state()
 	_settings_state()
 	_install_scale_safe_styles()
@@ -65,7 +99,10 @@ func build() -> void:
 
 
 func _live_input_service() -> ZerkovInputService:
-	if app == null:
+	# Review/prototype contexts deliberately exercise their isolated fixture
+	# binding table. Production contexts receive no fixture lease and therefore
+	# resolve only through the accepted game-owned input facade.
+	if app == null or app.has_fixture_provider():
 		return null
 	var service := app.input_service()
 	return service if service != null and service.is_configured() else null
@@ -579,6 +616,9 @@ func _binding_from_event(event: InputEvent) -> CommonUIBinding:
 
 
 func _input(event: InputEvent) -> void:
+	if not _uses_live_bindings():
+		super._input(event)
+		return
 	if not accepts_input() or capture_action.is_empty():
 		return
 	# Capture runs before GUI/CommonUI dispatch. This makes Escape a capture

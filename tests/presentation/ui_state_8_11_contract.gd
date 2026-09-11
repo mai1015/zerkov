@@ -24,6 +24,7 @@ func run() -> void:
 	_test_fixture_provider_lifecycle()
 	_test_fixture_context_lease()
 	_test_typed_presentation_provider()
+	_test_review_cli_exact_gate()
 	_test_production_source_surface()
 	print("UI_STATE_8_11_CONTRACT_RESULT checks=", checks,
 		" failures=", failures)
@@ -174,6 +175,33 @@ func _test_typed_presentation_provider() -> void:
 	provider.free()
 
 
+func _test_review_cli_exact_gate() -> void:
+	var main_script := load("res://ui/main.gd") as Script
+	check(main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--screen=main_menu", "--qa",
+	])), "review CLI may omit resolution because Main pins exact output")
+	check(main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--resolution", "1920x1080", "--layout=desktop", "--qa",
+	])), "review CLI accepts explicit exact resolution and desktop layout")
+	check(main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--resolution=1920x1080", "--layout=auto", "--screen=main_menu",
+	])), "review CLI accepts exact resolution with auto desktop selection")
+	check(not main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--resolution=1600x900", "--qa",
+	])) and not main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--resolution", "1280x720", "--screen=main_menu",
+	])) and not main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--resolution=2560x1440", "--qa",
+	])), "review CLI rejects every explicit non-1920x1080 resolution")
+	check(not main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--layout=compact", "--qa",
+	])) and not main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--layout=wide", "--screen=main_menu",
+	])) and not main_script.review_cli_uses_exact_canvas(PackedStringArray([
+		"--resolution",
+	])), "review CLI rejects compact/unknown layouts and incomplete resolution")
+
+
 func _unavailable_views(
 	generation: int,
 	revision: int,
@@ -202,6 +230,8 @@ func _unavailable_views(
 func _test_production_source_surface() -> void:
 	var legacy_member := "app." + "state"
 	var reflective_legacy := ".get(\"" + "state" + "\")"
+	var reflective_string_name := ".get(&\"" + "state" + "\")"
+	var reflective_single_quote := ".get('" + "state" + "')"
 	var direct_fixture_imports: Array[String] = []
 	var legacy_references: Array[String] = []
 	var fixture_store_escapes: Array[String] = []
@@ -210,7 +240,12 @@ func _test_production_source_surface() -> void:
 	_collect_gd_files("res://game", files)
 	for path in files:
 		var source := FileAccess.get_file_as_string(path)
-		if source.contains(legacy_member) or source.contains(reflective_legacy):
+		var compact_source := source.replace(" ", "").replace("\t", "") \
+				.replace("\r", "").replace("\n", "")
+		if compact_source.contains(legacy_member) \
+				or compact_source.contains(reflective_legacy) \
+				or compact_source.contains(reflective_string_name) \
+				or compact_source.contains(reflective_single_quote):
 			legacy_references.append(path)
 		if source.contains(FIXTURE_DIRECTORY) and path != FIXTURE_PROVIDER_PATH:
 			direct_fixture_imports.append(path)
@@ -240,8 +275,16 @@ func _test_production_source_surface() -> void:
 	check(not main_source.contains("ZUIFixtureStore.new"),
 		"production app never constructs the mutable fixture store directly")
 	check(main_source.contains("if qa_mode or review_start:")
+			and main_source.contains(
+				"review_cli_uses_exact_canvas(OS.get_cmdline_args())")
 			and main_source.contains("get_window().size = DESKTOP_CANVAS"),
-		"built-in smoke and review runners are statically pinned to exact 1920x1080")
+		"built-in smoke/review runners validate arguments and pin exact 1920x1080")
+	var capture_source := FileAccess.get_file_as_string(
+		"res://tests/visual/zerkov_screen_lifecycle/capture.gd")
+	check(capture_source.contains("root.size = FIRST_PLAYABLE_SIZE")
+			and capture_source.contains("quit(2)")
+			and capture_source.find("quit(2)") < capture_source.find("save_png"),
+		"native lifecycle capture fails closed before a non-exact output write")
 	check(main_source.contains("inject_character_runtime")
 			and main_source.contains("character_runtime_for_route"),
 		"accepted Task 8.6 Character composition remains injection-only")
@@ -249,6 +292,9 @@ func _test_production_source_surface() -> void:
 			and screen_source.contains("_should_render_locked_state")
 			and screen_source.contains("PRODUCTION DATA UNAVAILABLE"),
 		"shared screen permanently gates unbound production builders")
+	check(screen_source.contains('"controls"')
+			and screen_source.contains("app.input_service()"),
+		"accepted Task 8.10 Controls route stays on its typed input facade")
 
 
 func _script_has_property(script: Script, property_name: StringName) -> bool:
