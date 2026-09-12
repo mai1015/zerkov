@@ -1,6 +1,7 @@
 extends SceneTree
 ## Native component-state capture and one-activation-per-input acceptance.
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 
 var app: Control
 var gallery: Control
@@ -36,6 +37,10 @@ func capture(label: String) -> void:
 		check(exact_frame, "exact 1920x1080 framebuffer before capture " + label)
 		if not exact_frame:
 			push_error("UI_COMPONENT_STATES: nonexact framebuffer rejected before write")
+			quit(2)
+			return
+		if not Exact1080CaptureGuard.accepts(root, root, rendered):
+			push_error("UI_COMPONENT_STATES: physical output changed before PNG write")
 			quit(2)
 			return
 		check(rendered.save_png(output.path_join(label + ".png")) == OK, "capture " + label)

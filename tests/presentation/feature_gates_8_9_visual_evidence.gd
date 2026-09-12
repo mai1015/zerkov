@@ -15,6 +15,7 @@ extends SceneTree
 ## godot --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd -- --capture-dir=res://docs/qa/feature_gates_8_9
 
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const DEFAULT_CAPTURE_DIR := "res://docs/qa/feature_gates_8_9"
 const CONTACT_CROP_SIZE := Vector2i(960, 216)
 const CASES: Array[Dictionary] = [
@@ -445,6 +446,9 @@ func _write_exact_png(image: Image, relative_path: String, label: String) -> boo
 		label + " raw Image remains exact 1920x1080 immediately before file write")
 	if image.get_size() != FIRST_PLAYABLE_SIZE:
 		_capture_abort("nonexact Image immediately before file write: " + label)
+		return false
+	if not Exact1080CaptureGuard.accepts(root, target, image):
+		_capture_abort("physical output changed immediately before PNG write: " + label)
 		return false
 	var save_error := image.save_png(absolute)
 	check(save_error == OK, label + " exact PNG write succeeds")

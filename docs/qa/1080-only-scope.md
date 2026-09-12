@@ -1,174 +1,115 @@
-# Current UI QA scope — exact 1920×1080
+# Current first-playable display scope: exact 1920×1080
 
-Status: scope-enforcement note for the 2026-09-10 first-playable matrix.
+The current Zerkov first-playable and its acceptance work target one output:
+exact 1920×1080. The pixel world is a 640×360 surface mapped at exact nearest
+3×, while the interface remains a separate crisp 1920×1080 composition.
 
-The current UI, navigation, lifecycle, composition, reflow, component-state,
-border, inventory-binding and route-crawler entry points are exact 1920×1080-only paths. The
-dedicated responsive and compact-family sources, along with their existing
-captures and logs, remain historical/deferred artifacts. Current agents,
-runners and tests MUST NOT execute or regenerate them until task 11.8 or a
-later approved display-support proposal reopens that work.
+Smaller, compact, responsive, and multi-resolution code and historical evidence
+may remain in the repository for later work. They are not current acceptance
+paths and must not be executed or regenerated before task 11.8 or a separately
+approved display-support proposal.
 
-The exact test commands and final check totals from the 2026-09-10 verification
-pass are:
+## Practical repository gate
 
-| Entry point | Checks | Failures | Mode |
-| --- | ---: | ---: | --- |
-| `tests/common_ui_integration_smoke.gd` | 76 | 0 | headless |
-| `tests/common_ui_navigation_contract.gd` | 79 | 0 | headless |
-| `tests/common_ui_navigation_1080_regression.gd` | 94 | 0 | headless |
-| `tests/zerkov_screen_lifecycle_contract.gd` | 116 | 0 | headless |
-| `tests/ui_smoke.gd` | 945 | 0 | headless crawler |
-| `tests/ui_composition_smoke.gd` | 103 | 0 | headless |
-| `tests/ui_reflow_smoke.gd` | 308 | 0 | headless |
-| `tests/inventory_smoke.gd` | 21 | 0 | headless |
-| `tests/bunker_smoke.gd` | 21 | 0 | headless |
-| `tests/raid_smoke.gd` | 29 | 0 | headless |
-| `tests/utility_smoke.gd` | 24 | 0 | headless |
-| `tests/raid/inventory_ui_binding_contract.gd` | 138 | 0 | headless |
-| `tests/addons/combined_addons_smoke.gd` | 155 | 0 | headless |
-| `tests/ui_component_states.gd` | 13 | 0 | native |
-| `tests/border_render_smoke.gd` | 27 | 0 | native |
-| **Current acceptance subtotal** | **2149** | **0** | **16 runs** |
+`config/first_playable_1080_gate.json` is the reviewed inventory for display-
+relevant entrypoints. `tools/check_first_playable_1080.py` independently
+discovers repository runners and validates the inventory. The gate currently
+distinguishes:
 
-The component suite was also run headless at exact 1920×1080 (`5/0`) as a
-supplemental parse/state check; counting both execution variants gives `2154`
-raw assertions with zero failures. Editor import completed cleanly, and strict
-validation of both approved changes returned valid with zero errors/warnings.
-The current static audit finds 25 active first-playable GDScript runners with
-zero forbidden smaller-size/compact-path hits. Thirty-five retained GDScript
-runners fail closed during initialization before setup or capture. This now
-includes the responsive/compact family, inherited visual-inventory probes, the
-old render-scale comparison runner, and every tracked multi-resolution display
-launcher under the historical inventory, ability/equipment, and weapon/reload
-QA packets, including the independent capacity and magazine packet writers.
-Twelve historical Python generators/runners exit as their first executable AST
-statement, before imports, directories, subprocesses, or writes. That is 47
-deferred GDScript/Python entry points in total; tracked `docs/qa/**` launchers are no
-longer excluded from current enforcement.
+- 26 active visual GDScript entrypoints whose complete bytes are SHA-256
+  allowlisted;
+- two active Python command drivers whose complete bytes are SHA-256
+  allowlisted and whose literal Godot commands request `1920x1080`;
+- 35 current headless contracts, which are classified separately and scanned
+  for literal output mutations;
+- 14 retired display GDScripts and two retired display Python drivers;
+- 21 historical-evidence GDScripts and ten historical-evidence Python drivers;
+- exact-current support files, including the runtime QA writer, the Sawmill
+  output/world guard, and an export-safe shared physical capture guard; and
+- a separate inventory for non-executable `.source_only` fixtures (currently
+  empty).
 
-This note is separate from prior evidence:
-the accepted task 8.1/8.2 frozen-source seals remain valid only for their
-immutable recorded commits. They are not revalidated against this scope
-enforcement checkout, and no current aggregate seal treats those historical
-source manifests as current.
+Those categories are not accepted by self-declaration. The checker discovers
+all tracked and untracked GDScript `SceneTree` runners (including an inline
+comment after `extends`), single- or double-quoted inherited test runners,
+`tests/visual/**`, `docs/qa/**/*.gd`, the known Python display-driver roots, and
+`.source_only` files, then requires an exact one-category match. Retired and
+historical categories are distinct and may not overlap. A newly added runner
+fails until it is reviewed and classified.
 
-## Enforcement follow-up — 2026-09-11
+The bounded checks enforce:
 
-A read-only Astra audit found that the retained render-scale wrapper was still
-advertised as current, generated non-1920×1080 summary images, and exercised an
-unselected 320×180 internal world candidate. Both the GDScript runner and its
-Python generator now fail before viewport setup, imports, subprocesses,
-directories, or writes. The selected 640×360 world surface remains permitted
-only when nearest-mapped exactly 3× into a genuine 1920×1080 output target.
+- exact `project.godot` viewport and window override values of 1920×1080;
+- reviewed SHA-256 bytes for every active visual entrypoint, active command
+  driver, and output-sensitive support file;
+- exactly one applicable hashed current classification for every sanctioned
+  PNG writer, so a writer cannot be omitted from or duplicated across the
+  reviewed current categories;
+- no literal smaller output assignment on root/window/SubViewport targets and
+  no literal smaller `DisplayServer` or `RenderingServer` size/attach call in
+  current files;
+- no literal non-1920×1080 `--resolution` in active Godot command drivers;
+- a fail-first `_initialize()` stub for retired/historical GDScript drivers and
+  a first-statement literal `SystemExit` for retired/historical Python drivers;
+- no current command, config, QA entrypoint, or reviewed support file importing
+  a retired/historical display driver through a literal `extends`, `load`, or
+  `preload`, an enabled bare/starred autoload, or a direct literal
+  `OS.execute`/process `--script` argument; both `res://` and owner-relative
+  paths are normalized, while quoted explanations and comments remain inert;
+- a complete nine-file active PNG-writer inventory whose every PNG write is
+  immediately preceded by the declared fail-closed shared guard, writes the
+  exact guarded Image, has no same-line yield or state-changing prefix, and
+  contains no `await` anywhere in the complete save-call expression;
+- runtime rejection of headless capture or any nonexact physical DisplayServer
+  window, root/window size, root visible rect/texture, capture visible rect/
+  texture, or raw image immediately before a PNG write; and
+- the Sawmill `640×360` world surface, nearest filtering, and exact `3×` mapping
+  into the sole 1920×1080 output.
 
-The audit also found active image writers that checked only the requested root
-size or recorded a failed framebuffer check and then saved anyway. The current
-writers now validate the renderer readback immediately before every PNG write
-and return/quit without saving on mismatch. Their output directories are not
-created until an initial genuine 1920×1080 framebuffer preflight passes. QA and
-review sessions reject a later window-size change before scale synchronization
-or layout reflow; ordinary retained production compatibility is unchanged.
+Historical bodies can retain old-size literals after their fail-first stubs.
+Their presence is archival, not permission to run them. The active inventory-
+loot capture no longer inherits the retired multi-resolution launcher: its
+small exact-current setup retains the same authority/bridge/controller seam and
+the capture continues to mount the existing designed inventory UI.
+No replacement inventory screen or production UI implementation is introduced.
 
-The static gate now discovers every tracked active PNG writer and structurally
-requires a same-scope, receiver-specific exact-frame proof plus an unconditional
-return before paths or writes. It rejects queued quits, unrelated or commented
-returns, nested-only returns, cross-function/static bleed, checking one image
-then saving another, and replacing/resizing a proven image before a later save.
-Python retirement is AST-checked, so conditional/commented guards or work before
-the guard fail. Production-data capture hosts opt into the exact-canvas resize
-guard without enabling fixtures or changing production navigation/data.
+## Deliberate limit
 
-The preceding enforcement pass ran seven static tests. Exact-argument headless
-checks passed for the Task 8.11
-state contract (`57/0`), unavailable composition (`111/0`), Character binding
-(`65/0`), and component state (`5/0`). All eleven retired Python entry points
-exit with `DEFERRED_DISPLAY_SUITE`. No smaller renderer, responsive layout, or
-upscaled framebuffer was executed while enforcing this scope.
+This is not a general GDScript verifier, sandbox, capability analyzer, or proof
+against arbitrary hostile source semantics. It does not attempt to interpret
+reflection, dynamic dispatch, helper return flows, every possible alias, engine
+startup behavior, or arbitrary code hidden in a dependency.
 
-## Final enforcement repair — 2026-09-11
+The safety boundary is practical and reviewable: independent entrypoint
+discovery, immutable reviewed bytes, direct reference edges, exact project and
+command configuration, literal output operations, simple retirement stubs,
+and explicit guard anchors. Changing an allowlisted file requires reviewing
+the whole changed file and updating its hash. A new output-changing pattern
+that is not covered by the literal checker requires an explicit checker/test
+update or a reviewed manifest exception; an exception is not a claim of formal
+semantic proof.
 
-The gate now stops guard discovery at the enclosing block boundary and parses
-boolean expressions to prove exactness on every path reaching a write. A
-same-indented guard in a sibling branch, an optional rejecting condition, or an
-`or allow_any` acceptance clause cannot establish that proof. String literals
-and comments are excluded from code discovery. Source-only fixtures also cover
-conditional proof overwrites, image replacement, aliasing after the proof,
-unproven image operations such as `clear()`, and asynchronous gaps. These
-fixtures are inert text: they do not launch a renderer, create paths, or write
-artifacts.
+The source-only gate does not establish visual quality or prove that a native
+framebuffer existed during this verification. When a sanctioned capture does
+run, its hashed shared helper rejects headless mode and checks the actual
+1920×1080 physical window, root, visible rectangles, textures, and fresh raw
+image immediately before every PNG write. Headless and check-only runs are
+useful for contracts and parsing, not visual approval.
 
-Every GDScript and Python entry point under the retained `docs/qa/` packets is
-discovered. Retired GDScript is also rejected if a top-level `load()` or
-`preload()` would execute before its `_initialize()` guard. The two retained
-ability/equipment independent-flow copies now keep their historical imports
-lazy and unreachable. The independent weapon/reload capacity and magazine
-writers terminate in `_initialize()`. The health-content implementation packet
-wrapper is explicitly classified as historical and exits before imports.
-Current development and packet READMEs advertise direct promoted contracts;
-historical wrapper modes and render-scale contact-sheet generation remain
-retired.
+## Safe verification
 
-Validation: all twelve exact-output static tests pass, and the complete tooling
-discovery passes all fifteen tests. All twelve retired Python entry points exit
-with `DEFERRED_DISPLAY_SUITE`; exact-argument headless import and check-only
-parsing of changed GDScript entry points and the accepted Sawmill capture script
-pass without diagnostics. Both approved specs validate strictly. The accepted
-Sawmill packet manifest verifies in full. Its frozen-source audit has exactly
-three expected cross-task drifts (`DESIGN.md`, the task ledger, and the inventory
-catalog), while every Sawmill-specific source remains unchanged. No shared
-input-binding test or native capture runs as part of this repair.
+The repository-only checks do not start Godot or write capture artifacts:
 
-The requirement remains a genuine exact 1920×1080 renderer output. A
-`--resolution 1920x1080` argument alone does not establish it: native harnesses
-must avoid decorated-window clamping and reject a nonexact actual root/output
-or renderer readback before mounting UI, creating paths, or saving. Headless
-checks are source/state evidence only and cannot establish visual acceptance.
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/check_first_playable_1080.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.tooling.test_ui_first_playable_scope
+```
 
-## Source-policy escape hardening — 2026-09-11
+Any Godot import or parse verification for this scope must use the pinned 4.7.2
+engine and pass an explicit `--resolution 1920x1080`. No smaller-output runner,
+responsive/compact suite, historical packet generator, or alternate-size
+capture should be launched as part of this gate.
 
-This source-only successor closes remaining lexical escape paths in the
-exact-frame writer policy. Before a proof, only a direct local image alias,
-an explicitly recognized read with inert arguments, or a direct known image
-mutation with inert arguments followed by a fresh proof is permitted.
-Lists/maps, nested values, properties, indices, callables, bound methods,
-lambdas, constructors, returns, unknown calls, and computed expressions
-permanently taint a later save. A no-argument fresh-image helper is recognized
-only when its allocated/read image stays local and its body is nonescaping.
-
-The proof expression itself is limited to the selected receiver's `get_size()`
-readback, inert exact constants, and approved one-image helpers. Property
-reads, including a raw `get_visible_rect()` expression, cannot be folded into
-that proof. Provenance aggregates every local initializer, including
-conditional replacement paths, and function headers are parsed with balanced
-parentheses so nested defaults cannot hide an Image/Variant sibling. An image
-obtained through a property, index, or non-fresh call retains its owner as
-tainted; retained owner-derived sibling aliases and callables are also tainted
-before the save. Before the proof, that owner may initialize only the protected
-direct image local/alias: publishing it through a qualified member, index,
-container, global/member, callable, or unrelated local fails closed. Direct
-typed, untyped, and cast aliases remain valid when that alias is itself proven
-and saved.
-
-Four active sources had an already-present root predicate separated from their
-selected image proof: `ui/main.gd`, `tests/ui_component_states.gd`,
-`tests/visual/inventory_loot_ui_4_11/capture.gd`, and
-`tests/visual/live_character_ui_8_6/capture.gd`. Each now rejects through the
-same existing failure path when the root predicate is false, then evaluates the
-unchanged direct image-size predicate before its path/write operation. The
-source assertions preserve the exact-size markers and reject any future fold of
-a visible-rect/property expression into those image proofs; the guard-only diff
-does not alter layout, style, data, inventory behavior, output names, or writer
-inventory.
-
-Historical Python entry points now require the first executable AST statement
-to be exactly `raise SystemExit(<one constant str marker>)`: one unstarred
-positional string, no keywords, and no cause. Extra expressions, f-strings,
-comprehensions, calls, byte markers, and `from` clauses fail the static gate.
-
-Permanent controls now include 30 exact-write negatives, 39 pre-proof/reverse
-origin negatives, six fresh-helper escape negatives, and 23 Python-retirement
-negatives. The source-policy checks remain 12 static tests and 15
-complete-tooling tests. Discovery remains 25 active GDScript runners, 35
-retired GDScript runners, 12 retired Python entry points, and 9 active PNG
-writers. No runtime or artifact writer was invoked for this follow-up.
+Earlier multi-resolution captures, logs, and reports remain historical records.
+This scope note does not retroactively revalidate or regenerate them, and it
+does not convert their recorded source seals into current acceptance evidence.

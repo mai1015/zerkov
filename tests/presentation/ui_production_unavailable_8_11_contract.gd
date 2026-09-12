@@ -4,6 +4,7 @@ extends SceneTree
 ## Run with: godot --headless --path . --script res://tests/presentation/ui_production_unavailable_8_11_contract.gd
 
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 
 var checks: int = 0
 var failures: int = 0
@@ -91,6 +92,10 @@ func _capture_exact_frame() -> void:
 		absolute.get_base_dir())
 	check(directory_error == OK or directory_error == ERR_ALREADY_EXISTS,
 		"native evidence directory is available")
+	if not Exact1080CaptureGuard.accepts(root, root, image):
+		push_error("UI_PRODUCTION_UNAVAILABLE_8_11: physical output changed before PNG write")
+		quit(2)
+		return
 	check(image.save_png(absolute) == OK,
 		"native exact-1920 unavailable-state evidence saves")
 

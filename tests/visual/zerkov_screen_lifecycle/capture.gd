@@ -2,6 +2,7 @@ extends SceneTree
 ## Captures one lifecycle-active shared screen without re-opening the initial route.
 
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 
 var failures: int = 0
 
@@ -61,6 +62,10 @@ func run() -> void:
 		return
 	var absolute_path := ProjectSettings.globalize_path(capture_path)
 	DirAccess.make_dir_recursive_absolute(absolute_path.get_base_dir())
+	if not Exact1080CaptureGuard.accepts(root, root, image):
+		push_error("ZERKOV_SCREEN_LIFECYCLE_CAPTURE: physical output changed before PNG write")
+		quit(2)
+		return
 	var save_error := image.save_png(absolute_path)
 	check(save_error == OK, "capture saves successfully: " + error_string(save_error))
 	print("ZERKOV_SCREEN_LIFECYCLE_CAPTURE_RESULT failures=", failures,

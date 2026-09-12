@@ -1,13 +1,58 @@
-extends "res://tests/visual/inventory_ui_binding/capture.gd"
+extends "res://tests/raid/inventory_ui_binding_contract.gd"
 ## 1920x1080-only visual evidence for task 4.11.  This extends the existing
 ## Astra harness and captures the retained right-hand pane through the real
 ## bridge/adapter/controller binding; it does not instantiate a replacement
 ## loot screen or a discovery clock.
 
 const OUTPUT_411 := "res://docs/qa/inventory_loot_ui_4_11/captures"
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const Model = preload("res://addons/inventory_system/runtime/inventory_presentation_model.gd")
 const LootController = preload("res://game/inventory/presentation/inventory_presentation_controller.gd")
 var records_411: Array[Dictionary] = []
+var app: Control
+var screen: Control
+
+
+func setup_runtime() -> void:
+    owner = RaidInventoryOwner.new()
+    root.add_child(owner)
+    check(owner.configure(), "gate owner configures")
+    check(owner.materialize_loot_fixture(), "gate loot materializes")
+    var request := ZSessionRequest.create_offline(
+        ZRequestId.from_parts(PackedStringArray(["astra", "gate", "admission"])),
+        ZRaidId.from_parts(PackedStringArray(["astra", "gate", "raid"])),
+        &"astra_gate_profile", &"player", 7)
+    var session := ZSessionId.from_parts(
+        PackedStringArray(["astra", "gate", "session"]))
+    var actor := ZEntityId.from_parts(
+        PackedStringArray(["astra", "gate", "actor"]))
+    admission = ZSessionAdmission.accept_local(request, session, actor)
+    var identity := BindingIdentityPort.new()
+    identity.session_key = session.canonical_key()
+    identity.actor_key = actor.canonical_key()
+    identity.epoch = admission.authority_epoch
+    identity.generation = admission.generation
+    identity.native_actor = RaidInventoryOwner.FIXTURE_ACTOR_ID
+    identity.owned[owner.raid_player_inventory_id] = true
+    var world := BindingWorldPolicyPort.new()
+    world.actor_key = actor.canonical_key()
+    world.generation = admission.generation
+    world.world_ids[owner.world_crate_inventory_id] = true
+    world.world_ids[owner.corpse_inventory_id] = true
+    adapter = Adapter.new()
+    check(adapter.configure(owner, admission, identity, world,
+        MAX_TRANSFER_DISTANCE_RAW), "gate adapter configures")
+    bridge = Bridge.new()
+    root.add_child(bridge)
+    check(bridge.bind_owner(owner, owner.generation()), "gate bridge binds")
+    controller = Controller.new()
+    check(controller.bind(owner, bridge, adapter, admission),
+        "gate controller binds")
+
+
+func settle(count: int = 5) -> void:
+    for _index in range(count):
+        await process_frame
 
 
 func _initialize() -> void:
@@ -51,6 +96,10 @@ func _capture_411(state: String, extra: Dictionary = {}) -> bool:
     check(exact_frame, "1920x1080 native capture for " + state)
     if not exact_frame:
         push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: nonexact frame rejected before write: " + state)
+        quit(2)
+        return false
+    if not Exact1080CaptureGuard.accepts(root, root, rendered):
+        push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: physical output changed before PNG write")
         quit(2)
         return false
     var save_error := rendered.save_png(OUTPUT_411 + "/" + file_name)
@@ -197,6 +246,11 @@ func run() -> void:
         "replacement_route": false,
         "records": records_411,
     }
+    var report_image := root.get_texture().get_image()
+    if not Exact1080CaptureGuard.accepts(root, root, report_image):
+        push_error("INVENTORY_LOOT_UI_4_11_CAPTURE: physical output changed before report write")
+        quit(2)
+        return
     var file := FileAccess.open(OUTPUT_411 + "/captures.json", FileAccess.WRITE)
     file.store_string(JSON.stringify(report, "\t") + "\n")
     file.close()

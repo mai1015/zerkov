@@ -4,6 +4,7 @@ extends SceneTree
 ## All populated authority data below is capture-only.
 
 const EXACT_SIZE := Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const OUTPUT := "res://docs/qa/live_character_ui_8_6/captures"
 const MAX_TRANSFER_DISTANCE_RAW := 2_000_000
 const Catalog = preload("res://game/content/zerkov_inventory_catalog.gd")
@@ -153,6 +154,10 @@ func _capture(state: String, screen: Control) -> bool:
         push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: nonexact frame rejected before write: " + state)
         quit(2)
         return false
+    if not Exact1080CaptureGuard.accepts(root, root, image):
+        push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: physical output changed before PNG write: " + state)
+        quit(2)
+        return false
     var save_error := image.save_png(OUTPUT + "/" + file_name)
     check(save_error == OK, "save " + file_name)
     if save_error != OK:
@@ -292,6 +297,11 @@ func _finish() -> void:
         "failures": failures,
         "records": records,
     }
+    var report_image := root.get_texture().get_image()
+    if not Exact1080CaptureGuard.accepts(root, root, report_image):
+        push_error("LIVE_CHARACTER_UI_8_6_CAPTURE: physical output changed before report write")
+        quit(2)
+        return
     var file := FileAccess.open(OUTPUT + "/captures.json", FileAccess.WRITE)
     if file != null:
         file.store_string(JSON.stringify(report, "\t") + "\n")

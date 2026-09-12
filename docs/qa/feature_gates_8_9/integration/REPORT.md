@@ -205,3 +205,175 @@ runners, 12 retired Python entry points, and 9 active PNG writers. The direct
 Python-entry check confirmed all 12 leave only the required marker and no
 observed side effect. This is a branch-local candidate record; it makes no
 acceptance claim.
+
+## Practical exact-1080 manifest-gate successor — 2026-09-11
+
+The source-policy implementation above is superseded for current repository
+enforcement by a bounded, reviewable manifest gate. The prior report text,
+accepted native captures, hashes, and observed 8.9 behavior remain historical
+records; none was rewritten or regenerated.
+
+`config/first_playable_1080_gate.json` independently classifies 26 active visual
+GDScript entrypoints, two active Python command drivers, 35 current headless
+contracts, 16 retired display drivers, 31 historical-evidence drivers, and the
+small exact-output support set. Current visual, command, and output-sensitive
+support bytes are SHA-256 allowlisted. Repository discovery rejects an omitted
+or new runner, active PNG-writer discovery remains complete at nine writers,
+and retired/historical drivers must fail first before retained logic.
+
+The checker validates literal output assignments and server size/attach calls,
+literal command resolutions, exact project output configuration, the 640x360
+world surface at nearest 3x, and reviewed root/visible/readback guard anchors.
+It also rejects direct references from current commands, config, QA runners, or
+reviewed support to retired/historical display drivers. This edge check exposed
+one active inheritance from the retired multi-resolution inventory capture.
+The exact inventory-loot runner now inherits the accepted inventory binding
+contract directly and contains the same authority/bridge/controller setup it
+already used. It still mounts the existing designed inventory interface; no
+production inventory, game UI, layout, style, or state implementation changed.
+
+This practical gate is explicitly not a general GDScript evaluator, sandbox,
+or proof against arbitrary hostile semantics. Its boundary is the reviewed
+manifest and hashes, independently discovered entrypoints, direct reference
+edges, literal output/config/command operations, simple fail-first stubs, and
+the sanctioned capture anchors. Any allowlisted byte change requires whole-file
+review and resealing.
+
+The final source-only matrix passed the standalone gate and all 14 focused tests
+under Python 3.8, 3.9, and 3.14; complete tooling discovery passed 17 tests on
+each interpreter after replacing the Python-3.9-only `str.removeprefix` use in
+the platform artifact checker with its equivalent validated prefix slice.
+No Godot process, renderer, viewport, PNG writer, historical packet generator,
+or alternate-size command ran. Human approval remains false, and the task
+ledger was not changed.
+
+## Practical gate bounded-review repair — 2026-09-11
+
+An independent review rejected the first practical-gate snapshot because
+ordinary `extends SceneTree # comment` and single-quoted inherited runners were
+not discovered, owner-relative imports could avoid the retired-reference edge
+check, retired and historical categories could overlap, and seven sanctioned
+writers plus Sawmill did not yet share the same physical final-write proof.
+That rejected snapshot is not an accepted gate.
+
+The successor uses bounded lexical/path checks rather than reviving the
+superseded evaluator. It strips GDScript comments before runner discovery,
+recognizes either quote style for inherited scripts, normalizes both `res://`
+and owner-relative literal `extends`/`load`/`preload` paths, and requires each
+GDScript and Python display driver to have exactly one category. Permanent
+in-memory controls cover the original bypasses, comment decoys, all six
+resource-operator/path combinations, and category overlap.
+
+All nine sanctioned writer paths now preload the export-safe
+`game/presentation/exact_1080_capture_guard.gd`. Immediately before each of the
+ten static `save_png` calls, the exact manifest-declared call must fail closed
+with no yield or intervening success-path statement. The hashed helper rejects
+headless capture and requires the physical DisplayServer window, root/window
+size, root visible rect and texture, capture viewport visible rect and texture,
+and raw Image to all be exactly 1920x1080. Sawmill's `_exact_frame` now calls
+that same physical guard, so an OS-clamped preview is not accepted; its sole
+internal world remains 640x360 at exact nearest 3x. The existing designed
+inventory screen and its authority/bridge/controller seam remain in use.
+
+The source-only matrix passed the standalone gate on Python 3.8.20, 3.9.6, and
+3.14.6, with 18/18 focused and 21/21 complete tooling tests on each interpreter.
+Both managed changes passed strict validation. Pinned Godot 4.7.2 performed one
+headless import and check-only parsed all ten changed GDScripts at explicit
+`--resolution 1920x1080`. Three non-capture headless contracts then passed at
+74/0, 124/0, and 111/0 with empty capture paths; the visual contract reported
+`frames=0` and skipped capture. These runs are parser/contract evidence only:
+no native renderer, physical visual approval, screenshot, PNG writer, alternate
+resolution, or historical generator ran. Generated cache and the new helper
+UID were moved intact to a recoverable temporary directory.
+
+The dated successor seal contains all 27 current files, including the practical
+manifest/checker, export-safe guard, every changed sanctioned writer/tool, and
+the unchanged historical capture bytes. Human approval and independent
+acceptance remain false, and no task checkbox was changed pending a second
+independent review.
+
+## Practical gate second-review closure — 2026-09-11
+
+The second independent review found no P0/P1 issue, but rejected the preceding
+snapshot for two bounded P2 omissions and one stale P3 comment. A sanctioned
+writer could remain declared after being removed from its hashed current
+classification; enabled starred autoload and direct literal `OS.execute`
+`--script` edges were incomplete; and Sawmill still described a clamped preview
+as acceptable. That snapshot remains rejected rather than accepted by this
+successor record.
+
+The repaired checker requires every sanctioned writer to belong to exactly one
+applicable SHA-256-reviewed current category. Its lightweight quote/comment
+lexer now separates executable GDScript literals from ordinary strings and
+comments, and its bounded reference grammar covers bare or starred enabled
+config paths plus direct literal `OS.execute`, `execute_with_pipe`, and
+`create_process` `--script` arguments. INI `;`/`#` comments, GDScript comments,
+and explanatory strings remain inert. Permanent controls cover writer-category
+omission and overlap, bare/starred autoload values, comment decoys, direct
+command arrays, and quoted `load(...)` text.
+
+For every sanctioned PNG write, the manifest-declared guard's third Image
+receiver must be the same direct Image receiver passed to `save_png`. The
+bounded source check rejects computed receivers and any same-line work,
+including a yield or state-changing call, before the write. All nine writer
+paths, ten PNG calls, and three existing guarded JSON-report paths remain in
+place. Sawmill's comment now states the enforced behavior: a clamped physical
+preview is rejected before evidence can be written.
+
+The source-only matrix passed the standalone gate, 20/20 focused tests, and
+23/23 complete tooling tests under Python 3.8.20, 3.9.6, and 3.14.6. Both
+managed changes remain strict-valid. Per instruction, this repair pass did not
+start Godot, a renderer, a viewport, a contract script, or any capture/output
+writer. Therefore it adds no new engine-parse, physical-framebuffer, visual, or
+human-playtest evidence. Previous report and log bytes remain exact prefixes;
+no task checkbox changed, human approval remains false, and independent
+acceptance is pending another read-only review.
+
+## Practical gate command/write-expression closure — 2026-09-11
+
+A third independent Astra-max review rejected the preceding bytes with two P2
+findings and no P0, P1, or P3: an `await` inside a `save_png(...)` argument could
+cross a frame boundary after the physical proof, and a direct GDScript OS
+command's repository-relative `--script` value was incorrectly normalized
+relative to the source file. That reviewed snapshot remains rejected.
+
+The bounded writer grammar now finds the complete balanced direct save call and
+rejects lexical `await` anywhere in its argument expression. Both single-line
+and multiline reproductions are permanent negative controls; quoted strings
+and comments remain masked. The command-edge grammar now keeps literal
+resource imports owner-relative while normalizing literal Godot `--script`
+arguments from the project working directory. Permanent controls cover
+repository-relative `OS.execute`, `execute_with_pipe`, and `create_process`
+forms as well as `res://` and `--script=` spellings.
+
+The source-only gate and all 20 focused and 23 complete tooling tests again
+passed on Python 3.8.20, 3.9.6, and 3.14.6. No GDScript, inventory, UI, writer,
+guard, output dimension, or capture artifact changed during this closure. No
+Godot process, renderer, viewport, contract runner, PNG/JSON writer, screenshot,
+or alternate-size command ran. Previous report/log bytes remain exact prefixes;
+the task is still unchecked, human approval is false, and the successor awaits
+another independent read-only verdict.
+
+## Final exact-1920 non-capture validation — 2026-09-11
+
+A different Astra-max reviewer accepted the frozen command/write-expression
+closure with no P0, P1, P2, or P3 findings. It verified the supplied hashes,
+all 27 sealed files, the prior report/log prefixes, the nine writers and ten PNG
+calls, the three guarded JSON paths, and 91 additional source-only assertions.
+It did not edit the candidate or invoke Godot or an evidence writer.
+
+After that acceptance, the pinned Godot 4.7.2 executable (SHA-256
+`c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf`)
+completed a headless import and check-only parsed the ten changed GDScripts at
+explicit `--resolution 1920x1080`; all ten exited zero with no diagnostics.
+Three exact-resolution headless contracts then passed at 74/0, 124/0, and
+111/0. Every capture environment variable was absent and the explicit capture
+arguments were empty. The visual contract reported `frames=0` and
+`HEADLESS_EVIDENCE_CAPTURE_SKIPPED`.
+
+These are import, parse, and non-capture contract results only. The headless
+visual contract used its dummy logical SubViewport, but no native renderer,
+physical-framebuffer validation, screenshot, PNG/JSON writer, historical
+generator, or alternate-size command ran. The seven historical capture hashes
+remain unchanged. Human approval remains false and every task checkbox remains
+unchanged.

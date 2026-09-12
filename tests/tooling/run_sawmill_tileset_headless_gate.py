@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the source-only Sawmill contract with a strict engine-log gate."""
+"""Run the source-only Sawmill contract at the exact first-playable output."""
 
 from __future__ import annotations
 
@@ -28,6 +28,8 @@ def run_once() -> tuple[bool, str, int, int, list[str]]:
             "--headless",
             "--path",
             str(PROJECT_ROOT),
+            "--resolution",
+            "1920x1080",
             "--audio-driver",
             "Dummy",
             "--script",

@@ -101,7 +101,7 @@ def inspect_package(
         package,
         descriptor,
         resource_path,
-        project_root / resource_path.removeprefix("res://"),
+        project_root / resource_path[len("res://"):],
     )
 
 

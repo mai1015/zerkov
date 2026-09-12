@@ -6,6 +6,7 @@ extends SceneTree
 ## godot --headless --path . --resolution 1920x1080 --script res://tests/presentation/feature_gates_8_9_contract.gd
 
 const FIRST_PLAYABLE_SIZE := Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const FEATURE_IDS: PackedStringArray = [
 	"bunker", "crafting", "friends", "insurance", "marketplace"
 ]
@@ -432,6 +433,9 @@ func _capture_exact_frame() -> void:
 	check(image.get_size() == FIRST_PLAYABLE_SIZE,
 		"raw Image remains exact 1920x1080 immediately before file write")
 	if image.get_size() != FIRST_PLAYABLE_SIZE:
+		return
+	if not Exact1080CaptureGuard.accepts(root, production_render_target, image):
+		push_error("FEATURE_GATES_8_9: physical output changed immediately before PNG write")
 		return
 	var save_error := image.save_png(absolute)
 	check(save_error == OK,

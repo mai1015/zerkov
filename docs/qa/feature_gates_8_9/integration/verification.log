@@ -211,3 +211,257 @@ binding_source_diff=clean
 common_ui_bindings.json.tmp=absent
 common_ui_bindings.json.bak=absent
 runtime_tools_invoked=none
+
+[practical_exact_1080_manifest_gate_successor_2026-09-11]
+branch=codex/1080-practical-gate
+candidate_parent=691a654fa6ee338b3c6d56f140b630923f412b47
+policy=reviewed_manifest_hashes;independent_runner_discovery;literal_output_and_command_checks;fail_first_retirement;direct_retired_reference_edges
+general_gdscript_verifier=false
+output_target=1920x1080
+world_surface=640x360
+world_scale=3
+active_visual_gdscript_entrypoints=26
+active_python_command_drivers=2
+active_headless_entrypoints=35
+retired_display_entrypoints=16
+historical_evidence_entrypoints=31
+active_png_writers=9
+non_executable_source_only_fixtures=0
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest -v tests.tooling.test_ui_first_playable_scope
+tests=14 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest discover -v -s tests/tooling -p test_*.py
+tests=17 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest -v tests.tooling.test_ui_first_playable_scope
+tests=14 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -v -s tests/tooling -p test_*.py
+tests=17 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.tooling.test_ui_first_playable_scope
+tests=14 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -v -s tests/tooling -p test_*.py
+tests=17 failures=0 errors=0
+python_versions=3.8.20,3.9.6,3.14.6
+python38_prefinal_platform_issue=str.removeprefix unavailable;parent_identical;repaired_with_validated_prefix_slice
+inventory_capture_parent=res://tests/raid/inventory_ui_binding_contract.gd
+retired_inventory_capture_reference_from_current=absent
+production_inventory_or_ui_files_changed=none
+task_checkbox_changed=false
+human_approval=false
+godot_processes_invoked=none
+renderers_or_viewports_started=none
+png_writers_invoked=none
+historical_generators_invoked=none
+alternate_output_commands_executed=none
+
+[practical_exact_1080_bounded_review_repair_2026-09-11]
+prior_candidate_review=REJECT;inline_comment_runner,quoted_inherited_runner,relative_retired_edge,category_overlap,physical_writer_uniformity
+policy_shape=bounded_lexing_and_normalization;reviewed_hash_manifest;not_a_general_gdscript_verifier
+runner_controls=extends_SceneTree_inline_comment,single_quoted_inheritance
+reference_controls=res_and_relative_extends,res_and_relative_load,res_and_relative_preload,comment_decoy
+category_controls=retired_historical_overlap_separate_for_gdscript_and_python
+png_write_controls=unprotected,comment_decoy,wrong_arguments,open_guard,nested_return,compound_guard,yield_gap
+physical_guard=res://game/presentation/exact_1080_capture_guard.gd
+physical_guard_contract=headless_rejected;display_window_1920x1080;root_size_1920x1080;root_visible_1920x1080;root_texture_1920x1080;capture_visible_1920x1080;capture_texture_1920x1080;raw_image_1920x1080
+sanctioned_writer_paths=9
+static_save_png_calls=10
+sawmill_internal_world=640x360
+sawmill_world_scale=3
+sawmill_clamped_physical_window_accepted=false
+inventory_ui=existing_designed_screen_and_authority_bridge_controller_seam
+
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=18 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=21 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=18 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=21 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=18 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=21 failures=0 errors=0
+python_versions=3.8.20,3.9.6,3.14.6
+
+$ PYTHONDONTWRITEBYTECODE=1 python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py validate add-zerkov-playable-raid-2026-09-09 --type change --strict
+Valid
+$ PYTHONDONTWRITEBYTECODE=1 python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py validate refactor-ui-composition-2026-09-09 --type change --strict
+Valid
+
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --version
+4.7.2.stable.official.ed1daf0bf
+godot_sha256=c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --editor --import --quit
+exit=0
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --quiet --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --check-only --script <each-listed-script>
+check_only_scripts=game/presentation/exact_1080_capture_guard.gd,tests/presentation/feature_gates_8_9_contract.gd,tests/presentation/feature_gates_8_9_visual_evidence.gd,tests/presentation/ui_production_unavailable_8_11_contract.gd,tests/ui_component_states.gd,tests/visual/inventory_loot_ui_4_11/capture.gd,tests/visual/live_character_ui_8_6/capture.gd,tests/visual/sawmill_yard/capture.gd,tests/visual/zerkov_screen_lifecycle/capture.gd,ui/main.gd
+check_only=10/10 exit=0 diagnostics=none
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --script res://tests/presentation/feature_gates_8_9_contract.gd -- --capture-path=
+FEATURE_GATES_8_9_RESULT checks=74 failures=0 size=1920x1080
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd -- --capture-dir=
+FEATURE_GATES_8_9_VISUAL_RESULT checks=124 failures=0 size=1920x1080 frames=0;capture=skipped_headless
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --script res://tests/presentation/ui_production_unavailable_8_11_contract.gd -- --capture-path=
+UI_PRODUCTION_UNAVAILABLE_8_11_RESULT checks=111 failures=0 size=1920x1080
+engine_runs=exact_1920_headless_import_check_only_and_non_capture_contracts_only
+native_renderer_started=false
+physical_capture_claim=false
+png_writer_invoked=false
+screenshots_taken=false
+alternate_output_commands_executed=none
+historical_generators_invoked=none
+generated_residue_moved_to=/tmp/zerkov-practical-gate-godot-residue.FpQzbj
+task_checkbox_changed=false
+human_approval=false
+independent_acceptance=false
+successor_seal_entries=27
+
+[practical_exact_1080_second_review_closure_2026-09-11]
+prior_candidate_review=REJECT;P0=0;P1=0;P2=2;P3=1
+prior_report_prefix_bytes=17052
+prior_report_prefix_sha256=154cf81878be09cc9effde7547a488a8236fe5b5468b079532a5a3f880787459
+prior_verification_log_prefix_bytes=22528
+prior_verification_log_prefix_sha256=9fd775c30e99eb3864de4d1281f91e44ea0eaf9ed88a082d065b2570a555dd0d
+policy_shape=bounded_literal_lexer_and_manifest_checks;not_a_general_gdscript_verifier
+writer_classification=exactly_one_of_active_visual_or_reviewed_support;sha256_required
+writer_classification_controls=omission,overlap
+config_reference_controls=bare_autoload,starred_autoload,semicolon_comment,hash_comment
+gdscript_reference_controls=OS.execute_literal_script_array,quoted_load_decoy,comment_decoy
+png_receiver_controls=guarded_image_identity,different_image,computed_receiver
+same_line_write_controls=mutation_before_save,yield_before_save
+sanctioned_writer_paths=9
+static_save_png_calls=10
+guarded_json_report_paths=3
+sawmill_clamped_physical_window_accepted=false
+
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=20 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=23 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=20 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=23 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=20 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=23 failures=0 errors=0
+python_versions=3.8.20,3.9.6,3.14.6
+
+$ PYTHONDONTWRITEBYTECODE=1 python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py validate add-zerkov-playable-raid-2026-09-09 --type change --strict
+Valid
+$ PYTHONDONTWRITEBYTECODE=1 python3 /Users/mai1015/.codex/skills/spec-toolkit/scripts/spec_toolkit.py validate refactor-ui-composition-2026-09-09 --type change --strict
+Valid
+
+godot_processes_invoked=none_this_repair
+renderers_or_viewports_started=none
+contract_scripts_invoked=none_this_repair
+png_writers_invoked=none
+json_report_writers_invoked=none
+screenshots_taken=false
+alternate_output_commands_executed=none
+task_checkbox_changed=false
+human_approval=false
+independent_acceptance=false
+successor_seal_entries=27
+
+[practical_exact_1080_command_write_expression_closure_2026-09-11]
+prior_candidate_review=REJECT;P0=0;P1=0;P2=2;P3=0
+prior_report_prefix_bytes=19331
+prior_report_prefix_sha256=e5ee2f6806978091725c22f342312b0325ee19eac8a932ef7d531533f50edb01
+prior_verification_log_prefix_bytes=25824
+prior_verification_log_prefix_sha256=1cc7d7f36eaab14e69a2c42d24bcad2c0707d6948b4a2e974f5a0f3624c112d2
+png_call_expression_policy=balanced_direct_call;await_rejected_before_actual_write
+png_await_controls=single_line_argument,multiline_argument
+gdscript_command_path_policy=res_uri_or_project_working_directory;not_owner_relative
+gdscript_command_methods=OS.execute,OS.execute_with_pipe,OS.create_process
+gdscript_command_controls=res_script,project_relative_script,script_equals
+
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=20 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /Users/mai1015/.local/share/uv/python/cpython-3.8-macos-aarch64-none/bin/python3.8 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=23 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=20 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=23 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 tools/check_first_playable_1080.py
+FIRST_PLAYABLE_1080_GATE passed=true output=1920x1080 world=640x360 scale=3 general_gdscript_verifier=false
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -q tests.tooling.test_ui_first_playable_scope
+tests=20 failures=0 errors=0
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -q -s tests/tooling -p test_*.py
+tests=23 failures=0 errors=0
+python_versions=3.8.20,3.9.6,3.14.6
+
+godot_processes_invoked=none_this_closure
+renderers_or_viewports_started=none
+contract_scripts_invoked=none_this_closure
+png_writers_invoked=none
+json_report_writers_invoked=none
+screenshots_taken=false
+alternate_output_commands_executed=none
+task_checkbox_changed=false
+human_approval=false
+independent_acceptance=false
+successor_seal_entries=27
+
+[practical_exact_1080_final_non_capture_validation_2026-09-11]
+prior_report_prefix_bytes=20871
+prior_report_prefix_sha256=983d4bfd5e79602d3adc7523edc862d0bb7b75b2d9cf777e1fed19cc396af800
+prior_verification_log_prefix_bytes=28487
+prior_verification_log_prefix_sha256=6b73b374df593be1024c92156cf8f9768d50abc5e9745b0b7f2019a0d7796853
+independent_reviewer=astra_max_read_only
+independent_verdict=ACCEPT;P0=0;P1=0;P2=0;P3=0
+independent_additional_assertions=91
+
+$ /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --version
+4.7.2.stable.official.ed1daf0bf
+godot_sha256=c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf
+$ env -u ZERKOV_CAPTURE_PATH -u ZERKOV_CAPTURE_DIR -u CAPTURE_PATH -u CAPTURE_DIR /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --editor --import --quit
+exit=0;diagnostics=none
+$ env -u ZERKOV_CAPTURE_PATH -u ZERKOV_CAPTURE_DIR -u CAPTURE_PATH -u CAPTURE_DIR /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --quiet --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --check-only --script res://<each-listed-script>
+check_only_scripts=game/presentation/exact_1080_capture_guard.gd,tests/presentation/feature_gates_8_9_contract.gd,tests/presentation/feature_gates_8_9_visual_evidence.gd,tests/presentation/ui_production_unavailable_8_11_contract.gd,tests/ui_component_states.gd,tests/visual/inventory_loot_ui_4_11/capture.gd,tests/visual/live_character_ui_8_6/capture.gd,tests/visual/sawmill_yard/capture.gd,tests/visual/zerkov_screen_lifecycle/capture.gd,ui/main.gd
+check_only=10/10 exit=0 diagnostics=none
+$ env -u ZERKOV_CAPTURE_PATH -u ZERKOV_CAPTURE_DIR -u CAPTURE_PATH -u CAPTURE_DIR /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --script res://tests/presentation/feature_gates_8_9_contract.gd -- --capture-path=
+FEATURE_GATES_8_9_RESULT checks=74 failures=0 size=1920x1080
+$ env -u ZERKOV_CAPTURE_PATH -u ZERKOV_CAPTURE_DIR -u CAPTURE_PATH -u CAPTURE_DIR /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --script res://tests/presentation/feature_gates_8_9_visual_evidence.gd -- --capture-dir=
+HEADLESS_EVIDENCE_CAPTURE_SKIPPED dummy renderer has no native framebuffer
+FEATURE_GATES_8_9_VISUAL_RESULT checks=124 failures=0 size=1920x1080 frames=0
+$ env -u ZERKOV_CAPTURE_PATH -u ZERKOV_CAPTURE_DIR -u CAPTURE_PATH -u CAPTURE_DIR /Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot --headless --path /Volumes/Data/codes/codex-workspace/zerkov-1080-practical-gate --resolution 1920x1080 --audio-driver Dummy --script res://tests/presentation/ui_production_unavailable_8_11_contract.gd -- --capture-path=
+UI_PRODUCTION_UNAVAILABLE_8_11_RESULT checks=111 failures=0 size=1920x1080
+
+engine_validation=exact_1920_headless_import_check_only_and_non_capture_contracts_only
+capture_environment_variables=unset
+capture_cli_values=empty
+headless_dummy_subviewport_used=true
+native_renderer_started=false
+physical_capture_claim=false
+png_writer_invoked=false
+json_report_writer_invoked=false
+screenshots_taken=false
+historical_capture_hashes=7_unchanged
+historical_generators_invoked=none
+alternate_output_commands_executed=none
+task_checkbox_changed=false
+human_approval=false
+successor_seal_entries=27

@@ -4,6 +4,7 @@ extends SceneTree
 ## No player controller, authority, AI, inventory, task or extract runtime.
 
 const EXACT_SIZE := Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const Output = preload("res://tests/visual/sawmill_yard/exact_output.gd")
 const YardScene = preload("res://game/world/sawmill/sawmill_yard.tscn")
 const Tokens = preload("res://ui/theme/tokens.gd")
@@ -104,6 +105,10 @@ func run() -> void:
 		var filename := "1920x1080_" + String(view.id) + ".png"
 		check(_exact_frame(rendered), "exact native image immediately before save " + filename)
 		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT))
+		if not Exact1080CaptureGuard.accepts(root, output_target, rendered):
+			push_error("SAWMILL_CAPTURE: physical output changed before PNG write")
+			quit(2)
+			return
 		check(rendered.save_png(OUTPUT + "/" + filename) == OK, "save " + filename)
 		records.append({
 			"file": filename, "dimensions": [1920, 1080],
@@ -123,9 +128,14 @@ func run() -> void:
 		"contact_sheet": contact_sheet,
 		"output_target": [1920, 1080],
 		"host_window_size": [DisplayServer.window_get_size().x, DisplayServer.window_get_size().y],
-		"host_window_note": "OS-clamped preview only; never read or saved as evidence. The exact GPU root target is captured.",
+		"host_window_note": "Physical window, root, visible rect, textures and raw images must all remain exact 1920x1080.",
 		"human_approval": false, "independent_acceptance": false,
 	}
+	var report_frame := output_target.get_texture().get_image()
+	if not Exact1080CaptureGuard.accepts(root, output_target, report_frame):
+		push_error("SAWMILL_CAPTURE: physical output changed before report write")
+		quit(2)
+		return
 	var file := FileAccess.open(OUTPUT + "/captures.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "\t") + "\n")
 	file.close()
@@ -145,8 +155,8 @@ func run() -> void:
 
 
 func _build_world() -> void:
-	# Native GPU composition target. The OS may clamp its desktop preview,
-	# so evidence is read exclusively from this exact output target.
+	# Native GPU composition target. A clamped physical desktop preview is
+	# rejected by Exact1080CaptureGuard before any evidence write.
 	output_target = SubViewport.new()
 	output_target.name = "Exact1920x1080Output"
 	output_target.size = EXACT_SIZE
@@ -259,7 +269,10 @@ func frame() -> Image:
 
 
 func _exact_frame(rendered: Image) -> bool:
-	return output_target.size == EXACT_SIZE and output_target.get_visible_rect().size == Vector2(EXACT_SIZE) and surface.size == Output.WORLD_SIZE and presenter.size == Vector2(EXACT_SIZE) and rendered.get_size() == EXACT_SIZE
+	return Exact1080CaptureGuard.accepts(root, output_target, rendered) \
+		and output_target.size == EXACT_SIZE \
+		and surface.size == Output.WORLD_SIZE \
+		and presenter.size == Vector2(EXACT_SIZE)
 
 
 func _test_camera_rounding() -> void:
@@ -321,6 +334,11 @@ func _capture_contact_sheet() -> Dictionary:
 		quit(2)
 		return {}
 	var filename := "1920x1080_contact_sheet.png"
+	if not Exact1080CaptureGuard.accepts(root, output_target, rendered):
+		sheet.free()
+		push_error("SAWMILL_CAPTURE: physical output changed before contact-sheet write")
+		quit(2)
+		return {}
 	check(rendered.save_png(OUTPUT + "/" + filename) == OK, "save exact-1920 native GPU contact sheet")
 	var record := {"file": filename, "dimensions": [1920, 1080], "sha256": FileAccess.get_sha256(OUTPUT + "/" + filename), "kind": "labeled native GPU montage; thumbnails are not gameplay output"}
 	sheet.free()

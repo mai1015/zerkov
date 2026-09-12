@@ -4,6 +4,7 @@ const U = preload("res://ui/theme/tokens.gd")
 const Adaptive = preload("res://ui/core/adaptive.gd")
 const RouteCatalog = preload("res://ui/core/route_catalog.gd")
 const DESKTOP_CANVAS = Vector2i(1920, 1080)
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const DESKTOP_MIN_WINDOW = Vector2i(1280, 720)
 var ROUTES: Dictionary = RouteCatalog.labels()
 @export var initial_route: String = "title"
@@ -461,6 +462,10 @@ func _run_qa() -> void:
 					and capture.get_size() == DESKTOP_CANVAS
 			if not exact_capture:
 				push_error("QA capture framebuffer changed from exact 1920x1080; no image written")
+				get_tree().quit(2)
+				return
+			if not Exact1080CaptureGuard.accepts(get_tree().root, get_viewport(), capture):
+				push_error("QA capture physical output changed before PNG write")
 				get_tree().quit(2)
 				return
 			var err = capture.save_png(capture_dir.path_join(route + ".png"))
