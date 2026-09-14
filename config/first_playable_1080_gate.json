@@ -1,8 +1,13 @@
 {
   "schema_version": 1,
   "policy": "Reviewed repository and runtime-entrypoint discipline for the current first-playable. This is not a general GDScript verifier.",
-  "output_size": [1920, 1080],
-  "external_exact_size_symbols": ["Output.EXACT_SIZE"],
+  "output_size": [
+    1920,
+    1080
+  ],
+  "external_exact_size_symbols": [
+    "Output.EXACT_SIZE"
+  ],
   "project_config": {
     "window/size/viewport_width": 1920,
     "window/size/viewport_height": 1080,
@@ -116,6 +121,30 @@
     }
   },
   "active_command_entrypoints": {
+    "tests/tooling/run_interaction_policy_headless_gate.py": {
+      "purpose": "exact headless interaction policy driver",
+      "sha256": "a080fe27aa70df44588b433fdd2d963cea4833a3e24770e6670788c2428d73f8"
+    },
+    "tests/tooling/run_movement_authority_headless_gate.py": {
+      "purpose": "exact headless movement authority driver",
+      "sha256": "539eed3dc9b0a20cc6393111d1e4dad6aefe093554e664695b33c7c7643a735a"
+    },
+    "tests/tooling/run_navigation_path_headless_gate.py": {
+      "purpose": "exact headless navigation path driver",
+      "sha256": "c365012e9da0620a8899e1c85e88f60293a34fb6dc1965a22f25726a7627837c"
+    },
+    "tests/tooling/run_occluder_bake_headless_gate.py": {
+      "purpose": "exact headless occluder bake driver",
+      "sha256": "393e1a1f1a9bdb3d5a54bfdbc39c09da38c53be8ba9aece727ac930487f13e7b"
+    },
+    "tests/tooling/run_player_locomotion_headless_gate.py": {
+      "purpose": "exact headless player locomotion driver",
+      "sha256": "4c957614fc423d52f41250d481ee96214175c8c5a672113ead3a8b5360dfed24"
+    },
+    "tests/tooling/run_sawmill_contract_headless_gate.py": {
+      "purpose": "exact headless Sawmill integration contract driver",
+      "sha256": "842515760e8f6a1e0cb6b910f69f20834a126ddaf66182a878c2af5c4fc8f700"
+    },
     "tests/tooling/run_sawmill_layout_gate.py": {
       "purpose": "exact native Sawmill gate",
       "sha256": "d4fa6b0256245cc811d958d8e847b9114c1fd09cac9f9a78ff23e4dd625689a2"
@@ -123,6 +152,14 @@
     "tests/tooling/run_sawmill_tileset_headless_gate.py": {
       "purpose": "exact headless Sawmill contract driver",
       "sha256": "9ffccca012c1c6cabec0879fa06decf99ec1bd7a26bb4a7062020be0fc551190"
+    },
+    "tests/tooling/run_world_camera_cursor_headless_gate.py": {
+      "purpose": "exact headless world camera/cursor driver",
+      "sha256": "52dc962f2fda2695bf40b624e3fe99cdf94fdd8dcd94b7333ab7ecb29a1809d7"
+    },
+    "tests/tooling/run_world_markers_headless_gate.py": {
+      "purpose": "exact headless world markers driver",
+      "sha256": "195b46a00ee088a845abcc260c38228ca4ebb7627194d6b0e578d508984dac79"
     }
   },
   "active_reviewed_support": {
@@ -144,6 +181,7 @@
   },
   "active_headless_entrypoints": [
     "tests/addons/combined_addons_smoke.gd",
+    "tests/ai/occluder_bake_contract.gd",
     "tests/ai/vision_world_contract.gd",
     "tests/combat/body_hitbox_adversarial_contract.gd",
     "tests/combat/body_hitbox_capability_encapsulation_contract.gd",
@@ -156,10 +194,12 @@
     "tests/presentation/character_presentation_composition_contract.gd",
     "tests/presentation/ui_state_8_11_contract.gd",
     "tests/presentation/view_contracts_contract.gd",
+    "tests/presentation/world_camera_cursor_contract.gd",
     "tests/raid/asset_registry_contract.gd",
     "tests/raid/authority_replay_contract.gd",
     "tests/raid/equipped_item_reconciliation_contract.gd",
     "tests/raid/identity_contract.gd",
+    "tests/raid/interaction_policy_contract.gd",
     "tests/raid/inventory_ability_reconciliation_contract.gd",
     "tests/raid/inventory_authority_contract.gd",
     "tests/raid/inventory_catalog_contract.gd",
@@ -170,14 +210,19 @@
     "tests/raid/inventory_persistence_replacement_contract.gd",
     "tests/raid/inventory_projection_contract.gd",
     "tests/raid/inventory_weapon_reload_contract.gd",
+    "tests/raid/movement_authority_contract.gd",
+    "tests/raid/navigation_path_contract.gd",
+    "tests/raid/player_locomotion_contract.gd",
     "tests/raid/profile_store_contract.gd",
+    "tests/raid/sawmill_contract.gd",
     "tests/raid/sawmill_layout_contract.gd",
     "tests/raid/sawmill_tileset_contract.gd",
     "tests/raid/session_lifecycle_contract.gd",
     "tests/raid/units_clock_contract.gd",
     "tests/raid/weapon_instance_context_adversarial_contract.gd",
     "tests/raid/weapon_instance_context_contract.gd",
-    "tests/raid/weapon_persistence_integration_contract.gd"
+    "tests/raid/weapon_persistence_integration_contract.gd",
+    "tests/raid/world_markers_contract.gd"
   ],
   "retired_display_entrypoints": {
     "gdscript": [
@@ -240,13 +285,24 @@
   },
   "non_executable_fixture_files": [],
   "allowed_dynamic_output_assignments": {
-    "tests/border_render_smoke.gd": ["root.size = dimensions"],
-    "tests/ui_reflow_smoke.gd": ["root.size = dimensions"],
-    "tests/zerkov_screen_lifecycle_contract.gd": ["root.size = view_size"],
-    "ui/main.gd": ["window.content_scale_size = logical"]
+    "tests/border_render_smoke.gd": [
+      "root.size = dimensions"
+    ],
+    "tests/ui_reflow_smoke.gd": [
+      "root.size = dimensions"
+    ],
+    "tests/zerkov_screen_lifecycle_contract.gd": [
+      "root.size = view_size"
+    ],
+    "ui/main.gd": [
+      "window.content_scale_size = logical"
+    ]
   },
   "world_surface": {
-    "size": [640, 360],
+    "size": [
+      640,
+      360
+    ],
     "scale": 3,
     "assignment": {
       "path": "tests/visual/sawmill_yard/capture.gd",

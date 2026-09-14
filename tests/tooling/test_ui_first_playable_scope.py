@@ -57,7 +57,7 @@ class FirstPlayable1080GateTests(unittest.TestCase):
             [], gate.classification_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
         self.assertEqual(26, len(self.manifest["active_visual_entrypoints"]))
-        self.assertEqual(35, len(self.manifest["active_headless_entrypoints"]))
+        self.assertEqual(43, len(self.manifest["active_headless_entrypoints"]))
         self.assertEqual(
             (14, 2),
             tuple(len(self.manifest["retired_display_entrypoints"][kind])

@@ -121,21 +121,21 @@ suite; replay digest; teardown/reentrancy regression tests.
   navigation, collision and draw-layer metadata.
 - [x] 3.4 `[ASTRA]` Compose the Sawmill Yard greybox/readability layout with
   spawn, objective landmarks, combat lanes, cover, loot and Road Gate extract.
-- [ ] 3.5 `[LUNA]` Implement player acceleration, speed, facing and input intent
+- [x] 3.5 `[LUNA]` Implement player acceleration, speed, facing and input intent
   generation without direct transform authority in the UI/controller.
-- [ ] 3.6 `[SOL]` Implement server-authoritative 2D movement, collision,
+- [x] 3.6 `[SOL]` Implement server-authoritative 2D movement, collision,
   correction and blocked-movement results.
-- [ ] 3.7 `[LUNA]` Implement camera follow, cursor-to-world aim and interaction
+- [x] 3.7 `[LUNA]` Implement camera follow, cursor-to-world aim and interaction
   targeting as presentation/input adapters.
-- [ ] 3.8 `[SOL]` Implement bounded proximity/line policy for doors, crates,
+- [x] 3.8 `[SOL]` Implement bounded proximity/line policy for doors, crates,
   corpses, healing targets and extraction zones.
-- [ ] 3.9 `[SOL]` Author navigation data and a deterministic path-request seam
+- [x] 3.9 `[SOL]` Author navigation data and a deterministic path-request seam
   that keeps pathfinding results outside canonical add-on state.
-- [ ] 3.10 `[SOL]` Bake stable Common Vision occluder segments from explicit
+- [x] 3.10 `[SOL]` Bake stable Common Vision occluder segments from explicit
   level data, remove internal duplicate edges and validate segment budgets.
-- [ ] 3.11 `[LUNA]` Add spawn, loot, patrol, objective and extraction marker
+- [x] 3.11 `[LUNA]` Add spawn, loot, patrol, objective and extraction marker
   resources with stable authored identifiers.
-- [ ] 3.12 `[SOL]` Add a headless Sawmill contract checking required anchors,
+- [x] 3.12 `[SOL]` Add a headless Sawmill contract checking required anchors,
   collisions, reachable extract, occluder bounds and duplicate identifiers.
 
 Evidence: resolution comparison sheet; approved Sawmill layout capture;
@@ -151,6 +151,85 @@ horizontal and 90 px vertical matte. The selected constant-FOV policy keeps
 world visibility stable across the tested outputs, trading the 900p matte for
 fairness rather than exposing extra world area; no human approval or later
 animation/combat/readability/cursor-mapping acceptance is claimed.
+
+Completed task evidence (3.5, 2026-09-14): player locomotion, facing resolution
+and input intent seam passed headless contract verification
+`PLAYER_LOCOMOTION_HEADLESS_GATE runs=2 checks=332 failures=0 diagnostics=0`
+at exact 1920x1080. Verified acceleration from rest (12.8 px/s/tick to 128 px/s),
+deceleration to stop (17.067 px/s/tick in 8 ticks to (0,0)), clamped max speeds
+across walk (128 px/s), sprint (192 px/s), crouch (64 px/s) and crouch-priority
+simultaneous input, diagonal normalization policy (diagonal speed matches cardinal
+walk speed), discrete 4-way and 8-way facing resolution with explicit tie-break
+rules, payload canonical validation, no direct transform authority in the UI seam,
+and full RaidAuthority phase integration with bit-for-bit replay determinism.
+
+Completed task evidence (3.6-3.12, 2026-09-14): the remaining world, level and
+player mechanics passed headless contract verification at exact 1920x1080,
+every gate over two runs with zero failures and zero diagnostics:
+`MOVEMENT_AUTHORITY_HEADLESS_GATE runs=2 checks=1078`,
+`WORLD_CAMERA_CURSOR_HEADLESS_GATE runs=2 checks=140`,
+`INTERACTION_POLICY_HEADLESS_GATE runs=2 checks=328`,
+`NAVIGATION_PATH_HEADLESS_GATE runs=2 checks=1222`,
+`OCCLUDER_BAKE_HEADLESS_GATE runs=2 checks=528`,
+`WORLD_MARKERS_HEADLESS_GATE runs=2 checks=612`,
+`SAWMILL_CONTRACT_HEADLESS_GATE runs=2 checks=384`. The task 3.4 layout gate
+(`checks=8006 failures=0`) and the task 3.5 locomotion gate (`checks=332`)
+remain green unchanged.
+
+3.6 resolves movement in canonical microunits with axis-separated wall-slide,
+bounds clamping, sorted blocking collider identifiers and a bounded correction
+log; `ZPlayerLocomotion` no longer writes an unchecked integration step, so the
+published pose is always the resolved position. This also fixed a latent task
+3.5 defect: the conversion-failure path read `ZUnitConversion.error`, which does
+not exist (the property is `error_code`).
+
+3.7 keeps camera follow, cursor-to-world aim and interaction targeting as pure
+presentation/input adapters: k=3 with zero matte at 1920x1080, camera output
+rounded once to whole world-raster pixels with smoothing off, exact
+screen->world->screen round-trips, a typed outside-surface result for matte
+pointers, and an explicit total tie-break for candidate ranking. Running the
+authority with and without camera follow yields an identical `state_digest()`,
+proving no transform authority.
+
+3.8 evaluates per-kind bounded ranges (door 1.5, crate 1.25, corpse 1.5, heal
+target 2.0 world units) in exact integer microunits, with extraction using
+authored `zone_cells` containment rather than a radius. Structure occluder
+segments block the interaction line, vegetation-only segments do not, and range
+is evaluated before line. Eligibility predicates are injected flags with
+documented defaults because their owning authorities (door locks, container
+emptying, health/injury, objective gating) do not exist in the first playable;
+heal target deliberately fails closed. The gate was mutation-tested three times
+(range constant, occluder mask, heal predicate) and caught every mutation.
+
+3.9 bakes navigation from the same authored blocking source task 3.6 resolves
+against - 179 blocked / 621 walkable cells, agreement proven cell-for-cell -
+and serves bounded integer-cost A* with a total tie-break and typed outcomes.
+Path results stay outside canonical add-on state: issuing fresh, cached,
+blocked, exhausted and stale requests plus a full re-bake leaves
+`RaidAuthority.state_digest()` bit-identical, while one authority tick changes
+it.
+
+3.10 bakes 98 Common Vision occluder segments from explicit authored level data
+against a declared 128-segment budget, collapsing shared internal edges and
+merging collinear runs (naive per-rect boxing would be 116). Double-bake
+produces identical data and identifiers. The sealed `ZerkovVisionConfig`
+fingerprint and `RaidVisionWorldOwner` were not modified.
+
+3.11 promotes the nine authored anchors to typed marker Resources and derives
+ten patrol waypoints deterministically from the authored routes, resolved by
+stable identifier and independent of both source-array order and scene-tree
+order. `sawmill_yard_layout.tres` is byte-unchanged.
+
+3.12 validates the real authored level across the five named families with 17
+negative controls proving the validator can fail, and found no defect in 3.6,
+3.9, 3.10 or 3.11.
+
+All new contracts and gate drivers are registered in
+`config/first_playable_1080_gate.json` (43 headless, 10 command entrypoints);
+`test_ui_first_playable_scope.py` passes 20/20. Registration also closed a
+pre-existing gap in which the task 3.5 entrypoints were unclassified and failed
+that suite. No human playtest, animation, combat-readability or cursor-mapping
+acceptance is claimed; those gates remain open.
 
 ## 4. Inventory, equipment and loot
 
