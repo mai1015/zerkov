@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+ERROR: sh: 1: dotnet: not found
+
+   at: try_get_dotnet_root_from_command_line (modules/mono/mono_gd/gd_mono.cpp:122)
+ERROR: .NET: One of the dependent libraries is missing. Typically when the `hostfxr`, `hostpolicy` or `coreclr` dynamic libraries are not present in the expected locations.
+   at: find_hostfxr (modules/mono/mono_gd/gd_mono.cpp:182)
+Error: Can't open display: :0
+ERROR: .NET: Failed to load hostfxr
+   at: initialize (modules/mono/mono_gd/gd_mono.cpp:676)
+MOVEMENT_STEP_RESULT scenarios=24 checks=36 failures=0

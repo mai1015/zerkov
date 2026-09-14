@@ -1,0 +1,1 @@
+NATIVE_VECTOR_GENERATION collision_cases=5000 oracle_matches=5000 trace_ticks=10000

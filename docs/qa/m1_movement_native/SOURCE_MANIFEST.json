@@ -1,0 +1,40 @@
+{
+  "repository": "mai1015/zerkov",
+  "base_commit": "55362911aa089c3b87100697181a982eebd3c209",
+  "unmodified_candidate_sources": {
+    "game/world/movement/z_movement_step_2d.gd": {
+      "sha256": "43eb10540135531e547b036f707af9d41bcbdf9ff3d39a706c4f72098028888b",
+      "unchanged_from_starter": true
+    },
+    "tests/world/movement_step_contract.gd": {
+      "sha256": "a22ff6dc3c51f931a4a28d4df6df53eb22f57aed13dd8c2eb5f1074adc636f37",
+      "unchanged_from_starter": true
+    }
+  },
+  "repository_dependencies": {
+    "game/domain/z_world_units.gd": {
+      "git_blob_sha1": "6e9bbd8705e71908a76c58396a318cd87c0fe1ba"
+    },
+    "game/domain/z_unit_conversion.gd": {
+      "git_blob_sha1": "dc60a7f55cb902e06b5f0ce52789b3fe6dcfb255"
+    }
+  },
+  "uploaded_archives": {
+    "Godot_v4.7.2-stable_linux.x86_64.zip": {
+      "sha256": "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4"
+    },
+    "Godot_v4.7.2-stable_mono_linux_x86_64.zip": {
+      "sha256": "129f82db7bafd54ae14bb5bb284041c73860e8c7a009a3a026ca5e946cbff247"
+    }
+  },
+  "engine_binaries": {
+    "standard": {
+      "reported_version": "4.7.2.stable.official.ed1daf0bf",
+      "sha256": "8d106cbe6144c2dc7e881d61d2429c1a8a76e6b22ef48bd5e48dcf934953f71e"
+    },
+    "dotnet": {
+      "reported_version": "4.7.2.stable.mono.official.ed1daf0bf",
+      "sha256": "fc1bd592b5e771c65d52968f99835b4f2b7fe7b7cbc141e202cb63e01c95ec4d"
+    }
+  }
+}
