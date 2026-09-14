@@ -5,7 +5,7 @@ extends RefCounted
 ## This grid is DERIVED data, never a second blocking truth. The bake builds
 ## the authoritative collision world through task 3.6's ZMovementWorldBuilder
 ## (or accepts a ZMovementWorld2D the caller already built) and asks that
-## world's own registration predicate whether the navigation body can stand
+## world's own read-only placement predicate whether the navigation body can stand
 ## at each authored cell centre. No overlap test is re-implemented here and
 ## no authored structure list is re-interpreted here, so navigation blocking
 ## cannot drift from authoritative collision.
@@ -80,7 +80,7 @@ static func bake_from_sawmill_layout(
 
 
 ## Bakes the grid from an already-built authoritative movement world. Every
-## cell is probed through the movement world's own registration predicate, so
+## cell is probed through the movement world's own read-only placement predicate, so
 ## the blocked set IS the collision truth at navigation-body scale.
 static func bake_from_movement_world(
 	world: ZMovementWorld2D,
@@ -111,17 +111,15 @@ static func bake_from_movement_world(
 	grid._size_cells = size_cells
 	grid._revision = navigation_revision
 	grid._level_id = level_id
-	# Capture the collision-geometry identity BEFORE probing: probe actor
-	# registrations are a bake detail and must not enter this digest.
-	grid._source_digest = world.digest()
+	# Only geometry belongs to this advisory identity, never live actors/ticks.
+	grid._source_digest = world.geometry_digest()
+	if grid._source_digest.is_empty():
+		last_error = &"movement_geometry_digest_invalid"
+		return null
 	for y in size_cells.y:
 		for x in size_cells.x:
 			var cell := Vector2i(x, y)
-			var probe_id := _probe_id_for_cell(cell)
-			if probe_id == null:
-				last_error = &"probe_id_invalid"
-				return null
-			var probe := _probe_cell(world, cell, probe_id)
+			var probe := _probe_cell(world, cell)
 			if probe == PROBE_ERROR:
 				return null
 			if probe == PROBE_BLOCKED:
@@ -224,31 +222,21 @@ static func digest_cell_array(cells: Array[Vector2i]) -> String:
 	})
 
 
-## One blocking question answered by task 3.6's collision itself: can the
-## navigation body stand at this cell centre? Registration failure with
-## actor_spawn_blocked or actor_out_of_bounds means the cell is blocked; any
-## other failure is a bake error and fails closed.
-static func _probe_cell(
-	world: ZMovementWorld2D, cell: Vector2i, probe_id: ZEntityId
-) -> int:
+## One blocking question answered by the collision world's read-only query.
+## Expected placement denials mark blocked cells; other failures fail closed.
+static func _probe_cell(world: ZMovementWorld2D, cell: Vector2i) -> int:
 	var center := ZWorldUnits.tile_center_to_godot(cell)
 	if not center.ok:
 		last_error = &"cell_center_invalid"
 		return PROBE_ERROR
-	if world.register_actor(
-		probe_id, center.vector2_value, NAVIGATION_BODY_HALF_EXTENTS_PX,
-		world.generation()
-	):
+	var placement := world.query_placement_px(
+		center.vector2_value, NAVIGATION_BODY_HALF_EXTENTS_PX
+	)
+	if bool(placement["ok"]):
 		return PROBE_WALKABLE
-	match world.last_error:
+	match placement["reason"]:
 		&"actor_spawn_blocked", &"actor_out_of_bounds":
 			return PROBE_BLOCKED
 		_:
-			last_error = world.last_error
+			last_error = placement["reason"]
 			return PROBE_ERROR
-
-
-static func _probe_id_for_cell(cell: Vector2i) -> ZEntityId:
-	return ZEntityId.from_parts(
-		PackedStringArray(["navprobe", "c%d_%d" % [cell.x, cell.y]])
-	)

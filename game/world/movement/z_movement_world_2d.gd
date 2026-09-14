@@ -23,6 +23,7 @@ const MICRO_PER_PX: float = float(ZWorldUnits.VISION_MICROUNITS_PER_WORLD_UNIT) 
 		/ float(ZWorldUnits.GODOT_PIXELS_PER_WORLD_UNIT)
 const MAX_CORRECTION_RECORDS: int = 64
 const MAX_STATIC_COLLIDERS: int = 512
+const DIGEST_SCHEMA: String = "movement-world-v2"
 
 var last_error: StringName = &""
 var _generation: int = -1
@@ -49,6 +50,8 @@ func configure(
 	if expected_generation < 0:
 		last_error = &"generation_invalid"
 		return false
+	if not ZCanonicalValue.is_bounded(bounds_collider_id):
+		return _fail(&"bounds_id_invalid")
 	if not _is_finite_point(bounds_px.position) or not _is_finite_point(bounds_px.end):
 		last_error = &"bounds_invalid"
 		return false
@@ -128,7 +131,7 @@ func add_static_collider_px(
 	last_error = &""
 	if not _is_mutable_generation(expected_generation):
 		return _fail(&"stale_generation")
-	if collider_id.is_empty():
+	if collider_id.is_empty() or not ZCanonicalValue.is_bounded(collider_id):
 		return _fail(&"collider_id_invalid")
 	if _collider_ids.has(collider_id):
 		return _fail(&"collider_id_duplicate")
@@ -181,22 +184,11 @@ func register_actor(
 		return _fail(&"actor_id_invalid")
 	if _bodies.has(key):
 		return _fail(&"actor_already_registered")
-	if not _is_finite_point(position_px) \
-			or not _is_finite_point(half_extents_px) \
-			or half_extents_px.x <= 0.0 or half_extents_px.y <= 0.0:
-		return _fail(&"body_shape_invalid")
-	var conversion := ZWorldUnits.godot_to_canonical(position_px)
-	if not conversion.ok:
-		return _fail(&"position_invalid")
-	var position_micro := conversion.vector2i_value
-	var half_micro := Vector2i(
-		_round_half_away_from_zero(half_extents_px.x * MICRO_PER_PX),
-		_round_half_away_from_zero(half_extents_px.y * MICRO_PER_PX)
-	)
-	if not _body_inside_bounds(position_micro, half_micro):
-		return _fail(&"actor_out_of_bounds")
-	if _body_overlaps_any_collider(position_micro, half_micro):
-		return _fail(&"actor_spawn_blocked")
+	var placement := query_placement_px(position_px, half_extents_px)
+	if not bool(placement["ok"]):
+		return _fail(placement["reason"])
+	var position_micro: Vector2i = placement["position_micro"]
+	var half_micro: Vector2i = placement["half_micro"]
 	_bodies[key] = {
 		"actor": key,
 		"half": half_micro,
@@ -204,6 +196,31 @@ func register_actor(
 		"tick": 0,
 	}
 	return true
+
+
+## Read-only static placement query shared by registration and navigation.
+## No actor is created and even last_error is left untouched. Geometry remains
+## queryable after sealing; generation checks belong to mutating callers.
+func query_placement_px(position_px: Vector2, half_extents_px: Vector2) -> Dictionary:
+	if not _configured:
+		return {"ok": false, "reason": &"world_unconfigured"}
+	if not _is_finite_point(position_px) or not _is_finite_point(half_extents_px) \
+			or half_extents_px.x <= 0.0 or half_extents_px.y <= 0.0:
+		return {"ok": false, "reason": &"body_shape_invalid"}
+	var position := ZWorldUnits.godot_to_canonical(position_px)
+	if not position.ok:
+		return {"ok": false, "reason": &"position_invalid"}
+	var half := ZWorldUnits.godot_to_canonical(half_extents_px)
+	if not half.ok or half.vector2i_value.x <= 0 or half.vector2i_value.y <= 0:
+		return {"ok": false, "reason": &"body_shape_invalid"}
+	if not _body_inside_bounds(position.vector2i_value, half.vector2i_value):
+		return {"ok": false, "reason": &"actor_out_of_bounds"}
+	if _body_overlaps_any_collider(position.vector2i_value, half.vector2i_value):
+		return {"ok": false, "reason": &"actor_spawn_blocked"}
+	return {
+		"ok": true, "reason": &"",
+		"position_micro": position.vector2i_value, "half_micro": half.vector2i_value,
+	}
 
 
 func has_actor(actor_id: ZEntityId) -> bool:
@@ -400,7 +417,8 @@ func seal(expected_generation: int) -> bool:
 	return true
 
 
-## Integer/fixed-point canonical projection (ZCanonicalValue-compatible).
+## Integer/fixed-point inspection projection. Large collections intentionally
+## exceed the shared encoder budget; use digest(), not sha256(canonical_record()).
 func canonical_record() -> Dictionary:
 	var collider_records: Array = []
 	for collider in _colliders:
@@ -433,8 +451,64 @@ func canonical_record() -> Dictionary:
 	}
 
 
+## Versioned digest of the full inspection projection. Each record is validated
+## independently; fixed-size record hashes are streamed with an explicit count.
+## The shared canonical encoder's limits are never relaxed. Even a correction
+## touching every collider is bounded after its identifier list is summarized.
 func digest() -> String:
-	return ZCanonicalValue.sha256(canonical_record())
+	var record := canonical_record()
+	record["schema"] = DIGEST_SCHEMA
+	record["configured"] = _configured
+	for field in ["colliders", "bodies"]:
+		var records: Array = record[field]
+		var records_digest := _ordered_records_digest(records)
+		if records_digest.is_empty():
+			return _digest_failure()
+		record[field] = {"count": records.size(), "digest": records_digest}
+	var correction: Dictionary = record["last_correction"]
+	if not correction.is_empty():
+		var ids: Array = correction["blocking_collider_ids"]
+		var ids_digest := _ordered_records_digest(ids)
+		if ids_digest.is_empty():
+			return _digest_failure()
+		correction["blocking_collider_ids"] = {"count": ids.size(), "digest": ids_digest}
+	var result := ZCanonicalValue.sha256(record)
+	return result if not result.is_empty() else _digest_failure()
+
+
+## Navigation source identity includes only static geometry, never actors,
+## their ticks, corrections, generation or teardown state.
+func geometry_digest() -> String:
+	var colliders_digest := _ordered_records_digest(_colliders)
+	if colliders_digest.is_empty():
+		return _digest_failure()
+	var result := ZCanonicalValue.sha256({
+		"schema": "movement-geometry-v1", "configured": _configured,
+		"bounds_id": _bounds_collider_id,
+		"bounds_min": _bounds_min_micro, "bounds_max": _bounds_max_micro,
+		"collider_count": _colliders.size(), "colliders_digest": colliders_digest,
+	})
+	return result if not result.is_empty() else _digest_failure()
+
+
+func _ordered_records_digest(records: Array) -> String:
+	var context := HashingContext.new()
+	if context.start(HashingContext.HASH_SHA256) != OK:
+		return ""
+	if context.update(("movement-records-v1:%d:" % records.size()).to_utf8_buffer()) != OK:
+		return ""
+	for record in records:
+		var record_digest := ZCanonicalValue.sha256(record)
+		if record_digest.is_empty() or context.update(record_digest.to_utf8_buffer()) != OK:
+			return ""
+	return context.finish().hex_encode()
+
+
+func _digest_failure() -> String:
+	# A failed identity must be visible to diagnostics-aware gates, not silently
+	# compare equal to another failed identity. Keep this query non-mutating.
+	push_error("MOVEMENT_WORLD_DIGEST: invalid canonical record or hashing failure")
+	return ""
 
 
 func _insert_collider(collider_id: String, min_micro: Vector2i, max_micro: Vector2i) -> bool:
@@ -459,7 +533,8 @@ func _insert_collider(collider_id: String, min_micro: Vector2i, max_micro: Vecto
 
 ## Axis-separated resolution of one axis. The body may end flush against a
 ## blocking rect but never overlapping it (strict interval overlap). A blocked
-## axis reports every authored collider that actually limited the move.
+## axis reports only colliders at the final limiting boundary, including ties.
+## Provisional farther blockers are not physical contacts and are discarded.
 func _resolve_axis_move(body: Dictionary, axis_is_x: bool, displacement: int) -> Dictionary:
 	var half: Vector2i = body["half"]
 	var position: Vector2i = body["pos"]
@@ -493,14 +568,23 @@ func _resolve_axis_move(body: Dictionary, axis_is_x: bool, displacement: int) ->
 				continue
 		var collider_lo: int = collider_min.x if axis_is_x else collider_min.y
 		var collider_hi: int = collider_max.x if axis_is_x else collider_max.y
-		if displacement > 0 and start + half_axis <= collider_lo and candidate + half_axis > collider_lo:
-			candidate = mini(candidate, collider_lo - half_axis)
-			blocked = true
-			blocking_ids.append(String(collider["id"]))
-		elif displacement < 0 and start - half_axis >= collider_hi and candidate - half_axis < collider_hi:
-			candidate = maxi(candidate, collider_hi + half_axis)
-			blocked = true
-			blocking_ids.append(String(collider["id"]))
+		var requested := start + displacement
+		if displacement > 0 and start + half_axis <= collider_lo and requested + half_axis > collider_lo:
+			var limit := collider_lo - half_axis
+			if limit < candidate:
+				candidate = limit
+				blocking_ids.clear()
+			if limit == candidate:
+				blocked = true
+				blocking_ids.append(String(collider["id"]))
+		elif displacement < 0 and start - half_axis >= collider_hi and requested - half_axis < collider_hi:
+			var limit := collider_hi + half_axis
+			if limit > candidate:
+				candidate = limit
+				blocking_ids.clear()
+			if limit == candidate:
+				blocked = true
+				blocking_ids.append(String(collider["id"]))
 
 	return {"position": candidate, "blocked": blocked, "ids": blocking_ids}
 

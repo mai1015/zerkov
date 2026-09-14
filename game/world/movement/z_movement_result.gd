@@ -4,9 +4,9 @@ extends RefCounted
 ##
 ## Produced by ZMovementWorld2D only. It carries the resolved authoritative
 ## state (position in canonical microunits and Godot px, resolved velocity,
-## blocked axes, and the stable authored ids of every collider that clamped
-## the move). Presentation code may read a result but never write it back into
-## the movement world: the value object holds no reference to world state.
+## blocked axes, and the stable authored ids at each final limiting boundary
+## (including ties)). Presentation may read a result but never write it back
+## into the movement world: the value object holds no reference to world state.
 
 const BLOCKED_AXIS_X: int = 1
 const BLOCKED_AXIS_Y: int = 2
@@ -47,8 +47,8 @@ func blocked_y() -> bool:
 	return (blocked_axes & BLOCKED_AXIS_Y) != 0
 
 
-## Integer/fixed-point projection suitable for ZCanonicalValue.sha256. Velocity
-## is scaled to milliunits per second through the derived Weapon ratio above.
+## Integer/fixed-point inspection projection. Use digest() for long contact
+## lists. Velocity uses the derived Weapon ratio above.
 func canonical_record() -> Dictionary:
 	var collider_ids: Array = []
 	for collider_id in blocking_collider_ids:
@@ -69,7 +69,23 @@ func canonical_record() -> Dictionary:
 
 
 func digest() -> String:
-	return ZCanonicalValue.sha256(canonical_record())
+	var record := canonical_record()
+	var ids: Array = record["blocking_collider_ids"]
+	var chain := ZCanonicalValue.sha256(["movement-contacts-v1", ids.size()])
+	if chain.is_empty():
+		push_error("MOVEMENT_RESULT_DIGEST: hashing failure")
+		return ""
+	for collider_id in ids:
+		chain = ZCanonicalValue.sha256([chain, collider_id])
+		if chain.is_empty():
+			push_error("MOVEMENT_RESULT_DIGEST: invalid collider identity")
+			return ""
+	record["schema"] = "movement-result-v2"
+	record["blocking_collider_ids"] = {"count": ids.size(), "digest": chain}
+	var result := ZCanonicalValue.sha256(record)
+	if result.is_empty():
+		push_error("MOVEMENT_RESULT_DIGEST: invalid canonical record")
+	return result
 
 
 ## Shared px/s -> milliunit/s projection used by results and the correction

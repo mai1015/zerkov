@@ -29,6 +29,7 @@ func check(condition: bool, message: String) -> void:
 
 
 func run() -> void:
+	load("res://tests/raid/movement_navigation_regression_cases.gd").new().run(Callable(self, "check"))
 	_test_module_purity_and_construction()
 	_test_actor_registration_validation()
 	_test_free_movement_open_world()
