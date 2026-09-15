@@ -31,6 +31,8 @@ const INVENTORY_EVENT_DROPPED: int = 11
 
 var lifecycle: Lifecycle = Lifecycle.UNBOUND
 var last_error: StringName = &""
+var _actor_source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER
+var _instance_handler_id: StringName = PHASE_HANDLER_ID
 
 var _owner: RaidInventoryOwner
 var _owner_instance_id: int = 0
@@ -79,7 +81,9 @@ func bind_owner(
 	reload_adapter: InventoryWeaponAdapter,
 	expected_owner_generation: int,
 	expected_scope_generation: int,
-	expected_raid_generation: int
+	expected_raid_generation: int,
+	actor_source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER,
+	instance_handler_id: StringName = PHASE_HANDLER_ID
 ) -> bool:
 	last_error = &""
 	if _public_signal_active:
@@ -107,7 +111,10 @@ func bind_owner(
 	if authority_admission == null \
 			or not authority_admission.raid_id.is_equal(admission_copy.raid_id) \
 			or not authority_admission.session_id.is_equal(admission_copy.session_id) \
-			or not authority_admission.actor_id.is_equal(admission_copy.actor_id) \
+			or (actor_source == ZRaidIntent.Source.PLAYER and not authority_admission.actor_id.is_equal(admission_copy.actor_id)) \
+			or actor_source not in [ZRaidIntent.Source.PLAYER, ZRaidIntent.Source.AI] \
+			or not raid_authority.has_authorized_actor_source(admission_copy.actor_id, actor_source, expected_raid_generation) \
+			or not ZIdentityRules.is_valid_part(String(instance_handler_id)) \
 			or authority_admission.authority_epoch != admission_copy.authority_epoch \
 			or authority_admission.generation != admission_copy.generation:
 		return _reject(&"raid_admission_mismatch")
@@ -133,6 +140,8 @@ func bind_owner(
 		return _reject(&"inventory_weapon_adapter_invalid")
 	var next_binding_generation := _generation_counter + 1
 	_reset_unbound_state()
+	_actor_source = actor_source
+	_instance_handler_id = instance_handler_id
 	_owner = owner
 	_owner_instance_id = owner.get_instance_id()
 	_reconciler = reconciler
@@ -153,7 +162,7 @@ func bind_owner(
 	_inventory_authority_instance_id = _inventory_authority.get_instance_id()
 	if not raid_authority.register_phase_handler(
 		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
-		PHASE_HANDLER_ID,
+		_instance_handler_id,
 		Callable(self, "_on_weapon_phase").bind(next_binding_generation),
 		expected_raid_generation,
 		PHASE_HANDLER_PRIORITY
@@ -226,7 +235,7 @@ func authenticates_combat_binding(
 		and actor_id != null \
 		and _admission != null \
 		and _admission.actor_id.is_equal(actor_id) \
-		and int(actor_source) == int(ZRaidIntent.Source.PLAYER)
+		and int(actor_source) == int(_actor_source)
 
 
 ## Called by the phase-5 fire path. Equipment is re-derived from the complete
@@ -806,7 +815,7 @@ func _binding_is_current() -> bool:
 		and _raid_authority != null \
 		and _raid_authority.generation() == _raid_generation \
 		and _phase_registered \
-		and _raid_authority.has_phase_handler(PHASE_HANDLER_ID, _raid_generation) \
+		and _raid_authority.has_phase_handler(_instance_handler_id, _raid_generation) \
 		and _inventory_authority != null and is_instance_valid(_inventory_authority) \
 		and _inventory_authority.get_instance_id() == _inventory_authority_instance_id \
 		and _owner.raid_authority() == _inventory_authority \
@@ -947,11 +956,11 @@ func _unregister_phase_handler() -> bool:
 		return true
 	if _raid_authority == null:
 		return _reject(&"raid_authority_invalid")
-	if not _raid_authority.has_phase_handler(PHASE_HANDLER_ID, _raid_generation):
+	if not _raid_authority.has_phase_handler(_instance_handler_id, _raid_generation):
 		_phase_registered = false
 		return true
 	if not _raid_authority.unregister_phase_handler(
-		PHASE_HANDLER_ID, _raid_generation):
+		_instance_handler_id, _raid_generation):
 		last_error = _raid_authority.last_error
 		return false
 	_phase_registered = false
@@ -963,10 +972,10 @@ func _preflight_phase_handler_removal() -> bool:
 		return true
 	if _raid_authority == null:
 		return _reject(&"raid_authority_invalid")
-	if not _raid_authority.has_phase_handler(PHASE_HANDLER_ID, _raid_generation):
+	if not _raid_authority.has_phase_handler(_instance_handler_id, _raid_generation):
 		return true
 	if not _raid_authority.can_unregister_phase_handler(
-			PHASE_HANDLER_ID, _raid_generation):
+			_instance_handler_id, _raid_generation):
 		last_error = _raid_authority.last_error
 		return false
 	return true

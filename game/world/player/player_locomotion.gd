@@ -32,6 +32,12 @@ const DEFAULT_BODY_HALF_EXTENTS_PX: Vector2 = Vector2(8.0, 8.0)
 const DEFAULT_PHASE_HANDLER_ID: StringName = &"player_locomotion"
 const INTENT_KIND_MOVEMENT: StringName = &"player_movement"
 
+var _source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER
+var _handler_id: StringName = DEFAULT_PHASE_HANDLER_ID
+var _combat_aim: Vector2 = Vector2.ZERO
+var _combat_health: HealthConsequenceAdapter
+var _health_scale: float = 1.0
+var _health_alive: bool = true
 var _actor_id: ZEntityId
 var _registered_authority: RaidAuthority
 var _generation: int = 0
@@ -55,9 +61,14 @@ var _last_pose_published: bool = false
 func configure(
 	actor_id: ZEntityId,
 	initial_position_px: Vector2 = Vector2.ZERO,
-	initial_facing: ZPlayerFacing.Facing4 = ZPlayerFacing.Facing4.SOUTH
+	initial_facing: ZPlayerFacing.Facing4 = ZPlayerFacing.Facing4.SOUTH,
+	source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER,
+	handler_id: StringName = DEFAULT_PHASE_HANDLER_ID
 ) -> void:
 	_actor_id = actor_id
+	_source = source
+	_handler_id = handler_id
+	_combat_aim = Vector2.ZERO
 	position_px = initial_position_px
 	velocity_px = Vector2.ZERO
 	facing_4 = initial_facing
@@ -69,6 +80,15 @@ func configure(
 	_last_movement_result = null
 	_body_half_extents_px = DEFAULT_BODY_HALF_EXTENTS_PX
 	_attach_open_world(0)
+
+
+## Composition supplies only this actor's health owner. Its projection controls
+## next-tick locomotion after death/injury; UI never writes movement permission.
+func bind_combat_health(health: HealthConsequenceAdapter, generation: int) -> bool:
+	if _combat_health != null or health == null or generation != _generation \
+		or health.actor_snapshot(_actor_id).is_empty(): return false
+	_combat_health = health
+	return true
 
 
 func actor_id() -> ZEntityId:
@@ -94,7 +114,7 @@ func register_with_authority(
 	var callback := Callable(self, "_handle_movement_phase")
 	if not authority.register_phase_handler(
 		RaidAuthority.TickPhase.MOVEMENT,
-		DEFAULT_PHASE_HANDLER_ID,
+		_handler_id,
 		callback,
 		expected_generation,
 		priority,
@@ -129,6 +149,19 @@ func _handle_movement_phase(
 		_last_pose_published = false
 		return true
 
+	_combat_aim = Vector2.ZERO # An older aim must not override a newer cursor/movement intent.
+	# Admitted combat aim carries no transform authority; it only selects facing
+	# before this movement owner's canonical pose is published for the tick.
+	for intent in intents:
+		if intent != null and intent.kind == &"combat_aim" and intent.actor_id != null \
+			and intent.actor_id.is_equal(_actor_id) and intent.source == _source and intent.target_tick == tick \
+			and ZCombatActionCodec.validate_payload(&"aim", intent.payload).is_empty():
+			_combat_aim = Vector2(intent.payload.direction_milli).normalized()
+	if _combat_health != null:
+		var health := _combat_health.actor_snapshot(_actor_id)
+		_health_alive = bool(health.get("alive", false))
+		_health_scale = clampf(float(health.get("movement_scale_micros", 0)) / 1_000_000.0, 0.0, 1.0)
+		if not _health_alive: velocity_px = Vector2.ZERO
 	var selected_intent: ZRaidIntent = null
 	for intent in intents:
 		if intent == null or intent.kind != INTENT_KIND_MOVEMENT:
@@ -148,6 +181,10 @@ func _handle_movement_phase(
 	else:
 		step_tick(tick, Vector2.ZERO, Vector2.ZERO, false, false)
 
+	if _combat_aim != Vector2.ZERO:
+		facing_direction = _combat_aim
+		facing_4 = ZPlayerFacing.resolve_facing_4(facing_direction, facing_4)
+		facing_8 = ZPlayerFacing.resolve_facing_8(facing_direction, facing_8)
 	if _actor_id != null:
 		# The published pose always reports the RESOLVED position: after task
 		# 3.6 position_px is only ever written from a movement-world result.
@@ -192,7 +229,8 @@ func step_tick(
 		Stance.SPRINT: max_speed = SPRINT_SPEED_PX_PER_SEC
 		Stance.STAND, _: max_speed = WALK_SPEED_PX_PER_SEC
 
-	var target_velocity := move_in * max_speed
+	max_speed *= _health_scale
+	var target_velocity := move_in * max_speed if _health_alive else Vector2.ZERO
 
 	if not target_velocity.is_zero_approx():
 		var diff := target_velocity - velocity_px
@@ -251,7 +289,7 @@ func step_with_intent(tick: int, intent: ZRaidIntent) -> Dictionary:
 	if intent == null:
 		last_error = &"intent_null"
 		return {"ok": false, "reason": last_error}
-	if intent.source != ZRaidIntent.Source.PLAYER:
+	if intent.source != _source:
 		last_error = &"intent_source_invalid"
 		return {"ok": false, "reason": last_error}
 	if intent.kind != INTENT_KIND_MOVEMENT:

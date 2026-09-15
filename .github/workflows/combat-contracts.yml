@@ -1,0 +1,97 @@
+name: Combat contracts
+on:
+  pull_request:
+    paths:
+      - 'game/**'
+      - 'addons/**'
+      - 'ui/**'
+      - 'tests/**'
+      - 'tools/**'
+      - 'config/**'
+      - 'project.godot'
+      - '.github/workflows/**'
+permissions:
+  contents: read
+concurrency:
+  group: combat-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  tooling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Runner and repository gate regressions
+        run: |
+          python3 tests/tooling/test_combat_input_runner.py
+          python3 tests/tooling/test_ai_runner.py
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
+      - name: Exact-revision source reproduction packet
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess, zipfile
+          root = pathlib.Path('.')
+          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'combat-sources.zip'
+          allowed = {'.gd', '.uid', '.tscn', '.tres', '.json', '.py', '.md', '.gdextension', '.yml', '.yaml'}
+          files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          manifest = {}
+          with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
+              for name in files:
+                  path = root / name
+                  if name and path.is_file() and not path.is_symlink() and (path.suffix in allowed or name == 'project.godot'):
+                      data = path.read_bytes()
+                      archive.writestr(name, data)
+                      manifest[name] = hashlib.sha256(data).hexdigest()
+              archive.writestr('REPRODUCTION_COMMIT', subprocess.check_output(['git', 'rev-parse', 'HEAD']))
+              archive.writestr('REPRODUCTION_SHA256.json', json.dumps(manifest, sort_keys=True, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: combat-sources
+          path: ${{ runner.temp }}/combat-sources.zip
+          retention-days: 3
+  native-macos:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Record exact source revision
+        run: |
+          mkdir -p "$RUNNER_TEMP/combat-diagnostics"
+          git rev-parse HEAD > "$RUNNER_TEMP/combat-diagnostics/commit.txt"
+          git ls-files -z 'game/combat/**' 'tests/combat/**' 'game/input/combat/**' 'tools/run_combat*' | xargs -0 shasum -a 256 > "$RUNNER_TEMP/combat-diagnostics/source-sha256.txt"
+          cp tests/combat/native_combat_execution_contract.gd "$RUNNER_TEMP/combat-diagnostics/contract-source.gd"
+          cp tools/run_combat_input_contracts.py "$RUNNER_TEMP/combat-diagnostics/runner-source.py"
+      - name: Install exact locked engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Real authority and combat execution contracts
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -u tools/run_combat_input_contracts.py --godot "$ZERKOV_GODOT" --native --execution 2>&1 | tee "$RUNNER_TEMP/combat-diagnostics/native.log"
+      - name: Adjacent native AI regressions
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -u tools/run_ai_contracts.py --godot "$ZERKOV_GODOT" --native 2>&1 | tee "$RUNNER_TEMP/combat-diagnostics/ai-native.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: combat-native-diagnostics
+          path: ${{ runner.temp }}/combat-diagnostics
+          retention-days: 3
