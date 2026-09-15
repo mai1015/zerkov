@@ -279,3 +279,14 @@ func accepts_input(view: Control) -> bool:
 func character_runtime() -> CharacterUIRuntime:
 	return _character_runtime.get_ref() as CharacterUIRuntime \
 		if _character_runtime != null else null
+
+
+## Only the explicitly injected offline product provider grants this capability.
+## Preview providers and retired generations cannot become local profile writers.
+func offline_bunker() -> OfflineBunkerUI:
+	if _fixture_generation > 0:
+		return null
+	var provider := _presentation_service()
+	if provider is OfflineBunkerUI and provider.is_active() and provider.generation() == _presentation_generation:
+		return provider as OfflineBunkerUI
+	return null

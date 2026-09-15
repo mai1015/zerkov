@@ -7,6 +7,9 @@ extends "res://ui/screens/frontflow/frontflow_actions.gd"
 ## keyboard focus, parallax motion, and the inherited compact reflow.
 
 func build() -> void:
+	if app.offline_bunker() != null:
+		_build_offline_menu()
+		return
 	reset_adaptive_layout()
 	active_route = str(app.current_route)
 	menu_entries.clear()
@@ -137,3 +140,80 @@ func _build_focus_graph() -> void:
 	# Directly grabbing here is overwritten by its deterministic fallback, which
 	# previously selected Header/SwitchAccount instead of the advertised CTA.
 	default_focus = get_path_to(menu_entries[0])
+
+
+func _build_offline_menu() -> void:
+	reset_adaptive_layout()
+	active_route = "main_menu"
+	menu_entries.clear()
+	_install_scale_safe_styles()
+	var offline := app.offline_bunker()
+	var state := offline.local_status()
+	var exists: bool = state.disk_status != "missing"
+	$Header/Connection.text = "OFFLINE · LOCAL SAVE"
+	$Header/SignedIn.text = "PROFILE"
+	$Header/AccountName.text = "LOCAL"
+	$Header/SwitchAccount.disabled = true
+	$Header/SwitchAccount.tooltip_text = "One local profile. Accounts are not required."
+	$MenuContinue.card_title = "CONTINUE" if exists else "NEW LOCAL GAME"
+	$MenuContinue.card_subtitle = "Open your saved bunker" if exists else "Create a local bunker with a one-time starter kit"
+	$MenuPlay.card_title = "NEW GAME"
+	$MenuPlay.card_subtitle = "Existing profile kept — reset is unavailable" if exists else "Create your local profile"
+	$MenuJoinFriend.card_title = "MULTIPLAYER"
+	$MenuJoinFriend.card_subtitle = "Future Steam sessions · unavailable"
+	$MenuExtras.card_title = "DEPLOY"
+	$MenuExtras.card_subtitle = "Raid integration is not enabled"
+	var rows := ["MenuContinue", "MenuPlay", "MenuJoinFriend", "MenuSettings", "MenuExtras", "MenuQuit"]
+	for id: String in rows:
+		var card: ZMenuActionCard = get_node(id)
+		var target: Button = card.get_focus_target()
+		target.disabled = id in ["MenuJoinFriend", "MenuExtras"] or (id == "MenuPlay" and exists)
+		if not target.disabled:
+			menu_entries.append(target)
+	_wire_offline_card("MenuContinue", _offline_open)
+	_wire_offline_card("MenuPlay", _offline_open)
+	_wire_offline_card("MenuSettings", func(): go("settings"))
+	_wire_offline_card("MenuQuit", func(): offline.request(&"quit", int(offline.local_status().generation)))
+	var action := $ContinueAction as Button
+	action.text = "ENTER  CONTINUE" if exists else "ENTER  NEW LOCAL GAME"
+	_wire_button(action, _offline_open)
+	$ContinueCard/WorldTitle.text = "LOCAL BUNKER"
+	$ContinueCard/LastPlayed.text = "SAVED ON THIS DEVICE" if exists else "NEW PROFILE · STARTER KIT V1"
+	$ContinueCard/Difficulty.text = "OFFLINE"
+	$ContinueCard/Stats/BunkerLabel.text = "MODE"
+	$ContinueCard/Stats/BunkerValue.text = "LOCAL"
+	$ContinueCard/Stats/CharacterLabel.text = "DEPLOYMENT"
+	$ContinueCard/Stats/CharacterValue.text = "LOCKED"
+	$ContinueCard/Stats/PlaytimeLabel.text = "STORAGE"
+	$ContinueCard/Stats/PlaytimeValue.text = "DEVICE"
+	$ContinueCard/CloudStatus.text = "No cloud or server sync. Inventory changes save on acceptance."
+	$ContinueCard/ManageSaves.text = "PROFILE STATUS"
+	_wire_button($ContinueCard/ManageSaves, func(): toast(_offline_status_message()))
+	for id: String in ["FriendKevin", "FriendDenz", "FriendMara", "FriendCode"]:
+		get_node(id).hide()
+	$FriendsTitle.text = "LOCAL FIRST"
+	$FriendsSubtitle.text = "Steam multiplayer is planned. No login is needed to play offline."
+	_build_focus_graph()
+	if not state.error.is_empty():
+		$ContinueCard/CloudStatus.text = "PROFILE ERROR · " + String(state.error).replace("_", " ")
+	queue_adaptive_layout()
+
+func _wire_offline_card(id: String, action: Callable) -> void:
+	var card := get_node(id) as ZMenuActionCard
+	if not card.activated.is_connected(action):
+		card.activated.connect(action)
+
+func _offline_status_message() -> String:
+	var state := app.offline_bunker().local_status()
+	return "Local profile: " + String(state.disk_status) + (" · " + String(state.error) if not state.error.is_empty() else "")
+
+func _offline_open() -> void:
+	if not accepts_input():
+		return
+	var offline := app.offline_bunker()
+	var state := offline.local_status()
+	var action: StringName = &"create" if state.disk_status == "missing" else &"continue"
+	if offline.request(action, int(state.generation)):
+		go("bunker")
+	else:
+		toast(_offline_status_message())

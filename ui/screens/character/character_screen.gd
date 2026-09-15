@@ -221,6 +221,9 @@ func _bind_tabs() -> void:
 
 
 func _bind_gear() -> void:
+	if _inventory_controller is OfflineInventoryController:
+		_bind_offline_gear()
+		return
 	var slots: Array[Array] = [
 		["HeadSlot", "HEAD", "— empty", "HeadDetail", ""],
 		["FaceSlot", "FACE", "— empty", "FaceDetail", ""],
@@ -391,7 +394,7 @@ func _bind_stash() -> void:
 		compatible.offset_right = 1774.0 if _loot_mode else 1872.0
 	var summary := _node("StashSummary") as Label
 	if summary != null:
-		summary.text = "%d×%d · %s" % [source_size.x, source_size.y, ("LIVE" if _loot_mode else "READ-ONLY")] if _live_inventory_binding else ("LOOT · OPEN" if _loot_mode else "LV 2 · 61 / 70")
+		summary.text = "%d×%d · %s" % [source_size.x, source_size.y, ("LOCAL SAVED" if _inventory_controller is OfflineInventoryController else ("LIVE" if _loot_mode else "READ-ONLY"))] if _live_inventory_binding else ("LOOT · OPEN" if _loot_mode else "LV 2 · 61 / 70")
 
 	var filter_names: Array[String] = ["all", "guns", "ammo", "armor", "clothing", "food", "util"]
 	var filter_nodes: Array[String] = ["All", "Guns", "Ammo", "Armor", "Cloth", "Food", "Util"]
@@ -912,3 +915,42 @@ func _bind_stats() -> void:
 	# Stats are authored presentation values in this prototype. Keep the
 	# authored hierarchy stable while allowing the shared state to control the
 	# compact section and all actions around it.
+
+
+func _bind_offline_gear() -> void:
+	var controller := _inventory_controller as OfflineInventoryController
+	var column := _node("CharacterColumn")
+	if column == null:
+		return
+	var mapping := {"SlingSlot": ["zerkov.slot.weapon_primary", "SlingDetail"],
+		"LegStrapSlot": ["zerkov.slot.weapon_melee", "LegStrapDetail"],
+		"BackSlot": ["zerkov.slot.backpack", "BackDetail"],
+		"ArmorSlot": ["zerkov.slot.rig", "ArmorDetail"]}
+	for slot_name: String in ["HeadSlot", "FaceSlot", "ArmorSlot", "HeadsetSlot", "SlingSlot", "BackSlot", "LegStrapSlot", "HolsterSlot"]:
+		var slot := column.get_node_or_null(slot_name) as Button
+		if slot == null:
+			continue
+		for node: Node in slot.find_children("*", "TextureRect", true, false):
+			node.hide()
+		if not mapping.has(slot_name):
+			slot.disabled = true
+			for node: Node in slot.find_children("*", "Label", true, false):
+				if node.name.ends_with("Detail"):
+					node.text = "NOT IMPLEMENTED"
+			continue
+		var key := String(mapping[slot_name][0])
+		var item := controller.equipment(key)
+		slot.disabled = not controller.is_bound()
+		slot.tooltip_text = "Click to return equipped item to stash" if not item.is_empty() else "Select a stash item, then click here to equip"
+		var detail := slot.get_node_or_null(String(mapping[slot_name][1])) as Label
+		if detail != null:
+			detail.text = String(item.get("name", "— empty"))
+		var callback := _offline_equipment_click.bind(key)
+		_wire_button(slot, callback)
+	var hint := _node("GearHint") as Label
+	if hint != null:
+		hint.text = "LOCAL LOADOUT · SELECT ITEM, CLICK SLOT TO EQUIP · CLICK EQUIPPED SLOT TO STASH"
+
+func _offline_equipment_click(slot: String) -> void:
+	if accepts_input() and _inventory_controller is OfflineInventoryController:
+		(_inventory_controller as OfflineInventoryController).activate_equipment(slot)

@@ -164,6 +164,9 @@ func _should_render_locked_state() -> bool:
 		return false
 	if app.fixture_generation() > 0:
 		return not app.has_fixture_provider()
+	var offline := app.offline_bunker()
+	if offline != null and offline.route_available(app.current_route):
+		return false
 	if app.current_route in PRODUCTION_SELF_MANAGED_ROUTES:
 		if app.current_route in ["inventory", "health", "stats"]:
 			return app.character_runtime() == null
