@@ -108,7 +108,9 @@ def stage(root: Path, out: Path) -> dict:
     provenance = {'candidate_only': True, 'installed_update': False,
                   'base_revision': manifest['base_revision'], 'patch_sha256': manifest['patch_sha256'],
                   'source_revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
-                  'before': before, 'after_patch': after}
+                  'before': before, 'after_patch': after,
+                  'candidate_inputs': {p.relative_to(KIT).as_posix():sha(p) for p in KIT.rglob('*')
+                     if p.is_file() and not p.is_symlink() and '__pycache__' not in p.parts}}
     (out / 'source-provenance.json').write_text(json.dumps(provenance, sort_keys=True, indent=2)+'\n')
     shutil.copyfile(KIT / 'fixtures/SConstruct', out / 'SConstruct')
     shutil.copyfile(KIT / 'fixtures/native_network_contract.gd.in', project / 'contract.gd')
@@ -150,14 +152,14 @@ def build(root: Path, out: Path, sdk: Path, godot: Path, jobs: int) -> None:
     arch = 'arm64' if platform == 'macos' and os.uname().machine == 'arm64' else 'x86_64'
     # Trim the SDK to classes actually included by the two real addons and harness.
     api = json.loads((sdk/'gdextension/extension_api.json').read_text())
-    names = {re.sub(r'(?<!^)(?=[A-Z])', '_', item['name']).lower(): item['name'] for item in api['classes']}
-    # godot-cpp acronym conversion differs from the simple map. Derive requested
-    # names via the generator's public utility, with explicit critical classes.
+    # Match Godot acronym spellings after removing separators, and include
+    # the harness classes in addition to the addons' native includes.
     included = {'Node','Resource','RefCounted','Object','Crypto','MultiplayerAPI','MultiplayerPeer',
                 'SceneMultiplayer','ENetMultiplayerPeer','ENetConnection','SceneTree','Window'}
     for file in (out/'project/addons').rglob('*'):
         if file.suffix not in {'.cpp','.h','.hpp'}: continue
         for stem in re.findall(r'godot_cpp/classes/([a-z0-9_]+)\.hpp', file.read_text()):
+            if stem in {'ref', 'wrapped'}: continue # godot-cpp support headers, not API classes.
             match = next((v['name'] for v in api['classes'] if re.sub('[^a-z0-9]','',v['name'].lower()) == stem.replace('_','')), None)
             if not match: raise ValueError(f'unresolved Godot class include: {stem}')
             included.add(match)

@@ -3,7 +3,7 @@
   "installed_update": false,
   "base_revision": "f1e338ed509f253dba85a4c0e0b0b8bbf089783f",
   "upstream_revision_verified": false,
-  "patch_sha256": "27d0a36b204c560d5a0178bda910a7325fdbd47709d0d5f0ebb387914d178c9f",
+  "patch_sha256": "e8ca5ed8df38cabbee7c0aae1a364407a0edbeb23a2494309c01a3671207a46d",
   "files": {
     "addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.cpp": {
       "before": "7f1c2d74e66a8fb770acd49424fa9cbda99baabeb3740268ca95bc53102ecd32",
@@ -15,7 +15,7 @@
     },
     "addons/weapon_system/native/godot/weapon_network_bridge.cpp": {
       "before": "faae067d570cd3b0105bce32c3b079d990d3b9739acb6ac84ea7489f803abbda",
-      "after": "4a3abd8b6f7e8fd050bf20d883db44799ad7ffb882876a030a85a7d0420a3544"
+      "after": "e87ef5577906e31fbe29cfc66e0ace3ce37eb5f0fa4f0ebb45eb0c8af8139a74"
     },
     "addons/weapon_system/native/godot/weapon_network_bridge.h": {
       "before": "52fb15f49e732022aff39bcfc9f6c9f42402718588c63c47723f30f5aef6c131",
@@ -36,6 +36,7 @@
     "patches/07.patch",
     "patches/08.patch",
     "patches/09.patch",
-    "patches/10.patch"
+    "patches/10.patch",
+    "patches/11.patch"
   ]
 }
