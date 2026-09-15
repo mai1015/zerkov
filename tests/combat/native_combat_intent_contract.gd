@@ -48,8 +48,8 @@ func run() -> void:
 		{"kind": &"aim", "payload": {"direction_milli": Vector2i(1000, 0), "aiming": true}},
 		{"kind": &"fire", "payload": payload},
 		{"kind": &"reload", "payload": {"weapon_id": payload.weapon_id, "expected_weapon_revision": 0, "expected_inventory_revision": 0}},
-		{"kind": &"cancel_reload", "payload": {"weapon_id": payload.weapon_id, "reservation_id": "zerkov.reservation.reload.one"}},
-		{"kind": &"melee", "payload": {"weapon_id": "zerkov.weapon.instance.machete", "expected_inventory_revision": 0}},
+		{"kind": &"cancel_reload", "payload": {"weapon_id": payload.weapon_id, "expected_weapon_revision": 0, "reservation_id": "zerkov.reservation.reload.one"}},
+		{"kind": &"melee", "payload": {"weapon_id": "zerkov.weapon.instance.machete", "expected_equipment_revision": 0}},
 		{"kind": &"quick_heal", "payload": {"body_zone": "thorax", "treatment": "bandage", "expected_health_revision": 0, "expected_inventory_revision": 0}},
 	]
 	for row: Dictionary in expected_actions:

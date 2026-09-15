@@ -51,12 +51,14 @@ static func validate_payload(action: StringName, payload: Dictionary) -> StringN
 				or not _revision(payload.expected_inventory_revision):
 				return &"combat_reload_payload_invalid"
 		&"cancel_reload":
-			if not _keys(payload, ["weapon_id", "reservation_id"]) or not _weapon(payload.weapon_id) \
+			if not _keys(payload, ["weapon_id", "expected_weapon_revision", "reservation_id"]) \
+				or not _weapon(payload.weapon_id) or not _revision(payload.expected_weapon_revision) \
 				or not _identifier(payload.reservation_id):
 				return &"combat_cancel_payload_invalid"
 		&"melee":
-			if not _keys(payload, ["weapon_id", "expected_inventory_revision"]) \
-				or not _weapon(payload.weapon_id) or not _revision(payload.expected_inventory_revision):
+			# Equipment projection and canonical inventory revisions are distinct claims.
+			if not _keys(payload, ["weapon_id", "expected_equipment_revision"]) \
+				or not _weapon(payload.weapon_id) or not _revision(payload.expected_equipment_revision):
 				return &"combat_melee_payload_invalid"
 		&"quick_heal":
 			if not _keys(payload, ["body_zone", "treatment", "expected_health_revision", "expected_inventory_revision"]) \

@@ -54,8 +54,8 @@ func _payload(action: StringName) -> Dictionary:
 		&"aim": return {"direction_milli": Vector2i(1000, 0), "aiming": true}
 		&"fire": return {"weapon_id": WEAPON, "expected_weapon_revision": 0}
 		&"reload": return {"weapon_id": WEAPON, "expected_weapon_revision": 0, "expected_inventory_revision": 0}
-		&"cancel_reload": return {"weapon_id": WEAPON, "reservation_id": "zerkov.reservation.reload.one"}
-		&"melee": return {"weapon_id": "zerkov.weapon.instance.machete", "expected_inventory_revision": 0}
+		&"cancel_reload": return {"weapon_id": WEAPON, "expected_weapon_revision": 0, "reservation_id": "zerkov.reservation.reload.one"}
+		&"melee": return {"weapon_id": "zerkov.weapon.instance.machete", "expected_equipment_revision": 0}
 	return {"body_zone": "left_arm", "treatment": "bandage", "expected_health_revision": 0, "expected_inventory_revision": 0}
 
 func _encoder(actor: String = ACTOR, source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER,
@@ -81,6 +81,20 @@ func _test_codec() -> void:
 			var bad := good.duplicate(true)
 			bad[key] = null
 			check(not CODEC.validate_payload(action, bad).is_empty(), "null field rejected")
+	var old_cancel := _payload(&"cancel_reload")
+	old_cancel.erase("expected_weapon_revision")
+	check(CODEC.validate_payload(&"cancel_reload", old_cancel) == &"combat_cancel_payload_invalid", "cancel requires weapon revision")
+	var old_melee := {"weapon_id": "zerkov.weapon.instance.machete", "expected_inventory_revision": 17}
+	check(CODEC.validate_payload(&"melee", old_melee) == &"combat_melee_payload_invalid", "inventory revision is not an equipment revision alias")
+	for action: StringName in [&"cancel_reload", &"melee"]:
+		var field := "expected_weapon_revision" if action == &"cancel_reload" else "expected_equipment_revision"
+		for invalid: Variant in [true, -1, 2_147_483_648, 1.0, "1"]:
+			var bad := _payload(action)
+			bad[field] = invalid
+			check(not CODEC.validate_payload(action, bad).is_empty(), "strict revision type and bounds " + action)
+		var extra := _payload(action)
+		extra["expected_inventory_revision"] = 17
+		check(not CODEC.validate_payload(action, extra).is_empty(), "unrelated revision claim rejected " + action)
 	check(CODEC.action_for_logical(&"common_ui/zerkov/gameplay/grenade").is_empty(), "unimplemented actions not silently routed")
 	check(CODEC.action_for_logical(&"fire").is_empty(), "logical ID namespace required")
 	check(not CODEC.validate_payload(&"fire", {"weapon_id": WEAPON, "expected_weapon_revision": true}).is_empty(), "bool is not a revision")

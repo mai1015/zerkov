@@ -104,7 +104,7 @@ static func payload_for(kind: StringName, frame: Dictionary, aim: Vector2 = Vect
 		for treatment: StringName in [&"bandage", &"splint"]:
 			for zone: Dictionary in frame.get("health", {}).get("body_parts", []):
 				if bool(zone.get("heavy_bleed" if treatment == &"bandage" else "fractured", false)):
-					return {"body_zone": StringName(zone.zone_identifier), "treatment": treatment,
+					return {"body_zone": String(zone.zone_identifier), "treatment": String(treatment),
 						"expected_health_revision": int(frame.health.health_revision), "expected_inventory_revision": int(frame.inventory_revision)}
 	return {}
 
