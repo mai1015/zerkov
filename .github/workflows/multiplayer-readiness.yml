@@ -43,6 +43,22 @@ jobs:
           for target, state in report['platforms'].items():
               print(target, 'artifact prerequisite=', state['artifact_prerequisite_passed'], 'blocked libraries=', state['blocked_libraries'], 'build/load/export=', state['build_load_export_status'])
           PY
+      - name: Preserve the existing platform checker result without calling it a build
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, subprocess, sys
+          output = pathlib.Path(os.environ['RUNNER_TEMP'])
+          results = {}
+          for target in ('windows-debug-client', 'linux-debug-server'):
+              result = subprocess.run([sys.executable, 'tools/check_platform_artifacts.py', target], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
+              print(result.stdout)
+              (output / (target + '.log')).write_text(result.stdout, encoding='utf-8')
+              if result.returncode not in (0, 2):
+                  raise SystemExit(result.returncode or 1)
+              results[target] = {'exit_code': result.returncode, 'prerequisite': 'blocked' if result.returncode == 2 else 'present_only', 'build_load_export_executed': False}
+          (output / 'platform-checker.json').write_text(json.dumps(results, indent=2), encoding='utf-8')
+          PY
       - name: Audit source reproduction (includes native bridge code, no binaries)
         if: runner.os == 'Linux'
         shell: bash
@@ -70,4 +86,7 @@ jobs:
           path: |
             ${{ runner.temp }}/multiplayer-inventory.json
             ${{ runner.temp }}/audit-sources.zip
+            ${{ runner.temp }}/platform-checker.json
+            ${{ runner.temp }}/windows-debug-client.log
+            ${{ runner.temp }}/linux-debug-server.log
           retention-days: 3

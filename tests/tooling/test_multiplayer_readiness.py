@@ -76,10 +76,42 @@ class InventoryTests(unittest.TestCase):
 
     def test_lock_match_is_not_release_manifest_match(self):
         self.library()
-        self.lock["addons"][0]["native_artifacts"][0]["release_manifest_sha256"] = "b" * 64
+        file = self.root / "addons/common_ui/release_manifest.json"
+        manifest = json.loads(file.read_text())
+        manifest["targets"] = [{"artifact": "bin/windows-debug.native", "sha256": "b" * 64}]
+        file.write_text(json.dumps(manifest))
+        self.lock["addons"][0]["source"]["release_manifest_sha256"] = audit.digest(file)
         self.save()
         row = next(x for x in self.inspect()["libraries"] if x["state"] == "locked_match")
         self.assertFalse(row["release_artifact_matches_lock"])
+
+    def test_manifest_not_lock_copy_is_release_hash_authority(self):
+        artifact = self.library()
+        self.lock["addons"][0]["native_artifacts"][0]["release_manifest_sha256"] = "b" * 64
+        self.save()
+        file = self.root / "addons/common_ui/release_manifest.json"
+        file.write_text(json.dumps({"targets": [{"artifact": "bin/windows-debug.native", "sha256": audit.digest(artifact)}]}))
+        row = next(x for x in self.inspect()["libraries"] if x["state"] == "locked_match")
+        self.assertEqual(audit.digest(artifact), row["release_artifact_sha256"])
+        self.assertEqual("b" * 64, row["lock_recorded_release_sha256"])
+        self.assertTrue(row["release_artifact_matches_lock"])
+        self.assertFalse(self.inspect()["packages"][0]["release_manifest_matches_lock"])
+
+    def test_conflicting_release_roles_cannot_mask_digest(self):
+        file = self.root / "addons/common_ui/release_manifest.json"
+        file.write_text(json.dumps({"targets": [
+            {"artifact": "bin/windows-debug.native", "sha256": "a" * 64},
+            {"artifact": "bin/windows-debug.native", "sha256": "b" * 64}]}))
+        with self.assertRaisesRegex(ValueError, "Conflicting release"):
+            self.inspect()
+
+    def test_planned_release_without_hash_never_counts_as_provenance(self):
+        self.library()
+        file = self.root / "addons/common_ui/release_manifest.json"
+        file.write_text(json.dumps({"targets": [{"artifact": "bin/windows-debug.native", "sha256": None}]}))
+        row = next(x for x in self.inspect()["libraries"] if x["state"] == "locked_match")
+        self.assertIsNone(row["release_artifact_sha256"])
+        self.assertIsNone(row["release_artifact_matches_lock"])
 
     def test_complete_files_cannot_claim_network_or_platform_support(self):
         for i in range(6):

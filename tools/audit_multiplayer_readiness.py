@@ -5,7 +5,7 @@ Exit 0 means an inventory was produced; network_ready remains false. Exit 1 mean
 invalid/missing inputs. --require-platform-artifacts exits 2 when the requested
 Windows/Linux debug+release libraries are missing, unlocked or mismatched. Even a
 passing artifact prerequisite is NOT a build, load, export or hostile-client test.
-No network requests, engine invocation, package mutation or speculative fallback.
+Python 3.10+. No network requests, engine invocation, package mutation or fallback.
 """
 from __future__ import annotations
 
@@ -89,6 +89,21 @@ def inspect(root: Path, revision: str) -> dict:
         manifest = load(root, destination + "/release_manifest.json", fingerprints)
         manifest_digest = fingerprints[destination + "/release_manifest.json"]
         manifest_lock = sha(source.get("release_manifest_sha256"), name + " manifest lock")
+        targets = manifest.get("targets", [])
+        if not isinstance(targets, list):
+            raise ValueError(f"Invalid release targets: {name}")
+        release_hashes: dict[str, str] = {}
+        for target in targets:
+            if not isinstance(target, dict):
+                raise ValueError(f"Invalid release target: {name}")
+            if target.get("artifact") is None or target.get("sha256") is None:
+                continue  # Planned targets cannot establish artifact provenance.
+            path = destination + "/" + target["artifact"]
+            inside(root, path)
+            recorded = sha(target["sha256"], path + " release manifest")
+            if path in release_hashes and release_hashes[path] != recorded:
+                raise ValueError(f"Conflicting release artifact digests: {path}")
+            release_hashes[path] = recorded
         declared: dict[str, dict] = {}
         for artifact in addon.get("native_artifacts", []):
             path = destination + "/" + artifact["path"]
@@ -120,12 +135,13 @@ def inspect(root: Path, revision: str) -> dict:
             actual = digest(file) if file is not None and file.is_file() else None
             pinned = declared.get(path, {})
             expected = pinned.get("sha256")
-            upstream = pinned.get("release_manifest_sha256")
+            upstream = release_hashes.get(path)
             state = ("selector_missing" if path is None else "missing" if actual is None
                      else "unlocked" if expected is None else "mismatch" if actual != expected else "locked_match")
             rows.append({"addon": name, "selector": selector, "path": path, "state": state,
                          "actual_sha256": actual, "locked_sha256": expected,
                          "release_artifact_sha256": upstream,
+                         "lock_recorded_release_sha256": pinned.get("release_manifest_sha256"),
                          "release_artifact_matches_lock": expected == upstream if upstream else None})
         packages.append({"addon": name, "version": addon.get("version"),
                          "api_version": addon.get("api_version"), "protocol_version": addon.get("protocol_version"),
