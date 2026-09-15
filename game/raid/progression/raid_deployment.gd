@@ -24,7 +24,11 @@ func begin(parent: Node, store: ProfileStore, request_id: String, profile_genera
 	if inventory == null: return _fail(&"deployment_inventory_load_failed_recovery_required")
 	var id := ZRaidId.parse(String(deployment.raid_id))
 	var sessions := SessionCoordinator.new()
-	var admission := sessions.open_offline(id,StringName(store.profile_id()),&"player")
+	# Session ingress requires ONE canonical segment, not the dotted profile ID.
+	# Include raid identity so a fresh coordinator never reuses a prior session.
+	var session_scope := StringName("p"+store.profile_id().sha256_text().substr(0,16)+"r"+String(deployment.raid_id).sha256_text().substr(0,16))
+	var admission := sessions.open_offline(id,session_scope,&"player")
+	if not admission.is_usable(): return _fail(admission.reason)
 	raid = RaidAuthority.new()
 	if not raid.configure(id,admission,seed): return _fail(&"deployment_authority_failed_recovery_required")
 	return true
