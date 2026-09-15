@@ -61,11 +61,14 @@ jobs:
               print("OFFLINE_DISPLAY_BLOCKED: no exact non-HiDPI 1920x1080 mode")
               exit(2)
           }
-          let result = CGDisplaySetDisplayMode(screen, selected, nil)
-          guard result == .success else {
-              print("OFFLINE_DISPLAY_BLOCKED: configuration failed \(result.rawValue)")
+          var pending: CGDisplayConfigRef?
+          guard CGBeginDisplayConfiguration(&pending) == .success, let configuration = pending else { exit(2) }
+          guard CGConfigureDisplayWithDisplayMode(configuration, screen, selected, nil) == .success else {
+              CGCancelDisplayConfiguration(configuration)
               exit(2)
           }
+          // Retain the mode for this disposable login session, not only this helper process.
+          guard CGCompleteDisplayConfiguration(configuration, .forSession) == .success else { exit(2) }
           guard let current = CGDisplayCopyDisplayMode(screen), current.pixelWidth == 1920 && current.pixelHeight == 1080 else { exit(2) }
           print("OFFLINE_DISPLAY_READY 1920x1080")
           SWIFT
