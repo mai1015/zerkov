@@ -137,7 +137,7 @@
     },
     "tests/presentation/offline_bunker_flow.gd": {
       "purpose": "offline default normal-input bunker and native inventory persistence",
-      "sha256": "4670e28447b12fce6d823d0f10edeb24c32de8b44ae8f525ff98def8f3db59d4"
+      "sha256": "965d601681c2699f22f8d6fd3e13555bb3415c841dcfb67bdb380578f370629b"
     }
   },
   "active_command_entrypoints": {
@@ -211,7 +211,7 @@
     },
     "tests/tooling/run_offline_bunker_gate.py": {
       "purpose": "offline default normal-input bunker and native inventory persistence",
-      "sha256": "fdc2a0648c79536e1d3ea352d7178bc9ee79d7d28d0b48a872bb27e63b95647a"
+      "sha256": "35b2bad6621fe45a922423944661613efe900cdd4c0b42a94bbbb0cc0656c720"
     }
   },
   "active_reviewed_support": {

@@ -78,7 +78,7 @@ func inventory_view(scope: StringName) -> InventoryView:
 		return InventoryView.unavailable(kind, ZReadOnlyView.SyncState.UNBOUND, &"offline_profile_closed")
 	var current := _session.snapshot()
 	var records: Array[InventoryView.ContainerRecord] = []
-	var sources: Array[StringName] = [SOURCE_STASH] if scope == SCOPE_PROFILE else [SOURCE_POCKETS, SOURCE_RIG, SOURCE_BACKPACK]
+	var sources: Array = [SOURCE_STASH] if scope == SCOPE_PROFILE else [SOURCE_POCKETS, SOURCE_RIG, SOURCE_BACKPACK]
 	for source: StringName in sources:
 		var desc := descriptor(source)
 		var items: Array[InventoryView.ItemRecord] = []
@@ -141,7 +141,7 @@ func _display_item(row: Dictionary, desc: Dictionary) -> Dictionary:
 		"merge_key": definition, "name": String(meta.get("name", definition)),
 		"short": String(meta.get("short", kind)).to_upper(), "kind": kind, "category": category,
 		"compatibility": String(meta.get("compatibility", "")), "rotatable": bool(meta.get("rotatable", false)),
-		"location": loc, "state": {}}
+		"location": loc, "state": &"normal"}
 
 func select(source: StringName, item_id: int) -> bool:
 	for item: Dictionary in items_for(source):
@@ -191,6 +191,8 @@ func _send(operation: String, source: StringName, target: StringName, item: Dict
 	return _feedback(_session.execute(command))
 
 func _feedback(result: Dictionary) -> Dictionary:
+	result = result.duplicate(true)
+	result["ui_resolved"] = true
 	if result.get("accepted", false):
 		_selected.clear()
 		projection_changed.emit(SCOPE_PROFILE)
@@ -199,4 +201,4 @@ func _feedback(result: Dictionary) -> Dictionary:
 	else:
 		last_error = StringName(result.get("reason", "rejected"))
 		rejection_feedback.emit(result)
-	return result
+	return RaidProgressionValues.freeze(result)

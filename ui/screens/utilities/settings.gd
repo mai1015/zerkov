@@ -338,6 +338,8 @@ func _apply_preview_state() -> void:
         ring_inner.add_theme_stylebox_override("panel", _style_box(Color.TRANSPARENT, color, 2))
 
 
+var _offline_settings_generation: int = -1
+
 func _build_offline_settings() -> void:
     reset_adaptive_layout()
     route = "settings"
@@ -359,6 +361,7 @@ func _build_offline_settings() -> void:
         if button != null:
             button.disabled = true
     var status := app.offline_bunker().local_status()
+    _offline_settings_generation = int(status.generation)
     var volume: HSlider = null
     for node: Node in find_children("*", "HSlider", true, false):
         if str(node.get_meta("settings_key", "")) == "audio_master":
@@ -376,21 +379,32 @@ func _build_offline_settings() -> void:
     if chrome != null:
         chrome.show()
         chrome.layout_for(Vector2(1920, 1080))
-    var controls := U.label(self, "Offline settings · master volume is saved with your profile. Other gameplay settings are not enabled.", Rect2(380, 948, 1120, 28), 12, U.SOFT)
-    controls.name = "OfflineSettingsNotice"
-    var bindings := Button.new()
-    bindings.name = "OfflineControlBindings"
-    bindings.text = "KEYBOARD / CONTROLLER BINDINGS"
-    bindings.position = Vector2(1550, 930)
-    bindings.size = Vector2(322, 42)
-    bindings.pressed.connect(func(): go("controls"))
-    add_child(bindings)
+    var controls := get_node_or_null("OfflineSettingsNotice") as Label
+    if controls == null:
+        controls = U.label(self, "Offline settings · master volume saves with this profile. Other gameplay settings are unavailable.", Rect2(380, 948, 1130, 28), 12, U.SOFT)
+        controls.name = "OfflineSettingsNotice"
+    var bindings := get_node_or_null("OfflineControlBindings") as Button
+    if bindings == null:
+        bindings = Button.new()
+        bindings.name = "OfflineControlBindings"
+        bindings.text = "KEYBOARD / CONTROLLER BINDINGS"
+        bindings.position = Vector2(1550, 930)
+        bindings.size = Vector2(322, 42)
+        bindings.pressed.connect(_offline_open_controls)
+        add_child(bindings)
     default_focus = get_path_to(bindings)
     queue_adaptive_layout()
 
 func _offline_volume_changed(value: float) -> void:
     var offline := app.offline_bunker()
-    if offline == null:
+    if offline == null or not accepts_input():
         return
-    if not offline.request(&"volume", int(offline.local_status().generation), int(value)):
+    if not offline.request(&"volume", _offline_settings_generation, int(value)):
+        for node: Node in find_children("*", "HSlider", true, false):
+            if str(node.get_meta("settings_key", "")) == "audio_master":
+                node.set_value_no_signal(int(offline.local_status().master_volume))
         toast("Volume was not saved · " + String(offline.local_status().error))
+
+func _offline_open_controls() -> void:
+    if accepts_input():
+        go("controls")

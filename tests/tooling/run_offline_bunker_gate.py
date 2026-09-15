@@ -53,6 +53,7 @@ def main() -> int:
             base = [engine, '--path',str(project),'--resolution','1920x1080','--audio-driver','Dummy']
             execute('import', base+['--headless','--editor','--import','--quit'])
             totals=[]
+            fingerprints=[]
             for mode in ['create','continue']:
                 capture = args.output/mode
                 capture.mkdir()
@@ -61,8 +62,14 @@ def main() -> int:
                     command+=['--capture-dir='+str(capture.resolve())]
                 result=execute(mode,command,True)
                 totals.append(int(RESULT.search(result)[1]))
+                match=re.search(r'OFFLINE_PROFILE_FINGERPRINT ([a-f0-9]{64})', result)
+                if match is None:
+                    raise RuntimeError('missing persisted-profile fingerprint')
+                fingerprints.append(match[1])
+            if fingerprints[0] != fingerprints[1]:
+                raise RuntimeError('Continue changed the accepted profile fingerprint')
             report={'engine':version,'checks':sum(totals),'failures':0,'processes':2,
-                    'graphical':args.graphical,'output':[1920,1080],
+                    'graphical':args.graphical,'output':[1920,1080], 'profile_fingerprint':fingerprints[0],
                     'source_files':{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((ROOT/'game/offline').glob('*.gd'))},
                     'scope':'normal offline startup, bunker and persistent native inventory; no raid or multiplayer'}
             (args.output/'result.json').write_text(json.dumps(report,indent=2)+'\n')

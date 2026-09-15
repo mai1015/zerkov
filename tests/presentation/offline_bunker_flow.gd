@@ -14,6 +14,7 @@ func _initialize() -> void:
 
 func check(ok: bool, label: String) -> void:
 	checks += 1
+	print("OFFLINE_CHECK ", checks, " ", label, " ok=", ok)
 	if not ok:
 		failures += 1
 		push_error("OFFLINE_FLOW_ASSERTION: " + label)
@@ -68,10 +69,10 @@ func capture(name: String) -> void:
 	if not Exact1080CaptureGuard.accepts(root, root, image):
 		check(false, "exact physical capture")
 		return
-	image.save_png(output.path_join(name + ".png"))
-	check(true, "native capture " + name)
+	check(image.save_png(output.path_join(name + ".png")) == OK, "native capture " + name)
 
 func run() -> void:
+	create_timer(65.0).timeout.connect(func(): check(false, "flow watchdog"); finish())
 	root.size = EXACT
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--offline-case="):
@@ -145,6 +146,15 @@ func run() -> void:
 	check(app.current_route == "pause", "normal Escape pause")
 	await click(app.screen.get_node("ActionsPanel/SettingsRow/Hit"))
 	check(app.current_route == "settings" and app.screen.accepts_input(), "local settings available")
+	var master: HSlider = null
+	for child: Node in app.screen.find_children("*", "HSlider", true, false):
+		if str(child.get_meta("settings_key", "")) == "audio_master":
+			master = child
+	check(master != null and master.editable, "real local master-volume control")
+	if mode == "create" and master != null:
+		await click(master)
+	check(session.status().master_volume != 80, "master volume changed and restored with profile")
+	check(is_equal_approx(AudioServer.get_bus_volume_linear(0), float(session.status().master_volume) / 100.0), "audio follows saved setting")
 	await capture("offline-settings-1080")
 	await click(app.screen.get_node("OfflineControlBindings"))
 	check(app.current_route == "controls", "existing rebind controls available")
@@ -186,6 +196,19 @@ func failure_contract() -> void:
 	check(not session.open_profile(true), "New cannot overwrite existing profile")
 	check(session.close_profile() and session.open_profile(false), "close and reopen restores the native record")
 	check(not controller.submit_quick(&"stash", ammo).accepted, "retired controller generation rejects")
+	var future_payload := session._payload.duplicate(true)
+	var previous_generation := int(session.status().save_generation)
+	check(session.close_profile(), "close before incompatible-file probe")
+	future_payload.project.offline_bunker.schema = "zerkov.offline.future.v2"
+	check(store.save_profile(future_payload, previous_generation, previous_generation + 1).committed, "fixture creates outer-valid future schema")
+	var future_bytes: Dictionary = ops.slots.duplicate(true)
+	check(not session.open_profile(false) and not session.open_profile(true), "future schema cannot Continue or reseed")
+	check(ops.slots == future_bytes, "future schema bytes are preserved")
+	ops.slots[ProfileFileOperations.SLOT_PRIMARY] = PackedByteArray([1, 2, 3])
+	ops.slots[ProfileFileOperations.SLOT_BACKUP] = PackedByteArray([4, 5, 6])
+	var corrupt_bytes: Dictionary = ops.slots.duplicate(true)
+	check(not session.open_profile(false) and not session.open_profile(true), "corrupt files never become a new profile")
+	check(ops.slots == corrupt_bytes, "corrupt files are preserved for recovery")
 	session.queue_free()
 	await settle()
 
