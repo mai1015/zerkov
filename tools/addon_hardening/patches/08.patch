@@ -1,0 +1,52 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.cpp b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+index 74d86f0a022313fac419819773b4bfc5f46e3a39..3a50945496711ef617338011991e4f2ba9663f25 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.cpp
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+@@ -1059,15 +1247,19 @@ void WeaponNetworkBridge::_rpc_snapshot_batch(const PackedByteArray &p_bytes) {
+ 		if (!replica->is_tombstoned(tombstone.instance_id) || replica->last_applied_revision(tombstone.instance_id) != tombstone.revision) {
+ 			continue;
+ 		}
++		applied.acknowledgements.push_back({tombstone.instance_id, tombstone.revision});
+ 		emit_signal("instance_tombstoned", instance_id, int64_t(tombstone.revision));
+ 		handle_divergence(instance_id, true); // a snapshot/tombstone just resolved this instance; nothing further to resync.
+ 	}
++	if (!applied.acknowledgements.empty()) {
++		wpn::ByteWriter writer(wpn::MAX_DELTA_BYTES);
++		if (wpn::protocol::encode_acknowledgement_batch(applied, writer).ok())
++			rpc_id(server_peer_id, "_rpc_acknowledgement_batch", to_packed(writer.bytes()));
++	}
+ }
+ 
+ void WeaponNetworkBridge::_rpc_delta_batch(const PackedByteArray &p_bytes) {
+-	if (role != ROLE_CLIENT) {
+-		return;
+-	}
++	if (!expected_server() || !compatibility_confirmed || p_bytes.size() > int64_t(wpn::MAX_DELTA_BYTES)) return;
+ 	ensure_client_state();
+ 	wpn::protocol::WeaponDeltaBatch batch;
+ 	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
+@@ -1123,9 +1315,7 @@ void WeaponNetworkBridge::_rpc_delta_batch(const PackedByteArray &p_bytes) {
+ }
+ 
+ void WeaponNetworkBridge::_rpc_command_rejection(const PackedByteArray &p_bytes) {
+-	if (role != ROLE_CLIENT) {
+-		return;
+-	}
++	if (!expected_server() || !compatibility_confirmed || p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
+ 	ensure_client_state();
+ 	wpn::protocol::CommandRejection rejection;
+ 	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
+@@ -1171,6 +1361,13 @@ void WeaponNetworkBridge::handle_divergence(const String &p_instance_id, bool p_
+ // ---------------------------------------------------------------------------
+ 
+ void WeaponNetworkBridge::_bind_methods() {
++	ClassDB::bind_method(D_METHOD("set_compatibility_catalog", "catalog"), &WeaponNetworkBridge::set_compatibility_catalog);
++	ClassDB::bind_method(D_METHOD("get_compatibility_catalog"), &WeaponNetworkBridge::get_compatibility_catalog);
++	ClassDB::bind_method(D_METHOD("set_attachment_authorization_provider", "callback"), &WeaponNetworkBridge::set_attachment_authorization_provider);
++	ClassDB::bind_method(D_METHOD("get_attachment_authorization_provider"), &WeaponNetworkBridge::get_attachment_authorization_provider);
++	ClassDB::bind_method(D_METHOD("peer_diagnostics", "peer", "instance_id"), &WeaponNetworkBridge::peer_diagnostics);
++	ClassDB::bind_method(D_METHOD("_rpc_compatibility_result", "bytes"), &WeaponNetworkBridge::_rpc_compatibility_result);
++	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "compatibility_catalog", PROPERTY_HINT_RESOURCE_TYPE, "WeaponDefinitionCatalog"), "set_compatibility_catalog", "get_compatibility_catalog");
+ 	BIND_ENUM_CONSTANT(ROLE_SERVER);
+ 	BIND_ENUM_CONSTANT(ROLE_CLIENT);
+ 

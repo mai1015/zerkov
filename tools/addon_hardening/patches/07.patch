@@ -1,0 +1,169 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.cpp b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+index 74d86f0a022313fac419819773b4bfc5f46e3a39..3a50945496711ef617338011991e4f2ba9663f25 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.cpp
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+@@ -774,43 +943,40 @@ void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArra
+ }
+ 
+ void WeaponNetworkBridge::_rpc_acknowledgement_batch(const PackedByteArray &p_bytes) {
+-	if (role != ROLE_SERVER) {
+-		return;
+-	}
++	if (role != ROLE_SERVER) return;
+ 	ensure_server_state();
+ 	const Ref<MultiplayerAPI> api = get_multiplayer();
+ 	const int peer = api.is_valid() ? api->get_remote_sender_id() : 0;
++	if (!peer_has_session(peer) || !ownership->is_compatibility_ready(peer) ||
++		p_bytes.size() > int64_t(wpn::MAX_DELTA_BYTES) ||
++		!auxiliary_rate_limiter->admit_command(peer, local_tick_counter, effective_tick_rate()).ok()) return;
+ 	wpn::protocol::AcknowledgementBatch batch;
+-	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
++	const auto bytes = from_packed(p_bytes);
+ 	wpn::ByteReader reader(bytes);
+-	if (!wpn::protocol::decode_acknowledgement_batch(reader, batch).ok()) {
+-		return;
+-	}
+-	for (const wpn::protocol::DeltaAcknowledgement &ack : batch.acknowledgements) {
+-		acks->record_acknowledgement(wpn::protocol::PeerId(peer), ack.instance_id, ack.acknowledged_revision);
+-	}
++	if (!wpn::protocol::decode_acknowledgement_batch(reader, batch).ok() || batch.protocol_version != wpn::PROTOCOL_VERSION) return;
++	// Validate entire batch before changing any watermark; a valid prefix does
++	// not authorize a forged suffix. Exact sent revision, not just <= latest.
++	for (const auto &ack : batch.acknowledgements)
++		if (!peer_can_receive(peer, String(ack.instance_id.c_str())) ||
++			!sent_baselines.contains(peer, ack.instance_id, ack.acknowledged_revision)) return;
++	for (const auto &ack : batch.acknowledgements) {
++        sent_baselines.acknowledge(peer, ack.instance_id, ack.acknowledged_revision);
++        acks->record_acknowledgement(peer, ack.instance_id, ack.acknowledged_revision);
++    }
+ }
+ 
+ void WeaponNetworkBridge::_rpc_resync_request(const PackedByteArray &p_bytes) {
+-	if (role != ROLE_SERVER) {
+-		return;
+-	}
++	if (role != ROLE_SERVER) return;
+ 	ensure_server_state();
+ 	const Ref<MultiplayerAPI> api = get_multiplayer();
+ 	const int peer = api.is_valid() ? api->get_remote_sender_id() : 0;
+-
+-	const wpn::Status rate_status = rate_limiter->admit_resync(wpn::protocol::PeerId(peer), local_tick_counter, effective_tick_rate());
+-	if (!rate_status.ok()) {
+-		emit_signal("network_diagnostic", peer, status_dict(rate_status));
+-		return;
+-	}
+-
++	if (!peer_has_session(peer) || !ownership->is_compatibility_ready(peer) ||
++		p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES) ||
++		!rate_limiter->admit_resync(peer, local_tick_counter, effective_tick_rate()).ok()) return;
+ 	wpn::protocol::ResyncRequest request;
+-	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
++	const auto bytes = from_packed(p_bytes);
+ 	wpn::ByteReader reader(bytes);
+-	if (!wpn::protocol::decode_resync_request(reader, request).ok()) {
+-		return;
+-	}
++	if (!wpn::protocol::decode_resync_request(reader, request).ok()) return;
+ 	send_snapshot_to_peer(peer, String(request.instance_id.c_str()));
+ }
+ 
+@@ -856,6 +1022,11 @@ Dictionary WeaponNetworkBridge::request_fire_networked(const Dictionary &p_inten
+ 	}
+ 	ensure_client_state();
+ 	const String instance_id = String(p_intent.get("instance_id", String()));
++	if (!client_can_command(instance_id)) {
++		result["sent"] = false;
++		result["reason"] = "compatibility_or_baseline_not_ready";
++		return result;
++	}
+ 	wpn::protocol::FireIntent intent;
+ 	intent.command_id = to_std("c" + String::num_int64(int64_t(++local_command_counter)));
+ 	intent.sequence = ++next_client_sequence[instance_id];
+@@ -889,6 +1060,11 @@ Dictionary WeaponNetworkBridge::request_begin_reload_networked(const Dictionary
+ 	}
+ 	ensure_client_state();
+ 	const String instance_id = String(p_intent.get("instance_id", String()));
++	if (!client_can_command(instance_id)) {
++		result["sent"] = false;
++		result["reason"] = "compatibility_or_baseline_not_ready";
++		return result;
++	}
+ 	wpn::protocol::BeginReloadIntent intent;
+ 	intent.command_id = to_std("c" + String::num_int64(int64_t(++local_command_counter)));
+ 	intent.sequence = ++next_client_sequence[instance_id];
+@@ -921,6 +1097,11 @@ Dictionary WeaponNetworkBridge::request_cancel_reload_networked(const Dictionary
+ 	}
+ 	ensure_client_state();
+ 	const String instance_id = String(p_intent.get("instance_id", String()));
++	if (!client_can_command(instance_id)) {
++		result["sent"] = false;
++		result["reason"] = "compatibility_or_baseline_not_ready";
++		return result;
++	}
+ 	wpn::protocol::CancelReloadIntent intent;
+ 	intent.command_id = to_std("c" + String::num_int64(int64_t(++local_command_counter)));
+ 	intent.sequence = ++next_client_sequence[instance_id];
+@@ -951,6 +1132,11 @@ Dictionary WeaponNetworkBridge::request_configure_attachments_networked(const Di
+ 	}
+ 	ensure_client_state();
+ 	const String instance_id = String(p_intent.get("instance_id", String()));
++	if (!client_can_command(instance_id)) {
++		result["sent"] = false;
++		result["reason"] = "compatibility_or_baseline_not_ready";
++		return result;
++	}
+ 	wpn::protocol::ConfigureAttachmentsIntent intent;
+ 	intent.command_id = to_std("c" + String::num_int64(int64_t(++local_command_counter)));
+ 	intent.sequence = ++next_client_sequence[instance_id];
+@@ -992,15 +1178,15 @@ bool WeaponNetworkBridge::request_resync(const String &p_instance_id) {
+ }
+ 
+ void WeaponNetworkBridge::send_compatibility_handshake() {
+-	if (role != ROLE_CLIENT) {
+-		return;
+-	}
+-	wpn::protocol::CompatibilityHandshake handshake; // default protocol_version + default manifest; see the header's doc comment.
++	if (role != ROLE_CLIENT || !is_multiplayer_active()) return;
++	wpn::protocol::CompatibilityHandshake handshake;
++	if (!make_local_handshake(handshake)) return;
+ 	wpn::ByteWriter writer(wpn::MAX_COMMAND_BYTES);
+-	if (!wpn::protocol::encode_compatibility_handshake(handshake, writer).ok()) {
+-		return;
++	if (!wpn::protocol::encode_compatibility_handshake(handshake, writer).ok()) return;
++	if (rpc_id(server_peer_id, "_rpc_compatibility_handshake", to_packed(writer.bytes())) == OK) {
++		handshake_sent = true;
++		last_handshake_tick = local_tick_counter;
+ 	}
+-	rpc_id(server_peer_id, "_rpc_compatibility_handshake", to_packed(writer.bytes()));
+ }
+ 
+ Dictionary WeaponNetworkBridge::confirmed_snapshot(const String &p_instance_id) const {
+@@ -1031,9 +1217,7 @@ bool WeaponNetworkBridge::is_instance_tombstoned(const String &p_instance_id) co
+ // ---------------------------------------------------------------------------
+ 
+ void WeaponNetworkBridge::_rpc_snapshot_batch(const PackedByteArray &p_bytes) {
+-	if (role != ROLE_CLIENT) {
+-		return;
+-	}
++	if (!expected_server() || !compatibility_confirmed || p_bytes.size() > int64_t(wpn::MAX_SNAPSHOT_BYTES)) return;
+ 	ensure_client_state();
+ 	wpn::protocol::WeaponSnapshotBatch batch;
+ 	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
+@@ -1042,6 +1226,7 @@ void WeaponNetworkBridge::_rpc_snapshot_batch(const PackedByteArray &p_bytes) {
+ 		return;
+ 	}
+ 	replica->apply_snapshot_batch(batch);
++	wpn::protocol::AcknowledgementBatch applied;
+ 	// apply_snapshot_batch() stops at the FIRST failing entry (entries
+ 	// applied before that remain applied) -- guard each signal below on
+ 	// last_applied_revision() actually matching THIS entry's revision
+@@ -1051,6 +1236,9 @@ void WeaponNetworkBridge::_rpc_snapshot_batch(const PackedByteArray &p_bytes) {
+ 		if (replica->last_applied_revision(snapshot.instance_id) != snapshot.revision || replica->is_tombstoned(snapshot.instance_id)) {
+ 			continue;
+ 		}
++		next_client_sequence[instance_id] = std::max(next_client_sequence[instance_id],
++			std::max(snapshot.last_command_sequence, snapshot.admitted_sequence_high_watermark));
++		applied.acknowledgements.push_back({snapshot.instance_id, snapshot.revision});
+ 		emit_signal("snapshot_applied", instance_id, int64_t(snapshot.revision));
+ 		resolve_presentation_up_to(instance_id, snapshot.has_last_command_sequence, snapshot.last_command_sequence);
+ 	}

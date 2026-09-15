@@ -1,0 +1,71 @@
+diff --git a/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.h b/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.h
+index 57d1c3ac5b9a0693e7506163ff608955562223d9..5e3cc601535833cb925d4dde28e72b54baaa5769 100644
+--- a/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.h
++++ b/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.h
+@@ -203,15 +203,8 @@ public:
+ 	void set_target_authorization_callback(const Callable &p_callback) { target_authorization_callback = p_callback; }
+ 	Callable get_target_authorization_callback() const { return target_authorization_callback; }
+ 
+-	// Finding 8: false (the default) preserves this addon's original opt-in
+-	// posture -- an unset callback means "this game does not need per-target
+-	// authorization", exactly as before this property existed. A game whose
+-	// gameplay REQUIRES target authorization for every targeted ability sets
+-	// this true so an unset callback becomes a fail-closed configuration
+-	// error instead of a silent "allow everything": a targeted command
+-	// arriving while no callback is configured is then rejected
+-	// (ABILITY_INVALID_TARGET) with a bounded `network_diagnostic`, exactly
+-	// like a callback that itself returned false.
++	// Defaults to required. An absent callback rejects targeted activations.
++	// Setting false is a trusted host opt-out, not production security signoff.
+ 	void set_require_target_authorization(bool p_require) { require_target_authorization = p_require; }
+ 	bool get_require_target_authorization() const { return require_target_authorization; }
+ 
+@@ -373,30 +366,12 @@ public:
+ 	// state").
+ 	int64_t debug_owner_stream_head_sequence() const;
+ 
+-	// Restricts `push_full_state` to an explicit peer allow-list (server
+-	// visibility policy). Empty (the default -- and UNCHANGED by task 7.18
+-	// below: an explicit call with an empty array still means this) means
+-	// "every currently connected peer is relevant" -- a minimal, honest
+-	// default; a game wanting real spatial/team relevance calls this to
+-	// narrow it. Superseded by a later `set_relevant_peers`/
+-	// `set_no_relevant_peers` call, whichever comes last.
++	// Explicit relevance allowlist. Unset AND empty mean nobody, not all peers.
++	// A trusted host must grant each recipient after authentication/visibility.
+ 	void set_relevant_peers(const PackedInt32Array &p_peers) {
+ 		relevant_peer_override = p_peers;
+-		relevant_peers_none = false;
++		relevant_peers_none = p_peers.is_empty();
+ 	}
+-
+-	// Task 7.18: explicit "no peers are relevant" -- distinct from the
+-	// DEFAULT empty-override state above, which means "every connected
+-	// peer." Before this existed, there was no way to express "nobody": a
+-	// server-owned entity with no local mirror (e.g. an NPC no client
+-	// controls or observes yet) left `relevant_peer_override` empty because
+-	// there was nothing else to put there, which `current_relevant_peers()`
+-	// read as "broadcast to everyone" -- so `push_full_state`/cue forwarding
+-	// silently sent snapshots and presentation events to peers that were
+-	// never relevant to this entity and cannot receive them meaningfully.
+-	// Calling this makes `current_relevant_peers()` return an empty list
+-	// UNCONDITIONALLY (never falling back to "every connected peer") until
+-	// a later `set_relevant_peers` call (empty or not) supersedes it.
+ 	void set_no_relevant_peers() {
+ 		relevant_peer_override.clear();
+ 		relevant_peers_none = true;
+@@ -937,12 +912,12 @@ private:
+ 	PackedStringArray hidden_effect_identifiers;
+ 	Callable target_authorization_callback;
+ 	// Finding 8: see `set_require_target_authorization()`'s own doc comment.
+-	bool require_target_authorization = false;
++	bool require_target_authorization = true;
+ 	PackedInt32Array relevant_peer_override;
+ 	// Task 7.18: see `set_no_relevant_peers()`. When true,
+ 	// `current_relevant_peers()` returns empty unconditionally, regardless
+ 	// of `relevant_peer_override`/connected-peer fallback.
+-	bool relevant_peers_none = false;
++	bool relevant_peers_none = true;
+ 
+ 	GameplayAbilityComponent *component = nullptr;
+ 	ga::proto::SessionId local_session_id = 1;

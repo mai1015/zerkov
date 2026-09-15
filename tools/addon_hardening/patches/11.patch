@@ -1,0 +1,97 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.cpp b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+index 3a50945496711ef617338011991e4f2ba9663f25..18c06e61909456d52ad4f2c8f00a8967b48f193a 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.cpp
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+@@ -84,6 +84,12 @@ Dictionary status_dict(const wpn::Status &p_status) {
+ 	return result;
+ }
+ 
++bool valid_wire_command(std::uint16_t version, const std::string &id, std::uint64_t sequence) {
++    return version == wpn::PROTOCOL_VERSION && sequence > 0 && sequence <= std::uint64_t(INT64_MAX) &&
++        !id.empty() && id.size() <= wpn::MAX_IDENTIFIER_BYTES &&
++        std::all_of(id.begin(), id.end(), [](unsigned char c) { return c >= 33 && c <= 126; });
++}
++
+ const char *rpc_name_for(wpn::protocol::PredictionIntentKind p_kind) {
+ 	switch (p_kind) {
+ 		case wpn::protocol::PredictionIntentKind::FIRE:
+@@ -592,7 +598,11 @@ void WeaponNetworkBridge::_rpc_compatibility_handshake(const PackedByteArray &p_
+ 	const bool was_ready = ownership->is_compatibility_ready(peer);
+ 	// Invalidate first; malformed or incompatible re-handshake cannot retain an old grant.
+ 	ownership->begin_session(peer, peer_sessions.at(peer), peer_epochs.at(peer));
+-	if (p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
++	if (p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) {
++        acks->drop_peer(peer);
++        sent_baselines.drop_peer(peer);
++        return;
++    }
+ 	wpn::protocol::CompatibilityHandshake local, remote;
+ 	const auto bytes = from_packed(p_bytes);
+ 	wpn::ByteReader reader(bytes);
+@@ -643,6 +653,10 @@ void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &p_bytes) {
+ 		reject_malformed(peer, decode_status);
+ 		return;
+ 	}
++	if (!valid_wire_command(intent.protocol_version, intent.command_id, intent.sequence)) {
++        reject_malformed(peer, wpn::make_status(wpn::StatusCode::INVALID_ARGUMENT));
++        return;
++    }
+ 	const String instance_id = String(intent.instance_id.c_str());
+ 	const String command_id = String(intent.command_id.c_str());
+ 	wpn::protocol::InboundCommandVerdict verdict;
+@@ -736,6 +750,10 @@ void WeaponNetworkBridge::_rpc_begin_reload_intent(const PackedByteArray &p_byte
+ 		reject_malformed(peer, decode_status);
+ 		return;
+ 	}
++	if (!valid_wire_command(intent.protocol_version, intent.command_id, intent.sequence)) {
++        reject_malformed(peer, wpn::make_status(wpn::StatusCode::INVALID_ARGUMENT));
++        return;
++    }
+ 	const String instance_id = String(intent.instance_id.c_str());
+ 	const String command_id = String(intent.command_id.c_str());
+ 	wpn::protocol::InboundCommandVerdict verdict;
+@@ -816,6 +834,10 @@ void WeaponNetworkBridge::_rpc_cancel_reload_intent(const PackedByteArray &p_byt
+ 		reject_malformed(peer, decode_status);
+ 		return;
+ 	}
++	if (!valid_wire_command(intent.protocol_version, intent.command_id, intent.sequence)) {
++        reject_malformed(peer, wpn::make_status(wpn::StatusCode::INVALID_ARGUMENT));
++        return;
++    }
+ 	const String instance_id = String(intent.instance_id.c_str());
+ 	const String command_id = String(intent.command_id.c_str());
+ 	wpn::protocol::InboundCommandVerdict verdict;
+@@ -875,6 +897,10 @@ void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArra
+ 		reject_malformed(peer, decode_status);
+ 		return;
+ 	}
++	if (!valid_wire_command(intent.protocol_version, intent.command_id, intent.sequence)) {
++        reject_malformed(peer, wpn::make_status(wpn::StatusCode::INVALID_ARGUMENT));
++        return;
++    }
+ 	const String instance_id = String(intent.instance_id.c_str());
+ 	const String command_id = String(intent.command_id.c_str());
+ 	wpn::protocol::InboundCommandVerdict verdict;
+@@ -986,7 +1012,12 @@ void WeaponNetworkBridge::_rpc_resync_request(const PackedByteArray &p_bytes) {
+ 
+ Dictionary WeaponNetworkBridge::send_predicted_command(wpn::protocol::PredictionIntentKind p_kind, const String &p_instance_id,
+ 		const String &p_command_id, std::uint64_t p_sequence, const char *p_rpc_name, const PackedByteArray &p_encoded) {
+-	rpc_id(server_peer_id, p_rpc_name, p_encoded);
++	if (rpc_id(server_peer_id, p_rpc_name, p_encoded) != OK) {
++        Dictionary failed;
++        failed["sent"] = false;
++        failed["reason"] = "transport_send_failed";
++        return failed;
++    }
+ 
+ 	wpn::protocol::PresentationIntent intent;
+ 	intent.command_id = to_std(p_command_id);
+@@ -1233,7 +1264,7 @@ void WeaponNetworkBridge::_rpc_snapshot_batch(const PackedByteArray &p_bytes) {
+ 	// rather than assuming every entry in the batch succeeded.
+ 	for (const wpn::WeaponSnapshot &snapshot : batch.snapshots) {
+ 		const String instance_id = String(snapshot.instance_id.c_str());
+-		if (replica->last_applied_revision(snapshot.instance_id) != snapshot.revision || replica->is_tombstoned(snapshot.instance_id)) {
++		if (replica->find(snapshot.instance_id) == nullptr || replica->last_applied_revision(snapshot.instance_id) != snapshot.revision || replica->is_tombstoned(snapshot.instance_id)) {
+ 			continue;
+ 		}
+ 		next_client_sequence[instance_id] = std::max(next_client_sequence[instance_id],

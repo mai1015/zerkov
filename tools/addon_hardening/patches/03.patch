@@ -1,0 +1,172 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.cpp b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+index 74d86f0a022313fac419819773b4bfc5f46e3a39..3a50945496711ef617338011991e4f2ba9663f25 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.cpp
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+@@ -5,8 +5,14 @@
+ #include "core/wpn_limits.h"
+ #include "godot/weapon_authority.h"
+ #include "protocol/wpn_protocol_codec.h"
++#include "protocol/wpn_protocol_compat.h"
++#include "core/wpn_version.h"
++#include "core/wpn_identifier.h"
++#include <algorithm>
++#include <limits>
+ 
+ #include <godot_cpp/classes/multiplayer_api.hpp>
++#include <godot_cpp/classes/crypto.hpp>
+ #include <godot_cpp/classes/multiplayer_peer.hpp>
+ #include <godot_cpp/core/class_db.hpp>
+ #include <godot_cpp/variant/variant.hpp>
+@@ -94,7 +100,12 @@ const char *rpc_name_for(wpn::protocol::PredictionIntentKind p_kind) {
+ 
+ } // namespace
+ 
+-WeaponNetworkBridge::WeaponNetworkBridge() {}
++WeaponNetworkBridge::WeaponNetworkBridge() {
++	Ref<Crypto> crypto;
++	crypto.instantiate();
++	const PackedByteArray nonce = crypto->generate_random_bytes(32);
++	if (nonce.size() == 32) command_namespace = nonce.hex_encode();
++}
+ WeaponNetworkBridge::~WeaponNetworkBridge() {}
+ 
+ // ---------------------------------------------------------------------------
+@@ -110,6 +121,7 @@ void WeaponNetworkBridge::ensure_server_state() {
+ 	rate_limiter = std::make_unique<wpn::protocol::RateLimiter>();
+ 	gate = std::make_unique<wpn::protocol::WeaponCommandGate>(*ownership, *sequence_tracker, *rate_limiter);
+ 	acks = std::make_unique<wpn::protocol::DeltaAcknowledgementTracker>();
++	auxiliary_rate_limiter = std::make_unique<wpn::protocol::RateLimiter>();
+ }
+ 
+ void WeaponNetworkBridge::ensure_client_state() {
+@@ -170,6 +182,7 @@ void WeaponNetworkBridge::_ready() {
+ 	rpc_config("_rpc_resync_request", any_peer_reliable);
+ 	// Server -> client (defense-in-depth: only this node's designated
+ 	// multiplayer authority may invoke these on a remote peer).
++	rpc_config("_rpc_compatibility_result", authority_reliable);
+ 	rpc_config("_rpc_snapshot_batch", authority_reliable);
+ 	rpc_config("_rpc_delta_batch", authority_reliable);
+ 	rpc_config("_rpc_command_rejection", authority_reliable);
+@@ -177,7 +190,12 @@ void WeaponNetworkBridge::_ready() {
+ 	if (role == ROLE_SERVER) {
+ 		ensure_server_state();
+ 		set_multiplayer_authority(1);
++		const Ref<MultiplayerAPI> api = get_multiplayer();
++		if (api.is_valid() && !api->is_connected("peer_disconnected", callable_mp(this, &WeaponNetworkBridge::on_peer_disconnected))) {
++			api->connect("peer_disconnected", callable_mp(this, &WeaponNetworkBridge::on_peer_disconnected));
++		}
+ 	} else {
++		set_multiplayer_authority(server_peer_id);
+ 		ensure_client_state();
+ 		if (!disconnect_signal_wired) {
+ 			const Ref<MultiplayerAPI> api = get_multiplayer();
+@@ -198,9 +216,9 @@ void WeaponNetworkBridge::_process(double p_delta) {
+ 	// doc comment): without this, EVERY command this bridge ever sends
+ 	// would be rejected CONTENT_NOT_READY forever, since nothing else
+ 	// drives the content-compatibility admission gate.
+-	if (!handshake_sent && is_multiplayer_active()) {
++	if (!compatibility_confirmed && is_multiplayer_active() &&
++		(!handshake_sent || local_tick_counter - last_handshake_tick >= effective_tick_rate())) {
+ 		send_compatibility_handshake();
+-		handshake_sent = true;
+ 	}
+ 	const std::uint32_t rate = effective_tick_rate();
+ 	if (rate == 0) {
+@@ -223,19 +241,85 @@ void WeaponNetworkBridge::_process(double p_delta) {
+ }
+ 
+ void WeaponNetworkBridge::on_server_disconnected() {
+-	// The replica's confirmed state is left exactly as-is (still the newest
+-	// snapshot the now-dead session ever confirmed) -- the next successful
+-	// reconnect's fresh snapshot/reconnect batch replaces it wholesale
+-	// (WeaponReplica::replace_from_snapshot_batch()'s own documented
+-	// reconnect contract), never a partial patch on top of stale state.
+-	// PresentationPredictionTracker has no blanket "clear everything" (it is
+-	// keyed per-instance, matching "discard ... only bounded still-valid
+-	// presentation intents" -- there is no session-wide operation in its own
+-	// contract): whatever this peer had pending naturally resolves via the
+-	// SAME divergence/confirm/expiry paths every other snapshot/delta
+-	// already drives once traffic resumes after reconnect, or ages out via
+-	// sweep_expired() (called every _process tick) if it never does.
+ 	ensure_client_state();
++	// Confirmed values from a dead connection are unavailable, not a new-session
++	// baseline. Pending visual predictions get explicit terminal expiry.
++	for (const auto &outcome : prediction->sweep_expired(std::numeric_limits<std::uint64_t>::max())) {
++		emit_signal("presentation_expired", String(outcome.intent.command_id.c_str()),
++			String(outcome.intent.instance_id.c_str()), int(outcome.intent.kind));
++	}
++	replica = std::make_unique<wpn::protocol::WeaponReplica>();
++	prediction = std::make_unique<wpn::protocol::PresentationPredictionTracker>();
++	next_client_sequence.clear();
++	handshake_sent = false;
++	compatibility_confirmed = false;
++	last_handshake_tick = 0;
++}
++
++void WeaponNetworkBridge::on_peer_disconnected(int p_peer) {
++	if (role == ROLE_SERVER) drop_peer(p_peer);
++}
++
++bool WeaponNetworkBridge::make_local_handshake(wpn::protocol::CompatibilityHandshake &r_handshake) {
++	std::uint64_t fingerprint = 0;
++	if (role == ROLE_SERVER) {
++		WeaponAuthority *authority = resolve_weapon_authority();
++		if (authority == nullptr || !authority->is_ready()) return false;
++		fingerprint = std::uint64_t(authority->content_fingerprint());
++	} else {
++		if (compatibility_catalog.is_null() || !compatibility_catalog->is_sealed()) return false;
++		fingerprint = std::uint64_t(compatibility_catalog->fingerprint());
++	}
++	r_handshake.protocol_version = wpn::PROTOCOL_VERSION;
++	r_handshake.manifest = wpn::compatibility_manifest(fingerprint);
++	return true;
++}
++
++bool WeaponNetworkBridge::peer_has_session(int p_peer) const {
++	const auto session = peer_sessions.find(p_peer);
++	const auto epoch = peer_epochs.find(p_peer);
++	return role == ROLE_SERVER && p_peer > 0 && ownership && session != peer_sessions.end() &&
++		epoch != peer_epochs.end() && ownership->validate_session(p_peer, session->second).ok() &&
++		ownership->validate_connection_epoch(p_peer, epoch->second).ok();
++}
++
++bool WeaponNetworkBridge::peer_can_receive(int p_peer, const String &p_instance_id) const {
++	const auto grants = peer_instances.find(p_peer);
++	return peer_has_session(p_peer) && ownership->is_compatibility_ready(p_peer) &&
++		grants != peer_instances.end() && grants->second.count(p_instance_id) &&
++		ownership->validate_binding(p_peer, to_std(p_instance_id), wpn::protocol::WeaponRole::OBSERVER).ok();
++}
++
++bool WeaponNetworkBridge::expected_server() const {
++	const Ref<MultiplayerAPI> api = get_multiplayer();
++	return role == ROLE_CLIENT && api.is_valid() && api->get_remote_sender_id() == server_peer_id;
++}
++
++bool WeaponNetworkBridge::client_can_command(const String &p_instance_id) const {
++	return compatibility_confirmed && replica && replica->find(to_std(p_instance_id)) != nullptr &&
++		!replica->needs_resync(to_std(p_instance_id));
++}
++
++String WeaponNetworkBridge::scoped_command_id(int p_peer, const String &p_instance_id, const String &p_command_id) const {
++	if (!peer_has_session(p_peer) || command_namespace.is_empty()) return String();
++	// Length-framed strings plus trusted authority/session/connection identity.
++	// Hashing bounds the core identifier, it is not client authentication.
++	const String material = command_namespace + ":" + String::num_int64(authority_scope.length()) + ":" + authority_scope + ":" +
++		String::num_int64(authority_epoch) + ":" + String::num_int64(p_peer) + ":" +
++		String::num_int64(int64_t(peer_sessions.at(p_peer))) + ":" + String::num_int64(int64_t(peer_epochs.at(p_peer))) + ":" +
++		String::num_int64(p_instance_id.length()) + ":" + p_instance_id + ":" + p_command_id;
++	return "net_" + material.sha256_text();
++}
++
++Dictionary WeaponNetworkBridge::peer_diagnostics(int p_peer, const String &p_instance_id) const {
++	Dictionary out;
++	out["session_ready"] = peer_has_session(p_peer);
++	out["compatibility_ready"] = peer_has_session(p_peer) && ownership->is_compatibility_ready(p_peer);
++	out["recipient_granted"] = peer_can_receive(p_peer, p_instance_id);
++	out["acknowledged_revision"] = int64_t(acks ? acks->acknowledged_revision(p_peer, to_std(p_instance_id)) : 0);
++	out["baseline_acknowledged"] = sent_baselines.has_acknowledgement(p_peer, to_std(p_instance_id));
++	out["tracked_sent_baselines"] = int64_t(sent_baselines.size());
++	return out;
+ }
+ 
+ // ---------------------------------------------------------------------------

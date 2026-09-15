@@ -1,0 +1,263 @@
+extends SceneTree
+## Real ENet loopback, native bridge/codec/catalog/authority. The test supplies
+## trusted session admission and inventory callbacks; it is not a Steam adapter
+## or a claim that Zerkov has multiplayer composition or server persistence.
+const A := "review.weapon.one"
+const B := "review.weapon.two"
+const HIDDEN := "review.weapon.hidden"
+var checks: int = 0
+var failures: int = 0
+var endpoints: Array[Node] = []
+var APIs: Array[SceneMultiplayer] = []
+var clients: Array[WeaponNetworkBridge] = []
+var transports: Array[ENetMultiplayerPeer] = []
+var server: WeaponNetworkBridge
+var authority: WeaponAuthority
+var reference: WeaponAuthority
+var shots: Dictionary = {}
+var deltas: int = 0
+var server_tick: int = 10
+var attach_allowed: bool = false
+var entropy_available: bool = true
+var catalog: WeaponDefinitionCatalog
+
+func _initialize() -> void:
+	run.call_deferred()
+
+func check(value: bool, label: String) -> void:
+	checks += 1
+	if not value:
+		failures += 1
+		push_error("ADDON_NETWORK: " + label)
+
+func pump(seconds: float = 0.20) -> void:
+	await create_timer(seconds).timeout
+
+func run() -> void:
+	create_timer(40.0).timeout.connect(func() -> void:
+		push_error("ADDON_NETWORK: watchdog, no completion accepted")
+		quit(1))
+	var gas := GameplayAbilityNetworkBridge.new()
+	check(gas.get_require_target_authorization(), "GAS default requires target authorization")
+	check(gas.get_no_relevant_peers(), "GAS starts with nobody relevant")
+	gas.set_relevant_peers(PackedInt32Array([123]))
+	check(not gas.get_no_relevant_peers(), "GAS explicit relevance opt-in")
+	gas.set_relevant_peers(PackedInt32Array())
+	check(gas.get_no_relevant_peers(), "GAS empty relevance cannot mean every connected peer")
+	gas.free()
+	catalog = ZerkovCombatContent.build_sealed_catalog()
+	check(catalog != null and catalog.is_sealed(), "actual native Resource catalog sealed")
+	var server_peer := ENetMultiplayerPeer.new()
+	server_peer.set_bind_ip("127.0.0.1")
+	var port: int = 0
+	for candidate in range(47470, 47490):
+		if server_peer.create_server(candidate, 4) == OK:
+			port = candidate
+			break
+	check(port != 0, "loopback-only ENet server")
+	if failures: finish(); return
+	var server_node := endpoint("Host", server_peer)
+	authority = WeaponAuthority.new()
+	authority.name = "Authority"
+	server_node.add_child(authority)
+	reference = WeaponAuthority.new()
+	server_node.add_child(reference)
+	check(ZerkovCombatContent.configure_authority(authority).ok, "native authority configured")
+	check(ZerkovCombatContent.configure_authority(reference).ok, "independent native reference configured")
+	for id: String in [A,B,HIDDEN]:
+		for native: WeaponAuthority in [authority,reference]:
+			var result := native.create_weapon(id, String(ZerkovCombatContent.WEAPON_AKM), 1, 3,
+				{"id":String(ZerkovCombatContent.AMMO_PROFILE_762X39_STANDARD),"version":1}, "review.scope",1)
+			check(result.get("ok", false), "real seeded weapon " + id)
+	authority.shot_committed.connect(func(outcome: Dictionary) -> void: shots[outcome.shot.instance_id] = outcome)
+	server = WeaponNetworkBridge.new()
+	server.name = "Bridge"
+	server.role = WeaponNetworkBridge.ROLE_SERVER
+	server.authority_scope = "review.scope"
+	server.authority_epoch = 1
+	server.weapon_authority_path = NodePath("../Authority")
+	server.authority_context_provider = trusted_context
+	server_node.add_child(server)
+	for i in range(2):
+		var peer := ENetMultiplayerPeer.new()
+		check(peer.create_client("127.0.0.1", port) == OK, "real client transport")
+		var node := endpoint("Client%d" % i, peer)
+		var bridge := WeaponNetworkBridge.new()
+		bridge.name = "Bridge"
+		bridge.role = WeaponNetworkBridge.ROLE_CLIENT
+		bridge.server_peer_id = 1
+		node.add_child(bridge)
+		bridge.delta_applied.connect(func(_id: String, _revision: int) -> void: deltas += 1)
+		clients.append(bridge)
+	await pump()
+	var peers: Array[int] = [APIs[1].get_unique_id(), APIs[2].get_unique_id()]
+	check(peers[0] > 1 and peers[1] > 1 and peers[0] != peers[1], "distinct authenticated-sender identities")
+	# Merely owning a transport is insufficient. Raw malformed RPC cannot admit.
+	clients[0].rpc_id(1,"_rpc_compatibility_handshake",PackedByteArray())
+	await pump()
+	check(not server.peer_diagnostics(peers[0],A).session_ready, "pre-session handshake cannot invent admission")
+	for i in range(2):
+		server.begin_session(peers[i], 100+i)
+		check(server.authorize_instance(peers[i],A if i==0 else B,1), "host grants owned instance")
+		check(not server.peer_diagnostics(peers[i],A if i==0 else B).compatibility_ready, "new session content closed")
+	check(clients[0].confirmed_snapshot(A).is_empty(), "no snapshot before content agreement")
+	var bad_catalog := incompatible_catalog()
+	clients[0].compatibility_catalog = bad_catalog
+	clients[1].compatibility_catalog = catalog
+	clients[0].send_compatibility_handshake()
+	clients[1].send_compatibility_handshake()
+	await pump()
+	check(not server.peer_diagnostics(peers[0],A).compatibility_ready, "different real catalog rejected")
+	check(clients[0].confirmed_snapshot(A).is_empty(), "mismatched content receives no baseline")
+	check(server.peer_diagnostics(peers[1],B).compatibility_ready, "matching manifest admitted")
+	clients[0].compatibility_catalog = catalog
+	clients[0].send_compatibility_handshake()
+	await pump()
+	for i in range(2):
+		var id: String = A if i==0 else B
+		var baseline := clients[i].confirmed_snapshot(id)
+		check(not baseline.is_empty() and baseline.loaded_rounds == 3, "first authorized native snapshot")
+		var state := server.peer_diagnostics(peers[i],id)
+		check(state.baseline_acknowledged and state.acknowledged_revision == authority.snapshot(id).revision, "initial baseline acknowledged including revision zero")
+	if failures: finish(); return
+	clients[0].request_resync(HIDDEN)
+	await pump()
+	check(clients[0].confirmed_snapshot(HIDDEN).is_empty(), "hidden resync cannot leak existing instance")
+	var ack_before: int = server.peer_diagnostics(peers[0],A).acknowledged_revision
+	clients[0].rpc_id(1,"_rpc_acknowledgement_batch",ack_packet([[A,ack_before+100]]))
+	await pump()
+	check(server.peer_diagnostics(peers[0],A).acknowledged_revision == ack_before, "forged future acknowledgement cannot advance watermark")
+	clients[0].rpc_id(1,"_rpc_acknowledgement_batch",ack_packet([[A,ack_before],[HIDDEN,0]]))
+	await pump()
+	check(not server.peer_diagnostics(peers[0],HIDDEN).baseline_acknowledged, "mixed batch cannot acknowledge hidden instance")
+	server.push_state(server_tick)
+	var sent: Array[Dictionary] = []
+	for i in range(2):
+		var id: String = A if i==0 else B
+		var input := fire_input(id, 7 if i==0 else 9999999)
+		sent.append(clients[i].request_fire_networked(input))
+		check(sent[i].get("sent",false) and sent[i].command_id == "c1", "both clients issue their first wire c1")
+	await pump()
+	check(authority.snapshot(A).loaded_rounds==2 and authority.snapshot(B).loaded_rounds==2, "both first commands commit without global identity collision")
+	check(shots.has(A) and shots.has(B), "two real committed shots")
+	if failures: finish(); return
+	check(shots[A].shot.consequence_id != shots[B].shot.consequence_id, "core consequence identity scoped to trusted peer/session/instance")
+	for id: String in [A,B]:
+		var result := reference.fire({"command_id":"expected_"+id,"sequence":1,"instance_id":id,
+			"expected_revision":reference.snapshot(id).revision,"tick":server_tick,
+			"authority_scope":"review.scope","authority_epoch":1,"claimed_origin":{"x":0,"y":0},
+			"claimed_aim":{"x":1000000,"y":0},"spread_seed":43210},trusted_context({}))
+		check(result.accepted and result.shot.direction == shots[id].shot.direction, "authoritative dispersion matches server seed not wire seed")
+	check(deltas >= 2, "first acknowledged snapshot actually progresses to native deltas")
+	var hidden_revision: int = clients[0].confirmed_snapshot(A).revision
+	# Observer may read a baseline but cannot mutate it.
+	check(server.authorize_instance(peers[1],A,0), "explicit observer grant")
+	await pump()
+	server_tick += 60
+	server.push_state(server_tick)
+	clients[1].request_fire_networked(fire_input(A,19))
+	await pump()
+	check(authority.snapshot(A).loaded_rounds == 2, "observer cannot fire another instance")
+	# Missing trusted inventory callback must reject catalog-valid attachments.
+	var loadout := [{"slot_id":String(ZerkovCombatContent.SLOT_AKM_OPTIC),
+		"attachment_id":String(ZerkovCombatContent.ATTACHMENT_RED_DOT),"attachment_version":1}]
+	var before: Dictionary = authority.snapshot(A)
+	clients[0].request_configure_attachments_networked({"instance_id":A,"expected_revision":before.revision,"desired_loadout":loadout})
+	await pump()
+	check(authority.snapshot(A).revision == before.revision, "unset inventory-possession callback denies attachment mutation")
+	server.set_attachment_authorization_provider(authorize_attachments)
+	attach_allowed = false
+	clients[0].request_configure_attachments_networked({"instance_id":A,"expected_revision":before.revision,"desired_loadout":loadout})
+	await pump()
+	check(authority.snapshot(A).revision == before.revision, "negative inventory-possession decision enforced")
+	attach_allowed = true
+	clients[0].request_configure_attachments_networked({"instance_id":A,"expected_revision":before.revision,"desired_loadout":loadout})
+	await pump()
+	check(authority.snapshot(A).revision > before.revision, "positive explicit host attachment decision can converge")
+	# Host revocation cannot be bypassed by a resync to an existing cached object.
+	check(server.revoke_instance(peers[1],A), "observer grant revoked")
+	var stale: int = clients[1].confirmed_snapshot(A).revision
+	server_tick += 60
+	server.push_state(server_tick)
+	clients[0].request_fire_networked(fire_input(A,10))
+	await pump()
+	clients[1].request_resync(A)
+	await pump()
+	check(not server.peer_diagnostics(peers[1],A).recipient_granted and clients[1].confirmed_snapshot(A).revision == stale, "revoked peer receives no live update or resync data")
+	# Compatibility downgrade closes prior grants (malformed packets never ready).
+	clients[0].rpc_id(1,"_rpc_compatibility_handshake",PackedByteArray([1,2,3]))
+	await pump(0.10)
+	check(not server.peer_diagnostics(peers[0],A).compatibility_ready, "malformed handshake closes compatibility")
+	clients[0].send_compatibility_handshake()
+	await pump()
+	check(server.peer_diagnostics(peers[0],A).compatibility_ready, "valid explicit rehandshake recovers")
+	server.end_session(peers[0])
+	check(not server.peer_diagnostics(peers[0],A).session_ready and not server.peer_diagnostics(peers[0],A).baseline_acknowledged, "session end drops grants and ack evidence")
+	server.begin_session(peers[0],777)
+	check(not server.peer_diagnostics(peers[0],A).recipient_granted, "replacement session cannot inherit grants")
+	check(server.authorize_instance(peers[0],A,1), "new session explicit grant")
+	clients[0].send_compatibility_handshake()
+	await pump()
+	check(server.peer_diagnostics(peers[0],A).baseline_acknowledged, "replacement session negotiates and acknowledges new baseline")
+	print("ADDON_NETWORK_STAGE weapon_loopback_completed")
+	finish()
+
+func endpoint(label: String, peer: ENetMultiplayerPeer) -> Node:
+	var node := Node.new()
+	node.name = label
+	root.add_child(node)
+	var api := SceneMultiplayer.new()
+	api.root_path = node.get_path()
+	api.multiplayer_peer = peer
+	set_multiplayer(api, node.get_path())
+	endpoints.append(node)
+	APIs.append(api)
+	transports.append(peer)
+	return node
+
+func trusted_context(_request: Dictionary) -> Dictionary:
+	var context := {"actor_live":true,"weapon_equipped":true,"weapon_usable":true,
+		"authoritative_origin":{"x":0,"y":0},"authoritative_aim":{"x":1000000,"y":0}}
+	if entropy_available: context["spread_seed"] = 43210
+	return context
+
+func authorize_attachments(_request: Dictionary) -> bool:
+	return attach_allowed
+
+func fire_input(id: String, seed: int) -> Dictionary:
+	var owner: WeaponNetworkBridge = clients[0] if id==A else clients[1]
+	return {"instance_id":id,"expected_revision":owner.confirmed_snapshot(id).revision,
+		"claimed_origin":{"x":0,"y":0},"claimed_aim":{"x":1000000,"y":0},"spread_seed":seed}
+
+func incompatible_catalog() -> WeaponDefinitionCatalog:
+	var resource := ZerkovCombatContent.build_resource_bundle()
+	resource.weapons[0].accuracy_moa_milli += 1
+	var wrong := WeaponDefinitionCatalog.new()
+	wrong.register_shot_profile(resource.shot_profiles[0])
+	wrong.register_recoil_profile(resource.recoil_profiles[0])
+	for attachment in resource.attachments: wrong.register_attachment(attachment)
+	wrong.register_ballistic_profile(resource.ammo_profiles[0])
+	wrong.register_weapon(resource.weapons[0])
+	check(wrong.seal().get("ok",false), "valid but incompatible catalog")
+	return wrong
+
+func ack_packet(entries: Array) -> PackedByteArray:
+	var bytes := PackedByteArray()
+	bytes.resize(6)
+	bytes.encode_u16(0,2)
+	bytes.encode_u32(2,entries.size())
+	for entry: Array in entries:
+		var text := String(entry[0]).to_utf8_buffer()
+		var offset := bytes.size()
+		bytes.resize(offset+4+text.size()+8)
+		bytes.encode_u32(offset,text.size())
+		for i in text.size(): bytes[offset+4+i]=text[i]
+		bytes.encode_u64(offset+4+text.size(),int(entry[1]))
+	return bytes
+
+func finish() -> void:
+	for api in APIs: api.multiplayer_peer = null
+	for peer in transports: peer.close()
+	for node in endpoints: node.queue_free()
+	print("ADDON_NETWORK_RESULT checks=",checks," failures=",failures)
+	quit(0 if failures==0 else 1)

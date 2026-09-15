@@ -1,0 +1,15 @@
+diff --git a/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.cpp b/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.cpp
+index abaf6e1c16c7f8b488cea626ec5897cf1cd2f5c6..ddc0cebf3e4e6605b65a8824339a3bac4889e599 100644
+--- a/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.cpp
++++ b/addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.cpp
+@@ -1083,8 +1083,8 @@ PackedInt32Array GameplayAbilityNetworkBridge::current_relevant_peers() const {
+ 	if (!relevant_peer_override.is_empty()) {
+ 		return relevant_peer_override;
+ 	}
+-	const Ref<MultiplayerAPI> api = get_multiplayer();
+-	return api.is_valid() ? api->get_peers() : PackedInt32Array();
++	// Empty/unset allowlists deny egress. Adding a connected peer does not grant relevance.
++	return PackedInt32Array();
+ }
+ 
+ // ---------------------------------------------------------------------------

@@ -1,0 +1,60 @@
+diff --git a/addons/weapon_system/native/protocol/wpn_sent_baselines.h b/addons/weapon_system/native/protocol/wpn_sent_baselines.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..218a4a35f77cae4eb99a54a48b0ad0f4a423d538
+--- /dev/null
++++ b/addons/weapon_system/native/protocol/wpn_sent_baselines.h
+@@ -0,0 +1,54 @@
++#ifndef WEAPON_SYSTEM_PROTOCOL_SENT_BASELINES_H
++#define WEAPON_SYSTEM_PROTOCOL_SENT_BASELINES_H
++#include "core/wpn_limits.h"
++#include "protocol/wpn_command_gate.h"
++#include <map>
++#include <set>
++#include <string>
++#include <utility>
++
++namespace wpn::protocol {
++// Acknowledgements prove only a baseline actually sent to this recipient. This
++// is NOT an authorization table: callers must revalidate current session/grant.
++// Reject allocation beyond the bound; never evict another live peer's evidence.
++class SentBaselines {
++    using Key = std::pair<PeerId, std::string>;
++    std::map<Key, std::set<std::uint64_t>> sent;
++    std::set<Key> acknowledged;
++public:
++    static constexpr std::size_t MAX_REVISIONS = 32;
++    bool can_track(PeerId peer, const std::string &instance) const {
++        return peer > 0 && !instance.empty() && instance.size() <= MAX_IDENTIFIER_BYTES &&
++            (sent.count({peer, instance}) || sent.size() < MAX_TRACKED_COMMAND_STATES);
++    }
++    bool record(PeerId peer, const std::string &instance, std::uint64_t revision) {
++        if (!can_track(peer, instance)) return false;
++        auto &revisions = sent[{peer, instance}];
++        revisions.insert(revision);
++        while (revisions.size() > MAX_REVISIONS) revisions.erase(revisions.begin());
++        return true;
++    }
++    bool contains(PeerId peer, const std::string &instance, std::uint64_t revision) const {
++        auto it = sent.find({peer, instance});
++        return it != sent.end() && it->second.count(revision) != 0;
++    }
++    bool acknowledge(PeerId peer, const std::string &instance, std::uint64_t revision) {
++        if (!contains(peer, instance, revision)) return false;
++        acknowledged.insert({peer, instance});
++        return true;
++    }
++    bool has_acknowledgement(PeerId peer, const std::string &instance) const {
++        return acknowledged.count({peer, instance}) != 0;
++    }
++    void drop_peer(PeerId peer) {
++        for (auto it = acknowledged.begin(); it != acknowledged.end();) {
++            if (it->first == peer) it = acknowledged.erase(it); else ++it;
++        }
++        for (auto it = sent.begin(); it != sent.end();) {
++            if (it->first.first == peer) it = sent.erase(it); else ++it;
++        }
++    }
++    std::size_t size() const { return sent.size(); }
++};
++} // namespace wpn::protocol
++#endif

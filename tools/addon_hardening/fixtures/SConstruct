@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+# Builds only an isolated candidate project. Never installs into Zerkov.
+import os
+from pathlib import Path
+sdk = os.environ['GODOT_CPP_ROOT']
+project = Path(os.environ['ADDON_CANDIDATE_PROJECT']).resolve()
+env = SConscript(str(Path(sdk) / 'SConstruct'))
+outputs = []
+for name in ('weapon_system', 'gameplay_abilities'):
+    native = project / 'addons' / name / 'native'
+    build = env.Clone()
+    build.Append(CPPPATH=[str(native)])
+    sources = sorted(str(p) for p in native.rglob('*.cpp') if 'tests' not in p.parts)
+    output = project / 'addons' / name / 'bin' / ('lib' + name + env['suffix'] + env['SHLIBSUFFIX'])
+    outputs += build.SharedLibrary(str(output), sources)
+Default(outputs)
