@@ -36,6 +36,7 @@ jobs:
           fi
       - name: Verify exact-output registration
         run: |
+          python3 tests/tooling/test_ui_first_playable_scope.py
           python3 tools/check_first_playable_1080.py
           git diff --check
       - name: Install exact native engine
@@ -45,6 +46,30 @@ jobs:
           echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
       - name: Real offline startup, inventory, failure handling and independent Continue process
         run: python3 -u tests/tooling/run_offline_bunker_gate.py --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/offline-headless"
+      - name: Configure an exact native capture display on the ephemeral CI host
+        run: |
+          cat > "$RUNNER_TEMP/offline-display.swift" <<'SWIFT'
+          import CoreGraphics
+          import Foundation
+          let screen = CGMainDisplayID()
+          let options = [kCGDisplayShowDuplicateLowResolutionModes: true] as CFDictionary
+          let modes = (CGDisplayCopyAllDisplayModes(screen, options) as? [CGDisplayMode]) ?? []
+          for mode in modes {
+              print("DISPLAY_MODE logical=\(mode.width)x\(mode.height) pixels=\(mode.pixelWidth)x\(mode.pixelHeight)")
+          }
+          guard let selected = modes.first(where: { $0.width == 1920 && $0.height == 1080 && $0.pixelWidth == 1920 && $0.pixelHeight == 1080 }) else {
+              print("OFFLINE_DISPLAY_BLOCKED: no exact non-HiDPI 1920x1080 mode")
+              exit(2)
+          }
+          let result = CGDisplaySetDisplayMode(screen, selected, nil)
+          guard result == .success else {
+              print("OFFLINE_DISPLAY_BLOCKED: configuration failed \(result.rawValue)")
+              exit(2)
+          }
+          guard let current = CGDisplayCopyDisplayMode(screen), current.pixelWidth == 1920 && current.pixelHeight == 1080 else { exit(2) }
+          print("OFFLINE_DISPLAY_READY 1920x1080")
+          SWIFT
+          swift "$RUNNER_TEMP/offline-display.swift"
       - name: Native graphical bunker and inventory capture
         run: python3 -u tests/tooling/run_offline_bunker_gate.py --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/offline-graphical" --graphical
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
