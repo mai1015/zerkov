@@ -2,8 +2,26 @@ class_name ZNorthlineZoneWorld
 extends "res://game/presentation/map_studies/map_study_world.gd"
 ## Full environment only. Shared asset stamps and native collision, no raid owners.
 ## Floor, walls, cover and water barriers come from the same checked authoring data.
+const Polish = preload("res://game/presentation/northline_zone/polish/freight_polish.gd")
+var polish: ZFreightPolish
 var overview_mode: bool = false
 var visible_bounds := Rect2(0,0,2688,1792)
+
+func configure(data: Dictionary) -> void:
+	# Old polish-owned ground is already removed by the base configure.
+	polish = null
+	super.configure(data)
+	polish = Polish.new()
+	add_child(polish)
+	polish.configure(self)
+	queue_redraw()
+
+func set_polish_enabled(value: bool) -> void:
+	if polish != null:
+		polish.set_enabled(value)
+
+func freeze_effects(seconds: float) -> bool:
+	return polish != null and polish.freeze_at(seconds)
 
 func _make_building(b: Dictionary) -> void:
 	var a: Array = b["rect"]
@@ -100,6 +118,8 @@ func _draw() -> void:
 			for ix: int in range(int(gx - gw / 2), int(gx + gw / 2) - 5, 8):
 				draw_line(Vector2(ix, r.end.y - 6), Vector2(ix + 5, r.end.y + 4), Color("a99e63"), 2)
 	for item: Dictionary in layout["decals"]:
+		if polish != null and polish.handles_decal(item):
+			continue
 		stamp(str(item["asset"]), Vector2(item["at"][0], item["at"][1]), Color(str(item["tint"])))
 	if not overview_mode:
 		for label: Dictionary in layout["labels"]:
@@ -111,6 +131,8 @@ func _draw() -> void:
 		_tiled("road", r, Color("9da998"), false)
 
 func update_visible_bounds(bounds: Rect2) -> void:
+	if polish != null:
+		polish.update_camera(bounds, overview_mode)
 	if visible_bounds != bounds:
 		visible_bounds = bounds
 		queue_redraw()

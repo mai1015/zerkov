@@ -1,0 +1,68 @@
+{
+  "source_commit": "44e5d37fcf0f8f9328c3eaabcc4f6e0a9b7a2be1",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "runs": 2,
+  "checks": 158,
+  "failures": 0,
+  "unexpected_diagnostics": 0,
+  "known_vsync_notices": 2,
+  "output": [
+    1920,
+    1080
+  ],
+  "world_raster": [
+    640,
+    360
+  ],
+  "world_size": [
+    2688,
+    1792
+  ],
+  "area_multiplier": 16,
+  "screenshots": {
+    "northline-checkpoint-1080.png": "64faba0c254579e775b94b8e01746a81dfd5eb1b6964fff79021fc01223f4921",
+    "northline-clinic-1080.png": "a1c3af929ba67f111bb04bb0c6548a9755a2642a89428342fe33e69f93684e39",
+    "northline-customs-1080.png": "50d2fb49cd5a136fee615de30d499071f62dd4cede547cb22373b0be46a85368",
+    "northline-drain-1080.png": "cb0bec80dcc00f981a663f8d2152caeb68ec76c08da8dc1d1435d473ebd9f045",
+    "northline-freight-1080.png": "3b79a14b371975ef0ecc7d910d4b7f02cd62abf4b220a1c1d3ba818416c9b443",
+    "northline-full-map-1080.png": "2db4b07a085bd6839d828825553517e2d7d30486df15627401d5e8dbb2f70e24",
+    "northline-motor-1080.png": "16ca26aceb32bf48d5ece550694935d97c85989b074b9aa47dd62acb6600eea5",
+    "northline-polish-after-1080.png": "a8d7036f13ebec5c52d0fe25df6fe7e6eb8d89a662c11b03a449272f9ff39bd0",
+    "northline-polish-before-1080.png": "c5e23ec25fd8b2a075fc41707942fe8d5cee97909ea481a5363d816d7c677ffc",
+    "northline-power-1080.png": "66934125d3469233b7fbd73191ab079461b4e3aaa54f5c4c5f191a5b4ff333ef",
+    "northline-quarters-1080.png": "e7cf8652fd3cd756f7ae9b5665e9dec086ed2870377f030072aec3fa23fd1b80",
+    "northline-rail-1080.png": "df272c9811e934761f0d5c9946f3cc002fb413383dbcfa0903d6e9808c8145ed",
+    "northline-routes-1080.png": "ccd3c61d5d3211a09673e4fceb38991c4573effcca057ace3408db78bdb869ed",
+    "northline-walkthrough-1080.png": "4259fbb1addf5ab5c3d35fc3809ebd09f12826ed71e8be791bab1e0989c2c6c1"
+  },
+  "source_files": {
+    "game/presentation/northline_zone/README.md": "9044f1111c3b7cab71226fa984825dd7280fb8f3a0a9534ea1ac1e53cecf60a5",
+    "game/presentation/northline_zone/northline_zone.gd": "d48d887cd51d9623b8ff4b6e5dcd09df52bd923a65fc8dd2f476b2c77ee4d0ff",
+    "game/presentation/northline_zone/northline_zone.tscn": "f80e383f3398ce138b8372e2a9706ef5c3958a7a3233e6f47a4c0df50d4e12a8",
+    "game/presentation/northline_zone/polish/anchored_wind.gdshader": "9fafe2f59466ae263a48e1d6376781377f487bcf7d31a8fd9c387f22241991dd",
+    "game/presentation/northline_zone/polish/freight_polish.gd": "3c3a8b6a8b37bba214bbf11f5f0a618395d7a12be99cf8a258c1296338689082",
+    "game/presentation/northline_zone/review_locomotion_pose.gd": "7b519a46a6ba2d07bc3ab234122a711e3f48295bc15646526778e9971e504dfd",
+    "game/presentation/northline_zone/review_walker.gd": "4fba07d9f592a72297213e13fedc26f5304d0d3db690b9507ef09eda71828b8f",
+    "game/presentation/northline_zone/zone.json": "53a3960f6d4b8df6129b36c0feb3c7e08ce745bee44f563ba6d93799eac6cba1",
+    "game/presentation/northline_zone/zone_overlay.gd": "61fb642dbb091d9a41e1ece5f650b85944bab14dd4cf9f87fc606990846d71ac",
+    "game/presentation/northline_zone/zone_world.gd": "809680da4f28fbf0514a0e82cffcece2c597063924b2ccaa8cd9e149314dbb0b",
+    "assets/world/northline_zone/review_outfit.json": "899810c7f105c670811c8ae04213ccfecc24258e195e64cda0973f06b86e2b73",
+    "assets/world/northline_zone/review_outfit.webp": "0e89f9a926c8468399b1c55b3289ac24211e3d123e1799c4661a313700f6bb97",
+    "assets/world/northline_zone/review_outfit.webp.import": "9204b0900e86490e33de4c8c5577dc5c60779ef55c9b068afbdb6f090d26f8cc",
+    "assets/world/northline_zone/review_walker.json": "d2370f158bc94de0383ca6279df477ed539b8f3308076f72a92dc6a7c7fb0290",
+    "assets/world/northline_zone/review_walker.png": "c2dcd766a884306cc0a1d71b131aca9534e4b64243e31c060891d1f56d737e0e",
+    "assets/world/northline_zone/review_walker.png.import": "9f03e46a9b0df4acef79ca7c2810a6c90f062005135ddbfbf819dd7dd3c1323f",
+    "game/presentation/map_studies/README.md": "df67f6239e91c1ff1e12c8d8a2bbec7150f7ee992ef6fa33ccbadc575f1cd7d2",
+    "game/presentation/map_studies/map_studies.gd": "6d778c5cd01c0f9d6ab96e9b2adea80360b6dd706babb2e1c42867292dcc615f",
+    "game/presentation/map_studies/map_studies.tscn": "37eb63b674318fa78f3f757efd56a9a26eec17bd1f7ff133da695a1906322daf",
+    "game/presentation/map_studies/map_study_world.gd": "e098ed61e8247c238d718eb426f7b16c3d6f2005f9c151f295e6fb10c91219d4",
+    "game/presentation/map_studies/maps.json": "6d98b0efc31538d2dc754984c5cb3591e435000b7c21bad68b622bb06183c2a4",
+    "assets/world/map_studies/atlas.json": "e0a74888be282c2884709bae9f67694429a45f20920e07617815a5ede492b85a",
+    "assets/world/map_studies/atlas.webp": "d2b018bd1fe2bfed07554c7e13c1aa2bbb7bd2d569698cf471539dfdb963179c",
+    "assets/world/map_studies/atlas.webp.import": "7abe8ec5bb0146b242aa6e529de0d73ac33382b156c6ddf246d1a04b37389204",
+    "tests/presentation/northline_zone_contract.gd": "7beb9fd4f0a71c5ea2442cb86bb7936665f1ff898cac6f380eab1b112e4cc9b4",
+    "tests/tooling/run_northline_zone_gate.py": "21b9596ee71827fbbeb00a2cd25280211e332be714fce875089d528c408b002b"
+  },
+  "scope": "full connected environment with freight polish and review walker; not the live raid host",
+  "human_approval": false
+}

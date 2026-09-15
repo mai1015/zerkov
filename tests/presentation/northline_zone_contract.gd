@@ -1,10 +1,12 @@
 extends SceneTree
 const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const Scene = preload("res://game/presentation/northline_zone/northline_zone.tscn")
+const PolishContract = preload("res://tests/presentation/freight_polish_contract.gd")
 const EXACT := Vector2i(1920,1080)
 var checks: int = 0
 var failures: int = 0
 var output: String = ""
+var motion_frames: int = 0
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -60,6 +62,8 @@ func capture(name: String) -> void:
 
 func run() -> void:
 	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--motion-frames="):
+			motion_frames = clampi(int(arg.trim_prefix("--motion-frames=")), 0, 240)
 		if arg.begins_with("--output="):
 			output = arg.trim_prefix("--output=")
 	if output.is_empty() or DisplayServer.get_name() == "headless":
@@ -72,6 +76,7 @@ func run() -> void:
 	DirAccess.make_dir_recursive_absolute(output)
 	var view = Scene.instantiate()
 	root.add_child(view)
+	view.world.freeze_effects(3.0)
 	await frames()
 	check(view.overview,"initial full map")
 	check(view.surface.size == Vector2i(640,360),"world raster remains fixed")
@@ -104,6 +109,24 @@ func run() -> void:
 	root.gui_release_focus()
 	await key(KEY_P)
 	check(view.walk_mode and view.walker.enabled,"native walking-mode control")
+	view.walker.animate = false
+	# Prove a held move key cannot animate walking through the closed boundary.
+	view.walker.enabled = true
+	view.walker.animate = true
+	view.walker.position = Vector2(360, 25)
+	var into_wall := InputEventKey.new()
+	into_wall.physical_keycode = KEY_W
+	into_wall.keycode = KEY_W
+	into_wall.pressed = true
+	Input.parse_input_event(into_wall)
+	for i: int in range(30):
+		await physics_frame
+	check(not view.walker.pose.moving, "held W against wall uses resolved idle")
+	into_wall = InputEventKey.new()
+	into_wall.physical_keycode = KEY_W
+	into_wall.keycode = KEY_W
+	into_wall.pressed = false
+	Input.parse_input_event(into_wall)
 	view.walker.animate = false
 	# Prove the actual review CharacterBody collides with a fixed wall.
 	view.walker.enabled = false
@@ -160,7 +183,43 @@ func run() -> void:
 	view.walker.show_frame(false,0)
 	await frames()
 	await capture("northline-walkthrough-1080.png")
-	print("NORTHLINE_NATIVE_RESULT checks=%d failures=%d captures=12 sectors=9 output=1920x1080 world=640x360" % [checks,failures])
+	var polish_contract = PolishContract.new()
+	polish_contract.run(view, check)
+	root.gui_release_focus()
+	await key(KEY_G)
+	check(not view.world.polish.enabled, "native G disables polish")
+	await key(KEY_G)
+	check(view.world.polish.enabled, "native G restores polish")
+	await key(KEY_H)
+	check(not view.world.polish.motion_enabled, "native H reduced motion")
+	await key(KEY_H)
+	check(view.world.polish.motion_enabled, "native H restores motion")
+	# Fixed camera, fixed pose and fixed presentation time for a valid A/B.
+	view.walk_mode = false
+	view.walker.enabled = false
+	view.camera.position = Vector2(1184,650)
+	view.pan(Vector2.ZERO)
+	view.refresh_text()
+	view.world.set_polish_enabled(false)
+	await frames()
+	await capture("northline-polish-before-1080.png")
+	view.world.set_polish_enabled(true)
+	view.world.freeze_effects(3.0)
+	await frames()
+	await capture("northline-polish-after-1080.png")
+	if motion_frames > 0:
+		# A native collision-driven animation inspection, not recorded raid gameplay.
+		view.walker.pose.reset()
+		for i: int in range(motion_frames):
+			var previous: Vector2 = view.walker.position
+			var direction: float = 1.0 if i * 3 < motion_frames * 2 else -1.0
+			view.walker.face_left = direction < 0
+			view.walker.move_and_collide(Vector2(direction * 88.0 / 24.0, 0))
+			view.walker.pose.advance(view.walker.position.distance_to(previous), 1.0/24.0)
+			view.walker.show_frame(view.walker.pose.moving, view.walker.pose.frame)
+			view.world.polish.sample_at(float(i)/24.0)
+			await capture("motion-%04d.png" % i)
+	print("NORTHLINE_NATIVE_RESULT checks=%d failures=%d captures=14 sectors=9 output=1920x1080 world=640x360" % [checks,failures])
 	view.queue_free()
 	await process_frame
 	await process_frame

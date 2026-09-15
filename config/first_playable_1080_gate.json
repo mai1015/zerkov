@@ -125,7 +125,7 @@
     },
     "tests/presentation/northline_zone_contract.gd": {
       "purpose": "full Northline native map, GUI and collision walkthrough",
-      "sha256": "084bc6f52a37620a1f264fee851d19927fab85695b9c0e3b00ad1d2e26772dac"
+      "sha256": "7beb9fd4f0a71c5ea2442cb86bb7936665f1ff898cac6f380eab1b112e4cc9b4"
     }
   },
   "active_command_entrypoints": {
@@ -175,7 +175,7 @@
     },
     "tests/tooling/run_northline_zone_gate.py": {
       "purpose": "exact-1080 full-zone capture and repeatability",
-      "sha256": "ff62f341e430b32e6e2ed35c7ed6f828d9aaee5b46b58f155eb08426ea3d58ad"
+      "sha256": "21b9596ee71827fbbeb00a2cd25280211e332be714fce875089d528c408b002b"
     }
   },
   "active_reviewed_support": {

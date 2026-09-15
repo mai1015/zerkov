@@ -187,7 +187,7 @@ func refresh_text() -> void:
 	overview_button.text = "M  RETURN TO DETAIL" if overview else "M  FULL MAP"
 	walking_button.text = "P  CAMERA MODE" if walk_mode else "P  WALKTHROUGH"
 	routes_button.text = "TAB  HIDE ROUTES" if routes_visible else "TAB  ROUTES"
-	footer.text = ("Click map / sector: inspect   |   Outlined box: one normal camera view.  " if overview else "WASD: " + ("walk   SHIFT: faster   " if walk_mode else "pan   Drag: inspect   ") + "Q / E: sector   M: full map   ") + "|   ENVIRONMENT REVIEW - no live AI, combat, loot or extraction."
+	footer.text = ("Click map / sector: inspect   |   Outlined box: one normal camera view.  " if overview else "WASD: " + ("walk   SHIFT: faster   " if walk_mode else "pan   Drag: inspect   ") + "Q / E: sector   M: full map   ") + "|   G: polish A/B   H: reduced motion   |   ENVIRONMENT REVIEW - no live combat / loot."
 	overlay.queue_redraw()
 
 func _process(delta: float) -> void:
@@ -209,6 +209,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_M: toggle_overview()
 			KEY_P: toggle_walk()
 			KEY_TAB: toggle_routes()
+			KEY_G: world.set_polish_enabled(not world.polish.enabled)
+			KEY_H: world.polish.set_reduced_motion(world.polish.motion_enabled)
+			KEY_F3:
+				walker.inspection_ring = not walker.inspection_ring
+				walker.queue_redraw()
 			KEY_Q: select_sector(posmod(sector_index-1,data["sectors"].size()))
 			KEY_E: select_sector((sector_index+1)%data["sectors"].size())
 		get_viewport().set_input_as_handled()
