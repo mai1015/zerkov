@@ -1,0 +1,86 @@
+diff --git a/config/first_playable_1080_gate.json b/config/first_playable_1080_gate.json
+index 77260b5..d881c45 100644
+--- a/config/first_playable_1080_gate.json
++++ b/config/first_playable_1080_gate.json
+@@ -137,7 +137,7 @@
+     },
+     "tests/presentation/offline_bunker_flow.gd": {
+       "purpose": "offline default normal-input bunker and native inventory persistence",
+-      "sha256": "2473eed555e6760a26832c68e44d9ac451166cbc3f89d68a349bf1f50d826b54"
++      "sha256": "b4789677720d76d73bb21f84eda24d19d968d92d4c2d2cf7d7bb1712dc8736f9"
+     }
+   },
+   "active_command_entrypoints": {
+diff --git a/tests/presentation/offline_bunker_flow.gd b/tests/presentation/offline_bunker_flow.gd
+index e74136a..4d4addf 100644
+--- a/tests/presentation/offline_bunker_flow.gd
++++ b/tests/presentation/offline_bunker_flow.gd
+@@ -165,6 +165,22 @@ func run() -> void:
+ 	check(app.current_route == "bunker", "back stack restores bunker")
+ 	check(app.fixture_provider_for_test() == null, "entire normal flow remains fixture-free")
+ 	check(session._payload.project.keys() == ["offline_bunker"] and session._payload.domains.keys() == [OfflineBunkerCatalog.DOMAIN], "no raid, escrow or settlement records")
++	var accepted_fingerprint := RaidProgressionValues.digest(session._payload)
++	var old_generation := session.generation()
++	await key(KEY_ESCAPE)
++	check(app.current_route == "pause", "pause before local close")
++	await click(app.screen.get_node("ActionsPanel/SaveQuitRow/Hit"))
++	check(app.modal != null, "closing bunker requires confirmation")
++	if app.modal != null:
++		await click(app.modal.get_node("DialogPanel/Margin/Content/Actions/ConfirmButton"))
++	check(app.current_route == "main_menu" and not session.is_open(), "confirmed close returns to local menu")
++	await click(app.screen.get_node("ContinueAction"))
++	check(app.current_route == "bunker" and session.is_open(), "normal Continue reopens in the same application")
++	check(session.generation() > old_generation and RaidProgressionValues.digest(session._payload) == accepted_fingerprint, "reopened lease preserves accepted bytes")
++	await click(app.screen.get_node("BunkerHideoutView/OpenLocalInventory"))
++	check(app.current_route == "inventory" and app.screen._inventory_controller.is_bound(), "bunker mouse action opens a fresh inventory binding")
++	await key(KEY_I)
++	check(app.current_route == "bunker", "fresh inventory returns to bunker")
+ 	print("OFFLINE_PROFILE_FINGERPRINT ", RaidProgressionValues.digest(session._payload))
+ 	product.queue_free()
+ 	await settle()
+diff --git a/tests/tooling/test_ui_first_playable_scope.py b/tests/tooling/test_ui_first_playable_scope.py
+index 8bd1759..9c277fb 100644
+--- a/tests/tooling/test_ui_first_playable_scope.py
++++ b/tests/tooling/test_ui_first_playable_scope.py
+@@ -430,7 +430,7 @@ func run():
+         self.assertEqual(
+             [], gate.capture_issues(self.manifest, PROJECT_ROOT, self.paths)
+         )
+-        self.assertEqual(13, len(self.manifest["sanctioned_capture_writers"]))
++        self.assertEqual(14, len(self.manifest["sanctioned_capture_writers"]))
+ 
+     def test_sanctioned_writer_has_exactly_one_hashed_current_classification(self) -> None:
+         omitted = copy.deepcopy(self.manifest)
+diff --git a/tools/register_offline_bunker.py b/tools/register_offline_bunker.py
+index ef58753..0b38ed9 100644
+--- a/tools/register_offline_bunker.py
++++ b/tools/register_offline_bunker.py
+@@ -12,4 +12,7 @@ p.write_text(json.dumps(m,indent=2)+'\n')
+ p=ROOT/'tests/tooling/test_ui_first_playable_scope.py'
+ s=p.read_text()
+ s=re.sub(r'self.assertEqual\(\d+, len\(self.manifest\["active_visual_entrypoints"\]\)\)',f'self.assertEqual({len(m["active_visual_entrypoints"])}, len(self.manifest["active_visual_entrypoints"]))',s)
++# Both independent inventories grow by exactly this one new guarded writer.
++s=s.replace('self.assertEqual(13, len(self.manifest["sanctioned_capture_writers"]))',
++            'self.assertEqual(14, len(self.manifest["sanctioned_capture_writers"]))')
+ p.write_text(s)
+diff --git a/ui/screens/raid/pause.gd b/ui/screens/raid/pause.gd
+index fcf9539..609ada0 100644
+--- a/ui/screens/raid/pause.gd
++++ b/ui/screens/raid/pause.gd
+@@ -253,9 +253,14 @@ func _build_offline_pause() -> void:
+ 	queue_adaptive_layout()
+ 
+ func _offline_close_menu() -> void:
++	if not accepts_input():
++		return
++	var offline := app.offline_bunker()
++	if offline == null:
++		return
++	var expected_generation := int(offline.local_status().generation)
+ 	app.confirm("RETURN TO MENU", "All accepted inventory changes are saved locally. Close this bunker?", func():
+-		var offline := app.offline_bunker()
+-		if offline != null and offline.request(&"close", int(offline.local_status().generation)):
++		if offline.is_active() and offline.request(&"close", expected_generation):
+ 			go("main_menu"))
+ 
+ func _offline_quit() -> void:
