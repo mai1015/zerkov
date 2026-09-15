@@ -16,13 +16,11 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/bunker-hideout-map'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: true
+          persist-credentials: false
       - name: Install renderer prerequisites
         run: |
           sudo apt-get update -qq
@@ -52,21 +50,3 @@ jobs:
             ${{ runner.temp }}/bunker-capture/capture.json
           if-no-files-found: error
           retention-days: 30
-      - name: Retain exact native evidence on this PR branch only
-        env:
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          branch=feat/bunker-hideout-map
-          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
-          test "$actual" = "$EXPECTED_HEAD"
-          mkdir -p docs/qa/bunker_hideout
-          cp "$RUNNER_TEMP/bunker-capture/"*.png "$RUNNER_TEMP/bunker-capture/capture.json" docs/qa/bunker_hideout/
-          git add -- ui/screens/bunker/bunker.tscn config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py docs/qa/bunker_hideout/*.png docs/qa/bunker_hideout/capture.json
-          git diff --cached --stat
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if ! git diff --cached --quiet; then
-            git commit -m 'test(bunker): retain native capture evidence'
-            git push origin "HEAD:refs/heads/$branch"
-          fi
