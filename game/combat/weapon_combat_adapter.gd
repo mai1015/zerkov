@@ -348,11 +348,12 @@ func commit_fire(
 	var outcome := _weapon_authority.fire(command, context)
 	_fire_active = false
 	# Ordinary cadence/ammunition/revision rejection is gameplay, not a raid fault.
-	# Native rejected commands must leave the complete instance snapshot unchanged.
+	# Native rejected commands preserve mechanics, but admitted rejections advance
+	# sequence/tick bookkeeping (Weapon System command-gate contract).
 	if typeof(outcome.get("accepted")) == TYPE_BOOL and not outcome.accepted:
 		if not _has_exact_keys(outcome, OUTCOME_KEYS) or typeof(outcome.get("rejection")) != TYPE_INT \
 			or int(outcome.rejection) <= 0 or not outcome.get("status") is Dictionary \
-			or _weapon_authority.snapshot(weapon_instance_id) != before:
+			or not _rejected_mechanics_match(before, _weapon_authority.snapshot(weapon_instance_id), sequence, tick):
 			return _latch_fatal(&"rejected_weapon_operation_mutated_state")
 		return _read_only_copy({"accepted": false, "reason": &"weapon_rejected",
 			"rejection": outcome.rejection, "revision": before.get("revision", 0),
@@ -1204,3 +1205,23 @@ func _exit_tree() -> void:
 			release_binding(&"teardown")
 		else:
 			_disconnect_dependencies()
+
+
+static func _rejected_mechanics_match(before: Dictionary, after: Dictionary, sequence: int, tick: int) -> bool:
+	if after.is_empty() or bool(after.get("tick_unhealthy", true)):
+		return false
+	var left := before.duplicate(true)
+	var right := after.duplicate(true)
+	# These are the only non-mechanical snapshot fields. The native gate may
+	# leave them unchanged (pre-admission rejection) or consume this envelope.
+	for key: String in ["has_last_command_sequence", "last_command_sequence", "admitted_sequence_high_watermark", "authority_tick_floor"]:
+		left.erase(key)
+		right.erase(key)
+	if left != right:
+		return false
+	var watermark := int(after.get("admitted_sequence_high_watermark", 0))
+	var old_watermark := int(before.get("admitted_sequence_high_watermark", 0))
+	var floor_tick := int(after.get("authority_tick_floor", 0))
+	return watermark >= old_watermark and watermark <= maxi(old_watermark, sequence) \
+		and floor_tick >= int(before.get("authority_tick_floor", 0)) \
+		and floor_tick <= maxi(int(before.get("authority_tick_floor", 0)), tick)

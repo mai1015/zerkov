@@ -55,9 +55,9 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 	source_rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.actor_id.canonical_key() < b.actor_id.canonical_key())
 	var ordinal: int = 0
 	var local_context: WeaponInstanceContextAdapter
-	for source in source_rows:
+	for source: Dictionary in source_rows:
 		ordinal += 1
-		var row := source.duplicate()
+		var row: Dictionary = source.duplicate()
 		var admission := raid.admission()
 		admission.actor_id = ZEntityId.parse(row.actor_id.canonical_key())
 		row["admission"] = admission
