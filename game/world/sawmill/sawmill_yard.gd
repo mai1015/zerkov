@@ -40,6 +40,7 @@ func compose() -> void:
 		marker.position = layout.cell_center(row.cell)
 		marker.set_meta("stable_id", String(row.id))
 		marker.set_meta("authored", row.duplicate(true))
+		marker.set_meta("marker_resource", layout.marker(row.id))
 		get_node("Anchors").add_child(marker)
 		if not String(row.tile).is_empty():
 			(get_node("Markers") as TileMapLayer).set_cell(row.cell, 0, layout.PALETTE[row.tile])
@@ -47,6 +48,19 @@ func compose() -> void:
 	get_node("Routes").set_meta("authored_routes", layout.routes.duplicate(true))
 	set_meta("level_id", layout.level_id)
 	set_meta("composition_revision", layout.revision)
+
+
+func marker(marker_id: Variant) -> ZWorldMarker:
+	return layout.marker(marker_id) if layout != null else null
+
+
+func markers_of_kind(kind: Variant) -> Array[ZWorldMarker]:
+	return layout.markers_of_kind(kind) if layout != null else []
+
+
+func all_markers() -> Array[ZWorldMarker]:
+	return layout.all_markers() if layout != null else []
+
 
 
 func _paint_regions(layer_name: String, rows: Array) -> void:
