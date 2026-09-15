@@ -122,6 +122,10 @@
     "tests/presentation/map_studies_contract.gd": {
       "purpose": "two original map studies; guarded native screenshots and input",
       "sha256": "9a03ebec67584bebfc441a29462205165beab2f9bb7e23b322bac054ca53d43b"
+    },
+    "tests/presentation/northline_zone_contract.gd": {
+      "purpose": "full Northline native map, GUI and collision walkthrough",
+      "sha256": "084bc6f52a37620a1f264fee851d19927fab85695b9c0e3b00ad1d2e26772dac"
     }
   },
   "active_command_entrypoints": {
@@ -168,6 +172,10 @@
     "tests/tooling/run_map_studies_gate.py": {
       "purpose": "isolated exact-1080 map scene capture and repeatability",
       "sha256": "08f2720967efd84768ad6ad0b1742654b3a7b787f3ea50ddb306e9dd7f61029e"
+    },
+    "tests/tooling/run_northline_zone_gate.py": {
+      "purpose": "exact-1080 full-zone capture and repeatability",
+      "sha256": "ff62f341e430b32e6e2ed35c7ed6f828d9aaee5b46b58f155eb08426ea3d58ad"
     }
   },
   "active_reviewed_support": {
@@ -423,6 +431,13 @@
       "physical_guard_call": "Exact1080CaptureGuard.accepts(root, root, image)",
       "guard_anchors": [
         "root.size=EXACT",
+        "const EXACT := Vector2i(1920,1080)"
+      ]
+    },
+    "tests/presentation/northline_zone_contract.gd": {
+      "physical_guard_call": "Exact1080CaptureGuard.accepts(root, root, image)",
+      "guard_anchors": [
+        "root.size = EXACT",
         "const EXACT := Vector2i(1920,1080)"
       ]
     }
