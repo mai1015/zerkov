@@ -1,0 +1,78 @@
+diff --git a/config/first_playable_1080_gate.json b/config/first_playable_1080_gate.json
+index c027e33..77260b5 100644
+--- a/config/first_playable_1080_gate.json
++++ b/config/first_playable_1080_gate.json
+@@ -137,7 +137,7 @@
+     },
+     "tests/presentation/offline_bunker_flow.gd": {
+       "purpose": "offline default normal-input bunker and native inventory persistence",
+-      "sha256": "965d601681c2699f22f8d6fd3e13555bb3415c841dcfb67bdb380578f370629b"
++      "sha256": "2473eed555e6760a26832c68e44d9ac451166cbc3f89d68a349bf1f50d826b54"
+     }
+   },
+   "active_command_entrypoints": {
+diff --git a/game/offline/offline_inventory_controller.gd b/game/offline/offline_inventory_controller.gd
+index 7c812d5..3a8f75d 100644
+--- a/game/offline/offline_inventory_controller.gd
++++ b/game/offline/offline_inventory_controller.gd
+@@ -193,6 +193,7 @@ func _send(operation: String, source: StringName, target: StringName, item: Dict
+ func _feedback(result: Dictionary) -> Dictionary:
+ 	result = result.duplicate(true)
+ 	result["ui_resolved"] = true
++	result = RaidProgressionValues.freeze(result)
+ 	if result.get("accepted", false):
+ 		_selected.clear()
+ 		projection_changed.emit(SCOPE_PROFILE)
+@@ -201,4 +202,4 @@ func _feedback(result: Dictionary) -> Dictionary:
+ 	else:
+ 		last_error = StringName(result.get("reason", "rejected"))
+ 		rejection_feedback.emit(result)
+-	return RaidProgressionValues.freeze(result)
++	return result
+diff --git a/tests/presentation/offline_bunker_flow.gd b/tests/presentation/offline_bunker_flow.gd
+index 73c506a..e74136a 100644
+--- a/tests/presentation/offline_bunker_flow.gd
++++ b/tests/presentation/offline_bunker_flow.gd
+@@ -155,11 +155,12 @@ func run() -> void:
+ 		await click(master)
+ 	check(session.status().master_volume != 80, "master volume changed and restored with profile")
+ 	check(is_equal_approx(AudioServer.get_bus_volume_linear(0), float(session.status().master_volume) / 100.0), "audio follows saved setting")
++	check(app.screen.get_node("SettingAudioMasterValue").text == "%d%%" % int(session.status().master_volume), "visible volume label matches saved value")
+ 	await capture("offline-settings-1080")
+ 	await click(app.screen.get_node("OfflineControlBindings"))
+ 	check(app.current_route == "controls", "existing rebind controls available")
+ 	await key(KEY_ESCAPE)
+-	await key(KEY_ESCAPE)
++	check(app.current_route == "pause", "workspace replacement restores original pause caller")
+ 	await key(KEY_ESCAPE)
+ 	check(app.current_route == "bunker", "back stack restores bunker")
+ 	check(app.fixture_provider_for_test() == null, "entire normal flow remains fixture-free")
+diff --git a/ui/screens/utilities/settings.gd b/ui/screens/utilities/settings.gd
+index 5e54fa2..3b0389b 100644
+--- a/ui/screens/utilities/settings.gd
++++ b/ui/screens/utilities/settings.gd
+@@ -350,7 +350,7 @@ func _build_offline_settings() -> void:
+         if section in SETTINGS_SECTIONS:
+             node.visible = section == "audio"
+     for node: Node in find_children("*", "Button", true, false):
+-        if node.has_meta("settings_kind") or node.has_meta("settings_category"):
++        if node.has_meta("settings_kind") or node.has_meta("settings_category") or node.has_meta("settings_preset"):
+             node.disabled = true
+             node.tooltip_text = "Unavailable before raid integration"
+     for node: Node in find_children("*", "HSlider", true, false):
+@@ -371,6 +371,7 @@ func _build_offline_settings() -> void:
+         volume.max_value = 100
+         volume.step = 1
+         volume.set_value_no_signal(int(status.get("master_volume", 80)))
++        get_node("SettingAudioMasterValue").text = "%d%%" % int(status.get("master_volume", 80))
+         volume.editable = bool(status.open)
+         volume.tooltip_text = "Master volume · saved on this local profile" if status.open else "Open your local profile first"
+         if not volume.value_changed.is_connected(_offline_volume_changed):
+@@ -404,6 +405,7 @@ func _offline_volume_changed(value: float) -> void:
+             if str(node.get_meta("settings_key", "")) == "audio_master":
+                 node.set_value_no_signal(int(offline.local_status().master_volume))
+         toast("Volume was not saved · " + String(offline.local_status().error))
++    get_node("SettingAudioMasterValue").text = "%d%%" % int(offline.local_status().master_volume)
+ 
+ func _offline_open_controls() -> void:
+     if accepts_input():
