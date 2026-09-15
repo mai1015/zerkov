@@ -170,6 +170,13 @@ func recovery_details() -> Dictionary:
 	return _recovery_details.duplicate(true)
 
 
+## Read-only ammo projection through the SAME eligible source policy as reload.
+func available_rounds() -> int:
+	if not is_bound(): return 0
+	var snapshot := _inventory_authority.snapshot(_inventory_id)
+	return _available_ammunition(snapshot) if snapshot != null else 0
+
+
 func pending_reloads() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var reservation_ids := PackedStringArray(_pending_by_reservation.keys())
@@ -1338,7 +1345,9 @@ func _inventory_result_is(
 
 func _reserve_sequence(weapon_id: String) -> int:
 	var binding := _bindings.get(weapon_id, {}) as Dictionary
-	var next_sequence := int(binding.get("next_sequence", 0))
+	var snapshot := _weapon_port.snapshot(weapon_id)
+	var next_sequence := maxi(int(binding.get("next_sequence", 0)),
+		maxi(int(snapshot.get("last_command_sequence", 0)), int(snapshot.get("admitted_sequence_high_watermark", 0))) + 1)
 	if next_sequence <= 0 or next_sequence > MAX_AUTHORITY_TICK:
 		return 0
 	# Reserve before entering the native call. Synchronous signal reentry can

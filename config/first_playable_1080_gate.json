@@ -126,6 +126,10 @@
     "tests/presentation/northline_zone_contract.gd": {
       "purpose": "full Northline native map, GUI and collision walkthrough",
       "sha256": "084bc6f52a37620a1f264fee851d19927fab85695b9c0e3b00ad1d2e26772dac"
+    },
+    "tests/ai/ai_debug_render_contract.gd": {
+      "purpose": "synthetic AI diagnostics with approved 640x360 nearest 3x world; not native gameplay acceptance",
+      "sha256": "d755dee2ff26a69721e115867752373e3d677d7cb2e386fdf64225f530d31475"
     }
   },
   "active_command_entrypoints": {
@@ -176,6 +180,14 @@
     "tests/tooling/run_northline_zone_gate.py": {
       "purpose": "exact-1080 full-zone capture and repeatability",
       "sha256": "ff62f341e430b32e6e2ed35c7ed6f828d9aaee5b46b58f155eb08426ea3d58ad"
+    },
+    "tools/run_ai_contracts.py": {
+      "purpose": "exact headless AI contracts and opt-in graphical diagnostics in temporary projects",
+      "sha256": "dfdd3c55126b47a7df8558e2813b85523d5aff978063018fa7c3e5718b963fa3"
+    },
+    "tools/run_combat_input_contracts.py": {
+      "purpose": "exact headless combat input, melee/HUD values and native execution regressions in temporary projects",
+      "sha256": "93d337c5f7bb2bd61497ba5b5ada9d155210ca047ff1d3f8b55d0b49ff9308dc"
     }
   },
   "active_reviewed_support": {
@@ -197,15 +209,25 @@
   },
   "active_headless_entrypoints": [
     "tests/addons/combined_addons_smoke.gd",
+    "tests/ai/ai_review_regression_contract.gd",
+    "tests/ai/ai_workstream_contract.gd",
+    "tests/ai/native_ai_owner_contract.gd",
+    "tests/ai/native_ai_owner_review_contract.gd",
+    "tests/ai/native_ai_vision_contract.gd",
+    "tests/ai/noise_service_contract.gd",
     "tests/ai/occluder_bake_contract.gd",
     "tests/ai/vision_world_contract.gd",
     "tests/combat/body_hitbox_adversarial_contract.gd",
     "tests/combat/body_hitbox_capability_encapsulation_contract.gd",
     "tests/combat/body_hitbox_contract.gd",
     "tests/combat/body_hitbox_review_regression_contract.gd",
+    "tests/combat/combat_execution_values_contract.gd",
+    "tests/combat/combat_intent_contract.gd",
     "tests/combat/content_contract.gd",
     "tests/combat/health_ability_content_contract.gd",
     "tests/combat/health_consequence_adapter_contract.gd",
+    "tests/combat/native_combat_execution_contract.gd",
+    "tests/combat/native_combat_intent_contract.gd",
     "tests/combat/weapon_combat_adapter_contract.gd",
     "tests/presentation/character_presentation_composition_contract.gd",
     "tests/presentation/ui_state_8_11_contract.gd",
@@ -312,6 +334,9 @@
     ],
     "ui/main.gd": [
       "window.content_scale_size = logical"
+    ],
+    "tests/ai/ai_debug_render_contract.gd": [
+      "world.size = Vector2i(640, 360)"
     ]
   },
   "world_surface": {
@@ -439,6 +464,17 @@
       "guard_anchors": [
         "root.size = EXACT",
         "const EXACT := Vector2i(1920,1080)"
+      ]
+    },
+    "tests/ai/ai_debug_render_contract.gd": {
+      "physical_guard_call": "Exact1080CaptureGuard.accepts(root, root, image)",
+      "guard_anchors": [
+        "root.size = Vector2i(1920, 1080)",
+        "root.get_visible_rect().size != Vector2(1920, 1080)",
+        "image.get_size() != Vector2i(1920, 1080)",
+        "world.size = Vector2i(640, 360)",
+        "image_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST",
+        "image_rect.size = Vector2(1920, 1080)"
       ]
     }
   }
