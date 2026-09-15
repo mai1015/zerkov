@@ -137,7 +137,7 @@
     },
     "tests/presentation/offline_bunker_flow.gd": {
       "purpose": "offline default normal-input bunker and native inventory persistence",
-      "sha256": "f1011d6e62b461ed806d0ef602376524128799f32d8ea51c6f896bddd5144838"
+      "sha256": "84a2979af69e4556dfd518eeb6473c5851d803a0ad7802a414f2eb028337fac0"
     }
   },
   "active_command_entrypoints": {

@@ -153,6 +153,9 @@ func _build_for_context() -> void:
 		_build_locked_state()
 		return
 	build()
+	var navigation := get_node_or_null("NavigationChrome") as ZNavigationChrome
+	if navigation != null:
+		navigation.offline_profile_mode = app.offline_bunker() != null
 
 
 func _prepare_fixture_preview() -> bool:

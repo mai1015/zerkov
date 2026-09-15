@@ -193,7 +193,7 @@ func _bind_post_raid() -> void:
 	if sell_junk != null:
 		sell_junk.text = "SELL JUNK · UNAVAILABLE" if _live_inventory_binding else "SELL JUNK   $ 620"
 	if title != null:
-		title.text = "LIVE INVENTORY" if _live_inventory_binding else "FIXTURE PREVIEW · SURVIVED"
+		title.text = "LOCAL INVENTORY" if _inventory_controller is OfflineInventoryController else ("LIVE INVENTORY" if _live_inventory_binding else "FIXTURE PREVIEW · SURVIVED")
 		title.clip_text = false
 		title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	if details != null:
@@ -215,6 +215,11 @@ func _bind_tabs() -> void:
 	_apply_tab_style(health, current == "health")
 	_apply_tab_style(gear, current == "gear")
 	_apply_tab_style(stats, current == "stats")
+	if _inventory_controller is OfflineInventoryController:
+		for button: Button in [health, stats]:
+			if button != null:
+				button.disabled = true
+				button.tooltip_text = "Unavailable · live health and progression are not active in the bunker"
 	var tag: Label = _node("TabTag/Text") as Label
 	if tag != null:
 		tag.text = current.to_upper()
@@ -350,6 +355,12 @@ func _bind_loadout() -> void:
 		if slot != null:
 			slot.disabled = _live_inventory_binding
 			slot.tooltip_text = "Unavailable in live mode · no confirmed quick item" if _live_inventory_binding else ""
+	if _inventory_controller is OfflineInventoryController:
+		for path: String in ["RigContainer", "PackContainer", "QuickSlot5", "QuickSlot6", "QuickSlot7", "QuickSlot8"]:
+			var root_item := _node(path)
+			if root_item != null:
+				for icon: Node in root_item.find_children("*", "TextureRect", true, false):
+					icon.hide()
 	var count: Label = _node("QuickSlot5/Count") as Label
 	if count != null:
 		count.text = "—" if _live_inventory_binding else str(_state().get("med_count", 2))

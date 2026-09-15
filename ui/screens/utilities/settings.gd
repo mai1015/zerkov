@@ -360,6 +360,20 @@ func _build_offline_settings() -> void:
         var button := get_node_or_null(name) as Button
         if button != null:
             button.disabled = true
+    for node: Node in get_children():
+        if node is CanvasItem and (str(node.name).begins_with("Preview") or str(node.name).begins_with("Preset") or str(node.name).begins_with("QuickBind")):
+            node.hide()
+    get_node("SessionInfo").text = "LOCAL PROFILE · NO SERVER CONNECTION"
+    get_node("BuildInfo").text = "Offline bunker milestone"
+    get_node("SidebarHeaderNote").text = "LOCAL"
+    get_node("SettingAudioPushToTalkState").text = "UNAVAILABLE"
+    get_node("SettingAudioPushToTalkIndicator").hide()
+    var summary := get_node_or_null("OfflineSettingsSummary") as Label
+    if summary == null:
+        summary = U.label(self, "", Rect2(1392, 136, 480, 220), 14, U.MUTED)
+        summary.name = "OfflineSettingsSummary"
+        summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    summary.text = "LOCAL SETTINGS\n\nMaster volume saves with this profile.\n\nKeyboard and controller bindings are available below. Raid previews, voice, gameplay presets and other audio channels are not enabled."
     var status := app.offline_bunker().local_status()
     _offline_settings_generation = int(status.generation)
     var volume: HSlider = null

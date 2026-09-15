@@ -133,6 +133,9 @@ func run() -> void:
 		return
 	var controller := app.screen._inventory_controller as OfflineInventoryController
 	check(controller != null and controller.is_bound(), "pre-raid controller bound")
+	var chrome := app.screen.get_node("NavigationChrome") as Control
+	check(chrome.get_node("Level").text == "OFFLINE" and chrome.get_node("Money").text == "LOCAL PROFILE" and not chrome.get_node("TaskBadge").is_visible_in_tree(), "offline header has no invented level, currency or tasks")
+	check(app.screen._node("HealthTab").disabled and app.screen._node("StatsTab").disabled, "unsupported character state stays gated")
 	check(controller.inventory_view(&"profile").is_ready(), "ready immutable stash projection")
 	if mode == "create":
 		check(controller.items_for(&"stash").size() == 5, "one versioned starter kit")
@@ -155,10 +158,6 @@ func run() -> void:
 		check(not controller.equipment("zerkov.slot.weapon_primary").is_empty(), "fresh process restores equipped weapon")
 		check(controller.items_for(&"stash").size() == 3, "Continue did not reseed starter items")
 	await capture("offline-inventory-1080")
-	var item := controller.items_for(&"stash")[0].duplicate(true)
-	item.offline_revision -= 1
-	var before := session.revision()
-	check(not controller.submit_rotate(&"stash", item).accepted and session.revision() == before, "stale drag rejection is mutation-free")
 	await key(KEY_I)
 	check(app.current_route == "bunker", "Inventory action returns to same bunker")
 	await key(KEY_ESCAPE)
@@ -175,6 +174,7 @@ func run() -> void:
 	check(session.status().master_volume != 80, "master volume changed and restored with profile")
 	check(is_equal_approx(AudioServer.get_bus_volume_linear(0), float(session.status().master_volume) / 100.0), "audio follows saved setting")
 	check(app.screen.get_node("SettingAudioMasterValue").text == "%d%%" % int(session.status().master_volume), "visible volume label matches saved value")
+	check(not app.screen.get_node("PreviewPanel").is_visible_in_tree() and app.screen.get_node("SessionInfo").text == "LOCAL PROFILE · NO SERVER CONNECTION", "settings has no simulated raid or latency data")
 	await capture("offline-settings-1080")
 	await click(app.screen.get_node("OfflineControlBindings"))
 	check(app.current_route == "controls", "existing rebind controls available")
@@ -184,6 +184,10 @@ func run() -> void:
 	check(app.current_route == "bunker", "back stack restores bunker")
 	check(app.fixture_provider_for_test() == null, "entire normal flow remains fixture-free")
 	check(session._payload.project.keys() == ["offline_bunker"] and session._payload.domains.keys() == [OfflineBunkerCatalog.DOMAIN], "no raid, escrow or settlement records")
+	var item := controller.items_for(&"stash")[0].duplicate(true)
+	item.offline_revision -= 1
+	var before := session.revision()
+	check(not controller.submit_rotate(&"stash", item).accepted and session.revision() == before, "stale drag rejection is mutation-free")
 	var accepted_fingerprint := RaidProgressionValues.digest(session._payload)
 	var old_generation := session.generation()
 	await key(KEY_ESCAPE)
