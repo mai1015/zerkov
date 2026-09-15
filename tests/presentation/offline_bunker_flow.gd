@@ -80,6 +80,7 @@ func run() -> void:
 		elif arg.begins_with("--capture-dir="):
 			output = arg.trim_prefix("--capture-dir=")
 	if DisplayServer.get_name() != "headless":
+		root.mode = Window.MODE_EXCLUSIVE_FULLSCREEN
 		root.borderless = true
 		root.position = Vector2i.ZERO
 		root.size = EXACT
@@ -98,7 +99,12 @@ func run() -> void:
 		if not Exact1080CaptureGuard.accepts(root, root, preflight):
 			finish()
 			return
-	product = load("res://game/bootstrap/offline_application.tscn").instantiate()
+	var startup: String = ProjectSettings.get_setting("application/run/main_scene", "")
+	check(startup == "res://game/bootstrap/offline_application.tscn", "F5 selects the real offline application root")
+	if startup != "res://game/bootstrap/offline_application.tscn":
+		finish()
+		return
+	product = load(startup).instantiate()
 	root.add_child(product)
 	await settle()
 	app = product.get_node("Main")
