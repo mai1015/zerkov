@@ -1,6 +1,6 @@
 {
   "engine": "4.7.2.stable.official.ed1daf0bf",
-  "source_commit": "bf6664056c68b2c34999ccd307297013379f046b",
+  "source_commit": "60ef7ec6e07e9cefb10e7fcb195f621670c7cc3c",
   "renderer": "OpenGL Compatibility / llvmpipe / Xvfb",
   "native_runs": 2,
   "checks": 68,
