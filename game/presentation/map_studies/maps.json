@@ -1,0 +1,3537 @@
+{
+  "schema_version": 1,
+  "scope": "environment_study_not_live_raid",
+  "maps": [
+    {
+      "id": "northline",
+      "title": "NORTHLINE DEPOT",
+      "subtitle": "Freight control / abandoned military logistics",
+      "size": [
+        672,
+        448
+      ],
+      "seed": 7319,
+      "base": "grass",
+      "surfaces": [
+        {
+          "tile": "dirt",
+          "rect": [
+            48,
+            48,
+            576,
+            368
+          ],
+          "tint": "aaa992"
+        },
+        {
+          "tile": "concrete_grey",
+          "rect": [
+            64,
+            104,
+            480,
+            152
+          ],
+          "tint": "c1c1af"
+        },
+        {
+          "tile": "road",
+          "rect": [
+            0,
+            256,
+            672,
+            64
+          ],
+          "tint": "c0c6c0"
+        },
+        {
+          "tile": "road",
+          "rect": [
+            560,
+            48,
+            64,
+            368
+          ],
+          "tint": "c0c6c0"
+        },
+        {
+          "tile": "concrete",
+          "rect": [
+            80,
+            328,
+            464,
+            88
+          ],
+          "tint": "aea894"
+        },
+        {
+          "tile": "paving",
+          "rect": [
+            48,
+            244,
+            576,
+            12
+          ],
+          "tint": "9fa397"
+        },
+        {
+          "tile": "paving",
+          "rect": [
+            48,
+            320,
+            576,
+            8
+          ],
+          "tint": "9fa397"
+        },
+        {
+          "tile": "concrete_grey",
+          "rect": [
+            112,
+            88,
+            416,
+            16
+          ],
+          "tint": "b9b6a0"
+        }
+      ],
+      "buildings": [
+        {
+          "id": "customs",
+          "name": "CUSTOMS / RECORDS",
+          "rect": [
+            72,
+            144,
+            96,
+            96
+          ],
+          "wall": "factory_wall",
+          "floor": "concrete_grey",
+          "door": 0.5,
+          "side_door": true
+        },
+        {
+          "id": "warehouse",
+          "name": "WAREHOUSE 04",
+          "rect": [
+            216,
+            128,
+            192,
+            112
+          ],
+          "wall": "metal_wall",
+          "floor": "concrete_grey",
+          "door": 0.57,
+          "side_door": true
+        },
+        {
+          "id": "workshop",
+          "name": "POWER / SERVICE",
+          "rect": [
+            440,
+            152,
+            88,
+            88
+          ],
+          "wall": "factory_wall",
+          "floor": "concrete_grey",
+          "door": 0.5,
+          "side_door": true
+        }
+      ],
+      "props": [
+        {
+          "id": "northline.prop.000",
+          "asset": "crate_green",
+          "foot": [
+            244,
+            183
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.001",
+          "asset": "crate_wood",
+          "foot": [
+            280,
+            183
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.002",
+          "asset": "crate_green",
+          "foot": [
+            372,
+            180
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.003",
+          "asset": "crate_broken",
+          "foot": [
+            367,
+            225
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.004",
+          "asset": "crate_wood",
+          "foot": [
+            248,
+            225
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.005",
+          "asset": "case",
+          "foot": [
+            344,
+            213
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.006",
+          "asset": "industrial_crate",
+          "foot": [
+            311,
+            180
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.007",
+          "asset": "barrel_olive",
+          "foot": [
+            394,
+            220
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.008",
+          "asset": "power_console",
+          "foot": [
+            100,
+            189
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.009",
+          "asset": "locker",
+          "foot": [
+            149,
+            191
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.010",
+          "asset": "crate_broken",
+          "foot": [
+            98,
+            229
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.011",
+          "asset": "lathe",
+          "foot": [
+            483,
+            210
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.012",
+          "asset": "pump",
+          "foot": [
+            510,
+            233
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.013",
+          "asset": "machine",
+          "foot": [
+            458,
+            233
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.014",
+          "asset": "truck",
+          "foot": [
+            453,
+            281
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.015",
+          "asset": "jeep",
+          "foot": [
+            190,
+            283
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.016",
+          "asset": "van",
+          "foot": [
+            329,
+            307
+          ],
+          "flip": true,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.017",
+          "asset": "car_wreck",
+          "foot": [
+            493,
+            368
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.018",
+          "asset": "barrier",
+          "foot": [
+            383,
+            274
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.019",
+          "asset": "tyres",
+          "foot": [
+            371,
+            308
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.020",
+          "asset": "warning",
+          "foot": [
+            401,
+            265
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.021",
+          "asset": "sandbags",
+          "foot": [
+            107,
+            363
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.022",
+          "asset": "tank",
+          "foot": [
+            201,
+            377
+          ],
+          "flip": false,
+          "tint": "a5aa99",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.023",
+          "asset": "crate_wood",
+          "foot": [
+            289,
+            375
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.024",
+          "asset": "crate_green",
+          "foot": [
+            321,
+            375
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.025",
+          "asset": "tower",
+          "foot": [
+            549,
+            128
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.026",
+          "asset": "tent",
+          "foot": [
+            87,
+            106
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.027",
+          "asset": "crate_green",
+          "foot": [
+            162,
+            107
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.028",
+          "asset": "barrel_olive",
+          "foot": [
+            446,
+            383
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.029",
+          "asset": "barrel_red",
+          "foot": [
+            464,
+            383
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.030",
+          "asset": "barrel_rust",
+          "foot": [
+            485,
+            383
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.031",
+          "asset": "barrel_rust",
+          "foot": [
+            445,
+            410
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.032",
+          "asset": "barrel_olive",
+          "foot": [
+            477,
+            410
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "northline.prop.033",
+          "asset": "lamp",
+          "foot": [
+            191,
+            236
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.034",
+          "asset": "lamp",
+          "foot": [
+            417,
+            235
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.035",
+          "asset": "lamp",
+          "foot": [
+            546,
+            253
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.036",
+          "asset": "lamp",
+          "foot": [
+            401,
+            408
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.037",
+          "asset": "tree_dead",
+          "foot": [
+            430,
+            427
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.038",
+          "asset": "tree_dead",
+          "foot": [
+            658,
+            407
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.039",
+          "asset": "tree_dead",
+          "foot": [
+            17,
+            35
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.040",
+          "asset": "tree_dead",
+          "foot": [
+            495,
+            435
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.041",
+          "asset": "tree_dead",
+          "foot": [
+            657,
+            301
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        },
+        {
+          "id": "northline.prop.042",
+          "asset": "tree_dead",
+          "foot": [
+            486,
+            433
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        }
+      ],
+      "decals": [
+        {
+          "asset": "weeds",
+          "at": [
+            247,
+            238
+          ],
+          "tint": "7d896a"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            280,
+            238
+          ],
+          "tint": "7d896a"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            313,
+            238
+          ],
+          "tint": "7d896a"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            373,
+            238
+          ],
+          "tint": "7d896a"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            204,
+            221
+          ],
+          "tint": "6a7971"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            432,
+            230
+          ],
+          "tint": "6a7971"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            300,
+            342
+          ],
+          "tint": "6a7971"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            539,
+            387
+          ],
+          "tint": "6a7971"
+        },
+        {
+          "asset": "rubble_small",
+          "at": [
+            54,
+            166
+          ],
+          "tint": "a1a18c"
+        },
+        {
+          "asset": "rubble_small",
+          "at": [
+            527,
+            107
+          ],
+          "tint": "a1a18c"
+        },
+        {
+          "asset": "rubble_small",
+          "at": [
+            422,
+            349
+          ],
+          "tint": "a1a18c"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            56,
+            246
+          ],
+          "tint": "a1aa81"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            202,
+            246
+          ],
+          "tint": "a1aa81"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            427,
+            247
+          ],
+          "tint": "a1aa81"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            546,
+            311
+          ],
+          "tint": "a1aa81"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            309,
+            392
+          ],
+          "tint": "a1aa81"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            544,
+            429
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            9,
+            287
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            645,
+            251
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            43,
+            287
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            152,
+            425
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            646,
+            293
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            33,
+            185
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            18,
+            274
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            45,
+            319
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            633,
+            389
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            54,
+            81
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            56,
+            103
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            55,
+            313
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            616,
+            366
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            55,
+            246
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            51,
+            143
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            630,
+            389
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            43,
+            154
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            631,
+            112
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            617,
+            306
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            49,
+            343
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            627,
+            325
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            44,
+            253
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            53,
+            408
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            633,
+            382
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            620,
+            188
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            47,
+            85
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            39,
+            230
+          ],
+          "tint": "b0b59b"
+        }
+      ],
+      "roads": [
+        [
+          0,
+          256,
+          672,
+          64,
+          "h"
+        ],
+        [
+          560,
+          48,
+          64,
+          368,
+          "v"
+        ]
+      ],
+      "rails": [
+        [
+          0,
+          73,
+          544
+        ]
+      ],
+      "fences": [
+        [
+          416,
+          421,
+          116
+        ],
+        [
+          48,
+          130,
+          116
+        ],
+        [
+          184,
+          115,
+          240
+        ],
+        [
+          439,
+          123,
+          97
+        ],
+        [
+          64,
+          419,
+          132
+        ],
+        [
+          227,
+          419,
+          176
+        ]
+      ],
+      "lights": [
+        {
+          "at": [
+            198,
+            213
+          ],
+          "radius": 37,
+          "color": "dfae66"
+        },
+        {
+          "at": [
+            424,
+            211
+          ],
+          "radius": 37,
+          "color": "dfae66"
+        },
+        {
+          "at": [
+            553,
+            230
+          ],
+          "radius": 37,
+          "color": "dfae66"
+        },
+        {
+          "at": [
+            409,
+            385
+          ],
+          "radius": 37,
+          "color": "dfae66"
+        },
+        {
+          "at": [
+            273,
+            205
+          ],
+          "radius": 44,
+          "color": "c0d0b0"
+        },
+        {
+          "at": [
+            107,
+            216
+          ],
+          "radius": 44,
+          "color": "c0d0b0"
+        },
+        {
+          "at": [
+            489,
+            213
+          ],
+          "radius": 44,
+          "color": "c0d0b0"
+        }
+      ],
+      "labels": [
+        {
+          "text": "04",
+          "at": [
+            305,
+            259
+          ]
+        },
+        {
+          "text": "KEEP CLEAR",
+          "at": [
+            272,
+            311
+          ]
+        }
+      ],
+      "pois": [
+        {
+          "id": "records",
+          "name": "Customs records",
+          "at": [
+            120,
+            213
+          ],
+          "kind": "intel"
+        },
+        {
+          "id": "cargo",
+          "name": "Sealed freight",
+          "at": [
+            313,
+            207
+          ],
+          "kind": "contested"
+        },
+        {
+          "id": "power",
+          "name": "Service workshop",
+          "at": [
+            479,
+            208
+          ],
+          "kind": "tools"
+        },
+        {
+          "id": "fuel",
+          "name": "Fuel compound",
+          "at": [
+            459,
+            400
+          ],
+          "kind": "supplies"
+        }
+      ],
+      "routes": [
+        {
+          "name": "Fast / exposed",
+          "points": [
+            [
+              54,
+              278
+            ],
+            [
+              54,
+              382
+            ],
+            [
+              230,
+              382
+            ],
+            [
+              230,
+              358
+            ],
+            [
+              206,
+              358
+            ],
+            [
+              206,
+              290
+            ],
+            [
+              590,
+              290
+            ],
+            [
+              590,
+              402
+            ],
+            [
+              618,
+              402
+            ]
+          ],
+          "requested_waypoints": [
+            [
+              54,
+              278
+            ],
+            [
+              207,
+              382
+            ],
+            [
+              207,
+              289
+            ],
+            [
+              528,
+              289
+            ],
+            [
+              591,
+              289
+            ],
+            [
+              619,
+              401
+            ]
+          ]
+        },
+        {
+          "name": "Covered / interior",
+          "points": [
+            [
+              54,
+              278
+            ],
+            [
+              54,
+              350
+            ],
+            [
+              134,
+              350
+            ],
+            [
+              134,
+              358
+            ],
+            [
+              190,
+              358
+            ],
+            [
+              186,
+              358
+            ],
+            [
+              186,
+              290
+            ],
+            [
+              170,
+              290
+            ],
+            [
+              170,
+              250
+            ],
+            [
+              174,
+              250
+            ],
+            [
+              174,
+              246
+            ],
+            [
+              178,
+              246
+            ],
+            [
+              178,
+              218
+            ],
+            [
+              186,
+              218
+            ],
+            [
+              178,
+              218
+            ],
+            [
+              178,
+              206
+            ],
+            [
+              122,
+              206
+            ],
+            [
+              122,
+              218
+            ],
+            [
+              158,
+              218
+            ],
+            [
+              158,
+              206
+            ],
+            [
+              178,
+              206
+            ],
+            [
+              178,
+              218
+            ],
+            [
+              186,
+              218
+            ],
+            [
+              178,
+              218
+            ],
+            [
+              178,
+              106
+            ],
+            [
+              430,
+              106
+            ],
+            [
+              430,
+              126
+            ],
+            [
+              418,
+              126
+            ],
+            [
+              430,
+              126
+            ],
+            [
+              430,
+              110
+            ],
+            [
+              554,
+              110
+            ],
+            [
+              554,
+              74
+            ],
+            [
+              622,
+              74
+            ]
+          ],
+          "requested_waypoints": [
+            [
+              54,
+              278
+            ],
+            [
+              188,
+              357
+            ],
+            [
+              187,
+              216
+            ],
+            [
+              120,
+              216
+            ],
+            [
+              187,
+              216
+            ],
+            [
+              187,
+              119
+            ],
+            [
+              313,
+              119
+            ],
+            [
+              416,
+              119
+            ],
+            [
+              553,
+              119
+            ],
+            [
+              623,
+              75
+            ]
+          ]
+        }
+      ],
+      "exits": [
+        {
+          "name": "WEST SERVICE",
+          "at": [
+            52,
+            382
+          ]
+        },
+        {
+          "name": "RAIL GATE",
+          "at": [
+            623,
+            75
+          ]
+        },
+        {
+          "name": "DRAINAGE",
+          "at": [
+            619,
+            401
+          ]
+        }
+      ],
+      "camera_points": [
+        {
+          "id": "depot",
+          "name": "Loading apron",
+          "at": [
+            336,
+            224
+          ]
+        },
+        {
+          "id": "freight",
+          "name": "Rail-side approach",
+          "at": [
+            329,
+            180
+          ]
+        },
+        {
+          "id": "fuel",
+          "name": "Motor pool & fuel",
+          "at": [
+            352,
+            268
+          ]
+        }
+      ],
+      "collision_rects": [
+        [
+          67,
+          139,
+          106,
+          10
+        ],
+        [
+          67,
+          144,
+          10,
+          96
+        ],
+        [
+          72,
+          235,
+          26.0,
+          10
+        ],
+        [
+          142.0,
+          235,
+          26.0,
+          10
+        ],
+        [
+          163,
+          144,
+          10,
+          28.0
+        ],
+        [
+          163,
+          212.0,
+          10,
+          28.0
+        ],
+        [
+          211,
+          123,
+          202,
+          10
+        ],
+        [
+          211,
+          128,
+          10,
+          112
+        ],
+        [
+          216,
+          235,
+          87.44,
+          10
+        ],
+        [
+          347.44,
+          235,
+          60.56,
+          10
+        ],
+        [
+          403,
+          128,
+          10,
+          36.0
+        ],
+        [
+          403,
+          204.0,
+          10,
+          36.0
+        ],
+        [
+          435,
+          147,
+          98,
+          10
+        ],
+        [
+          435,
+          152,
+          10,
+          88
+        ],
+        [
+          440,
+          235,
+          22.0,
+          10
+        ],
+        [
+          506.0,
+          235,
+          22.0,
+          10
+        ],
+        [
+          523,
+          152,
+          10,
+          24.0
+        ],
+        [
+          523,
+          216.0,
+          10,
+          24.0
+        ],
+        [
+          416,
+          417,
+          116,
+          8
+        ],
+        [
+          48,
+          126,
+          116,
+          8
+        ],
+        [
+          184,
+          111,
+          240,
+          8
+        ],
+        [
+          439,
+          119,
+          97,
+          8
+        ],
+        [
+          64,
+          415,
+          132,
+          8
+        ],
+        [
+          227,
+          415,
+          176,
+          8
+        ]
+      ],
+      "spawn": [
+        54,
+        278
+      ],
+      "cover_rects": [
+        [
+          232.5,
+          177,
+          23,
+          6
+        ],
+        [
+          268.5,
+          177,
+          23,
+          6
+        ],
+        [
+          360.5,
+          174,
+          23,
+          6
+        ],
+        [
+          356.0,
+          217,
+          22,
+          8
+        ],
+        [
+          236.5,
+          219,
+          23,
+          6
+        ],
+        [
+          338.0,
+          209,
+          12,
+          4
+        ],
+        [
+          300.0,
+          171,
+          22,
+          9
+        ],
+        [
+          388.0,
+          211,
+          12,
+          9
+        ],
+        [
+          88.5,
+          180,
+          23,
+          9
+        ],
+        [
+          137.5,
+          177,
+          23,
+          14
+        ],
+        [
+          87.0,
+          221,
+          22,
+          8
+        ],
+        [
+          460.0,
+          201,
+          46,
+          9
+        ],
+        [
+          498.5,
+          224,
+          23,
+          9
+        ],
+        [
+          447.5,
+          224,
+          21,
+          9
+        ],
+        [
+          440.0,
+          269,
+          26,
+          12
+        ],
+        [
+          177.0,
+          271,
+          26,
+          12
+        ],
+        [
+          309.5,
+          294,
+          39,
+          13
+        ],
+        [
+          480.0,
+          356,
+          26,
+          12
+        ],
+        [
+          372.5,
+          266,
+          21,
+          8
+        ],
+        [
+          360.0,
+          299,
+          22,
+          9
+        ],
+        [
+          396.0,
+          256,
+          10,
+          9
+        ],
+        [
+          84.0,
+          354,
+          46,
+          9
+        ],
+        [
+          177.0,
+          362,
+          48,
+          15
+        ],
+        [
+          277.5,
+          369,
+          23,
+          6
+        ],
+        [
+          309.5,
+          369,
+          23,
+          6
+        ],
+        [
+          537.5,
+          115,
+          23,
+          13
+        ],
+        [
+          76.0,
+          98,
+          22,
+          8
+        ],
+        [
+          150.5,
+          101,
+          23,
+          6
+        ],
+        [
+          440.0,
+          374,
+          12,
+          9
+        ],
+        [
+          458.0,
+          374,
+          12,
+          9
+        ],
+        [
+          479.0,
+          374,
+          12,
+          9
+        ],
+        [
+          439.0,
+          401,
+          12,
+          9
+        ],
+        [
+          471.0,
+          401,
+          12,
+          9
+        ]
+      ],
+      "navigation_review": {
+        "grid": 4,
+        "clearance": 3,
+        "method": "four-neighbour A-star over authored wall and ground-footprint rectangles; layout-only, not RaidAuthority navigation"
+      },
+      "route_validation": {
+        "WEST SERVICE": 27,
+        "RAIL GATE": 194,
+        "DRAINAGE": 173
+      }
+    },
+    {
+      "id": "mercury",
+      "title": "MERCURY BLOCK",
+      "subtitle": "Commercial district / failed evacuation corridor",
+      "size": [
+        672,
+        448
+      ],
+      "seed": 9137,
+      "base": "concrete_grey",
+      "surfaces": [
+        {
+          "tile": "paving",
+          "rect": [
+            48,
+            16,
+            576,
+            416
+          ],
+          "tint": "b9b7a6"
+        },
+        {
+          "tile": "road",
+          "rect": [
+            296,
+            0,
+            80,
+            448
+          ],
+          "tint": "b9c0bf"
+        },
+        {
+          "tile": "road",
+          "rect": [
+            0,
+            284,
+            672,
+            68
+          ],
+          "tint": "b9c0bf"
+        },
+        {
+          "tile": "dirt",
+          "rect": [
+            400,
+            372,
+            200,
+            52
+          ],
+          "tint": "a09d80"
+        }
+      ],
+      "buildings": [
+        {
+          "id": "market",
+          "name": "MERCURY / FOOD & SUPPLY",
+          "rect": [
+            104,
+            136,
+            160,
+            128
+          ],
+          "wall": "brick_wall",
+          "floor": "concrete_grey",
+          "door": 0.63,
+          "side_door": true
+        },
+        {
+          "id": "clinic",
+          "name": "EVACUATION CLINIC",
+          "rect": [
+            408,
+            136,
+            136,
+            128
+          ],
+          "wall": "factory_wall",
+          "floor": "hospital_floor",
+          "door": 0.5,
+          "side_door": true
+        },
+        {
+          "id": "flats",
+          "name": "APARTMENT / BLOCK C",
+          "rect": [
+            72,
+            28,
+            176,
+            72
+          ],
+          "wall": "brick_wall",
+          "floor": "concrete_grey",
+          "door": 0.75,
+          "side_door": true
+        },
+        {
+          "id": "admin",
+          "name": "TRANSIT ADMINISTRATION",
+          "rect": [
+            424,
+            28,
+            168,
+            72
+          ],
+          "wall": "factory_wall",
+          "floor": "concrete_grey",
+          "door": 0.25,
+          "side_door": true
+        }
+      ],
+      "props": [
+        {
+          "id": "mercury.prop.000",
+          "asset": "shelf",
+          "foot": [
+            138,
+            191
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.001",
+          "asset": "shelf_tins",
+          "foot": [
+            200,
+            191
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.002",
+          "asset": "shelf_tins",
+          "foot": [
+            138,
+            229
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.003",
+          "asset": "shelf",
+          "foot": [
+            200,
+            229
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.004",
+          "asset": "freezer",
+          "foot": [
+            239,
+            183
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.005",
+          "asset": "checkout",
+          "foot": [
+            232,
+            249
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.006",
+          "asset": "cart",
+          "foot": [
+            117,
+            250
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.007",
+          "asset": "boxes",
+          "foot": [
+            251,
+            243
+          ],
+          "flip": false,
+          "tint": "c5c4ab",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.008",
+          "asset": "bed_blue",
+          "foot": [
+            432,
+            197
+          ],
+          "flip": false,
+          "tint": "c6cfb9",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.009",
+          "asset": "bed_green",
+          "foot": [
+            469,
+            197
+          ],
+          "flip": false,
+          "tint": "c6cfb9",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.010",
+          "asset": "cabinet",
+          "foot": [
+            524,
+            192
+          ],
+          "flip": false,
+          "tint": "c6cfb9",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.011",
+          "asset": "medical_screen",
+          "foot": [
+            525,
+            238
+          ],
+          "flip": false,
+          "tint": "c6cfb9",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.012",
+          "asset": "medical_table",
+          "foot": [
+            437,
+            247
+          ],
+          "flip": false,
+          "tint": "c6cfb9",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.013",
+          "asset": "wheelchair",
+          "foot": [
+            495,
+            247
+          ],
+          "flip": false,
+          "tint": "c6cfb9",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.014",
+          "asset": "oxygen",
+          "foot": [
+            412,
+            230
+          ],
+          "flip": false,
+          "tint": "c6cfb9",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.015",
+          "asset": "locker",
+          "foot": [
+            101,
+            84
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.016",
+          "asset": "crate_wood",
+          "foot": [
+            143,
+            85
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.017",
+          "asset": "crate_broken",
+          "foot": [
+            193,
+            85
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.018",
+          "asset": "machine",
+          "foot": [
+            453,
+            81
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.019",
+          "asset": "power_console",
+          "foot": [
+            525,
+            81
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.020",
+          "asset": "locker",
+          "foot": [
+            569,
+            89
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.021",
+          "asset": "bus",
+          "foot": [
+            336,
+            261
+          ],
+          "flip": false,
+          "tint": "bbbbad",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.022",
+          "asset": "car_blue",
+          "foot": [
+            313,
+            387
+          ],
+          "flip": false,
+          "tint": "abb3a6",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.023",
+          "asset": "car_red",
+          "foot": [
+            213,
+            327
+          ],
+          "flip": true,
+          "tint": "a9a997",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.024",
+          "asset": "car_wreck",
+          "foot": [
+            437,
+            323
+          ],
+          "flip": false,
+          "tint": "c2bda3",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.025",
+          "asset": "truck",
+          "foot": [
+            573,
+            315
+          ],
+          "flip": false,
+          "tint": "bbbfae",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.026",
+          "asset": "barrier",
+          "foot": [
+            369,
+            282
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.027",
+          "asset": "tyres",
+          "foot": [
+            404,
+            293
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.028",
+          "asset": "hydrant",
+          "foot": [
+            389,
+            363
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.029",
+          "asset": "trash",
+          "foot": [
+            279,
+            263
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.030",
+          "asset": "trash",
+          "foot": [
+            556,
+            240
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.031",
+          "asset": "fountain",
+          "foot": [
+            479,
+            413
+          ],
+          "flip": false,
+          "tint": "b3b39b",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.032",
+          "asset": "bench",
+          "foot": [
+            411,
+            408
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.033",
+          "asset": "bench",
+          "foot": [
+            547,
+            408
+          ],
+          "flip": true,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.034",
+          "asset": "tent",
+          "foot": [
+            132,
+            407
+          ],
+          "flip": false,
+          "tint": "b6af91",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.035",
+          "asset": "barrel_red",
+          "foot": [
+            174,
+            407
+          ],
+          "flip": false,
+          "tint": "b0afa0",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.036",
+          "asset": "crate_green",
+          "foot": [
+            235,
+            397
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.037",
+          "asset": "stairwell",
+          "foot": [
+            594,
+            194
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.038",
+          "asset": "generator",
+          "foot": [
+            62,
+            219
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": true
+        },
+        {
+          "id": "mercury.prop.039",
+          "asset": "lamp",
+          "foot": [
+            271,
+            277
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "mercury.prop.040",
+          "asset": "lamp",
+          "foot": [
+            391,
+            263
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "mercury.prop.041",
+          "asset": "lamp",
+          "foot": [
+            269,
+            106
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "mercury.prop.042",
+          "asset": "lamp",
+          "foot": [
+            575,
+            360
+          ],
+          "flip": false,
+          "tint": "ffffff",
+          "solid": false
+        },
+        {
+          "id": "mercury.prop.043",
+          "asset": "tree_dead",
+          "foot": [
+            647,
+            71
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        },
+        {
+          "id": "mercury.prop.044",
+          "asset": "tree_dead",
+          "foot": [
+            628,
+            415
+          ],
+          "flip": false,
+          "tint": "abb198",
+          "solid": false
+        }
+      ],
+      "decals": [
+        {
+          "asset": "rubble_small",
+          "at": [
+            265,
+            108
+          ],
+          "tint": "a7a292"
+        },
+        {
+          "asset": "rubble_small",
+          "at": [
+            393,
+            112
+          ],
+          "tint": "a7a292"
+        },
+        {
+          "asset": "rubble_small",
+          "at": [
+            244,
+            386
+          ],
+          "tint": "a7a292"
+        },
+        {
+          "asset": "rubble_small",
+          "at": [
+            565,
+            399
+          ],
+          "tint": "a7a292"
+        },
+        {
+          "asset": "rubble_small",
+          "at": [
+            271,
+            365
+          ],
+          "tint": "a7a292"
+        },
+        {
+          "asset": "rubble",
+          "at": [
+            54,
+            270
+          ],
+          "tint": "8a8d7f"
+        },
+        {
+          "asset": "rubble",
+          "at": [
+            253,
+            130
+          ],
+          "tint": "8a8d7f"
+        },
+        {
+          "asset": "rubble",
+          "at": [
+            565,
+            220
+          ],
+          "tint": "8a8d7f"
+        },
+        {
+          "asset": "rubble",
+          "at": [
+            86,
+            367
+          ],
+          "tint": "8a8d7f"
+        },
+        {
+          "asset": "rubble",
+          "at": [
+            589,
+            97
+          ],
+          "tint": "8a8d7f"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            88,
+            259
+          ],
+          "tint": "9ca584"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            284,
+            249
+          ],
+          "tint": "9ca584"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            559,
+            255
+          ],
+          "tint": "9ca584"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            557,
+            384
+          ],
+          "tint": "9ca584"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            401,
+            397
+          ],
+          "tint": "9ca584"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            240,
+            369
+          ],
+          "tint": "9ca584"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            358,
+            146
+          ],
+          "tint": "647e77"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            465,
+            112
+          ],
+          "tint": "647e77"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            233,
+            283
+          ],
+          "tint": "647e77"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            467,
+            355
+          ],
+          "tint": "647e77"
+        },
+        {
+          "asset": "puddle",
+          "at": [
+            95,
+            366
+          ],
+          "tint": "647e77"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            25,
+            295
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            9,
+            233
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            15,
+            106
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "shrub",
+          "at": [
+            648,
+            406
+          ],
+          "tint": "a0a78d"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            46,
+            285
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            54,
+            83
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            627,
+            121
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            625,
+            368
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            632,
+            349
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            617,
+            333
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            54,
+            197
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            39,
+            69
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            50,
+            295
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            40,
+            115
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            53,
+            53
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            615,
+            85
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            43,
+            315
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            619,
+            275
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            53,
+            209
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            55,
+            380
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            629,
+            299
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            52,
+            229
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            55,
+            233
+          ],
+          "tint": "b0b59b"
+        },
+        {
+          "asset": "weeds",
+          "at": [
+            631,
+            123
+          ],
+          "tint": "b0b59b"
+        }
+      ],
+      "roads": [
+        [
+          296,
+          0,
+          80,
+          448,
+          "v"
+        ],
+        [
+          0,
+          284,
+          672,
+          68,
+          "h"
+        ]
+      ],
+      "rails": [],
+      "fences": [
+        [
+          64,
+          427,
+          152
+        ],
+        [
+          389,
+          425,
+          187
+        ]
+      ],
+      "lights": [
+        {
+          "at": [
+            279,
+            255
+          ],
+          "radius": 39,
+          "color": "d4bd7c"
+        },
+        {
+          "at": [
+            399,
+            240
+          ],
+          "radius": 39,
+          "color": "d4bd7c"
+        },
+        {
+          "at": [
+            277,
+            83
+          ],
+          "radius": 39,
+          "color": "d4bd7c"
+        },
+        {
+          "at": [
+            583,
+            337
+          ],
+          "radius": 39,
+          "color": "d4bd7c"
+        },
+        {
+          "at": [
+            449,
+            209
+          ],
+          "radius": 37,
+          "color": "84b6c0"
+        },
+        {
+          "at": [
+            507,
+            215
+          ],
+          "radius": 37,
+          "color": "84b6c0"
+        },
+        {
+          "at": [
+            177,
+            207
+          ],
+          "radius": 63,
+          "color": "d8bb7c"
+        },
+        {
+          "at": [
+            587,
+            182
+          ],
+          "radius": 25,
+          "color": "779b86"
+        }
+      ],
+      "labels": [
+        {
+          "text": "BUS",
+          "at": [
+            317,
+            285
+          ]
+        }
+      ],
+      "pois": [
+        {
+          "id": "market",
+          "name": "Mercury supermarket",
+          "at": [
+            184,
+            210
+          ],
+          "kind": "supplies"
+        },
+        {
+          "id": "clinic",
+          "name": "Evacuation clinic",
+          "at": [
+            476,
+            213
+          ],
+          "kind": "medical"
+        },
+        {
+          "id": "records",
+          "name": "Transit records",
+          "at": [
+            499,
+            79
+          ],
+          "kind": "intel"
+        },
+        {
+          "id": "courtyard",
+          "name": "Courtyard stash",
+          "at": [
+            483,
+            376
+          ],
+          "kind": "contested"
+        }
+      ],
+      "routes": [
+        {
+          "name": "Street / exposed",
+          "points": [
+            [
+              26,
+              150
+            ],
+            [
+              26,
+              306
+            ],
+            [
+              230,
+              306
+            ],
+            [
+              230,
+              322
+            ],
+            [
+              418,
+              322
+            ],
+            [
+              418,
+              330
+            ],
+            [
+              454,
+              330
+            ],
+            [
+              454,
+              322
+            ],
+            [
+              570,
+              322
+            ],
+            [
+              554,
+              322
+            ],
+            [
+              554,
+              246
+            ],
+            [
+              566,
+              246
+            ],
+            [
+              566,
+              218
+            ],
+            [
+              594,
+              218
+            ]
+          ],
+          "requested_waypoints": [
+            [
+              26,
+              150
+            ],
+            [
+              279,
+              320
+            ],
+            [
+              339,
+              320
+            ],
+            [
+              390,
+              320
+            ],
+            [
+              571,
+              320
+            ],
+            [
+              571,
+              217
+            ],
+            [
+              593,
+              217
+            ]
+          ]
+        },
+        {
+          "name": "Rear / covered",
+          "points": [
+            [
+              26,
+              150
+            ],
+            [
+              26,
+              294
+            ],
+            [
+              50,
+              294
+            ],
+            [
+              50,
+              226
+            ],
+            [
+              46,
+              226
+            ],
+            [
+              46,
+              114
+            ],
+            [
+              566,
+              114
+            ],
+            [
+              566,
+              218
+            ],
+            [
+              594,
+              218
+            ]
+          ],
+          "requested_waypoints": [
+            [
+              26,
+              150
+            ],
+            [
+              50,
+              294
+            ],
+            [
+              50,
+              115
+            ],
+            [
+              274,
+              115
+            ],
+            [
+              336,
+              115
+            ],
+            [
+              393,
+              115
+            ],
+            [
+              567,
+              115
+            ],
+            [
+              571,
+              217
+            ],
+            [
+              593,
+              217
+            ]
+          ]
+        }
+      ],
+      "exits": [
+        {
+          "name": "WEST VIADUCT",
+          "at": [
+            23,
+            321
+          ]
+        },
+        {
+          "name": "METRO STAIRS",
+          "at": [
+            593,
+            217
+          ]
+        },
+        {
+          "name": "SOUTH BARRICADE",
+          "at": [
+            341,
+            425
+          ]
+        }
+      ],
+      "camera_points": [
+        {
+          "id": "crossing",
+          "name": "Evacuation crossing",
+          "at": [
+            336,
+            224
+          ]
+        },
+        {
+          "id": "market",
+          "name": "Mercury rear aisles",
+          "at": [
+            320,
+            195
+          ]
+        },
+        {
+          "id": "clinic",
+          "name": "Clinic & metro approach",
+          "at": [
+            352,
+            226
+          ]
+        }
+      ],
+      "collision_rects": [
+        [
+          99,
+          131,
+          170,
+          10
+        ],
+        [
+          99,
+          136,
+          10,
+          128
+        ],
+        [
+          104,
+          259,
+          78.8,
+          10
+        ],
+        [
+          226.8,
+          259,
+          37.2,
+          10
+        ],
+        [
+          259,
+          136,
+          10,
+          44.0
+        ],
+        [
+          259,
+          220.0,
+          10,
+          44.0
+        ],
+        [
+          403,
+          131,
+          146,
+          10
+        ],
+        [
+          403,
+          136,
+          10,
+          128
+        ],
+        [
+          408,
+          259,
+          46.0,
+          10
+        ],
+        [
+          498.0,
+          259,
+          46.0,
+          10
+        ],
+        [
+          539,
+          136,
+          10,
+          44.0
+        ],
+        [
+          539,
+          220.0,
+          10,
+          44.0
+        ],
+        [
+          67,
+          23,
+          186,
+          10
+        ],
+        [
+          67,
+          28,
+          10,
+          72
+        ],
+        [
+          72,
+          95,
+          110.0,
+          10
+        ],
+        [
+          226.0,
+          95,
+          22.0,
+          10
+        ],
+        [
+          243,
+          28,
+          10,
+          16.0
+        ],
+        [
+          243,
+          84.0,
+          10,
+          16.0
+        ],
+        [
+          419,
+          23,
+          178,
+          10
+        ],
+        [
+          419,
+          28,
+          10,
+          72
+        ],
+        [
+          424,
+          95,
+          20.0,
+          10
+        ],
+        [
+          488.0,
+          95,
+          104.0,
+          10
+        ],
+        [
+          587,
+          28,
+          10,
+          16.0
+        ],
+        [
+          587,
+          84.0,
+          10,
+          16.0
+        ],
+        [
+          64,
+          423,
+          152,
+          8
+        ],
+        [
+          389,
+          421,
+          187,
+          8
+        ]
+      ],
+      "spawn": [
+        26,
+        150
+      ],
+      "cover_rects": [
+        [
+          120.5,
+          182,
+          35,
+          9
+        ],
+        [
+          182.5,
+          183,
+          35,
+          8
+        ],
+        [
+          120.5,
+          221,
+          35,
+          8
+        ],
+        [
+          182.5,
+          220,
+          35,
+          9
+        ],
+        [
+          227.5,
+          174,
+          23,
+          9
+        ],
+        [
+          220.5,
+          242,
+          23,
+          7
+        ],
+        [
+          111.0,
+          242,
+          12,
+          8
+        ],
+        [
+          245.5,
+          237,
+          11,
+          6
+        ],
+        [
+          419.0,
+          177,
+          26,
+          20
+        ],
+        [
+          456.0,
+          177,
+          26,
+          20
+        ],
+        [
+          513.5,
+          183,
+          21,
+          9
+        ],
+        [
+          514.0,
+          229,
+          22,
+          9
+        ],
+        [
+          418.5,
+          239,
+          37,
+          8
+        ],
+        [
+          485.5,
+          240,
+          19,
+          7
+        ],
+        [
+          409.5,
+          222,
+          5,
+          8
+        ],
+        [
+          89.5,
+          70,
+          23,
+          14
+        ],
+        [
+          131.5,
+          79,
+          23,
+          6
+        ],
+        [
+          182.0,
+          77,
+          22,
+          8
+        ],
+        [
+          442.5,
+          72,
+          21,
+          9
+        ],
+        [
+          513.5,
+          72,
+          23,
+          9
+        ],
+        [
+          557.5,
+          75,
+          23,
+          14
+        ],
+        [
+          310.0,
+          247,
+          52,
+          14
+        ],
+        [
+          300.0,
+          375,
+          26,
+          12
+        ],
+        [
+          200.5,
+          312,
+          25,
+          15
+        ],
+        [
+          424.0,
+          311,
+          26,
+          12
+        ],
+        [
+          560.0,
+          303,
+          26,
+          12
+        ],
+        [
+          358.5,
+          274,
+          21,
+          8
+        ],
+        [
+          393.0,
+          284,
+          22,
+          9
+        ],
+        [
+          384.5,
+          356,
+          9,
+          7
+        ],
+        [
+          274.0,
+          257,
+          10,
+          6
+        ],
+        [
+          551.0,
+          234,
+          10,
+          6
+        ],
+        [
+          456.0,
+          399,
+          46,
+          14
+        ],
+        [
+          400.0,
+          404,
+          22,
+          4
+        ],
+        [
+          536.0,
+          404,
+          22,
+          4
+        ],
+        [
+          121.0,
+          399,
+          22,
+          8
+        ],
+        [
+          168.0,
+          398,
+          12,
+          9
+        ],
+        [
+          223.5,
+          391,
+          23,
+          6
+        ],
+        [
+          581.0,
+          163,
+          26,
+          31
+        ],
+        [
+          52.0,
+          211,
+          20,
+          8
+        ]
+      ],
+      "navigation_review": {
+        "grid": 4,
+        "clearance": 3,
+        "method": "four-neighbour A-star over authored wall and ground-footprint rectangles; layout-only, not RaidAuthority navigation"
+      },
+      "route_validation": {
+        "WEST VIADUCT": 45,
+        "METRO STAIRS": 172,
+        "SOUTH BARRICADE": 149
+      }
+    }
+  ]
+}

@@ -1,0 +1,2475 @@
+{
+  "schema_version": 1,
+  "study_tile_size": 16,
+  "atlas_path": "res://assets/world/map_studies/atlas.webp",
+  "atlas_size": [
+    1024,
+    181
+  ],
+  "atlas_sha256": "d2b018bd1fe2bfed07554c7e13c1aa2bbb7bd2d569698cf471539dfdb963179c",
+  "sources": {
+    "12": {
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-factory-ruins-pixel-art-tileset-pack/1.png",
+      "source_sha256": "6e9f85e648407adf25d34f263304b2ffe31cd4b7ebbdf5a64cef9e7814ba48ba",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "19": {
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-06.png",
+      "source_sha256": "ad3f55bdfc1cbe3e5d4ced27d86aef604b65251af06dc6dff5f02d4f15cbe4d1",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "60": {
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-zombie-city-tileset/2.png",
+      "source_sha256": "699217ff3d67770ae05bf07217650635793b094c0f9708514b195778a88eb538",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "147": {
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-forest-pixel-art-tileset/tile-B-01.png",
+      "source_sha256": "98534b457f0b170c4bd89fd2127bad3445daf37548211ed108f62f2ae276044b",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "62": {
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-zombie-city-tileset/1.png",
+      "source_sha256": "f84faf22e51de801d67b1c879f81c90ae317744bcb94cbcb77a67392f2c60386",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "18": {
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-07.png",
+      "source_sha256": "24c0031a8522a3c518569f11469fdf6ed525ead2835e42f10a2c0ced872a5b3e",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "20": {
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-02.png",
+      "source_sha256": "52c794ca914ddab474c61ce0ee08915b2d0bc0695fdc894b384656a8a4b8aacc",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "17": {
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-05.png",
+      "source_sha256": "ad5519f9fb7d7602ba84e34a87a4951ed6e8b736f3e8eaa429f564b447bf3390",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "10": {
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-factory-ruins-pixel-art-tileset-pack/2.png",
+      "source_sha256": "7d149e6f6b532d69820d572469a4135eef3a3d533739e6e642b1236a8e47ea0c",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "49": {
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-abandoned-supermarket-tileset/1.png",
+      "source_sha256": "55c39e50dd4eb03f17911aad85880678fb7eeb5cd0ea79d6e5a406922386a2cd",
+      "size": [
+        768,
+        768
+      ]
+    },
+    "14": {
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-hospital-tileset/2.png",
+      "source_sha256": "af7d1eab9504f14ff69732ddc0fa4a850a85500e1a83ad50f7cb7045eae7e400",
+      "size": [
+        768,
+        768
+      ]
+    }
+  },
+  "archives": {
+    "abandoned-assets(1).zip": "1fad33e0a477e38f1302babf1e4160fa8d939879e529e3237d8bccd284e16b95",
+    "post-apocalyptic-assets(1).zip": "bbb621af4e93ded631b68b51bc8eae60e86b00e522c4757a6cdf280e9c68eaa8"
+  },
+  "assets": {
+    "concrete": {
+      "source_index": 12,
+      "source_rect": [
+        96,
+        432,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        2,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "concrete_crack": {
+      "source_index": 12,
+      "source_rect": [
+        48,
+        432,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        22,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "concrete_grey": {
+      "source_index": 19,
+      "source_rect": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        42,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "metal_floor": {
+      "source_index": 19,
+      "source_rect": [
+        240,
+        48,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        62,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "road": {
+      "source_index": 60,
+      "source_rect": [
+        288,
+        432,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        82,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "road_crack": {
+      "source_index": 60,
+      "source_rect": [
+        336,
+        432,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        102,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "paving": {
+      "source_index": 60,
+      "source_rect": [
+        432,
+        96,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        122,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "grass": {
+      "source_index": 147,
+      "source_rect": [
+        240,
+        48,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        142,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "dirt": {
+      "source_index": 147,
+      "source_rect": [
+        48,
+        288,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        162,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "hospital_floor": {
+      "source_index": 19,
+      "source_rect": [
+        48,
+        48,
+        48,
+        48
+      ],
+      "kind": "floor",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        182,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "brick_wall": {
+      "source_index": 62,
+      "source_rect": [
+        0,
+        48,
+        96,
+        96
+      ],
+      "kind": "wall",
+      "trim": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        32
+      ],
+      "rect": [
+        202,
+        2,
+        32,
+        32
+      ],
+      "footprint": [
+        23,
+        9
+      ]
+    },
+    "factory_wall": {
+      "source_index": 12,
+      "source_rect": [
+        0,
+        0,
+        96,
+        96
+      ],
+      "kind": "wall",
+      "trim": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        32
+      ],
+      "rect": [
+        238,
+        2,
+        32,
+        32
+      ],
+      "footprint": [
+        23,
+        9
+      ]
+    },
+    "metal_wall": {
+      "source_index": 12,
+      "source_rect": [
+        288,
+        0,
+        96,
+        96
+      ],
+      "kind": "wall",
+      "trim": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        32
+      ],
+      "rect": [
+        274,
+        2,
+        32,
+        32
+      ],
+      "footprint": [
+        23,
+        9
+      ]
+    },
+    "shop_front": {
+      "source_index": 62,
+      "source_rect": [
+        0,
+        384,
+        192,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        64,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        64,
+        32
+      ],
+      "rect": [
+        310,
+        2,
+        64,
+        32
+      ],
+      "footprint": [
+        46,
+        9
+      ]
+    },
+    "crate_wood": {
+      "source_index": 18,
+      "source_rect": [
+        0,
+        0,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        9,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        23
+      ],
+      "rect": [
+        378,
+        2,
+        32,
+        23
+      ],
+      "footprint": [
+        23,
+        6
+      ]
+    },
+    "crate_green": {
+      "source_index": 18,
+      "source_rect": [
+        96,
+        0,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        10,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        22
+      ],
+      "rect": [
+        414,
+        2,
+        32,
+        22
+      ],
+      "footprint": [
+        23,
+        6
+      ]
+    },
+    "crate_broken": {
+      "source_index": 18,
+      "source_rect": [
+        192,
+        192,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        1,
+        31,
+        31
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        30,
+        30
+      ],
+      "rect": [
+        450,
+        2,
+        30,
+        30
+      ],
+      "footprint": [
+        22,
+        8
+      ]
+    },
+    "case": {
+      "source_index": 20,
+      "source_rect": [
+        624,
+        0,
+        48,
+        48
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        16
+      ],
+      "rect": [
+        484,
+        2,
+        16,
+        16
+      ],
+      "footprint": [
+        12,
+        4
+      ]
+    },
+    "barrel_red": {
+      "source_index": 18,
+      "source_rect": [
+        672,
+        0,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        16,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        32
+      ],
+      "rect": [
+        504,
+        2,
+        16,
+        32
+      ],
+      "footprint": [
+        12,
+        9
+      ]
+    },
+    "barrel_olive": {
+      "source_index": 18,
+      "source_rect": [
+        672,
+        96,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        16,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        32
+      ],
+      "rect": [
+        524,
+        2,
+        16,
+        32
+      ],
+      "footprint": [
+        12,
+        9
+      ]
+    },
+    "barrel_rust": {
+      "source_index": 18,
+      "source_rect": [
+        624,
+        192,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        16,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        32
+      ],
+      "rect": [
+        544,
+        2,
+        16,
+        32
+      ],
+      "footprint": [
+        12,
+        9
+      ]
+    },
+    "locker": {
+      "source_index": 18,
+      "source_rect": [
+        0,
+        576,
+        96,
+        192
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        1,
+        32,
+        64
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        63
+      ],
+      "rect": [
+        564,
+        2,
+        32,
+        63
+      ],
+      "footprint": [
+        23,
+        14
+      ]
+    },
+    "jeep": {
+      "source_index": 20,
+      "source_rect": [
+        192,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        8,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        24
+      ],
+      "rect": [
+        600,
+        2,
+        32,
+        24
+      ],
+      "footprint": [
+        26,
+        12
+      ]
+    },
+    "van": {
+      "source_index": 20,
+      "source_rect": [
+        0,
+        480,
+        144,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        2,
+        48,
+        30
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        47,
+        28
+      ],
+      "rect": [
+        636,
+        2,
+        47,
+        28
+      ],
+      "footprint": [
+        39,
+        13
+      ]
+    },
+    "tank": {
+      "source_index": 20,
+      "source_rect": [
+        0,
+        384,
+        192,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        1,
+        58,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        58,
+        31
+      ],
+      "rect": [
+        687,
+        2,
+        58,
+        31
+      ],
+      "footprint": [
+        48,
+        15
+      ]
+    },
+    "tower": {
+      "source_index": 20,
+      "source_rect": [
+        384,
+        240,
+        96,
+        144
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        32,
+        48
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        48
+      ],
+      "rect": [
+        749,
+        2,
+        32,
+        48
+      ],
+      "footprint": [
+        23,
+        13
+      ]
+    },
+    "sandbags": {
+      "source_index": 17,
+      "source_rect": [
+        0,
+        384,
+        192,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        1,
+        64,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        64,
+        31
+      ],
+      "rect": [
+        785,
+        2,
+        64,
+        31
+      ],
+      "footprint": [
+        46,
+        9
+      ]
+    },
+    "sandbag_turn": {
+      "source_index": 17,
+      "source_rect": [
+        192,
+        384,
+        192,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        4,
+        64,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        63,
+        28
+      ],
+      "rect": [
+        853,
+        2,
+        63,
+        28
+      ],
+      "footprint": [
+        45,
+        8
+      ]
+    },
+    "wire": {
+      "source_index": 17,
+      "source_rect": [
+        384,
+        336,
+        96,
+        48
+      ],
+      "kind": "decal",
+      "trim": [
+        0,
+        1,
+        32,
+        15
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        14
+      ],
+      "rect": [
+        920,
+        2,
+        32,
+        14
+      ],
+      "footprint": [
+        23,
+        4
+      ]
+    },
+    "fence": {
+      "source_index": 17,
+      "source_rect": [
+        672,
+        240,
+        96,
+        48
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        1,
+        31,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        30,
+        15
+      ],
+      "rect": [
+        956,
+        2,
+        30,
+        15
+      ],
+      "footprint": [
+        22,
+        4
+      ]
+    },
+    "lamp": {
+      "source_index": 17,
+      "source_rect": [
+        96,
+        0,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        5,
+        2,
+        27,
+        31
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        22,
+        29
+      ],
+      "rect": [
+        990,
+        2,
+        22,
+        29
+      ],
+      "footprint": [
+        16,
+        8
+      ]
+    },
+    "warning": {
+      "source_index": 17,
+      "source_rect": [
+        144,
+        192,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        1,
+        15,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        14,
+        31
+      ],
+      "rect": [
+        2,
+        69,
+        14,
+        31
+      ],
+      "footprint": [
+        10,
+        9
+      ]
+    },
+    "machine": {
+      "source_index": 10,
+      "source_rect": [
+        192,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        2,
+        1,
+        31,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        29,
+        31
+      ],
+      "rect": [
+        20,
+        69,
+        29,
+        31
+      ],
+      "footprint": [
+        21,
+        9
+      ]
+    },
+    "conveyor": {
+      "source_index": 10,
+      "source_rect": [
+        0,
+        48,
+        96,
+        48
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        32,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        16
+      ],
+      "rect": [
+        53,
+        69,
+        32,
+        16
+      ],
+      "footprint": [
+        23,
+        4
+      ]
+    },
+    "lathe": {
+      "source_index": 10,
+      "source_rect": [
+        0,
+        288,
+        192,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        64,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        64,
+        32
+      ],
+      "rect": [
+        89,
+        69,
+        64,
+        32
+      ],
+      "footprint": [
+        46,
+        9
+      ]
+    },
+    "pump": {
+      "source_index": 10,
+      "source_rect": [
+        576,
+        192,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        1,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        31
+      ],
+      "rect": [
+        157,
+        69,
+        32,
+        31
+      ],
+      "footprint": [
+        23,
+        9
+      ]
+    },
+    "power_console": {
+      "source_index": 10,
+      "source_rect": [
+        384,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        32
+      ],
+      "rect": [
+        193,
+        69,
+        32,
+        32
+      ],
+      "footprint": [
+        23,
+        9
+      ]
+    },
+    "industrial_crate": {
+      "source_index": 10,
+      "source_rect": [
+        288,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        31,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        31,
+        32
+      ],
+      "rect": [
+        229,
+        69,
+        31,
+        32
+      ],
+      "footprint": [
+        22,
+        9
+      ]
+    },
+    "bus": {
+      "source_index": 60,
+      "source_rect": [
+        384,
+        384,
+        192,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        2,
+        64,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        64,
+        30
+      ],
+      "rect": [
+        264,
+        69,
+        64,
+        30
+      ],
+      "footprint": [
+        52,
+        14
+      ]
+    },
+    "car_blue": {
+      "source_index": 60,
+      "source_rect": [
+        576,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        6,
+        32,
+        30
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        24
+      ],
+      "rect": [
+        332,
+        69,
+        32,
+        24
+      ],
+      "footprint": [
+        26,
+        12
+      ]
+    },
+    "car_red": {
+      "source_index": 60,
+      "source_rect": [
+        672,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        1,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        31,
+        31
+      ],
+      "rect": [
+        368,
+        69,
+        31,
+        31
+      ],
+      "footprint": [
+        25,
+        15
+      ]
+    },
+    "car_wreck": {
+      "source_index": 60,
+      "source_rect": [
+        384,
+        480,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        5,
+        32,
+        29
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        24
+      ],
+      "rect": [
+        403,
+        69,
+        32,
+        24
+      ],
+      "footprint": [
+        26,
+        12
+      ]
+    },
+    "truck": {
+      "source_index": 60,
+      "source_rect": [
+        480,
+        480,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        5,
+        32,
+        31
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        26
+      ],
+      "rect": [
+        439,
+        69,
+        32,
+        26
+      ],
+      "footprint": [
+        26,
+        12
+      ]
+    },
+    "tyres": {
+      "source_index": 60,
+      "source_rect": [
+        480,
+        288,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        1,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        31,
+        31
+      ],
+      "rect": [
+        475,
+        69,
+        31,
+        31
+      ],
+      "footprint": [
+        22,
+        9
+      ]
+    },
+    "barrier": {
+      "source_index": 60,
+      "source_rect": [
+        576,
+        288,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        2,
+        1,
+        31,
+        31
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        29,
+        30
+      ],
+      "rect": [
+        510,
+        69,
+        29,
+        30
+      ],
+      "footprint": [
+        21,
+        8
+      ]
+    },
+    "hydrant": {
+      "source_index": 60,
+      "source_rect": [
+        480,
+        576,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        2,
+        6,
+        15,
+        30
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        13,
+        24
+      ],
+      "rect": [
+        543,
+        69,
+        13,
+        24
+      ],
+      "footprint": [
+        9,
+        7
+      ]
+    },
+    "trash": {
+      "source_index": 60,
+      "source_rect": [
+        528,
+        576,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        7,
+        15,
+        30
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        14,
+        23
+      ],
+      "rect": [
+        560,
+        69,
+        14,
+        23
+      ],
+      "footprint": [
+        10,
+        6
+      ]
+    },
+    "bench": {
+      "source_index": 60,
+      "source_rect": [
+        576,
+        672,
+        96,
+        48
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        0,
+        31,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        30,
+        16
+      ],
+      "rect": [
+        578,
+        69,
+        30,
+        16
+      ],
+      "footprint": [
+        22,
+        4
+      ]
+    },
+    "shrub": {
+      "source_index": 60,
+      "source_rect": [
+        384,
+        576,
+        96,
+        96
+      ],
+      "kind": "decal",
+      "trim": [
+        4,
+        7,
+        29,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        25,
+        25
+      ],
+      "rect": [
+        612,
+        69,
+        25,
+        25
+      ],
+      "footprint": [
+        18,
+        7
+      ]
+    },
+    "weeds": {
+      "source_index": 60,
+      "source_rect": [
+        672,
+        672,
+        48,
+        48
+      ],
+      "kind": "decal",
+      "trim": [
+        2,
+        1,
+        15,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        13,
+        15
+      ],
+      "rect": [
+        641,
+        69,
+        13,
+        15
+      ],
+      "footprint": [
+        9,
+        4
+      ]
+    },
+    "rubble": {
+      "source_index": 62,
+      "source_rect": [
+        0,
+        192,
+        192,
+        192
+      ],
+      "kind": "decal",
+      "trim": [
+        0,
+        5,
+        64,
+        63
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        64,
+        58
+      ],
+      "rect": [
+        658,
+        69,
+        64,
+        58
+      ],
+      "footprint": [
+        46,
+        14
+      ]
+    },
+    "rubble_small": {
+      "source_index": 62,
+      "source_rect": [
+        192,
+        672,
+        96,
+        96
+      ],
+      "kind": "decal",
+      "trim": [
+        3,
+        6,
+        30,
+        27
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        27,
+        21
+      ],
+      "rect": [
+        726,
+        69,
+        27,
+        21
+      ],
+      "footprint": [
+        19,
+        6
+      ]
+    },
+    "stairwell": {
+      "source_index": 62,
+      "source_rect": [
+        192,
+        384,
+        96,
+        192
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        32,
+        64
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        64
+      ],
+      "rect": [
+        757,
+        69,
+        32,
+        64
+      ],
+      "footprint": [
+        26,
+        31
+      ]
+    },
+    "generator": {
+      "source_index": 62,
+      "source_rect": [
+        384,
+        192,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        2,
+        2,
+        30,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        28,
+        30
+      ],
+      "rect": [
+        793,
+        69,
+        28,
+        30
+      ],
+      "footprint": [
+        20,
+        8
+      ]
+    },
+    "fountain": {
+      "source_index": 62,
+      "source_rect": [
+        576,
+        0,
+        192,
+        192
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        4,
+        64,
+        64
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        64,
+        60
+      ],
+      "rect": [
+        825,
+        69,
+        64,
+        60
+      ],
+      "footprint": [
+        46,
+        14
+      ]
+    },
+    "gas_pump": {
+      "source_index": 62,
+      "source_rect": [
+        672,
+        288,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        1,
+        16,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        15,
+        31
+      ],
+      "rect": [
+        893,
+        69,
+        15,
+        31
+      ],
+      "footprint": [
+        11,
+        9
+      ]
+    },
+    "tent": {
+      "source_index": 62,
+      "source_rect": [
+        576,
+        576,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        2,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        31,
+        30
+      ],
+      "rect": [
+        912,
+        69,
+        31,
+        30
+      ],
+      "footprint": [
+        22,
+        8
+      ]
+    },
+    "puddle": {
+      "source_index": 62,
+      "source_rect": [
+        384,
+        480,
+        96,
+        96
+      ],
+      "kind": "decal",
+      "trim": [
+        1,
+        3,
+        31,
+        29
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        30,
+        26
+      ],
+      "rect": [
+        947,
+        69,
+        30,
+        26
+      ],
+      "footprint": [
+        22,
+        7
+      ]
+    },
+    "tree_dead": {
+      "source_index": 147,
+      "source_rect": [
+        384,
+        0,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        3,
+        1,
+        28,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        25,
+        31
+      ],
+      "rect": [
+        981,
+        69,
+        25,
+        31
+      ],
+      "footprint": [
+        18,
+        9
+      ]
+    },
+    "stump": {
+      "source_index": 147,
+      "source_rect": [
+        672,
+        0,
+        48,
+        48
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        2,
+        16,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        15,
+        14
+      ],
+      "rect": [
+        2,
+        137,
+        15,
+        14
+      ],
+      "footprint": [
+        11,
+        4
+      ]
+    },
+    "fallen_log": {
+      "source_index": 147,
+      "source_rect": [
+        576,
+        192,
+        48,
+        48
+      ],
+      "kind": "decal",
+      "trim": [
+        1,
+        1,
+        15,
+        16
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        14,
+        15
+      ],
+      "rect": [
+        21,
+        137,
+        14,
+        15
+      ],
+      "footprint": [
+        10,
+        4
+      ]
+    },
+    "fern": {
+      "source_index": 147,
+      "source_rect": [
+        576,
+        432,
+        48,
+        48
+      ],
+      "kind": "decal",
+      "trim": [
+        2,
+        4,
+        14,
+        14
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        12,
+        10
+      ],
+      "rect": [
+        39,
+        137,
+        12,
+        10
+      ],
+      "footprint": [
+        9,
+        3
+      ]
+    },
+    "shelf": {
+      "source_index": 49,
+      "source_rect": [
+        0,
+        0,
+        144,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        48,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        48,
+        32
+      ],
+      "rect": [
+        55,
+        137,
+        48,
+        32
+      ],
+      "footprint": [
+        35,
+        9
+      ]
+    },
+    "shelf_tins": {
+      "source_index": 49,
+      "source_rect": [
+        240,
+        96,
+        144,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        3,
+        48,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        48,
+        29
+      ],
+      "rect": [
+        107,
+        137,
+        48,
+        29
+      ],
+      "footprint": [
+        35,
+        8
+      ]
+    },
+    "freezer": {
+      "source_index": 49,
+      "source_rect": [
+        288,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        32
+      ],
+      "rect": [
+        159,
+        137,
+        32,
+        32
+      ],
+      "footprint": [
+        23,
+        9
+      ]
+    },
+    "checkout": {
+      "source_index": 49,
+      "source_rect": [
+        384,
+        480,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        8,
+        32,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        24
+      ],
+      "rect": [
+        195,
+        137,
+        32,
+        24
+      ],
+      "footprint": [
+        23,
+        7
+      ]
+    },
+    "cart": {
+      "source_index": 49,
+      "source_rect": [
+        576,
+        240,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        4,
+        16,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        16,
+        28
+      ],
+      "rect": [
+        231,
+        137,
+        16,
+        28
+      ],
+      "footprint": [
+        12,
+        8
+      ]
+    },
+    "boxes": {
+      "source_index": 49,
+      "source_rect": [
+        624,
+        144,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        11,
+        16,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        15,
+        21
+      ],
+      "rect": [
+        251,
+        137,
+        15,
+        21
+      ],
+      "footprint": [
+        11,
+        6
+      ]
+    },
+    "bed_blue": {
+      "source_index": 14,
+      "source_rect": [
+        240,
+        96,
+        96,
+        144
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        6,
+        32,
+        48
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        42
+      ],
+      "rect": [
+        270,
+        137,
+        32,
+        42
+      ],
+      "footprint": [
+        26,
+        20
+      ]
+    },
+    "bed_green": {
+      "source_index": 14,
+      "source_rect": [
+        384,
+        96,
+        96,
+        144
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        6,
+        32,
+        48
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        32,
+        42
+      ],
+      "rect": [
+        306,
+        137,
+        32,
+        42
+      ],
+      "footprint": [
+        26,
+        20
+      ]
+    },
+    "medical_screen": {
+      "source_index": 14,
+      "source_rect": [
+        576,
+        96,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        0,
+        31,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        30,
+        32
+      ],
+      "rect": [
+        342,
+        137,
+        30,
+        32
+      ],
+      "footprint": [
+        22,
+        9
+      ]
+    },
+    "medical_table": {
+      "source_index": 14,
+      "source_rect": [
+        192,
+        384,
+        192,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        4,
+        5,
+        56,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        52,
+        27
+      ],
+      "rect": [
+        376,
+        137,
+        52,
+        27
+      ],
+      "footprint": [
+        37,
+        8
+      ]
+    },
+    "oxygen": {
+      "source_index": 14,
+      "source_rect": [
+        0,
+        96,
+        48,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        4,
+        5,
+        11,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        7,
+        27
+      ],
+      "rect": [
+        432,
+        137,
+        7,
+        27
+      ],
+      "footprint": [
+        5,
+        8
+      ]
+    },
+    "wheelchair": {
+      "source_index": 14,
+      "source_rect": [
+        96,
+        0,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        6,
+        26,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        26,
+        26
+      ],
+      "rect": [
+        443,
+        137,
+        26,
+        26
+      ],
+      "footprint": [
+        19,
+        7
+      ]
+    },
+    "cabinet": {
+      "source_index": 14,
+      "source_rect": [
+        576,
+        384,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        1,
+        1,
+        30,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        29,
+        31
+      ],
+      "rect": [
+        473,
+        137,
+        29,
+        31
+      ],
+      "footprint": [
+        21,
+        9
+      ]
+    },
+    "med_tools": {
+      "source_index": 14,
+      "source_rect": [
+        192,
+        480,
+        96,
+        96
+      ],
+      "kind": "prop",
+      "trim": [
+        0,
+        11,
+        31,
+        32
+      ],
+      "normalization": "nearest 1/3",
+      "size": [
+        31,
+        21
+      ],
+      "rect": [
+        506,
+        137,
+        31,
+        21
+      ],
+      "footprint": [
+        22,
+        6
+      ]
+    }
+  },
+  "palette": "shared 256 colors, no dithering; original sprites only",
+  "license_status": "user_supplied_internal_review_only_no_distribution_grant_claimed"
+}
