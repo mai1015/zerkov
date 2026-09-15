@@ -5,6 +5,9 @@ on:
       - 'game/combat/**'
       - 'game/input/combat/**'
       - 'game/presentation/**'
+      - 'game/world/player/**'
+      - 'game/inventory/equipment/**'
+      - 'ui/screens/raid/hud.gd'
       - 'tests/combat/**'
       - 'tests/tooling/test_combat*'
       - 'tools/run_combat*'
@@ -16,43 +19,25 @@ concurrency:
   group: combat-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  source-and-tooling:
+  tooling:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Test runner
-        run: python3 tests/tooling/test_combat_input_runner.py
-      - name: Source-only reproduction snapshot
-        if: always()
-        run: |
-          python3 - <<'PY'
-          import pathlib, subprocess, zipfile
-          root = pathlib.Path('.')
-          allowed = {'.gd', '.uid', '.tscn', '.tres', '.json', '.py', '.md', '.gdextension', '.yml', '.yaml'}
-          files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
-          with zipfile.ZipFile('combat-sources.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-              for name in files:
-                  path = root / name
-                  if name and path.is_file() and not path.is_symlink() and (path.suffix in allowed or name == 'project.godot'):
-                      archive.write(path, name)
-              archive.writestr('REPRODUCTION_COMMIT', subprocess.check_output(['git', 'rev-parse', 'HEAD']))
-          PY
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: combat-sources
-          path: combat-sources.zip
-          retention-days: 1
+      - run: python3 tests/tooling/test_combat_input_runner.py
   native-macos:
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Record source revision
+        run: |
+          git rev-parse HEAD
+          shasum -a 256 tests/combat/native_combat_execution_contract.gd
       - name: Install exact locked engine
         shell: bash
         run: |
@@ -61,5 +46,5 @@ jobs:
           curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
           ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
           echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
-      - name: Real authority input contract
-        run: python3 tools/run_combat_input_contracts.py --godot "$ZERKOV_GODOT" --native
+      - name: Real authority and combat execution contracts
+        run: python3 tools/run_combat_input_contracts.py --godot "$ZERKOV_GODOT" --native --execution
