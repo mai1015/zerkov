@@ -51,7 +51,7 @@ func bind(raid: RaidAuthority, weapons: WeaponAuthority, fire: WeaponCombatAdapt
 	_generation = generation
 	_admission = raid.admission()
 	var rows: Array = [
-		[RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS, COMMANDS, Callable(self, "_commands"), 50, context_handlers],
+		[RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS, COMMANDS, Callable(self, "_commands"), 150, context_handlers],
 		[RaidAuthority.TickPhase.WORLD_CONSEQUENCES, CONTACTS, Callable(self, "_contacts"), 200, PackedStringArray()],
 		[RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK, DUE, Callable(self, "_due"), 50, PackedStringArray([HealthConsequenceAdapter.PHASE_HANDLER_ID])],
 		[RaidAuthority.TickPhase.PUBLISH_PROJECTIONS, PUBLISH, Callable(self, "_publish"), 0, PackedStringArray()],
