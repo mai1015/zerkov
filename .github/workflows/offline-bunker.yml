@@ -1,0 +1,67 @@
+name: Offline bunker integration
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/offline-bunker.yml'
+      - 'tools/offline-transfer/**'
+      - 'tools/publish_offline_candidate.py'
+      - 'tools/register_offline_bunker.py'
+      - 'game/offline/**'
+      - 'game/bootstrap/offline_application*'
+      - 'ui/**'
+      - 'tests/presentation/offline_bunker_flow.gd'
+      - 'tests/tooling/*offline_bunker*'
+      - 'project.godot'
+      - 'config/first_playable_1080_gate.json'
+permissions:
+  contents: read
+jobs:
+  native-offline:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/offline-bunker-entry'
+    runs-on: macos-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Publish the exact authored source candidate on this branch only
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if test -f tools/offline-transfer/00.part; then
+            python3 tools/publish_offline_candidate.py
+            actual=$(git ls-remote origin refs/heads/feat/offline-bunker-entry | cut -f1)
+            test "$actual" = "$EXPECTED_HEAD"
+            git rm -- tools/offline-transfer/00.part tools/offline-transfer/01.part tools/offline-transfer/02.part tools/offline-transfer/03.part tools/publish_offline_candidate.py
+            git diff --cached --check
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'feat(offline): connect local startup, bunker and saved native inventory'
+            git push origin HEAD:refs/heads/feat/offline-bunker-entry
+          fi
+      - name: Verify exact-output registration
+        run: |
+          python3 tools/check_first_playable_1080.py
+          git diff --check
+      - name: Install exact native engine
+        run: |
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_macos.universal.zip -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Real offline startup, inventory, failure handling and independent Continue process
+        run: python3 -u tests/tooling/run_offline_bunker_gate.py --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/offline-headless"
+      - name: Native graphical bunker and inventory capture
+        run: python3 -u tests/tooling/run_offline_bunker_gate.py --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/offline-graphical" --graphical
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: offline-bunker-native-results
+          path: |
+            ${{ runner.temp }}/offline-headless
+            ${{ runner.temp }}/offline-graphical
+          retention-days: 7
