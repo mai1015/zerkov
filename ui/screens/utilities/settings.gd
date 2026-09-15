@@ -350,7 +350,7 @@ func _build_offline_settings() -> void:
         if section in SETTINGS_SECTIONS:
             node.visible = section == "audio"
     for node: Node in find_children("*", "Button", true, false):
-        if node.has_meta("settings_kind") or node.has_meta("settings_category"):
+        if node.has_meta("settings_kind") or node.has_meta("settings_category") or node.has_meta("settings_preset"):
             node.disabled = true
             node.tooltip_text = "Unavailable before raid integration"
     for node: Node in find_children("*", "HSlider", true, false):
@@ -371,6 +371,7 @@ func _build_offline_settings() -> void:
         volume.max_value = 100
         volume.step = 1
         volume.set_value_no_signal(int(status.get("master_volume", 80)))
+        get_node("SettingAudioMasterValue").text = "%d%%" % int(status.get("master_volume", 80))
         volume.editable = bool(status.open)
         volume.tooltip_text = "Master volume · saved on this local profile" if status.open else "Open your local profile first"
         if not volume.value_changed.is_connected(_offline_volume_changed):
@@ -404,6 +405,7 @@ func _offline_volume_changed(value: float) -> void:
             if str(node.get_meta("settings_key", "")) == "audio_master":
                 node.set_value_no_signal(int(offline.local_status().master_volume))
         toast("Volume was not saved · " + String(offline.local_status().error))
+    get_node("SettingAudioMasterValue").text = "%d%%" % int(offline.local_status().master_volume)
 
 func _offline_open_controls() -> void:
     if accepts_input():

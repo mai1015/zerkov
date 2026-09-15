@@ -193,6 +193,7 @@ func _send(operation: String, source: StringName, target: StringName, item: Dict
 func _feedback(result: Dictionary) -> Dictionary:
 	result = result.duplicate(true)
 	result["ui_resolved"] = true
+	result = RaidProgressionValues.freeze(result)
 	if result.get("accepted", false):
 		_selected.clear()
 		projection_changed.emit(SCOPE_PROFILE)
@@ -201,4 +202,4 @@ func _feedback(result: Dictionary) -> Dictionary:
 	else:
 		last_error = StringName(result.get("reason", "rejected"))
 		rejection_feedback.emit(result)
-	return RaidProgressionValues.freeze(result)
+	return result
