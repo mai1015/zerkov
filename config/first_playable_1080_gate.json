@@ -188,6 +188,10 @@
     "tools/run_combat_input_contracts.py": {
       "purpose": "exact headless combat input, melee/HUD values and native execution regressions in temporary projects",
       "sha256": "93d337c5f7bb2bd61497ba5b5ada9d155210ca047ff1d3f8b55d0b49ff9308dc"
+    },
+    "tools/run_raid_progression_contracts.py": {
+      "purpose": "exact headless native raid progression and separate-process settlement restart contracts",
+      "sha256": "708399956f5264f132449cb23b49c01abff10fea485a3036b5d22d5d6e636e51"
     }
   },
   "active_reviewed_support": {
@@ -249,9 +253,12 @@
     "tests/raid/inventory_projection_contract.gd",
     "tests/raid/inventory_weapon_reload_contract.gd",
     "tests/raid/movement_authority_contract.gd",
+    "tests/raid/native_raid_progression_contract.gd",
     "tests/raid/navigation_path_contract.gd",
     "tests/raid/player_locomotion_contract.gd",
     "tests/raid/profile_store_contract.gd",
+    "tests/raid/raid_progression_contract.gd",
+    "tests/raid/raid_restart_contract.gd",
     "tests/raid/sawmill_contract.gd",
     "tests/raid/sawmill_layout_contract.gd",
     "tests/raid/sawmill_tileset_contract.gd",

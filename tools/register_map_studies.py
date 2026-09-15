@@ -16,13 +16,13 @@ for group,path,purpose in [('active_visual_entrypoints',visual,'two original map
 manifest['sanctioned_capture_writers'][visual]={'physical_guard_call':'Exact1080CaptureGuard.accepts(root, root, image)','guard_anchors':['root.size=EXACT','const EXACT := Vector2i(1920,1080)']}
 test=ROOT/'tests/tooling/test_ui_first_playable_scope.py'
 source=test.read_text()
-old='self.assertEqual(26, len(self.manifest["active_visual_entrypoints"]))'
-new='self.assertEqual(27, len(self.manifest["active_visual_entrypoints"]))'
-expanded='self.assertEqual(28, len(self.manifest["active_visual_entrypoints"]))'
+old='self.assertEqual(27, len(self.manifest["active_visual_entrypoints"]))'
+new='self.assertEqual(28, len(self.manifest["active_visual_entrypoints"]))'
+expanded='self.assertEqual(29, len(self.manifest["active_visual_entrypoints"]))'
 if old in source:
     source=source.replace(old,new)
 elif new not in source:
-    if (expanded not in source or len(manifest['active_visual_entrypoints']) != 28
+    if (expanded not in source or len(manifest['active_visual_entrypoints']) != 29
             or 'tests/presentation/northline_zone_contract.gd' not in manifest['active_visual_entrypoints']
             or 'tests/tooling/run_northline_zone_gate.py' not in manifest['active_command_entrypoints']
             or 'tests/presentation/northline_zone_contract.gd' not in manifest['sanctioned_capture_writers']):
