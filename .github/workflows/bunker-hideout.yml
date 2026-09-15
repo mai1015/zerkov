@@ -1,0 +1,52 @@
+name: Native bunker hideout capture
+on:
+  pull_request:
+    paths:
+      - 'game/presentation/bunker/**'
+      - 'assets/world/bunker/**'
+      - 'ui/screens/bunker/bunker_hideout_screen.gd'
+      - 'tests/presentation/bunker_hideout_contract.gd'
+      - 'tests/tooling/*bunker_hideout*.py'
+      - 'tools/prepare_bunker_hideout.py'
+      - '.github/workflows/bunker-hideout.yml'
+permissions:
+  contents: read
+jobs:
+  capture:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/bunker-hideout-map'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Install renderer prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          python3 -m pip install 'Pillow==12.3.0'
+      - name: Validate authored kit and integrate the existing host
+        run: |
+          python3 tools/prepare_bunker_hideout.py
+          python3 -m unittest discover -s tests/tooling -p test_bunker_hideout.py -v
+          git diff --check
+      - name: Fetch exact Godot
+        run: |
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Capture actual Godot scene twice, test input and lighting
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tests/tooling/run_bunker_hideout_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/bunker-capture"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: bunker-native-1080
+          path: |
+            ${{ runner.temp }}/bunker-capture/bunker-standard-1080.png
+            ${{ runner.temp }}/bunker-capture/bunker-emergency-1080.png
+            ${{ runner.temp }}/bunker-capture/capture.json
+          if-no-files-found: error
+          retention-days: 30
