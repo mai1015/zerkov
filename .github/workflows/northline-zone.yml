@@ -1,0 +1,81 @@
+name: Northline full zone
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/northline-zone.yml'
+      - 'tools/northline-transfer/**'
+      - 'tools/unpack_northline_sources.py'
+      - 'game/presentation/northline_zone/**'
+      - 'assets/world/northline_zone/**'
+      - 'tests/presentation/northline_zone_contract.gd'
+      - 'tests/tooling/*northline*'
+      - 'tools/*northline*'
+      - 'tools/check_map_study_scope.py'
+      - 'config/first_playable_1080_gate.json'
+permissions:
+  contents: read
+jobs:
+  native-zone:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/extraction-map-studies'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Publish reviewed source candidate
+        run: |
+          python3 tools/unpack_northline_sources.py
+          python3 tools/author_northline_zone.py
+          python3 tools/review_northline_routes.py --write
+          echo '53a3960f6d4b8df6129b36c0feb3c7e08ce745bee44f563ba6d93799eac6cba1  game/presentation/northline_zone/zone.json' | sha256sum --check --strict
+          python3 tools/register_northline_zone.py
+      - name: Prepare renderer and validate authored content
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          python3 -m pip install 'Pillow==12.3.0'
+          python3 -m unittest discover -s tests/tooling -p test_northline_zone.py -v
+          python3 -m unittest discover -s tests/tooling -p test_map_studies.py -v
+          python3 tools/check_map_study_scope.py
+          git diff --check
+      - name: Fetch checksum-pinned Godot
+        run: |
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Render full map and verify native collision walkthrough twice
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tests/tooling/run_northline_zone_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/northline-native"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: northline-full-zone-native
+          path: |
+            ${{ runner.temp }}/northline-native/*.png
+            ${{ runner.temp }}/northline-native/*.json
+            ${{ runner.temp }}/northline-native/*.log
+          retention-days: 30
+      - name: Retain validated ordinary sources on this PR branch only
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          branch=feat/extraction-map-studies
+          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$actual" = "$EXPECTED_HEAD"
+          cp "$RUNNER_TEMP/northline-native/capture.json" docs/qa/northline_zone/
+          cp "$RUNNER_TEMP/northline-native/northline-full-map-1080.png" docs/qa/northline_zone/
+          cp "$RUNNER_TEMP/northline-native/northline-walkthrough-1080.png" docs/qa/northline_zone/
+          git add -- game/presentation/northline_zone assets/world/northline_zone docs/qa/northline_zone docs/spec/changes/expand-northline-zone-2026-09-15 tests/presentation/northline_zone_contract.gd tests/tooling/run_northline_zone_gate.py tests/tooling/test_northline_zone.py tools/author_northline_zone.py tools/check_map_study_scope.py tools/import_northline_walker.py tools/register_northline_zone.py tools/review_northline_routes.py config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py
+          git rm -- tools/northline-transfer/00.part tools/northline-transfer/01.part tools/northline-transfer/02.part tools/northline-transfer/03.part tools/unpack_northline_sources.py
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(maps): retain verified full Northline zone and native overview'
+          git push origin "HEAD:refs/heads/$branch"
