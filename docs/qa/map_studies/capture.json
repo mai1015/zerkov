@@ -1,0 +1,38 @@
+{
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "runs": 2,
+  "checks": 58,
+  "failures": 0,
+  "unexpected_diagnostics": 0,
+  "known_vsync_notices": 2,
+  "output": [
+    1920,
+    1080
+  ],
+  "world": [
+    640,
+    360
+  ],
+  "scale": 3,
+  "screenshots": {
+    "mercury-clinic-1080.png": "bbd2b960f5df402ffe27f131c84beddfd857786f11f54998a58835793ca0e83b",
+    "mercury-crossing-1080.png": "afcb88a34e146bc478d25c2ff644240c059dbf1ecab0edf5278fd7781ebe1ffc",
+    "mercury-market-1080.png": "b1a43e3dfb7b78c86959ea82e09e7e618e64b036e3176c2b9a0abe6e707721c4",
+    "northline-depot-1080.png": "6f0a039df463066f0f82b23ca64ec7278bc1c70de03a054b3fd72c49bda07fa0",
+    "northline-freight-1080.png": "dc618f30c8d985706ac9c06d81dce23ff1448671a92878150135144799c60786",
+    "northline-fuel-1080.png": "316aba4573d42a8b6a2d1e7a64a77feb8792227de623bbfc6ed66a5564e5df64",
+    "northline-route-study-1080.png": "7537787f0c7b9ff5363e1af3f26ab90b24db7e310e5bf404ef642ed063985bda"
+  },
+  "source_files": {
+    "game/presentation/map_studies/README.md": "df67f6239e91c1ff1e12c8d8a2bbec7150f7ee992ef6fa33ccbadc575f1cd7d2",
+    "game/presentation/map_studies/map_studies.gd": "6d778c5cd01c0f9d6ab96e9b2adea80360b6dd706babb2e1c42867292dcc615f",
+    "game/presentation/map_studies/map_studies.tscn": "37eb63b674318fa78f3f757efd56a9a26eec17bd1f7ff133da695a1906322daf",
+    "game/presentation/map_studies/map_study_world.gd": "e098ed61e8247c238d718eb426f7b16c3d6f2005f9c151f295e6fb10c91219d4",
+    "game/presentation/map_studies/maps.json": "6d98b0efc31538d2dc754984c5cb3591e435000b7c21bad68b622bb06183c2a4",
+    "assets/world/map_studies/atlas.json": "e0a74888be282c2884709bae9f67694429a45f20920e07617815a5ede492b85a",
+    "assets/world/map_studies/atlas.webp": "d2b018bd1fe2bfed07554c7e13c1aa2bbb7bd2d569698cf471539dfdb963179c",
+    "assets/world/map_studies/atlas.webp.import": "7abe8ec5bb0146b242aa6e529de0d73ac33382b156c6ddf246d1a04b37389204"
+  },
+  "scope": "two environment studies, not live raid or full UI host",
+  "human_approval": false
+}

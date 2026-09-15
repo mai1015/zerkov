@@ -15,6 +15,79 @@ const CROSSHAIR_COLORS: Dictionary = {
 	"YELLOW": YELLOW,
 }
 
+
+# Bound gameplay never falls back to sample ammo, health or timed fake reloads.
+var _combat_model: ZCombatHudModel
+var _combat_bound_once: bool = false
+
+func bind_combat_model(model: ZCombatHudModel) -> bool:
+	if model == null or _combat_model != null: return false
+	_combat_bound_once = true
+	_combat_model = model
+	model.changed.connect(_apply_combat_view)
+	if is_node_ready(): _apply_combat_view(model.snapshot())
+	return true
+
+func _process(delta: float) -> void:
+	if not _combat_bound_once:
+		super._process(delta)
+		return
+	# Cosmetic elapsed time is never used to fill ammunition or heal the actor.
+	_shot_time = maxf(0.0, _shot_time - delta)
+	if is_instance_valid(_crosshair):
+		_crosshair.set("spread", _shot_time * 20.0)
+		if _shot_time == 0.0: _crosshair.set("hit", false)
+		_crosshair.queue_redraw()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _combat_bound_once: super._unhandled_input(event)
+
+func _apply_combat_view(view: Dictionary) -> void:
+	if not is_node_ready(): return
+	var available: bool = view.get("available", false)
+	(get_node("WeaponGroup/AmmoCounter") as Label).text = str(view.ammo) if available and view.has_weapon else "—"
+	(get_node("WeaponGroup/AmmoReserve") as Label).text = "/ " + str(view.reserve) if available else ""
+	(get_node("WeaponGroup/WeaponName") as Label).text = "AKM · 7.62×39" if available and view.has_weapon else "NO FIREARM"
+	(get_node("WeaponGroup/FireMode") as Label).text = "SEMI" if available and view.has_weapon else ""
+	# Task 7 owns these projections; suppress authored demonstration claims.
+	(get_node("TimerGroup/Timer") as Label).text = "—"
+	(get_node("TimerGroup/Extract") as Label).text = "RAID PROGRESSION UNAVAILABLE"
+	get_node("FeedGroup").visible = false
+	(get_node("VitalsGroup/PlayerName") as Label).text = "OPERATOR" if not available or view.alive else "DEAD"
+	var health_readout := get_node("VitalsGroup/HealthReadout") as Label
+	health_readout.visible = true
+	health_readout.text = "%d / %d" % [int(view.health_micros) / 1_000_000, int(view.max_health_micros) / 1_000_000] if available else "—"
+	(get_node("VitalsGroup/HealthFill") as ColorRect).size.x = 340.0 * float(view.get("health_ratio", 0.0))
+	for index in range(7):
+		var segment := get_node("VitalsGroup/HealthSegment%d" % (index + 1)) as ColorRect
+		var ratio: float = 0.0
+		if available:
+			var part: Dictionary = view.body_parts[index]
+			ratio = float(part.health_micros) / maxi(1, int(part.max_health_micros))
+		segment.modulate.a = maxf(0.15, ratio)
+		segment.color = GREEN if ratio > 0.5 else RED
+	(get_node("VitalsGroup/EnergyFill") as ColorRect).size.x = 139.0 * float(view.get("stamina_ratio", 0.0))
+	(get_node("VitalsGroup/ThirstFill") as ColorRect).size.x = 139.0 * float(view.get("hydration_ratio", 0.0))
+	get_node("VitalsGroup/StatusBleeding").visible = available and view.bleeding
+	get_node("VitalsGroup/StatusFracture").visible = available and view.fractured
+	get_node("VitalsGroup/StatusDehydrated").visible = available and view.hydration_ratio <= 0.0
+	(get_node("VitalsGroup/QuickHealDetail") as Label).text = String(view.get("correction", ""))
+	get_node("VitalsGroup/QuickHealDetail").visible = not String(view.get("correction", "")).is_empty()
+	get_node("VitalsGroup/QuickHealTitle").visible = available and (view.bleeding or view.fractured)
+	get_node("VitalsGroup/QuickHealKey").visible = available and (view.bleeding or view.fractured)
+	var ring := get_node("ReloadOverlay/ReloadRing")
+	ring.visible = available and view.reloading
+	ring.call("set_progress", float(view.get("reload_progress", 0.0)))
+	get_node("ReloadOverlay/ReloadConnector").visible = ring.visible
+	get_node("EmptyMagOverlay").visible = available and view.has_weapon and view.ammo == 0 and not view.reloading
+	if available:
+		for feedback: Dictionary in view.feedback:
+			if feedback.kind == &"shot": _shot_time = 0.15
+			if is_instance_valid(_crosshair):
+				_crosshair.set("hit", feedback.get("damage_confirmed", false))
+				_crosshair.set("kill", feedback.get("kill_confirmed", false))
+
+
 func build() -> void:
 	reset_adaptive_layout()
 	_sync_mock_state()
@@ -30,6 +103,7 @@ func build() -> void:
 	_bind_crosshair()
 	_bind_overlays()
 	queue_adaptive_layout()
+	if _combat_model != null: _apply_combat_view(_combat_model.snapshot())
 
 
 func _reset_desktop_positions() -> void:

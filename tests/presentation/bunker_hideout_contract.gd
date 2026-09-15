@@ -1,7 +1,7 @@
 extends SceneTree
 ## Genuine graphical capture of the exact production view, not a painted mockup.
 const VIEW = preload("res://game/presentation/bunker/bunker_hideout_view.tscn")
-const Guard = preload("res://game/presentation/exact_1080_capture_guard.gd")
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 var checks := 0
 var failures := 0
 var view: ZBunkerHideoutView
@@ -90,13 +90,14 @@ func capture(filename: String) -> Image:
 		await process_frame
 	await RenderingServer.frame_post_draw
 	var image := root.get_texture().get_image()
-	if not Guard.accepts(root, root, image):
+	if not Exact1080CaptureGuard.accepts(root, root, image):
 		push_error("BUNKER_CAPTURE_PHYSICAL_GUARD")
 		failures += 1
 		return null
 	expect(image.get_size() == Vector2i(1920, 1080), "raw screenshot dimensions")
 	DirAccess.make_dir_recursive_absolute(output)
-	if not Guard.accepts(root, root, image):
+	if not Exact1080CaptureGuard.accepts(root, root, image):
 		return null
-	expect(image.save_png(output.path_join(filename)) == OK, "save native PNG")
+	var saved := image.save_png(output.path_join(filename))
+	expect(saved == OK, "save native PNG")
 	return image

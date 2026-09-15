@@ -1343,8 +1343,15 @@ func _new_fixture(label: String, use_player_actor: bool = false) -> Dictionary:
 		target, ZRaidIntent.Source.PLAYER if use_player_actor \
 			else ZRaidIntent.Source.AI, component, component.entity_id)
 	check(bool(registration.get("accepted", false))
-		and int(registration.get("ability_count", 0)) == 36,
+		and int(registration.get("ability_count", 0)) == 37,
 		label + " health actor registers all owned transitions")
+	var stamina_grants: int = 0
+	for spec in component.granted_specs():
+		var grant := component.get_grant(spec)
+		if String(grant.get("ability_identifier", "")) == String(ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND) \
+			and not bool(grant.get("revoked", true)):
+			stamina_grants += 1
+	check(stamina_grants == 1, label + " owns exactly one live stamina-spend grant")
 	var fixture := {
 		"label": label,
 		"raid_id": raid_id,

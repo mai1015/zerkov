@@ -23,7 +23,7 @@ def prepare():
     driver='tests/tooling/run_bunker_hideout_gate.py'
     for group,name,purpose in [('active_visual_entrypoints',gd,'Native bunker production-view rendering and actual mouse input'),('active_command_entrypoints',driver,'Exact-1080 graphical bunker capture gate')]:
         data[group][name]={'purpose':purpose,'sha256':hashlib.sha256((ROOT/name).read_bytes()).hexdigest()}
-    data['sanctioned_capture_writers'][gd]={'physical_guard_call':'Guard.accepts(root, root, image)','guard_anchors':['root.size = Vector2i(1920, 1080)','image.get_size() == Vector2i(1920, 1080)']}
+    data['sanctioned_capture_writers'][gd]={'physical_guard_call':'Exact1080CaptureGuard.accepts(root, root, image)','guard_anchors':['root.size = Vector2i(1920, 1080)','image.get_size() == Vector2i(1920, 1080)']}
     path.write_text(json.dumps(data,indent=2)+'\n')
     tests=ROOT/'tests/tooling/test_ui_first_playable_scope.py';text=tests.read_text()
     text=text.replace('self.assertEqual(26, len(self.manifest["active_visual_entrypoints"]))','self.assertEqual(27, len(self.manifest["active_visual_entrypoints"]))')

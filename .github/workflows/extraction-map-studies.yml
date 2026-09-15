@@ -1,0 +1,50 @@
+name: Extraction map studies
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/extraction-map-studies.yml'
+      - 'game/presentation/map_studies/**'
+      - 'assets/world/map_studies/**'
+      - 'tests/presentation/map_studies*'
+      - 'tests/tooling/*map_studies*'
+      - 'tools/*map_stud*'
+      - 'config/first_playable_1080_gate.json'
+permissions:
+  contents: read
+jobs:
+  native-map-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare native rendering and verify authored content
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          python3 -m pip install 'Pillow==12.3.0'
+          python3 tools/register_map_studies.py
+          git diff --exit-code -- config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py
+          python3 -m unittest discover -s tests/tooling -p test_map_studies.py -v
+          git diff --check
+      - name: Report full-policy baseline findings and reject new issues
+        run: python3 tools/check_map_study_scope.py
+      - name: Fetch checksum-pinned Godot
+        run: |
+          mkdir -p "$RUNNER_TEMP/map-godot"
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/map-godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/map-godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/map-godot.zip" -d "$RUNNER_TEMP/map-godot"
+          chmod +x "$RUNNER_TEMP/map-godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Render both studies twice and test native input
+        run: python3 tests/tooling/run_map_studies_gate.py --godot "$RUNNER_TEMP/map-godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/map-capture"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: extraction-map-native-1080
+          path: |
+            ${{ runner.temp }}/map-capture/*.png
+            ${{ runner.temp }}/map-capture/*.json
+            ${{ runner.temp }}/map-capture/*.log
+          retention-days: 30

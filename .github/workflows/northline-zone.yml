@@ -1,0 +1,53 @@
+name: Northline full zone
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/northline-zone.yml'
+      - 'game/presentation/northline_zone/**'
+      - 'assets/world/northline_zone/**'
+      - 'game/presentation/map_studies/**'
+      - 'assets/world/map_studies/**'
+      - 'tests/presentation/northline_zone_contract.gd'
+      - 'tests/tooling/*northline*'
+      - 'tools/*northline*'
+      - 'tools/check_map_study_scope.py'
+      - 'config/first_playable_1080_gate.json'
+permissions:
+  contents: read
+jobs:
+  native-zone:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare renderer and validate authored content
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          python3 -m pip install 'Pillow==12.3.0'
+          python3 -m unittest discover -s tests/tooling -p test_northline_zone.py -v
+          python3 -m unittest discover -s tests/tooling -p test_map_studies.py -v
+          python3 tools/review_northline_routes.py
+          python3 tools/check_map_study_scope.py
+          git diff --check
+      - name: Fetch checksum-pinned Godot
+        run: |
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Render full map and verify native collision walkthrough twice
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tests/tooling/run_northline_zone_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/northline-native"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: northline-full-zone-native
+          path: |
+            ${{ runner.temp }}/northline-native/*.png
+            ${{ runner.temp }}/northline-native/*.json
+            ${{ runner.temp }}/northline-native/*.log
+          retention-days: 30

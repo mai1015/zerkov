@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "purpose": "collision walkthrough inspector, not a production raid actor",
+  "source_archive_sha256": "ae2296dd78ba7310a512a2d3a9a575884dadefaf54eac8f9b3d535b31551b006",
+  "license_status": "user_supplied_internal_development_no_distribution_grant_claimed",
+  "sources": [
+    {
+      "member": "zerkov/Main character/Animations/Idle/idle-legs.png",
+      "sha256": "46c1e586ad79f9d796f44ee40b59bfd8e70def5074b4b166726463c59e6bcddd",
+      "row": 0
+    },
+    {
+      "member": "zerkov/Main character/Animations/Idle/idle-torso.png",
+      "sha256": "0f54b0d54ae628248464393e0ba27489574d2433279fb5bccfa1e64284b98215",
+      "row": 1
+    },
+    {
+      "member": "zerkov/Main character/Animations/Idle/idle-arms.png",
+      "sha256": "ff10a308534bcaa3353b5af8105abbe6409796aa2921477abde4b2631fe07917",
+      "row": 2
+    },
+    {
+      "member": "zerkov/Main character/Animations/Idle/idle_head.png",
+      "sha256": "483939360f8e8df067ac11755e1f966df91aacedd7536e01c06e3423433dec88",
+      "row": 3
+    },
+    {
+      "member": "zerkov/Main character/Animations/Walk/walk_legs.png",
+      "sha256": "0799e6ecac5910ceceea2ad66ae35199fc190ae6678b97d30fdf5192b0844c98",
+      "row": 4
+    },
+    {
+      "member": "zerkov/Main character/Animations/Walk/walk_torso.png",
+      "sha256": "7f2673feec329bb3e807bcfd2add23209026abe8144ece2dd7fa7cc1e9896aca",
+      "row": 5
+    },
+    {
+      "member": "zerkov/Main character/Animations/Walk/walk-arms.png",
+      "sha256": "68223bd3e4d741f729b026dbc3b92eb9937a02472f4e11016aaba62ba61ead80",
+      "row": 6
+    },
+    {
+      "member": "zerkov/Main character/Animations/Walk/walk-head.png",
+      "sha256": "592b75b899f66390b74c615c915bd24bf65fae25205302901eff9698fc0ee0a8",
+      "row": 7
+    }
+  ],
+  "frame_size": [
+    64,
+    64
+  ],
+  "frame_count": 6,
+  "feet_pivot": [
+    32,
+    48
+  ],
+  "atlas_sha256": "c2dcd766a884306cc0a1d71b131aca9534e4b64243e31c060891d1f56d737e0e"
+}
