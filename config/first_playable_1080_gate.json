@@ -163,7 +163,7 @@
     },
     "tools/run_combat_input_contracts.py": {
       "purpose": "exact headless combat input contracts in temporary projects",
-      "sha256": "49df4196452d3ec55b669cd0c000492bdc48e1617968f76a6af6f044753a8eae"
+      "sha256": "93d337c5f7bb2bd61497ba5b5ada9d155210ca047ff1d3f8b55d0b49ff9308dc"
     }
   },
   "active_reviewed_support": {

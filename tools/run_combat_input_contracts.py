@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Task 5.7: queue admission tests, not a shooting/melee or UI playtest.
+"""Task 5: input, melee/HUD values, native combat execution and regressions.
 
 Both modes import temporary copies. --native additionally requires the real
 RaidAuthority/addon baseline; no native classes are replaced by stubs.
@@ -57,9 +57,16 @@ def expected_version(root: Path) -> str:
 
 
 def execute(command: list[str], result: str | None = None) -> str:
-    completed = subprocess.run(command, text=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, timeout=180,
-                               env={**os.environ, "GODOT_SILENCE_ROOT_WARNING": "1"})
+    try:
+        completed = subprocess.run(command, text=True, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, timeout=180,
+                                   env={**os.environ, "GODOT_SILENCE_ROOT_WARNING": "1"})
+    except subprocess.TimeoutExpired as error:
+        captured = error.stdout or ""
+        if isinstance(captured, bytes):
+            captured = captured.decode("utf-8", errors="replace")
+        print(captured, flush=True)
+        raise
     output = completed.stdout
     print(output, end="" if output.endswith("\n") else "\n")
     if completed.returncode or ERRORS.search(output):
@@ -104,7 +111,18 @@ def run(godot: Path, project: Path, native: bool, execution: bool = False) -> No
     if execution:
         execute(base + ["--script", "res://tests/combat/combat_execution_values_contract.gd"], "COMBAT_VALUES_RESULT")
         if native:
-            execute(base + ["--script", "res://tests/combat/native_combat_execution_contract.gd"], "NATIVE_COMBAT_EXECUTION_RESULT")
+            failures: list[str] = []
+            # Separate processes preserve isolation; report every adjacent failure
+            # rather than allowing one new integration failure to hide regressions.
+            contracts = (('tests/combat/native_combat_execution_contract.gd', 'NATIVE_COMBAT_EXECUTION_RESULT'), ('tests/combat/body_hitbox_contract.gd', 'BODY_HITBOX_RESULT'), ('tests/combat/body_hitbox_adversarial_contract.gd', 'BODY_HITBOX_ADVERSARIAL_RESULT'), ('tests/combat/body_hitbox_capability_encapsulation_contract.gd', 'BODY_HITBOX_CAPABILITY_ENCAPSULATION_RESULT'), ('tests/combat/body_hitbox_review_regression_contract.gd', 'BODY_HITBOX_REVIEW_REGRESSION_RESULT'), ('tests/combat/weapon_combat_adapter_contract.gd', 'WEAPON_COMBAT_ADAPTER_RESULT'), ('tests/combat/health_ability_content_contract.gd', 'HEALTH_ABILITY_CONTENT_RESULT'), ('tests/combat/health_consequence_adapter_contract.gd', 'HEALTH_CONSEQUENCE_ADAPTER_RESULT'), ('tests/combat/content_contract.gd', 'COMBAT_CONTENT_RESULT'), ('tests/raid/weapon_instance_context_contract.gd', 'WEAPON_INSTANCE_CONTEXT_RESULT'), ('tests/raid/inventory_weapon_reload_contract.gd', 'INVENTORY_WEAPON_RELOAD_RESULT'), ('tests/raid/player_locomotion_contract.gd', 'PLAYER_LOCOMOTION_RESULT'))
+            for path, marker in contracts:
+                try:
+                    execute(base + ["--script", "res://" + path], marker)
+                except (RuntimeError, subprocess.TimeoutExpired) as error:
+                    print(f"COMBAT_NATIVE_CONTRACT_FAILED path={path}: {error}", flush=True)
+                    failures.append(path)
+            if failures:
+                raise RuntimeError("Native combat regressions failed: " + ", ".join(failures))
     print(f"COMBAT_INPUT_RUNNER_COMPLETE mode={'native' if native else 'isolated'} digest={digests[0]}")
 
 
