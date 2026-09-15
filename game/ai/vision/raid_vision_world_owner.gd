@@ -2,9 +2,12 @@ class_name RaidVisionWorldOwner
 extends Node
 ## Game-owned authoritative Common Vision world for one raid generation.
 ##
-## Task 6.1 owns configuration, deterministic authority cadence, bounded work,
-## telemetry, and teardown only. Actor/target/occluder lifecycle and AI-facing
-## projections deliberately have no production port in this slice.
+## Task 6.1 owns configuration, deterministic cadence, budgets and teardown.
+## Task 6.2 optionally injects a value-only actor registry at construction.
+## Actor synchronization stays inside this exact reserved Vision callback.
+## With a registry, composition MUST stage one full frame after MOVEMENT for
+## EVERY 60 Hz tick, including ticks with no changes or no visibility evaluation.
+## Missing frames fail closed; registry and raid generations must agree at bind.
 ##
 ## The live CommonVisionWorld2D exists only in lexical state captured by an
 ## opaque Callable. No Object/Resource property on this owner retains it, and
@@ -28,6 +31,7 @@ const PHASE_HANDLER_ID: StringName = RaidAuthority.RESERVED_VISION_HANDLER_ID
 const NATIVE_MAX_OBSERVERS: int = 4_096
 
 const _RUNTIME_ADVANCE: StringName = &"advance_attested"
+const _RUNTIME_SYNC_ACTORS: StringName = &"sync_actors_attested"
 const _RUNTIME_DISPOSE: StringName = &"dispose_attested"
 const _RUNTIME_STATUS: StringName = &"status"
 const _RAID_AUTHORITY_SCRIPT_PATH: String = "res://game/raid/raid_authority.gd"
@@ -60,6 +64,8 @@ var _runtime_dispatch: Callable = Callable():
 		if not _runtime_dispatch.is_valid():
 			_runtime_dispatch = value
 var _runtime_alive: bool = false
+var _actor_registry_enabled: bool = false
+var _actor_registry_raid_generation: int = 0
 
 var _last_attempted_tick: int = 0
 var _last_successful_tick: int = 0
@@ -93,11 +99,19 @@ var _failed_evaluations: int = 0
 ## Starts exactly one offline authority world from the sealed configuration.
 ## A rejected attempt leaves this owner empty and retryable; a successful owner
 ## cannot be reconfigured because native configure() is a destructive reset.
-func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
+func configure(world_id: int, configuration_record: Dictionary = {},
+	actor_registry: RaidVisionActorRegistry = null, expected_raid_generation: int = 0) -> bool:
 	last_error = &""
 	if lifecycle != Lifecycle.NOT_STARTED or _runtime_alive \
 			or _runtime_dispatch.is_valid():
 		return _reject(&"owner_already_configured")
+	# The expected generation comes from the actual raid, not the registry itself.
+	# Require it explicitly when injecting a registry, before native allocation.
+	if actor_registry != null and (actor_registry.get_script() != preload(
+		"res://game/ai/vision/raid_vision_actor_registry.gd")
+		or expected_raid_generation <= 0
+		or not actor_registry.is_active(expected_raid_generation)):
+		return _reject(&"vision_actor_registry_generation_invalid")
 	if world_id <= 0 or world_id > ZerkovVisionConfig.WORLD_ID_MAX:
 		return _reject(&"vision_world_id_invalid")
 
@@ -138,6 +152,8 @@ func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 	var runtime_state := {
 		"alive": true,
 		"native": native_world,
+		"actors": actor_registry,
+		"actor_generation": expected_raid_generation,
 	}
 	var captured_owner_id := get_instance_id()
 	var captured_owner_generation := 1
@@ -171,10 +187,14 @@ func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 			var native_value: Variant = runtime_state["native"]
 			if native_value is CommonVisionWorld2D and is_instance_valid(native_value):
 				(native_value as CommonVisionWorld2D).free()
+			var actor_port: RaidVisionActorRegistry = runtime_state["actors"]
+			if actor_port != null:
+				actor_port.release(int(runtime_state["actor_generation"]))
+			runtime_state["actors"] = null
 			runtime_state["native"] = null
 			runtime_state["alive"] = false
 			return {"ok": true, "alive": false}
-		if operation != _RUNTIME_ADVANCE \
+		if operation not in [_RUNTIME_ADVANCE, _RUNTIME_SYNC_ACTORS] \
 				or not bool(runtime_state["alive"]) \
 				or not _has_exact_keys(request, PackedStringArray([
 					"owner", "raid_authority", "phase", "tick",
@@ -203,11 +223,33 @@ func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 		var native_value: Variant = runtime_state["native"]
 		if not native_value is CommonVisionWorld2D or not is_instance_valid(native_value):
 			return {"ok": false, "reason": "runtime_native_invalid"}
-		return (native_value as CommonVisionWorld2D).advance(
-			tick, int(request["work_budget"])
-		).duplicate(true)
+		var actor_port: RaidVisionActorRegistry = runtime_state["actors"]
+		if actor_port != null and actor_port.get_script() != preload(
+			"res://game/ai/vision/raid_vision_actor_registry.gd"):
+			return {"ok": false, "code": 1, "diagnostic": 0, "detail": 0,
+				"reason": "vision_actor_registry_replaced"}
+		if actor_port != null and raid_generation != int(runtime_state["actor_generation"]):
+			return {"ok": false, "code": 1, "diagnostic": 0, "detail": 0,
+				"reason": "vision_actor_registry_generation_invalid"}
+		if operation == _RUNTIME_SYNC_ACTORS:
+			if actor_port != null and not actor_port.apply_staged(native_value, raid_generation, tick):
+				return {"ok": false, "code": 1, "diagnostic": 0, "detail": 0,
+					"reason": actor_port.last_error}
+			return {"ok": true, "code": 0, "diagnostic": 0, "detail": 0}
+		var metrics: Dictionary = (native_value as CommonVisionWorld2D).advance(
+			tick, int(request["work_budget"])).duplicate(true)
+		if bool(metrics.get("ok", false)) and actor_port != null \
+			and not actor_port.collect_projections(native_value, raid_generation, tick):
+			# Preserve the native metrics prefix. A partial publication is not success.
+			metrics["ok"] = false
+			metrics["code"] = 1
+			metrics["diagnostic"] = 0
+			metrics["detail"] = 0
+		return metrics.duplicate(true)
 
 	_runtime_alive = true
+	_actor_registry_enabled = actor_registry != null
+	_actor_registry_raid_generation = expected_raid_generation if _actor_registry_enabled else 0
 	_configuration = candidate.duplicate(true)
 	_make_deep_read_only(_configuration)
 	_configuration_fingerprint = String(validation.get("fingerprint", ""))
@@ -219,8 +261,9 @@ func configure(world_id: int, configuration_record: Dictionary = {}) -> bool:
 	return true
 
 
-func start(world_id: int, configuration_record: Dictionary = {}) -> bool:
-	return configure(world_id, configuration_record)
+func start(world_id: int, configuration_record: Dictionary = {},
+	actor_registry: RaidVisionActorRegistry = null, expected_raid_generation: int = 0) -> bool:
+	return configure(world_id, configuration_record, actor_registry, expected_raid_generation)
 
 
 func generation() -> int:
@@ -266,7 +309,9 @@ func configuration_receipt() -> Dictionary:
 		"work_budget_per_evaluation": ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION,
 		"phase_handler_id": String(PHASE_HANDLER_ID),
 		"native_handle_exposed": false,
-		"actor_lifecycle_ports_exposed": false,
+		"actor_lifecycle_ports_exposed": _actor_registry_enabled,
+		"actor_registry_raid_generation": _actor_registry_raid_generation,
+		"actor_frame_required_every_tick": _actor_registry_enabled,
 		"runtime_storage": "opaque_closure",
 	}
 	_make_deep_read_only(result)
@@ -287,6 +332,8 @@ func register_with_raid_authority(raid_authority: RaidAuthority) -> bool:
 	if _last_attempted_tick != 0:
 		return _reject(&"vision_tick_driver_already_started")
 	var captured_raid_generation := raid_authority.generation()
+	if _actor_registry_enabled and captured_raid_generation != _actor_registry_raid_generation:
+		return _reject(&"vision_actor_registry_raid_mismatch")
 	_raid_authority_ref = weakref(raid_authority)
 	_raid_authority_instance_id = raid_authority.get_instance_id()
 	_raid_authority_generation = captured_raid_generation
@@ -443,6 +490,18 @@ func _advance_attested_tick(
 	_last_attempted_tick = tick
 	_last_tick_was_evaluation = evaluates
 	_ticks_received = _bounded_add(_ticks_received, 1)
+	# Synchronize positions/removals every authority tick, before the 20 Hz
+	# perception cadence. No extra visibility query or native advance is made.
+	var sync_result := _dispatch_actor_sync(raid_authority, phase, tick)
+	if sync_result.get("ok") != true:
+		_last_native_status = _native_status_copy(sync_result)
+		_history.append({"tick": tick, "terminal": true, "kind": "actor_sync_failed",
+			"reason": String(sync_result.get("reason", "actor_sync_failed"))})
+		if _history.size() > ZerkovVisionConfig.TELEMETRY_HISTORY_LIMIT:
+			_history.pop_front()
+		var quarantined := _quarantine(lifecycle_attestation)
+		_is_advancing = false
+		return _reject(&"vision_actor_sync_failed" if quarantined else &"vision_quarantine_attestation_failed")
 	if not evaluates:
 		_last_successful_tick = tick
 		_cadence_skips = _bounded_add(_cadence_skips, 1)
@@ -507,6 +566,19 @@ func _dispatch_runtime_advance(
 		"phase": int(phase),
 		"tick": tick,
 		"owner_generation": _generation,
+		"raid_generation": _raid_authority_generation,
+		"work_budget": ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION,
+	})
+	return result as Dictionary if result is Dictionary else {}
+
+
+func _dispatch_actor_sync(raid_authority: RaidAuthority,
+	phase: RaidAuthority.TickPhase, tick: int) -> Dictionary:
+	if not _runtime_dispatch.is_valid():
+		return {"ok": false, "reason": "runtime_capability_invalid"}
+	var result: Variant = _runtime_dispatch.call(_RUNTIME_SYNC_ACTORS, {
+		"owner": self, "raid_authority": raid_authority, "phase": int(phase),
+		"tick": tick, "owner_generation": _generation,
 		"raid_generation": _raid_authority_generation,
 		"work_budget": ZerkovVisionConfig.WORK_BUDGET_PER_EVALUATION,
 	})
