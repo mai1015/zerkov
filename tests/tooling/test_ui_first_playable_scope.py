@@ -56,7 +56,7 @@ class FirstPlayable1080GateTests(unittest.TestCase):
         self.assertEqual(
             [], gate.classification_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
-        self.assertEqual(27, len(self.manifest["active_visual_entrypoints"]))
+        self.assertEqual(29, len(self.manifest["active_visual_entrypoints"]))
         self.assertEqual(56, len(self.manifest["active_headless_entrypoints"]))
         self.assertEqual(
             (14, 2),
@@ -430,7 +430,7 @@ func run():
         self.assertEqual(
             [], gate.capture_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
-        self.assertEqual(10, len(self.manifest["sanctioned_capture_writers"]))
+        self.assertEqual(12, len(self.manifest["sanctioned_capture_writers"]))
 
     def test_sanctioned_writer_has_exactly_one_hashed_current_classification(self) -> None:
         omitted = copy.deepcopy(self.manifest)
