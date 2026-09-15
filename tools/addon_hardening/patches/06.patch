@@ -1,0 +1,133 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.cpp b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+index 74d86f0a022313fac419819773b4bfc5f46e3a39..3a50945496711ef617338011991e4f2ba9663f25 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.cpp
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+@@ -624,7 +770,7 @@ void WeaponNetworkBridge::_rpc_begin_reload_intent(const PackedByteArray &p_byte
+ 	}
+ 
+ 	Dictionary command_dict;
+-	command_dict["command_id"] = command_id;
++	command_dict["command_id"] = admitted_id;
+ 	command_dict["sequence"] = int64_t(intent.sequence);
+ 	command_dict["instance_id"] = instance_id;
+ 	command_dict["expected_revision"] = int64_t(intent.expected_revision);
+@@ -635,6 +781,8 @@ void WeaponNetworkBridge::_rpc_begin_reload_intent(const PackedByteArray &p_byte
+ 	command_dict["reserved_rounds"] = int(intent.reserved_rounds);
+ 	command_dict["profile"] = profile_dict;
+ 
++	if (resolve_weapon_authority() != authority || !peer_can_receive(peer, instance_id) ||
++		peer_epochs.at(peer) != admitted_epoch || !ownership->validate_binding(peer, intent.instance_id, wpn::protocol::WeaponRole::OWNER).ok()) return;
+ 	const Dictionary result = authority->begin_reload(command_dict);
+ 	const bool accepted = bool(result.get("accepted", false));
+ 	const Dictionary status_value = result.get("status", Dictionary());
+@@ -642,7 +790,7 @@ void WeaponNetworkBridge::_rpc_begin_reload_intent(const PackedByteArray &p_byte
+ 			wpn::StatusCode(int(status_value.get("code", 0))),
+ 			wpn::DiagnosticId(int(status_value.get("diagnostic", 0))),
+ 			std::uint64_t(int64_t(status_value.get("detail", int64_t(0)))));
+-	sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes),
++	sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes),
+ 			accepted ? wpn::ok_status() : status);
+ 	if (!accepted) {
+ 		send_rejection(peer, command_id, instance_id, status);
+@@ -658,6 +806,7 @@ void WeaponNetworkBridge::_rpc_cancel_reload_intent(const PackedByteArray &p_byt
+ 	ensure_server_state();
+ 	const Ref<MultiplayerAPI> api = get_multiplayer();
+ 	const int peer = api.is_valid() ? api->get_remote_sender_id() : 0;
++	if (!peer_has_session(peer) || !ownership->is_compatibility_ready(peer) || p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
+ 	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
+ 
+ 	wpn::protocol::CancelReloadIntent intent;
+@@ -673,17 +822,19 @@ void WeaponNetworkBridge::_rpc_cancel_reload_intent(const PackedByteArray &p_byt
+ 	if (!admit_command(peer, instance_id, command_id, intent.sequence, bytes, verdict)) {
+ 		return;
+ 	}
++	const std::uint64_t admitted_epoch = peer_epochs.at(peer);
++	const String admitted_id = scoped_command_id(peer, instance_id, command_id);
+ 
+ 	WeaponAuthority *authority = resolve_weapon_authority();
+ 	if (authority == nullptr) {
+ 		const wpn::Status status = wpn::make_status(wpn::StatusCode::INTERNAL_ERROR);
+-		sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes), status);
++		sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes), status);
+ 		send_rejection(peer, command_id, instance_id, status);
+ 		return;
+ 	}
+ 
+ 	Dictionary command_dict;
+-	command_dict["command_id"] = command_id;
++	command_dict["command_id"] = admitted_id;
+ 	command_dict["sequence"] = int64_t(intent.sequence);
+ 	command_dict["instance_id"] = instance_id;
+ 	command_dict["expected_revision"] = int64_t(intent.expected_revision);
+@@ -698,7 +849,7 @@ void WeaponNetworkBridge::_rpc_cancel_reload_intent(const PackedByteArray &p_byt
+ 			wpn::StatusCode(int(status_value.get("code", 0))),
+ 			wpn::DiagnosticId(int(status_value.get("diagnostic", 0))),
+ 			std::uint64_t(int64_t(status_value.get("detail", int64_t(0)))));
+-	sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes),
++	sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes),
+ 			accepted ? wpn::ok_status() : status);
+ 	if (!accepted) {
+ 		send_rejection(peer, command_id, instance_id, status);
+@@ -714,6 +865,7 @@ void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArra
+ 	ensure_server_state();
+ 	const Ref<MultiplayerAPI> api = get_multiplayer();
+ 	const int peer = api.is_valid() ? api->get_remote_sender_id() : 0;
++	if (!peer_has_session(peer) || !ownership->is_compatibility_ready(peer) || p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
+ 	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
+ 
+ 	wpn::protocol::ConfigureAttachmentsIntent intent;
+@@ -729,11 +881,13 @@ void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArra
+ 	if (!admit_command(peer, instance_id, command_id, intent.sequence, bytes, verdict)) {
+ 		return;
+ 	}
++	const std::uint64_t admitted_epoch = peer_epochs.at(peer);
++	const String admitted_id = scoped_command_id(peer, instance_id, command_id);
+ 
+ 	WeaponAuthority *authority = resolve_weapon_authority();
+ 	if (authority == nullptr) {
+ 		const wpn::Status status = wpn::make_status(wpn::StatusCode::INTERNAL_ERROR);
+-		sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes), status);
++		sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes), status);
+ 		send_rejection(peer, command_id, instance_id, status);
+ 		return;
+ 	}
+@@ -748,7 +902,7 @@ void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArra
+ 	}
+ 
+ 	Dictionary command_dict;
+-	command_dict["command_id"] = command_id;
++	command_dict["command_id"] = admitted_id;
+ 	command_dict["sequence"] = int64_t(intent.sequence);
+ 	command_dict["instance_id"] = instance_id;
+ 	command_dict["expected_revision"] = int64_t(intent.expected_revision);
+@@ -757,6 +911,21 @@ void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArra
+ 	command_dict["authority_epoch"] = authority_epoch;
+ 	command_dict["desired_loadout"] = desired_loadout;
+ 
++	Dictionary request;
++	request["peer"] = peer;
++	request["session"] = int64_t(peer_sessions.at(peer));
++	request["instance_id"] = instance_id;
++	request["desired_loadout"] = desired_loadout;
++	Variant allowed;
++	if (attachment_authorization_provider.is_valid()) allowed = attachment_authorization_provider.call(request);
++	if (allowed.get_type() != Variant::BOOL || !bool(allowed) || resolve_weapon_authority() != authority ||
++		!peer_can_receive(peer, instance_id) || peer_epochs.at(peer) != admitted_epoch ||
++		!ownership->validate_binding(peer, intent.instance_id, wpn::protocol::WeaponRole::OWNER).ok()) {
++		const auto denied = wpn::make_status(wpn::StatusCode::PERMISSION_DENIED);
++		sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes), denied);
++		send_rejection(peer, command_id, instance_id, denied);
++		return;
++	}
+ 	const Dictionary result = authority->configure_attachments(command_dict);
+ 	const bool accepted = bool(result.get("accepted", false));
+ 	const Dictionary status_value = result.get("status", Dictionary());
+@@ -764,7 +933,7 @@ void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArra
+ 			wpn::StatusCode(int(status_value.get("code", 0))),
+ 			wpn::DiagnosticId(int(status_value.get("diagnostic", 0))),
+ 			std::uint64_t(int64_t(status_value.get("detail", int64_t(0)))));
+-	sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes),
++	sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes),
+ 			accepted ? wpn::ok_status() : status);
+ 	if (!accepted) {
+ 		send_rejection(peer, command_id, instance_id, status);

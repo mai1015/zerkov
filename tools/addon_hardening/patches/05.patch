@@ -1,0 +1,157 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.cpp b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+index 74d86f0a022313fac419819773b4bfc5f46e3a39..3a50945496711ef617338011991e4f2ba9663f25 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.cpp
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+@@ -482,22 +584,46 @@ void WeaponNetworkBridge::push_state(int64_t p_tick) {
+ // ---------------------------------------------------------------------------
+ 
+ void WeaponNetworkBridge::_rpc_compatibility_handshake(const PackedByteArray &p_bytes) {
+-	if (role != ROLE_SERVER) {
+-		return;
+-	}
++	if (role != ROLE_SERVER) return;
+ 	ensure_server_state();
+ 	const Ref<MultiplayerAPI> api = get_multiplayer();
+ 	const int peer = api.is_valid() ? api->get_remote_sender_id() : 0;
+-	// v1 simplification (mirrors gameplay_abilities' own handshake posture):
+-	// this bridge does not itself validate content-compatibility fields --
+-	// a game wanting a real handshake round-trip does so at a higher layer
+-	// (e.g. protocol/wpn_protocol_compat.h's check_handshake_compatibility(),
+-	// driven by a game-owned session step) and then simply calls
+-	// mark_compatibility_ready via begin_session()'s own bookkeeping. This
+-	// handler exists so an "any peer" RPC surface for a future stricter
+-	// handshake is already wired without a breaking wire-shape change later.
+-	(void)p_bytes;
+-	ownership->mark_compatibility_ready(wpn::protocol::PeerId(peer));
++	if (!peer_has_session(peer) || !auxiliary_rate_limiter->admit_command(peer, local_tick_counter, effective_tick_rate()).ok()) return;
++	const bool was_ready = ownership->is_compatibility_ready(peer);
++	// Invalidate first; malformed or incompatible re-handshake cannot retain an old grant.
++	ownership->begin_session(peer, peer_sessions.at(peer), peer_epochs.at(peer));
++	if (p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
++	wpn::protocol::CompatibilityHandshake local, remote;
++	const auto bytes = from_packed(p_bytes);
++	wpn::ByteReader reader(bytes);
++	std::uint64_t missing = 0;
++	if (!make_local_handshake(local) || !wpn::protocol::decode_compatibility_handshake(reader, remote).ok() ||
++		!wpn::protocol::check_handshake_compatibility(local, remote, missing).ok()) {
++		acks->drop_peer(peer);
++		sent_baselines.drop_peer(peer);
++		return;
++	}
++	ownership->mark_compatibility_ready(peer);
++	wpn::ByteWriter writer(wpn::MAX_COMMAND_BYTES);
++	if (wpn::protocol::encode_compatibility_handshake(local, writer).ok())
++		rpc_id(peer, "_rpc_compatibility_result", to_packed(writer.bytes()));
++	// Grants may precede content negotiation; first publication waits for BOTH.
++	if (!was_ready) {
++		const auto granted = peer_instances.find(peer);
++		if (granted != peer_instances.end())
++			for (const auto &instance : granted->second) send_snapshot_to_peer(peer, instance);
++	}
++}
++
++void WeaponNetworkBridge::_rpc_compatibility_result(const PackedByteArray &p_bytes) {
++	if (!expected_server() || p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
++	wpn::protocol::CompatibilityHandshake local, remote;
++	const auto bytes = from_packed(p_bytes);
++	wpn::ByteReader reader(bytes);
++	std::uint64_t missing = 0;
++	compatibility_confirmed = make_local_handshake(local) &&
++		wpn::protocol::decode_compatibility_handshake(reader, remote).ok() &&
++		wpn::protocol::check_handshake_compatibility(local, remote, missing).ok();
+ }
+ 
+ void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &p_bytes) {
+@@ -507,6 +633,7 @@ void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &p_bytes) {
+ 	ensure_server_state();
+ 	const Ref<MultiplayerAPI> api = get_multiplayer();
+ 	const int peer = api.is_valid() ? api->get_remote_sender_id() : 0;
++	if (!peer_has_session(peer) || !ownership->is_compatibility_ready(peer) || p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
+ 	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
+ 
+ 	wpn::protocol::FireIntent intent;
+@@ -522,17 +649,19 @@ void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &p_bytes) {
+ 	if (!admit_command(peer, instance_id, command_id, intent.sequence, bytes, verdict)) {
+ 		return;
+ 	}
++	const std::uint64_t admitted_epoch = peer_epochs.at(peer);
++	const String admitted_id = scoped_command_id(peer, instance_id, command_id);
+ 
+ 	WeaponAuthority *authority = resolve_weapon_authority();
+ 	if (authority == nullptr) {
+ 		const wpn::Status status = wpn::make_status(wpn::StatusCode::INTERNAL_ERROR);
+-		sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes), status);
++		sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes), status);
+ 		send_rejection(peer, command_id, instance_id, status);
+ 		return;
+ 	}
+ 
+ 	wpn::FireCommand command;
+-	command.command_id = intent.command_id;
++	command.command_id = to_std(admitted_id);
+ 	command.sequence = intent.sequence;
+ 	command.instance_id = intent.instance_id;
+ 	command.expected_revision = intent.expected_revision;
+@@ -541,7 +670,10 @@ void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &p_bytes) {
+ 	command.authority_epoch = nonnegative_u64(authority_epoch);
+ 	command.claimed_origin = intent.claimed_origin;
+ 	command.claimed_aim = intent.claimed_aim;
+-	command.spread_seed = intent.spread_seed;
++	// Do not forward wire-selected entropy. The trusted context provider must
++	// provide an explicit server-selected seed; absence rejects before mutation.
++	command.spread_seed = 0;
++	bool trusted_entropy = false;
+ 
+ 	wpn::AuthorityContext context; // all-false/neutral by default: fails closed with no provider configured.
+ 	if (authority_context_provider.is_valid()) {
+@@ -554,6 +686,9 @@ void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &p_bytes) {
+ 		const Variant returned = authority_context_provider.call(call_context);
+ 		if (returned.get_type() == Variant::DICTIONARY) {
+ 			const Dictionary value = returned;
++			const Variant entropy = value.get("spread_seed", Variant());
++			trusted_entropy = entropy.get_type() == Variant::INT && int64_t(entropy) >= 0;
++			if (trusted_entropy) command.spread_seed = std::uint64_t(int64_t(entropy));
+ 			context.actor_live = bool(value.get("actor_live", false));
+ 			context.weapon_equipped = bool(value.get("weapon_equipped", false));
+ 			context.weapon_usable = bool(value.get("weapon_usable", false));
+@@ -566,8 +701,16 @@ void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &p_bytes) {
+ 		}
+ 	}
+ 
++	if (!trusted_entropy || resolve_weapon_authority() != authority || !peer_can_receive(peer, instance_id) ||
++		peer_epochs.at(peer) != admitted_epoch ||
++		!ownership->validate_binding(peer, intent.instance_id, wpn::protocol::WeaponRole::OWNER).ok()) {
++		const auto status = wpn::make_status(wpn::StatusCode::PERMISSION_DENIED);
++		sequence_tracker->record(intent.instance_id, command.command_id, intent.sequence, wpn::hash_bytes(bytes), status);
++		send_rejection(peer, command_id, instance_id, status);
++		return;
++	}
+ 	const wpn::CommandOutcome outcome = authority->fire_native(command, context);
+-	sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes),
++	sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes),
+ 			outcome.accepted ? wpn::ok_status() : outcome.status);
+ 	if (!outcome.accepted) {
+ 		send_rejection(peer, command_id, instance_id, outcome.status);
+@@ -583,6 +726,7 @@ void WeaponNetworkBridge::_rpc_begin_reload_intent(const PackedByteArray &p_byte
+ 	ensure_server_state();
+ 	const Ref<MultiplayerAPI> api = get_multiplayer();
+ 	const int peer = api.is_valid() ? api->get_remote_sender_id() : 0;
++	if (!peer_has_session(peer) || !ownership->is_compatibility_ready(peer) || p_bytes.size() > int64_t(wpn::MAX_COMMAND_BYTES)) return;
+ 	const std::vector<std::uint8_t> bytes = from_packed(p_bytes);
+ 
+ 	wpn::protocol::BeginReloadIntent intent;
+@@ -598,11 +742,13 @@ void WeaponNetworkBridge::_rpc_begin_reload_intent(const PackedByteArray &p_byte
+ 	if (!admit_command(peer, instance_id, command_id, intent.sequence, bytes, verdict)) {
+ 		return;
+ 	}
++	const std::uint64_t admitted_epoch = peer_epochs.at(peer);
++	const String admitted_id = scoped_command_id(peer, instance_id, command_id);
+ 
+ 	WeaponAuthority *authority = resolve_weapon_authority();
+ 	if (authority == nullptr) {
+ 		const wpn::Status status = wpn::make_status(wpn::StatusCode::INTERNAL_ERROR);
+-		sequence_tracker->record(intent.instance_id, intent.command_id, intent.sequence, wpn::hash_bytes(bytes), status);
++		sequence_tracker->record(intent.instance_id, to_std(admitted_id), intent.sequence, wpn::hash_bytes(bytes), status);
+ 		send_rejection(peer, command_id, instance_id, status);
+ 		return;
+ 	}

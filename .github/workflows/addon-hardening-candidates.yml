@@ -1,0 +1,67 @@
+name: Addon hardening candidates
+on:
+  pull_request:
+    paths:
+      - 'tools/addon_hardening/**'
+      - 'tests/tooling/test_addon_hardening_candidate.py'
+      - 'addons/**'
+      - 'config/toolchain.lock.json'
+      - '.github/workflows/addon-hardening-candidates.yml'
+permissions:
+  contents: read
+concurrency:
+  group: addon-candidates-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: zerkov
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: godotengine/godot-cpp
+          ref: 5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731
+          path: godot-cpp-sdk
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact build tooling and staging negative controls
+        run: |
+          python -m pip install scons==4.10.1
+          python zerkov/tests/tooling/test_addon_hardening_candidate.py
+      - name: Install locked engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python -c 'import json;print(json.load(open("zerkov/config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v${VERSION}-stable_linux.x86_64"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot_v${VERSION}-stable_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Build isolated native candidates and exercise loopback peers
+        shell: bash
+        run: |
+          set -o pipefail
+          python -u zerkov/tools/addon_hardening/candidate.py --root "$GITHUB_WORKSPACE/zerkov" --out "$RUNNER_TEMP/addon-candidate" --sdk "$GITHUB_WORKSPACE/godot-cpp-sdk" --godot "$ZERKOV_GODOT" --jobs 4 --core 2>&1 | tee "$RUNNER_TEMP/addon-candidate-console.log"
+      - name: Installed source and lock remain untouched
+        if: always()
+        working-directory: zerkov
+        run: git diff --exit-code -- addons config
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: addon-candidate-linux
+          path: |
+            ${{ runner.temp }}/addon-candidate-console.log
+            ${{ runner.temp }}/addon-candidate/*.log
+            ${{ runner.temp }}/addon-candidate/*.json
+            ${{ runner.temp }}/addon-candidate/project/contract.gd
+            ${{ runner.temp }}/addon-candidate/project/addons/weapon_system/bin/*.so
+            ${{ runner.temp }}/addon-candidate/project/addons/gameplay_abilities/bin/*.so
+          retention-days: 3

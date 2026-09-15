@@ -1,0 +1,153 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.cpp b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+index 74d86f0a022313fac419819773b4bfc5f46e3a39..3a50945496711ef617338011991e4f2ba9663f25 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.cpp
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.cpp
+@@ -243,20 +327,25 @@ void WeaponNetworkBridge::on_server_disconnected() {
+ // ---------------------------------------------------------------------------
+ 
+ void WeaponNetworkBridge::begin_session(int p_peer, int64_t p_session) {
++	if (role != ROLE_SERVER || p_peer <= 0 || p_session <= 0 ||
++		epoch_counter >= std::uint64_t(INT64_MAX) ||
++		(peer_sessions.count(p_peer) == 0 && peer_sessions.size() >= wpn::MAX_TRACKED_PEERS)) return;
+ 	ensure_server_state();
++	drop_peer(p_peer);
+ 	const std::uint64_t epoch = ++epoch_counter;
+-	ownership->begin_session(wpn::protocol::PeerId(p_peer), wpn::protocol::SessionId(nonnegative_u64(p_session)), epoch);
++	if (!ownership->begin_session(p_peer, std::uint64_t(p_session), epoch).ok()) return;
+ 	peer_epochs[p_peer] = epoch;
+-	peer_sessions[p_peer] = nonnegative_u64(p_session);
++	peer_sessions[p_peer] = std::uint64_t(p_session);
+ }
+ 
+ void WeaponNetworkBridge::end_session(int p_peer) {
+-	ensure_server_state();
+-	ownership->end_session(wpn::protocol::PeerId(p_peer));
++	if (role == ROLE_SERVER) drop_peer(p_peer);
+ }
+ 
+ bool WeaponNetworkBridge::authorize_instance(int p_peer, const String &p_instance_id, int p_role) {
+ 	ensure_server_state();
++	if (!peer_has_session(p_peer) || (p_role != 0 && p_role != 1) ||
++		!wpn::validate_identifier(to_std(p_instance_id)).ok()) return false;
+ 	const wpn::protocol::WeaponRole role_value = p_role != 0 ? wpn::protocol::WeaponRole::OWNER : wpn::protocol::WeaponRole::OBSERVER;
+ 	const wpn::Status status = ownership->authorize_instance(wpn::protocol::PeerId(p_peer), to_std(p_instance_id), role_value);
+ 	if (!status.ok()) {
+@@ -280,6 +369,8 @@ bool WeaponNetworkBridge::revoke_instance(int p_peer, const String &p_instance_i
+ 	if (it != peer_instances.end()) {
+ 		it->second.erase(p_instance_id);
+ 	}
++	acks->drop_peer(p_peer);
++	sent_baselines.drop_peer(p_peer);
+ 	return status.ok();
+ }
+ 
+@@ -288,6 +379,8 @@ void WeaponNetworkBridge::drop_peer(int p_peer) {
+ 	ownership->drop_peer(wpn::protocol::PeerId(p_peer));
+ 	rate_limiter->drop_peer(wpn::protocol::PeerId(p_peer));
+ 	acks->drop_peer(wpn::protocol::PeerId(p_peer));
++	auxiliary_rate_limiter->drop_peer(p_peer);
++	sent_baselines.drop_peer(p_peer);
+ 	peer_epochs.erase(p_peer);
+ 	peer_sessions.erase(p_peer);
+ 	peer_instances.erase(p_peer);
+@@ -300,6 +393,7 @@ void WeaponNetworkBridge::drop_peer(int p_peer) {
+ bool WeaponNetworkBridge::admit_command(int p_peer, const String &p_instance_id, const String &p_command_id, std::uint64_t p_sequence,
+ 		const std::vector<std::uint8_t> &p_bytes, wpn::protocol::InboundCommandVerdict &r_verdict) {
+ 	ensure_server_state();
++	if (command_namespace.is_empty()) return false;
+ 	wpn::protocol::InboundWeaponCommandContext context;
+ 	context.peer = wpn::protocol::PeerId(p_peer);
+ 	auto session_it = peer_sessions.find(p_peer);
+@@ -307,7 +401,7 @@ bool WeaponNetworkBridge::admit_command(int p_peer, const String &p_instance_id,
+ 	auto epoch_it = peer_epochs.find(p_peer);
+ 	context.epoch = epoch_it == peer_epochs.end() ? wpn::protocol::INVALID_CONNECTION_EPOCH : epoch_it->second;
+ 	context.instance_id = to_std(p_instance_id);
+-	context.command_id = to_std(p_command_id);
++	context.command_id = to_std(scoped_command_id(p_peer, p_instance_id, p_command_id));
+ 	context.sequence = p_sequence;
+ 	context.payload_hash = wpn::hash_bytes(p_bytes);
+ 	context.payload_bytes = p_bytes.size();
+@@ -337,7 +431,7 @@ void WeaponNetworkBridge::send_rejection(int p_peer, const String &p_command_id,
+ 	rejection.status = p_status;
+ 	WeaponAuthority *authority = resolve_weapon_authority();
+ 	const wpn::WeaponSnapshot *snapshot = authority == nullptr ? nullptr : authority->find_snapshot(to_std(p_instance_id));
+-	rejection.current_revision = snapshot == nullptr ? 0 : snapshot->revision;
++	rejection.current_revision = snapshot != nullptr && peer_can_receive(p_peer, p_instance_id) ? snapshot->revision : 0;
+ 	wpn::ByteWriter writer(wpn::MAX_COMMAND_BYTES);
+ 	if (!wpn::protocol::encode_command_rejection(rejection, writer).ok()) {
+ 		return;
+@@ -355,6 +449,7 @@ void WeaponNetworkBridge::reject_malformed(int p_peer, const wpn::Status &p_stat
+ 	const wpn::Status rate_status = rate_limiter->admit_command(wpn::protocol::PeerId(p_peer), local_tick_counter, effective_tick_rate());
+ 	if (!rate_status.ok()) {
+ 		emit_signal("network_diagnostic", p_peer, status_dict(rate_status));
++		return;
+ 	}
+ 	send_rejection(p_peer, String(), String(), p_status);
+ }
+@@ -373,7 +468,7 @@ void WeaponNetworkBridge::broadcast_instance(const String &p_instance_id) {
+ 			continue;
+ 		}
+ 		const std::uint64_t acked = acks->acknowledged_revision(wpn::protocol::PeerId(peer), to_std(p_instance_id));
+-		if (acked == 0) {
++		if (!sent_baselines.has_acknowledgement(peer, to_std(p_instance_id))) {
+ 			send_snapshot_to_peer(peer, p_instance_id);
+ 		} else if (acked != snapshot->revision) {
+ 			send_delta_to_peer(peer, p_instance_id, acked);
+@@ -384,6 +479,7 @@ void WeaponNetworkBridge::broadcast_instance(const String &p_instance_id) {
+ }
+ 
+ void WeaponNetworkBridge::send_snapshot_to_peer(int p_peer, const String &p_instance_id) {
++	if (!peer_can_receive(p_peer, p_instance_id) || !sent_baselines.can_track(p_peer, to_std(p_instance_id))) return;
+ 	WeaponAuthority *authority = resolve_weapon_authority();
+ 	if (authority == nullptr) {
+ 		return;
+@@ -403,10 +499,14 @@ void WeaponNetworkBridge::send_snapshot_to_peer(int p_peer, const String &p_inst
+ 	if (!wpn::protocol::encode_snapshot_batch(batch, writer).ok()) {
+ 		return;
+ 	}
+-	rpc_id(p_peer, "_rpc_snapshot_batch", to_packed(writer.bytes()));
++	if (rpc_id(p_peer, "_rpc_snapshot_batch", to_packed(writer.bytes())) == OK) {
++		for (const auto &entry : batch.snapshots) sent_baselines.record(p_peer, entry.instance_id, entry.revision);
++		for (const auto &entry : batch.tombstones) sent_baselines.record(p_peer, entry.instance_id, entry.revision);
++	}
+ }
+ 
+ void WeaponNetworkBridge::send_delta_to_peer(int p_peer, const String &p_instance_id, std::uint64_t p_acked_revision) {
++	if (!peer_can_receive(p_peer, p_instance_id) || !sent_baselines.can_track(p_peer, to_std(p_instance_id))) return;
+ 	WeaponAuthority *authority = resolve_weapon_authority();
+ 	if (authority == nullptr) {
+ 		return;
+@@ -427,7 +527,8 @@ void WeaponNetworkBridge::send_delta_to_peer(int p_peer, const String &p_instanc
+ 	if (!wpn::protocol::encode_delta_batch(batch, writer).ok()) {
+ 		return;
+ 	}
+-	rpc_id(p_peer, "_rpc_delta_batch", to_packed(writer.bytes()));
++	if (rpc_id(p_peer, "_rpc_delta_batch", to_packed(writer.bytes())) == OK)
++		sent_baselines.record(p_peer, to_std(p_instance_id), snapshot->revision);
+ }
+ 
+ void WeaponNetworkBridge::replicate_teardown(const String &p_instance_id) {
+@@ -438,11 +539,11 @@ void WeaponNetworkBridge::replicate_teardown(const String &p_instance_id) {
+ 	}
+ 	const wpn::WeaponTombstone tombstone = *authority->find_tombstone_value(to_std(p_instance_id));
+ 	for (const auto &[peer, instances] : peer_instances) {
+-		if (instances.find(p_instance_id) == instances.end()) {
++		if (instances.find(p_instance_id) == instances.end() || !peer_can_receive(peer, p_instance_id)) {
+ 			continue;
+ 		}
+ 		const std::uint64_t acked = acks->acknowledged_revision(wpn::protocol::PeerId(peer), to_std(p_instance_id));
+-		if (acked == 0) {
++		if (!sent_baselines.has_acknowledgement(peer, to_std(p_instance_id))) {
+ 			send_snapshot_to_peer(peer, p_instance_id);
+ 			continue;
+ 		}
+@@ -458,7 +559,8 @@ void WeaponNetworkBridge::replicate_teardown(const String &p_instance_id) {
+ 		if (!wpn::protocol::encode_delta_batch(batch, writer).ok()) {
+ 			continue;
+ 		}
+-		rpc_id(peer, "_rpc_delta_batch", to_packed(writer.bytes()));
++		if (sent_baselines.can_track(peer, to_std(p_instance_id)) && rpc_id(peer, "_rpc_delta_batch", to_packed(writer.bytes())) == OK)
++			sent_baselines.record(peer, to_std(p_instance_id), tombstone.revision);
+ 	}
+ }
+ 

@@ -1,0 +1,111 @@
+diff --git a/addons/weapon_system/native/godot/weapon_network_bridge.h b/addons/weapon_system/native/godot/weapon_network_bridge.h
+index 8cac3b2498832bd06bac691fdff50726d5c5dd14..fb3acd3caa8c2b52f831a43626fc2bbf2aa28870 100644
+--- a/addons/weapon_system/native/godot/weapon_network_bridge.h
++++ b/addons/weapon_system/native/godot/weapon_network_bridge.h
+@@ -8,6 +8,8 @@
+ #include "protocol/wpn_protocol_types.h"
+ #include "protocol/wpn_replica.h"
+ 
++#include "protocol/wpn_sent_baselines.h"
++#include "godot/weapon_definition_catalog.h"
+ #include <godot_cpp/classes/node.hpp>
+ #include <godot_cpp/variant/callable.hpp>
+ #include <godot_cpp/variant/dictionary.hpp>
+@@ -118,7 +120,7 @@ public:
+ 	// `AuthorityContext` Dictionary (WeaponAuthority.fire()'s own
+ 	// `p_authority` shape: actor_live, weapon_equipped, weapon_usable,
+ 	// authoritative_origin, authoritative_aim, and the four *_modifier_ppm
+-	// fields) an admitted fire command is evaluated against. Called as
++	// fields plus server-owned spread_seed:int) an admitted fire command is evaluated against. Called as
+ 	// `callable.call(context)` with a single Dictionary argument carrying
+ 	// peer/session/instance_id/command_id/sequence/client_tick. UNSET means
+ 	// every fire is evaluated with an all-false/neutral AuthorityContext
+@@ -147,6 +149,15 @@ public:
+ 	void set_reload_profile_provider(const Callable &p_callback) { reload_profile_provider = p_callback; }
+ 	Callable get_reload_profile_provider() const { return reload_profile_provider; }
+ 
++	// Local-only configuration: client manifests come from a sealed catalog, not
++	// the incoming network. Fire entropy and attachment possession are supplied
++	// by trusted game callbacks; neither defaults to caller-controlled values.
++	void set_compatibility_catalog(const Ref<WeaponDefinitionCatalog> &p_catalog) { compatibility_catalog = p_catalog; handshake_sent = false; compatibility_confirmed = false; }
++	Ref<WeaponDefinitionCatalog> get_compatibility_catalog() const { return compatibility_catalog; }
++	void set_attachment_authorization_provider(const Callable &p_callback) { attachment_authorization_provider = p_callback; }
++	Callable get_attachment_authorization_provider() const { return attachment_authorization_provider; }
++	Dictionary peer_diagnostics(int p_peer, const String &p_instance_id) const;
++
+ 	// -- Role / transport state --------------------------------------------
+ 
+ 	bool is_multiplayer_active() const;
+@@ -158,10 +169,8 @@ public:
+ 	// MUST NOT by itself grant admission (see protocol/wpn_command_gate.h's
+ 	// WeaponOwnershipTable doc comment). --
+ 
+-	// Assigns a FRESH ConnectionEpoch every call, even for a reused
+-	// `p_session` (protocol/wpn_command_gate.h's ConnectionEpoch contract: a
+-	// physically new connection always supersedes an old one -- "Old epoch
+-	// sends after reconnect").
++	// Replacement admission clears prior grants, baselines and compatibility.
++	// Re-authorize and complete a new handshake; never implicitly resume access.
+ 	void begin_session(int p_peer, int64_t p_session);
+ 	void end_session(int p_peer);
+ 	// p_role: 0 = OBSERVER (may only receive snapshots/deltas), 1 = OWNER
+@@ -214,18 +223,9 @@ public:
+ 	// (returns false) if not CLIENT role or the network is not active.
+ 	bool request_resync(const String &p_instance_id);
+ 
+-	// CLIENT only: sends this bridge's local CompatibilityHandshake to
+-	// `server_peer_id` (weapon-protocol spec, "Versioned Canonical Weapon
+-	// Protocol": content-compatibility handshake). Called automatically,
+-	// exactly once per connection, from `_process()` once
+-	// `is_multiplayer_active()` first becomes true -- also callable directly
+-	// (e.g. to re-handshake after a game-side content change). The SERVER
+-	// side's `_rpc_compatibility_handshake` handler is the ONLY thing that
+-	// marks a peer's `WeaponOwnershipTable` compatibility readiness (the
+-	// "content compatibility" admission gate every command is checked
+-	// against); a peer that never handshakes can begin a session and be
+-	// authorize_instance()-d, but every command it submits is rejected
+-	// CONTENT_NOT_READY until this round-trips.
++	// CLIENT only: derive the handshake from compatibility_catalog, which must
++	// be sealed. Retry while connected until the server acknowledges compatibility.
++	// Server grants alone never publish state before this validation succeeds.
+ 	void send_compatibility_handshake();
+ 
+ 	// CLIENT only, read-only convenience: the replica's current confirmed
+@@ -244,6 +244,7 @@ protected:
+ private:
+ 	// -- RPC entry points (configured via rpc_config in _ready()) ---------
+ 	void _rpc_compatibility_handshake(const PackedByteArray &p_bytes);
++	void _rpc_compatibility_result(const PackedByteArray &p_bytes);
+ 	void _rpc_fire_intent(const PackedByteArray &p_bytes);
+ 	void _rpc_begin_reload_intent(const PackedByteArray &p_bytes);
+ 	void _rpc_cancel_reload_intent(const PackedByteArray &p_bytes);
+@@ -257,6 +258,13 @@ private:
+ 	WeaponAuthority *resolve_weapon_authority();
+ 	std::uint32_t effective_tick_rate() const;
+ 
++	bool make_local_handshake(wpn::protocol::CompatibilityHandshake &r_handshake);
++	bool peer_has_session(int p_peer) const;
++	bool peer_can_receive(int p_peer, const String &p_instance_id) const;
++	bool expected_server() const;
++	String scoped_command_id(int p_peer, const String &p_instance_id, const String &p_command_id) const;
++	void on_peer_disconnected(int p_peer);
++	bool client_can_command(const String &p_instance_id) const;
+ 	void on_server_disconnected();
+ 
+ 	// -- Server-side command handling helpers --------------------------------
+@@ -308,8 +316,15 @@ private:
+ 	int server_peer_id = 1;
+ 	int tick_rate = int(wpn::DEFAULT_TICK_RATE);
+ 	String authority_scope;
++	String command_namespace; // Fresh server-local namespace per bridge allocation, never supplied by wire.
+ 	int64_t authority_epoch = 0;
+ 	Callable authority_context_provider;
++	Ref<WeaponDefinitionCatalog> compatibility_catalog;
++	Callable attachment_authorization_provider;
++	wpn::protocol::SentBaselines sent_baselines;
++	std::unique_ptr<wpn::protocol::RateLimiter> auxiliary_rate_limiter;
++	bool compatibility_confirmed = false;
++	std::uint64_t last_handshake_tick = 0;
+ 	Callable reload_profile_provider;
+ 
+ 	WeaponAuthority *weapon_authority = nullptr;
