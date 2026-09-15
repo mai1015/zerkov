@@ -106,8 +106,8 @@ func run() -> void:
 	check(not session.status().deployment_ready, "deployment remains disabled")
 	check(product.find_children("*", "RaidAuthority", true, false).is_empty(), "no hidden RaidAuthority")
 	await capture("offline-bunker-1080")
-	await key(KEY_TAB)
-	check(app.current_route == "inventory", "normal Tab enters existing inventory")
+	await key(KEY_I)
+	check(app.current_route == "inventory", "normal Inventory action enters existing inventory")
 	if app.current_route != "inventory":
 		finish()
 		return
@@ -139,8 +139,8 @@ func run() -> void:
 	item.offline_revision -= 1
 	var before := session.revision()
 	check(not controller.submit_rotate(&"stash", item).accepted and session.revision() == before, "stale drag rejection is mutation-free")
-	await key(KEY_TAB)
-	check(app.current_route == "bunker", "Tab returns to same bunker")
+	await key(KEY_I)
+	check(app.current_route == "bunker", "Inventory action returns to same bunker")
 	await key(KEY_ESCAPE)
 	check(app.current_route == "pause", "normal Escape pause")
 	await click(app.screen.get_node("ActionsPanel/SettingsRow/Hit"))

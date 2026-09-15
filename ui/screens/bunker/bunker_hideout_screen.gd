@@ -34,7 +34,7 @@ func _build_local_bunker() -> void:
 				node.text = "OFFLINE  /  LOCAL PROFILE"
 			elif node.text == "Click a room or facility to inspect":
 				node.hide()
-		var stash := view.button("TAB  STASH / LOADOUT", Rect2(390, 1015, 230, 38))
+		var stash := view.button("STASH / LOADOUT", Rect2(390, 1015, 230, 38))
 		stash.name = "OpenLocalInventory"
 		stash.pressed.connect(func(): go("inventory"))
 		var settings := view.button("SETTINGS", Rect2(636, 1015, 140, 38))
