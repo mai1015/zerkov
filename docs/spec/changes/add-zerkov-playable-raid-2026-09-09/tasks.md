@@ -501,22 +501,22 @@ recovery and networking remain later tasks. See
 
 - [x] 6.1 `[SOL]` Configure the authoritative Vision world with fixed units,
   masks, ranges, cones, samples, memory duration and per-tick work budgets.
-- [ ] 6.2 `[LUNA]` Register/update/remove player and NPC observers/targets from
+- [x] 6.2 `[LUNA]` Register/update/remove player and NPC observers/targets from
   authoritative transforms with exact revision progression.
-- [ ] 6.3 `[SOL]` Implement `VisionAIAdapter` so AI consumes only visible or
+- [x] 6.3 `[SOL]` Implement `VisionAIAdapter` so AI consumes only visible or
   remembered records and never reads hidden live transforms through another
   service.
-- [ ] 6.4 `[LUNA]` Implement a deterministic AI state model for idle, patrol,
+- [x] 6.4 `[LUNA]` Implement a deterministic AI state model for idle, patrol,
   investigate, engage, search, retreat and dead.
-- [ ] 6.5 `[SOL]` Implement Scav aiming, cadence, cover/path requests and target
+- [x] 6.5 `[SOL]` Implement Scav aiming, cadence, cover/path requests and target
   loss behavior through the same intent boundary as the player.
-- [ ] 6.6 `[LUNA]` Implement the mutant chase/melee behavior after the shared AI
+- [x] 6.6 `[LUNA]` Implement the mutant chase/melee behavior after the shared AI
   and melee contracts are green.
-- [ ] 6.7 `[SOL]` Add a bounded game-owned noise event service for gunshots,
+- [x] 6.7 `[SOL]` Add a bounded game-owned noise event service for gunshots,
   impacts, sprinting and interactions; do not misrepresent hearing as Vision.
-- [ ] 6.8 `[LUNA]` Add developer overlays for vision state, last-known position,
+- [x] 6.8 `[LUNA]` Add developer overlays for vision state, last-known position,
   navigation path, AI state and work-budget diagnostics.
-- [ ] 6.9 `[SOL]` Add occlusion, memory expiry, target removal, noise, path
+- [x] 6.9 `[SOL]` Add occlusion, memory expiry, target removal, noise, path
   failure, budget exhaustion and many-NPC deterministic tests.
 - [ ] 6.10 `[ASTRA]` Tune encounter readability, reaction delays, search
   persistence and threat escalation without giving AI hidden information.
@@ -526,31 +526,31 @@ recorded Scav and mutant encounters.
 
 ## 7. Tasks, extraction, profile persistence and settlement
 
-- [ ] 7.1 `[SOL]` Implement raid phase transitions and reject intents that are
+- [x] 7.1 `[SOL]` Implement raid phase transitions and reject intents that are
   invalid for the current phase or authority generation.
-- [ ] 7.2 `[SOL]` Create the raid loadout from an immutable profile generation
+- [x] 7.2 `[SOL]` Create the raid loadout from an immutable profile generation
   and record the unique raid/settlement identity before deployment.
 - [ ] 7.3 `[LUNA]` Implement the authoritative raid timer and derived HUD clock.
-- [ ] 7.4 `[SOL]` Run a Level Task integration spike for one raid-scoped graph;
+- [x] 7.4 `[SOL]` Run a Level Task integration spike for one raid-scoped graph;
   document missing APIs and disable persistent resume if snapshot/restore is
   not yet ready.
-- [ ] 7.5 `[LUNA]` Author `Supply Run`: search three valid Sawmill crates, retain
+- [x] 7.5 `[LUNA]` Author `Supply Run`: search three valid Sawmill crates, retain
   the objective item and extract through Road Gate.
-- [ ] 7.6 `[SOL]` Feed ordered inventory/combat/world events and typed facts to
+- [x] 7.6 `[SOL]` Feed ordered inventory/combat/world events and typed facts to
   the task instance; explicitly acknowledge task requests.
-- [ ] 7.7 `[SOL]` Implement extraction eligibility, countdown, interruption and
+- [x] 7.7 `[SOL]` Implement extraction eligibility, countdown, interruption and
   exactly-once completion.
-- [ ] 7.8 `[SOL]` Define and implement death loss plus the approved secure-
+- [x] 7.8 `[SOL]` Define and implement death loss plus the approved secure-
   container retention rule as one settlement plan.
 - [x] 7.9 `[SOL]` Implement versioned `ProfileStore` envelopes with atomic
   replacement, backup recovery and checksum/fingerprint validation.
-- [ ] 7.10 `[SOL]` Implement idempotent `RaidSettlementService` prepare/commit/
+- [x] 7.10 `[SOL]` Implement idempotent `RaidSettlementService` prepare/commit/
   recover behavior for extract and death.
-- [ ] 7.11 `[SOL]` Add crash-point fixtures before profile write, during atomic
+- [x] 7.11 `[SOL]` Add crash-point fixtures before profile write, during atomic
   replacement and after profile commit but before acknowledgement.
-- [ ] 7.12 `[LUNA]` Build the summary view from audit events and committed
+- [x] 7.12 `[LUNA]` Build the summary view from audit events and committed
   settlement data, including loot, kills, damage, injuries and task progress.
-- [ ] 7.13 `[SOL]` Prove close/relaunch restores the exact committed profile and
+- [x] 7.13 `[SOL]` Prove close/relaunch restores the exact committed profile and
   never restores an uncommitted raid result.
 
 Evidence: task graph fixture; extract/death settlement golden files; crash
@@ -640,13 +640,13 @@ Human approval remains false, and no smaller-output suite ran. See
 
 - [x] 9.1 `[LUNA]` Create a curated asset registry with source provenance,
   runtime aliases, frame/atlas metadata, filtering and license fields.
-- [ ] 9.2 `[LUNA]` Add import presets/tests that keep pixel sprites nearest,
+- [x] 9.2 `[LUNA]` Add import presets/tests that keep pixel sprites nearest,
   backgrounds appropriately filtered and every `DO NOT USE` path excluded.
-- [ ] 9.3 `[LUNA]` Slice selected exterior, road, fence, prop, Sawmill, weapon,
+- [x] 9.3 `[LUNA]` Slice selected exterior, road, fence, prop, Sawmill, weapon,
   item and character sheets from explicit metadata rather than filename guesses.
 - [ ] 9.4 `[ASTRA]` Build and approve the base layered player sprite composition
   for idle, walk, attack, grenade, hit and death states.
-- [ ] 9.5 `[LUNA]` Implement the animation state machine and deterministic
+- [x] 9.5 `[LUNA]` Implement the animation state machine and deterministic
   presentation-event inputs; animations do not author gameplay outcomes.
 - [ ] 9.6 `[ASTRA]` Align held AKM, muzzle, melee contact and equipment visuals
   across animation frames and facing states.
