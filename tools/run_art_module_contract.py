@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Isolated native Godot test, not the full six-addon game or visual acceptance.
+"""Pinned native art contracts: synthetic negative controls and verified player art.
 
-Copies the real presentation modules, a RefCounted test module, and compiled
-synthetic pixels into a temporary project. No addon stubs or substituted game
-systems. Every Godot invocation uses exact 1920x1080 and the pinned version.
+Runs real presentation modules in an isolated project, not the six-addon game.
+No addon stubs, world mutation, smaller display suite or visual approval claim.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -20,12 +20,14 @@ ROOT = Path(__file__).resolve().parents[1]
 PIN = "4.7.2.stable.official.ed1daf0bf"
 FILES = ["game/presentation/art/player_animation_state.gd",
          "game/presentation/art/layered_player_presenter.gd",
-         "tests/presentation/art_module_contract.gd"]
+         "tests/presentation/art_module_contract.gd",
+         "tests/presentation/real_player_art_contract.gd"]
 DIAGNOSTIC = re.compile(r"(?:SCRIPT ERROR|ERROR|WARNING|Parse Error|ART_ASSERTION_FAILED):|Leaked instance|ObjectDB instances leaked", re.I)
 RESULT = re.compile(r"ART_MODULE_RESULT checks=(\d+) failures=(\d+) digest=([0-9a-f]{64})")
+REAL_RESULT = re.compile(r"ART_REAL_PLAYER_RESULT checks=(\d+) failures=(\d+) sources=20 poses=66")
 PROJECT = '''config_version=5
 [application]
-config/name="Zerkov isolated art contract - synthetic pixels"
+config/name="Zerkov isolated art contracts"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 [display]
 window/size/viewport_width=1920
@@ -37,16 +39,21 @@ renderer/rendering_method="gl_compatibility"
 '''
 DRIVER = '''extends SceneTree
 func _initialize() -> void:
-    root.size = Vector2i(1920, 1080)
     call_deferred("_run")
 func _run() -> void:
+    # Engine startup can replace the early _initialize size. Apply the approved
+    # output at deferred entry, before constructing or sampling any presentation.
+    root.size = Vector2i(1920, 1080)
+    root.content_scale_size = Vector2i(1920, 1080)
     if root.size != Vector2i(1920, 1080):
-        push_error("ART_OUTPUT_SIZE")
+        push_error("ART_OUTPUT_SIZE: " + str(root.size))
         quit(1)
         return
     var suite = load("res://tests/presentation/art_module_contract.gd").new()
     var result: Dictionary = suite.run()
-    quit(0 if result["failures"] == 0 else 1)
+    var real_suite = load("res://tests/presentation/real_player_art_contract.gd").new()
+    var real_result: Dictionary = real_suite.run()
+    quit(0 if result["failures"] == 0 and real_result["failures"] == 0 else 1)
 '''
 
 
@@ -73,13 +80,20 @@ def main() -> int:
         version = checked([executable, "--version"], ROOT).strip()
         if version != PIN:
             raise RuntimeError(f"wrong engine: expected {PIN}, found {version}")
-        # Import the actual compiler and explicit synthetic fixture only after
-        # native prerequisites pass. Neither mutates the repository.
         import zerkov_art_pipeline as pipeline
         sys.path.insert(0, str(ROOT / "tests/tooling"))
         from test_art_pipeline import fixture
         recipe, pixels = fixture()
         plan = pipeline.build_plan(recipe, {"fixture.sheet": pixels}, "0" * 64)
+        real_recipe = pipeline.validate_recipe(pipeline.read_json(pipeline.DEFAULT_RECIPE))
+        # Select only explicitly named clip layer identities, never path guesses.
+        ids = {sid for clip in real_recipe["clips"].values() for sid in clip["layers"]}
+        real_recipe["sources"] = [s for s in real_recipe["sources"] if s["id"] in ids]
+        selected = {s["id"]: (ROOT / "assets/original" / s["path"]).read_bytes()
+                    for s in real_recipe["sources"]}
+        archive_sha = "ae2296dd78ba7310a512a2d3a9a575884dadefaf54eac8f9b3d535b31551b006"
+        plan.update(pipeline.build_plan(real_recipe, selected, archive_sha))
+        plan["game/content/art/player_recipe.json"] = pipeline.json_bytes(real_recipe)
         with tempfile.TemporaryDirectory(prefix="zerkov-art-native-") as directory:
             project = Path(directory)
             for name in FILES:
@@ -98,16 +112,19 @@ def main() -> int:
             results = []
             for _ in range(2):
                 output = checked(common + ["--script", "res://driver.gd"], project)
-                match = RESULT.search(output)
-                if match is None or int(match[1]) < 1 or int(match[2]) != 0:
+                synthetic = RESULT.search(output)
+                real = REAL_RESULT.search(output)
+                if (synthetic is None or real is None or int(synthetic[1]) < 1
+                        or int(real[1]) < 1 or int(synthetic[2]) or int(real[2])):
                     raise RuntimeError("missing/invalid native result marker")
-                results.append(match.groups())
+                results.append((synthetic.groups(), real.groups()))
             if results[0] != results[1]:
                 raise RuntimeError("repeated native runs disagree")
-            print(f"ART_NATIVE_GATE runs=2 checks={2 * int(results[0][0])} failures=0 diagnostics=0 "
-                  f"digest={results[0][2]} scope=isolated-synthetic-pixels")
+            count = 2 * (int(results[0][0][0]) + int(results[0][1][0]))
+            print(f"ART_NATIVE_GATE runs=2 checks={count} failures=0 diagnostics=0 "
+                  f"digest={results[0][0][2]} scope=isolated-real-player-and-synthetic")
         return 0
-    except (OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
+    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
         print(f"ART_MODULE_BLOCKED: {exc}")
         return 2
 

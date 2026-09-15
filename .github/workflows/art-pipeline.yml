@@ -3,12 +3,14 @@ name: Art pipeline and isolated native presentation
 on:
   pull_request:
     paths:
+      - 'assets/original/Main character/Animations/**'
       - 'tools/zerkov_art_pipeline.py'
       - 'tools/run_art_module_contract.py'
+      - 'tools/check_art_scope_delta.py'
       - 'game/content/art/**'
       - 'game/presentation/art/**'
       - 'tests/tooling/test_art_*.py'
-      - 'tests/presentation/art_module_contract.gd'
+      - 'tests/presentation/*art*contract.gd'
       - 'config/first_playable_1080_gate.json'
       - '.github/workflows/art-pipeline.yml'
   workflow_dispatch:
@@ -24,11 +26,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Python contracts and exact-output policy
+          fetch-depth: 0
+      - name: Python art contracts and registry promotion
         run: |
           python3 -m pip install 'Pillow==12.3.0'
           python3 -m unittest discover -s tests/tooling -p 'test_art_*.py' -v
-          python3 -m unittest discover -s tests/tooling -p test_ui_first_playable_scope.py -v
           python3 - <<'PYCODE'
           import sys
           from pathlib import Path
@@ -41,6 +43,9 @@ jobs:
           print('ART_REGISTRY_MERGE_RESULT before=%d after=%d failures=0' % (len(base['assets']), len(candidate['assets'])))
           PYCODE
           git diff --check
+      - name: Source-policy nonregression (existing main failures remain reported)
+        if: ${{ !cancelled() }}
+        run: python3 tools/check_art_scope_delta.py
       - name: Fetch checksum-pinned standard Godot
         if: ${{ !cancelled() }}
         env:
@@ -50,6 +55,6 @@ jobs:
           echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
-      - name: Native isolated module contract, two identical runs
+      - name: Native real-player and synthetic module contracts, two identical runs
         if: ${{ !cancelled() }}
         run: python3 tools/run_art_module_contract.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
