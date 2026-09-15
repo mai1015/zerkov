@@ -85,6 +85,11 @@ var _recovery: Dictionary = {}
 var _phase_active: bool = false
 var _mutation_active: bool = false
 var _public_signal_active: bool = false
+var _melee_executor_ref: WeakRef
+var _melee_registration: String = ""
+var _melee_costs: Dictionary = {}
+const MELEE_CONSEQUENCE_SCHEMA: String = "zerkov.combat.melee_consequence.v1"
+
 
 
 func bind_authority(
@@ -149,6 +154,68 @@ func bind_authority(
 	_binding_generation = next_generation
 	lifecycle = Lifecycle.BOUND
 	return true
+
+
+## A concrete executor registration, not a general resource mutation port.
+func bind_melee_executor(executor: RefCounted, registration: String) -> bool:
+	if not is_bound() or _authority.lifecycle != RaidAuthority.Lifecycle.PREPARING \
+		or _melee_executor_ref != null or executor == null \
+		or executor.get_script() != load("res://game/combat/execution/raid_combat_execution.gd") \
+		or not _authority.has_exact_phase_handler(&"combat_execution_due", registration,
+			Callable(executor, "_due"), RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK, _raid_generation):
+		return _reject_bool(&"health_melee_binding_invalid")
+	_melee_executor_ref = weakref(executor)
+	_melee_registration = registration
+	return true
+
+## Cost commits only after this tick's damage/bleed/death/treatment processing.
+## No caller-provided magnitude and no presentation callback can spend stamina.
+func commit_melee_start(executor: RefCounted, actor_id: ZEntityId, request_id: ZRequestId,
+	archetype: StringName, tick: int) -> Dictionary:
+	if not is_bound() or _phase_active or _mutation_active or _public_signal_active \
+		or _melee_executor_ref == null or _melee_executor_ref.get_ref() != executor \
+		or actor_id == null or request_id == null or _last_tick != tick \
+		or not _authority.is_dispatching_phase_registration(&"combat_execution_due", _melee_registration,
+			Callable(executor, "_due"), RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK, tick, _raid_generation):
+		return _rejection(&"health_melee_phase_invalid")
+	var definition := ZMeleePolicy.definition(archetype)
+	var key := actor_id.canonical_key()
+	var request_key := request_id.canonical_key()
+	if definition.is_empty() or not _actors.has(key):
+		return _rejection(&"health_melee_actor_invalid")
+	var fingerprint := ZCanonicalValue.sha256([key, request_key, archetype, tick, _raid_generation])
+	if _melee_costs.has(request_key):
+		var previous: Dictionary = _melee_costs[request_key]
+		if previous.fingerprint != fingerprint:
+			return _rejection(&"health_melee_identity_conflict")
+		return _read_only_copy(previous.receipt)
+	var actor: Dictionary = _actors[key]
+	if bool(actor.dead): return _rejection(&"health_actor_dead")
+	var amount := int(definition.cost_micros)
+	var component := actor.component as GameplayAbilityComponent
+	var before_stamina := _fixed_micros(component.get_attribute_current(String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)))
+	if before_stamina < amount:
+		return _rejection(&"stamina_insufficient")
+	if amount > 0:
+		_mutation_active = true
+		var before := component.write_snapshot()
+		var sequence := _reserve_actor_sequence(actor)
+		var result := ZerkovHealthAbilityContent.apply_bounded_instant(component,
+			_actor_spec(actor, ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND),
+			ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND, amount, tick, sequence)
+		if not _bounded_damage_committed(result, amount) \
+			or _fixed_micros(component.get_attribute_current(String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA))) != before_stamina - amount:
+			_fail_component_mutation(&"melee_stamina_commit_failed", actor, before, result)
+			_mutation_active = false
+			return _rejection(&"melee_stamina_commit_failed", {"requires_recovery": true})
+		actor.health_revision = int(actor.health_revision) + 1
+		actor.state_digest = _health_state_digest(actor)
+		_actors[key] = actor
+		_mutation_active = false
+	var receipt := {"accepted": true, "committed": true, "request_id": request_key,
+		"actor_id": key, "tick": tick, "cost_micros": amount, "definition_id": definition.id}
+	_melee_costs[request_key] = {"tick": tick, "fingerprint": fingerprint, "receipt": receipt}
+	return _read_only_copy(receipt)
 
 
 func is_bound() -> bool:
@@ -542,6 +609,9 @@ func _release_binding_mutation(
 	# dequeued in-flight cross-domain treatment.
 	_finalize_pending_treatments(&"health_adapter_released")
 	_actors.clear()
+	_melee_costs.clear()
+	_melee_executor_ref = null
+	_melee_registration = ""
 	_native_entity_owners.clear()
 	_bleed_schedules.clear()
 	_phase_cancelled_bleeds.clear()
@@ -572,6 +642,8 @@ func _advance_phase(tick: int) -> bool:
 	if not _phase_cancelled_bleeds.is_empty():
 		return _latch_recovery(&"health_bleed_cancellation_state_stale", {
 			"tick": tick, "cancellations": _phase_cancelled_bleeds})
+	for key: String in _melee_costs.keys():
+		if tick - int(_melee_costs[key].tick) > 120: _melee_costs.erase(key)
 	var actor_ids := PackedStringArray(_actors.keys())
 	actor_ids.sort()
 	for actor_key in actor_ids:
@@ -668,6 +740,8 @@ func _collect_weapon_hits(tick: int) -> Dictionary:
 
 func _validate_weapon_consequence(event: Dictionary, tick: int) -> Dictionary:
 	var payload := event.get("payload", {}) as Dictionary
+	if payload.get("schema") == MELEE_CONSEQUENCE_SCHEMA:
+		return _validate_melee_consequence(event, tick)
 	if not _has_exact_keys(payload, WEAPON_CONSEQUENCE_KEYS) \
 			or String(payload.get("schema", "")) != WEAPON_CONSEQUENCE_SCHEMA \
 			or not bool(payload.get("accepted", false)) \
@@ -731,7 +805,47 @@ func _validate_weapon_consequence(event: Dictionary, tick: int) -> Dictionary:
 	}
 
 
+func _validate_melee_consequence(event: Dictionary, tick: int) -> Dictionary:
+	var payload: Dictionary = event.get("payload", {})
+	var names := PackedStringArray(["schema", "raid_id", "session_id", "authority_epoch",
+		"authority_generation", "consequence_id", "request_id", "actor_id", "actor_source",
+		"tick", "start_tick", "definition_id", "damage_milliunits", "hit", "blocked",
+		"entity_id", "body_zone", "world_revision", "world_resolution_digest", "resolution_digest"])
+	if not _has_exact_keys(payload, names) or not ZCanonicalValue.is_bounded(payload) \
+		or payload.get("tick") != tick or payload.get("raid_id") != _admission.raid_id.canonical_key() \
+		or payload.get("session_id") != _admission.session_id.canonical_key() \
+		or payload.get("authority_epoch") != _admission.authority_epoch \
+		or payload.get("authority_generation") != _raid_generation \
+		or payload.get("consequence_id") != event.get("event_id") or payload.get("actor_id") != event.get("actor_id") \
+		or not _melee_costs.has(String(payload.get("request_id", ""))):
+		return {"ok": false, "reason": &"health_melee_envelope_invalid"}
+	var executor: RefCounted = _melee_executor_ref.get_ref() if _melee_executor_ref != null else null
+	var digest_source := payload.duplicate(true)
+	digest_source.erase("resolution_digest")
+	if executor == null or ZCanonicalValue.sha256(digest_source) != payload.resolution_digest \
+		or not executor.call("has_contact", String(event.event_id), String(payload.resolution_digest)):
+		return {"ok": false, "reason": &"health_melee_contact_uncommitted"}
+	var cost: Dictionary = _melee_costs[payload.request_id].receipt
+	if cost.actor_id != payload.actor_id or cost.definition_id != payload.definition_id or cost.tick != payload.start_tick:
+		return {"ok": false, "reason": &"health_melee_cost_mismatch"}
+	if not payload.hit:
+		return {"ok": true, "hit": false}
+	if not _actors.has(payload.entity_id) or not _actors.has(payload.actor_id) or payload.blocked \
+		or ZerkovHealthAbilityContent.body_zone_declaration(StringName(payload.body_zone)).is_empty():
+		return {"ok": false, "reason": &"health_melee_target_invalid"}
+	return {"ok": true, "hit": true, "input": {
+		"operation_id": event.event_id, "source_fingerprint": ZCanonicalValue.sha256(payload),
+		"source_type": &"melee_hit", "source_event_sequence": event.sequence,
+		"source_consequence": payload.duplicate(true), "attacker_id": payload.actor_id,
+		"target_id": payload.entity_id, "body_zone": payload.body_zone,
+		"damage_milliunits": payload.damage_milliunits}}
+
+
 func _apply_weapon_hit(input: Dictionary, tick: int) -> bool:
+	# Firearm consequences precede melee contacts in phase 6. A same-tick lethal
+	# firearm hit cancels an attacker's melee consequence before health mutation.
+	if input.get("source_type") == &"melee_hit" and bool(_actors.get(input.attacker_id, {}).get("dead", true)):
+		return true
 	var conversion := ZWorldUnits.weapon_damage_to_ability(
 		int(input["damage_milliunits"]))
 	if not conversion.ok or conversion.integer_value <= 0 \
@@ -1451,6 +1565,7 @@ func _health_state_digest(actor: Dictionary) -> String:
 			String(ZerkovHealthAbilityContent.ATTRIBUTE_PAIN))),
 		"movement_scale_micros": _fixed_micros(component.get_attribute_current(
 			String(ZerkovHealthAbilityContent.ATTRIBUTE_MOVEMENT_SPEED_SCALE))),
+		"stamina_micros": _fixed_micros(component.get_attribute_current(String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA))),
 		"zones": zones,
 	})
 
@@ -1492,6 +1607,9 @@ func _actor_snapshot_from_record(actor: Dictionary) -> Dictionary:
 			String(ZerkovHealthAbilityContent.ATTRIBUTE_PAIN))),
 		"movement_scale_micros": _fixed_micros(component.get_attribute_current(
 			String(ZerkovHealthAbilityContent.ATTRIBUTE_MOVEMENT_SPEED_SCALE))),
+		"stamina_micros": _fixed_micros(component.get_attribute_current(String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA))),
+		"max_stamina_micros": ZerkovHealthAbilityContent.MAX_STAMINA_MICROS,
+		"hydration_micros": _fixed_micros(component.get_attribute_current(String(ZerkovHealthAbilityContent.ATTRIBUTE_HYDRATION))),
 		"body_parts": body_parts,
 		"state_digest": String(actor["state_digest"]),
 	}
@@ -1530,7 +1648,8 @@ func _validate_treatment_request(request: Dictionary) -> Dictionary:
 
 func _required_ability_identifiers() -> PackedStringArray:
 	var result := PackedStringArray([
-		String(ZerkovHealthAbilityContent.ABILITY_LIFE_DEAD)])
+		String(ZerkovHealthAbilityContent.ABILITY_LIFE_DEAD),
+		String(ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND)])
 	for zone in ZerkovHealthAbilityContent.body_zone_declarations():
 		for key in [
 			"damage_ability_identifier", "heavy_bleed_ability_identifier",

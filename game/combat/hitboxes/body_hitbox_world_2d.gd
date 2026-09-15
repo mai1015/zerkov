@@ -359,6 +359,50 @@ func authorize_phase_consumer(
 	return true
 
 
+## A distinct narrow grant for the game's melee executor. It cannot claim the
+## firearm slot or use raycast APIs. Install before seal_phase_grants().
+func authorize_melee_consumer(capability: Variant, handler_id: StringName,
+	registration_id: String, callback: Callable) -> bool:
+	if not _guard_binding_capability(capability) or not _binding_identity_is_current():
+		return false
+	var owner: Object = callback.get_object()
+	if _authority.lifecycle != RaidAuthority.Lifecycle.PREPARING \
+		or owner == null or owner.get_script() != load("res://game/combat/execution/raid_combat_execution.gd") \
+		or handler_id != &"combat_melee_contacts" or callback.get_method() != &"_contacts" \
+		or callback.get_bound_arguments_count() != 0 \
+		or not _authority.has_exact_phase_handler(handler_id, registration_id, callback,
+			RaidAuthority.TickPhase.WORLD_CONSEQUENCES, _authority_generation):
+		return _reject_bool(&"melee_consumer_invalid")
+	for entry: Dictionary in _phase_consumers.values():
+		if entry.permission == &"melee":
+			return _reject_bool(&"melee_consumer_already_authorized")
+	if _phase_consumers.size() >= MAX_PHASE_CONSUMERS or _phase_consumers.has(registration_id):
+		return _reject_bool(&"phase_consumer_capacity_exceeded")
+	_phase_consumers[registration_id] = {"handler_id": handler_id,
+		"binding_token": _active_binding_token,
+		"phase": int(RaidAuthority.TickPhase.WORLD_CONSEQUENCES), "permission": &"melee"}
+	return true
+
+func melee_snapshot_metadata(handler_id: StringName, registration_id: String,
+	callback: Callable, tick: int) -> Dictionary:
+	if not _guard_exact_phase_grant(handler_id, registration_id, callback, tick,
+		RaidAuthority.TickPhase.WORLD_CONSEQUENCES, &"melee"):
+		return _read_only_dictionary({})
+	return _read_only_dictionary(_snapshot_metadata_record())
+
+## Sweep an axis-aligned square along the centerline, not a circular capsule.
+## Both bodies AND walls are expanded. Exact rational earliest-contact ordering
+## and obstruction-before-body ties are shared with firearm queries.
+func phase_melee_sweep(query: Dictionary, radius_raw: int, handler_id: StringName,
+	registration_id: String, callback: Callable) -> Dictionary:
+	if not _guard_exact_phase_grant(handler_id, registration_id, callback,
+		int(query.get("tick", -1)), RaidAuthority.TickPhase.WORLD_CONSEQUENCES, &"melee"):
+		return _rejection(last_error)
+	if radius_raw < 1 or radius_raw > 1_000_000:
+		return _rejection(&"melee_radius_invalid")
+	return _raycast_after_binding(query, null, radius_raw)
+
+
 func authorize_phase_publisher(
 	capability: Variant,
 	handler_id: StringName,
@@ -597,7 +641,8 @@ func raycast(query_value: Variant, capability: Variant) -> Dictionary:
 
 func _raycast_after_binding(
 	query_value: Variant,
-	capability: Variant = null
+	capability: Variant = null,
+	sweep_radius_raw: int = 0
 ) -> Dictionary:
 	var normalized := _normalize_ray_query(query_value)
 	if not bool(normalized.get("ok", false)):
@@ -615,6 +660,8 @@ func _raycast_after_binding(
 		return _rejection(&"authority_not_accepting_world_query", request_key)
 
 	var fingerprint := String(normalized["fingerprint"])
+	if sweep_radius_raw > 0:
+		fingerprint = (fingerprint + ":swept_aabb_v1:" + str(sweep_radius_raw)).sha256_text()
 	if _query_ledger.has(request_key):
 		var previous := _query_ledger[request_key] as Dictionary
 		if String(previous.get("fingerprint", "")) != fingerprint:
@@ -648,8 +695,8 @@ func _raycast_after_binding(
 				continue
 			var fraction := _ray_aabb_fraction(
 				origin, target,
-				obstruction["min_raw"] as Vector2i,
-				obstruction["max_raw"] as Vector2i)
+				_sweep_bound(obstruction["min_raw"], -sweep_radius_raw),
+				_sweep_bound(obstruction["max_raw"], sweep_radius_raw))
 			if fraction.is_empty():
 				continue
 			candidate_count += 1
@@ -678,8 +725,8 @@ func _raycast_after_binding(
 				var hitbox := hitbox_value as Dictionary
 				var fraction := _ray_aabb_fraction(
 					origin, target,
-					hitbox["min_raw"] as Vector2i,
-					hitbox["max_raw"] as Vector2i)
+					_sweep_bound(hitbox["min_raw"], -sweep_radius_raw),
+					_sweep_bound(hitbox["max_raw"], sweep_radius_raw))
 				if fraction.is_empty():
 					continue
 				candidate_count += 1
@@ -699,11 +746,25 @@ func _raycast_after_binding(
 					selected = candidate
 
 	var result := _build_query_result(query, selected, candidate_count)
+	if sweep_radius_raw > 0:
+		result["query_shape"] = &"swept_aabb_v1"
+		result["radius_raw"] = sweep_radius_raw
+		var digest_source := result.duplicate(true)
+		digest_source.erase("duplicate")
+		digest_source.erase("resolution_digest")
+		result["resolution_digest"] = ZCanonicalValue.sha256(digest_source)
 	_query_ledger[request_key] = {
 		"fingerprint": fingerprint,
 		"result": result.duplicate(true),
 	}
 	return _read_only_dictionary(result)
+
+
+static func _sweep_bound(point: Vector2i, offset: int) -> Vector2i:
+	# Clipping only outside the legal world domain cannot remove an in-domain
+	# intersection. Scalar arithmetic avoids Vector2i overflow at the boundary.
+	return Vector2i(clampi(int(point.x) + offset, -MAX_COORDINATE_RAW, MAX_COORDINATE_RAW),
+		clampi(int(point.y) + offset, -MAX_COORDINATE_RAW, MAX_COORDINATE_RAW))
 
 
 func _build_snapshot(bodies: Array, obstructions: Array) -> Dictionary:

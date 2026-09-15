@@ -29,6 +29,11 @@ SOURCES = (
     "tests/combat/combat_intent_contract.gd",
     "tests/combat/native_combat_intent_contract.gd",
 )
+EXECUTION_SOURCES = (
+    "game/combat/melee/melee_policy.gd", "game/combat/melee/melee_timeline.gd",
+    "game/presentation/combat/combat_hud_model.gd",
+    "tests/combat/combat_execution_values_contract.gd",
+)
 ERRORS = re.compile(r"SCRIPT ERROR|(?:^|\n)\s*(?:ERROR:|Parse Error:)|extension.*(?:failed|not found)", re.I)
 PROJECT = '''config_version=5
 [application]
@@ -82,7 +87,7 @@ def prepare(root: Path, project: Path, native: bool) -> None:
                 shutil.copyfile(uid, target.with_suffix(target.suffix + ".uid"))
 
 
-def run(godot: Path, project: Path, native: bool) -> None:
+def run(godot: Path, project: Path, native: bool, execution: bool = False) -> None:
     base = [str(godot), "--headless", "--resolution", "1920x1080", "--path", str(project), "--audio-driver", "Dummy"]
     execute(base + ["--editor", "--import", "--quit"])
     digests: list[str] = []
@@ -96,6 +101,10 @@ def run(godot: Path, project: Path, native: bool) -> None:
         raise RuntimeError("Combat replay digests differ")
     if native:
         execute(base + ["--script", "res://tests/combat/native_combat_intent_contract.gd"], "NATIVE_COMBAT_INTENT_RESULT")
+    if execution:
+        execute(base + ["--script", "res://tests/combat/combat_execution_values_contract.gd"], "COMBAT_VALUES_RESULT")
+        if native:
+            execute(base + ["--script", "res://tests/combat/native_combat_execution_contract.gd"], "NATIVE_COMBAT_EXECUTION_RESULT")
     print(f"COMBAT_INPUT_RUNNER_COMPLETE mode={'native' if native else 'isolated'} digest={digests[0]}")
 
 
@@ -103,6 +112,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", required=True, type=Path)
     parser.add_argument("--native", action="store_true")
+    parser.add_argument("--execution", action="store_true", help="Require melee/HUD value contracts and, with --native, real combat execution.")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     godot = args.godot.expanduser().resolve()
@@ -116,7 +126,12 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="zerkov-combat-input-") as temporary:
             project = Path(temporary) / "project"
             prepare(root, project, args.native)
-            run(godot, project, args.native)
+            if args.execution and not args.native:
+                for relative in EXECUTION_SOURCES:
+                    target = project / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(root / relative, target)
+            run(godot, project, args.native, args.execution)
         return 0
     except (OSError, ValueError, KeyError, TypeError, RuntimeError, subprocess.TimeoutExpired) as error:
         print(f"COMBAT_INPUT_RUNNER_FAILED: {error}", file=sys.stderr)
