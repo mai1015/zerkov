@@ -1,0 +1,77 @@
+name: Native bunker hideout capture
+on:
+  pull_request:
+    paths:
+      - 'game/presentation/bunker/**'
+      - 'assets/world/bunker/**'
+      - 'ui/screens/bunker/bunker_hideout_screen.gd'
+      - 'tests/presentation/bunker_hideout_contract.gd'
+      - 'tests/tooling/*bunker_hideout*.py'
+      - 'tools/prepare_bunker_hideout.py'
+      - '.github/workflows/bunker-hideout.yml'
+permissions:
+  contents: read
+jobs:
+  capture:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/bunker-hideout-map'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: true
+      - name: Install renderer prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          python3 -m pip install 'Pillow==12.3.0'
+      - name: Assemble checksum-verified asset transport
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          parts = sorted(Path('tools/bunker-transfer').glob('*.part'))
+          target = Path('assets/world/bunker/bunker_atlas.webp')
+          if parts:
+              assert len(parts) == 4
+              data = b''.join(p.read_bytes() for p in parts)
+              assert hashlib.sha256(data).hexdigest() == '3dcac749ede7e09146d8509909a824ad90d175e648aa71043da5ff523116e6ee'
+              target.write_bytes(data)
+              for p in parts: p.unlink()
+          assert hashlib.sha256(target.read_bytes()).hexdigest() == '3dcac749ede7e09146d8509909a824ad90d175e648aa71043da5ff523116e6ee'
+          PY
+      - name: Validate authored kit and integrate the existing host
+        run: |
+          python3 tools/prepare_bunker_hideout.py
+          python3 -m unittest discover -s tests/tooling -p test_bunker_hideout.py -v
+          git diff --check
+      - name: Fetch exact Godot
+        run: |
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Capture actual Godot scene twice, test input and lighting
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tests/tooling/run_bunker_hideout_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/bunker-capture"
+      - name: Retain exact native evidence on this PR branch only
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          branch=feat/bunker-hideout-map
+          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$actual" = "$EXPECTED_HEAD"
+          mkdir -p docs/qa/bunker_hideout
+          cp "$RUNNER_TEMP/bunker-capture/"*.png "$RUNNER_TEMP/bunker-capture/capture.json" docs/qa/bunker_hideout/
+          git add -- assets/world/bunker/bunker_atlas.webp ui/screens/bunker/bunker.tscn config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py docs/qa/bunker_hideout/*.png docs/qa/bunker_hideout/capture.json
+          if git ls-files tools/bunker-transfer | grep -q .; then git add -u -- tools/bunker-transfer; fi
+          git diff --cached --stat
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(bunker): retain native captures and bind the bunker view'
+          git push origin "HEAD:refs/heads/$branch"

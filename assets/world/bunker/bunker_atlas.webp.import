@@ -1,0 +1,12 @@
+[remap]
+importer="texture"
+type="CompressedTexture2D"
+[deps]
+source_file="res://assets/world/bunker/bunker_atlas.webp"
+[params]
+compress/mode=0
+mipmaps/generate=false
+process/size_limit=0
+process/fix_alpha_border=false
+process/premult_alpha=false
+detect_3d/compress_to=0
