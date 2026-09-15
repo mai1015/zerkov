@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/ai/debug/ai_debug_overlay.gd" id="1"]
+
+[node name="AIDebugOverlay" type="Node2D"]
+visible = false
+script = ExtResource("1")

@@ -42,6 +42,7 @@ jobs:
           PYCODE
           git diff --check
       - name: Fetch checksum-pinned standard Godot
+        if: ${{ !cancelled() }}
         env:
           GODOT_URL: https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
         run: |
@@ -50,4 +51,5 @@ jobs:
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
       - name: Native isolated module contract, two identical runs
+        if: ${{ !cancelled() }}
         run: python3 tools/run_art_module_contract.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"

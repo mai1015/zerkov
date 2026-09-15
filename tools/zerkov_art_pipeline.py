@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Task 9.2/9.3: verified, metadata-only selection; create-only runtime overlay.
+"""Verified task-9 asset selection, slicing and create-only runtime overlays.
 
-No filename-derived geometry, recursive source import, gameplay mutations or
-license clearance. The source ZIP remains external to the public repository.
+Inputs are explicit recipes and user-authorized archives. This compiler never
+infers frame geometry from filenames or recursively extracts a source archive.
+It preserves the existing registry's identities and distribution blockers.
 """
 from __future__ import annotations
 
@@ -36,7 +37,7 @@ LICENSE_REFERENCE = "config/distribution_licenses.json#asset_families.zerkov-han
 
 
 class PipelineError(ValueError):
-    """An invalid or unverified input; never a successful skipped import."""
+    """Invalid or unverified input; never a successful skipped import."""
 
 
 def digest(data: bytes) -> str:
@@ -56,11 +57,14 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict:
     return result
 
 
+def _reject_constant(value: str) -> None:
+    raise PipelineError(f"non-finite JSON value: {value}")
+
+
 def read_json(path: Path) -> dict:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_unique_object,
-                           parse_constant=lambda value: (_ for _ in ()).throw(
-                               PipelineError(f"non-finite JSON value: {value}")))
+        value = json.loads(path.read_text(encoding="utf-8"),
+                           object_pairs_hook=_unique_object, parse_constant=_reject_constant)
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise PipelineError(f"cannot read JSON {path}: {exc}") from exc
     if not isinstance(value, dict):
@@ -69,7 +73,7 @@ def read_json(path: Path) -> dict:
 
 
 def safe_path(value: object) -> str:
-    """Reject path aliases as well as escapes, including Windows spellings."""
+    """Reject escapes, alternate separators, forbidden families and path aliases."""
     if not isinstance(value, str) or not value or value != value.strip():
         raise PipelineError(f"invalid relative path: {value!r}")
     normalized = unicodedata.normalize("NFKC", value).casefold()
@@ -77,8 +81,7 @@ def safe_path(value: object) -> str:
         raise PipelineError(f"forbidden source path: {value}")
     if "\\" in value or ":" in value or any(ord(c) < 32 for c in value):
         raise PipelineError(f"non-portable path: {value}")
-    parts = value.split("/")
-    if any(p in ("", ".", "..") or p.endswith((" ", ".")) for p in parts):
+    if any(p in ("", ".", "..") or p.endswith((" ", ".")) for p in value.split("/")):
         raise PipelineError(f"non-canonical relative path: {value}")
     if PurePosixPath(value).is_absolute():
         raise PipelineError(f"absolute path: {value}")
@@ -98,7 +101,7 @@ def _vector(value: object, length: int, minimum: int, maximum: int, field: str) 
 
 
 def regions_for(source: dict) -> list[dict]:
-    """Expand an explicitly authored grid, or retain explicitly authored rects."""
+    """Expand an explicitly authored grid or retain explicitly authored rects."""
     size = _vector(source.get("size"), 2, 1, 4096, "source.size")
     if ("grid" in source) == ("regions" in source):
         raise PipelineError("source requires exactly one of grid or regions")
@@ -115,13 +118,14 @@ def regions_for(source: dict) -> list[dict]:
         if origin[0] + columns * cell[0] > size[0] or origin[1] + rows * cell[1] > size[1]:
             raise PipelineError("grid exceeds source bounds")
         indices = grid.get("indices")
-        if not isinstance(indices, list) or not indices or len(indices) > MAX_REGIONS:
+        if not isinstance(indices, list) or not 1 <= len(indices) <= MAX_REGIONS:
             raise PipelineError("grid.indices must explicitly select at least one frame")
-        if len(set(map(str, indices))) != len(indices):
-            raise PipelineError("duplicate grid index")
-        result = []
+        result, seen = [], set()
         for index in indices:
             i = _int(index, 0, columns * rows - 1, "grid.indices")
+            if i in seen:
+                raise PipelineError("duplicate grid index")
+            seen.add(i)
             result.append({"name": f"frame_{i:04d}", "rect": [
                 origin[0] + (i % columns) * cell[0],
                 origin[1] + (i // columns) * cell[1], cell[0], cell[1]]})
@@ -144,7 +148,7 @@ def regions_for(source: dict) -> list[dict]:
 
 
 def validate_recipe(recipe: dict) -> dict:
-    if type(recipe.get("schema_version")) is not int or recipe["schema_version"] != 1:
+    if not isinstance(recipe, dict) or type(recipe.get("schema_version")) is not int or recipe["schema_version"] != 1:
         raise PipelineError("unsupported recipe schema")
     if recipe.get("distribution_status") != "blocked_pending_provenance":
         raise PipelineError("this recipe cannot clear the existing distribution gate")
@@ -205,8 +209,23 @@ def validate_recipe(recipe: dict) -> dict:
     return copy.deepcopy(recipe)
 
 
+def _verify_pixels(data: bytes, source: dict) -> None:
+    if digest(data) != source["sha256"]:
+        raise PipelineError(f"source hash mismatch: {source['path']}")
+    try:
+        with Image.open(io.BytesIO(data)) as image:
+            if image.format != "PNG" or list(image.size) != source["size"]:
+                raise PipelineError(f"PNG dimensions/format mismatch: {source['path']}")
+            if image.width * image.height > MAX_IMAGE_PIXELS:
+                raise PipelineError("image pixel budget exceeded")
+            image.verify()
+    except (OSError, Image.DecompressionBombError) as exc:
+        raise PipelineError(f"cannot decode selected image: {source['path']}") from exc
+
+
 def read_selected(archive: Path, prefix: str, recipe: dict) -> dict[str, bytes]:
     """Never extractall(). Unselected/forbidden ZIP contents are never decoded."""
+    recipe = validate_recipe(recipe)
     safe_path(prefix)
     selected = {prefix + "/" + s["path"]: s for s in recipe["sources"]}
     result = {}
@@ -217,7 +236,6 @@ def read_selected(archive: Path, prefix: str, recipe: dict) -> dict[str, bytes]:
                 raise PipelineError("archive entry budget exceeded")
             index = {}
             for info in infos:
-                # A malicious duplicate of a selected name is never accepted.
                 if info.filename in selected:
                     if info.filename in index:
                         raise PipelineError(f"duplicate selected ZIP member: {info.filename}")
@@ -227,8 +245,7 @@ def read_selected(archive: Path, prefix: str, recipe: dict) -> dict[str, bytes]:
                 if name not in index:
                     raise PipelineError(f"missing selected source: {name}")
                 info = index[name]
-                mode = info.external_attr >> 16
-                if stat.S_ISLNK(mode) or info.is_dir() or info.flag_bits & 1:
+                if stat.S_ISLNK(info.external_attr >> 16) or info.is_dir() or info.flag_bits & 1:
                     raise PipelineError(f"selected source is link/directory/encrypted: {name}")
                 if not 0 < info.file_size <= MAX_MEMBER_BYTES:
                     raise PipelineError(f"member size budget exceeded: {name}")
@@ -236,14 +253,7 @@ def read_selected(archive: Path, prefix: str, recipe: dict) -> dict[str, bytes]:
                 if total > MAX_SELECTED_BYTES:
                     raise PipelineError("selected source byte budget exceeded")
                 data = zf.read(info)
-                if digest(data) != source["sha256"]:
-                    raise PipelineError(f"source hash mismatch: {name}")
-                with Image.open(io.BytesIO(data)) as image:
-                    if image.format != "PNG" or list(image.size) != source["size"]:
-                        raise PipelineError(f"PNG dimensions/format mismatch: {name}")
-                    if image.width * image.height > MAX_IMAGE_PIXELS:
-                        raise PipelineError(f"image pixel budget exceeded: {name}")
-                    image.verify()
+                _verify_pixels(data, source)
                 result[source["id"]] = data
     except (OSError, zipfile.BadZipFile, RuntimeError) as exc:
         raise PipelineError(f"cannot read source archive: {exc}") from exc
@@ -252,7 +262,6 @@ def read_selected(archive: Path, prefix: str, recipe: dict) -> dict[str, bytes]:
 
 def import_preset(runtime_path: str) -> bytes:
     # Filtering is a CanvasItem property in Godot 4, NOT an import flag.
-    # No random UID or machine-specific .godot cache path is authored.
     return ("[remap]\nimporter=\"texture\"\ntype=\"CompressedTexture2D\"\n\n"
             f"[deps]\nsource_file={json.dumps(runtime_path)}\n\n[params]\n"
             "compress/mode=0\nmipmaps/generate=false\nprocess/size_limit=0\n"
@@ -268,6 +277,10 @@ def atlas_resource(runtime_path: str, rect: list[int]) -> bytes:
 
 
 def registry_additions(recipe: dict, archive_hash: str, prefix: str = "zerkov") -> list[dict]:
+    recipe = validate_recipe(recipe)
+    safe_path(prefix)
+    if not isinstance(archive_hash, str) or not SHA.fullmatch(archive_hash):
+        raise PipelineError("invalid archive digest")
     result = []
     for source in sorted(recipe["sources"], key=lambda row: row["id"]):
         path = "assets/original/" + source["path"]
@@ -290,8 +303,8 @@ def registry_additions(recipe: dict, archive_hash: str, prefix: str = "zerkov") 
 
 
 def merge_registry(base: dict, additions: list[dict]) -> dict:
-    """Promote exact matching IDs only; never overwrite another ID's path/alias."""
-    if base.get("schema_version") != 1 or base.get("registry_id") != "zerkov.assets":
+    """Promote exact IDs while preserving authoring metadata and license status."""
+    if type(base.get("schema_version")) is not int or base["schema_version"] != 1 or base.get("registry_id") != "zerkov.assets":
         raise PipelineError("unsupported base asset registry")
     if not isinstance(base.get("assets"), list) or not isinstance(base.get("distribution_blockers"), list):
         raise PipelineError("malformed base registry")
@@ -301,29 +314,42 @@ def merge_registry(base: dict, additions: list[dict]) -> dict:
         if not isinstance(entry, dict) or not isinstance(entry.get("id"), str) or entry["id"] in by_id:
             raise PipelineError("malformed/duplicate base registry identity")
         by_id[entry["id"]] = entry
-    for addition in additions:
+    added_ids = set()
+    for incoming in additions:
+        addition = copy.deepcopy(incoming)
         sid = addition["id"]
+        if sid in added_ids:
+            raise PipelineError(f"duplicate promotion identity: {sid}")
+        added_ids.add(sid)
         old = by_id.get(sid)
         if old is not None:
             old_hash = old.get("runtime_sha256") or old.get("provenance", {}).get("source_sha256")
             if old_hash != addition["runtime_sha256"]:
                 raise PipelineError(f"registry identity has different source bytes: {sid}")
-            # Preserve stable public aliases and content links on promotion.
-            addition = copy.deepcopy(addition)
-            addition["aliases"] = list(dict.fromkeys(old.get("aliases", []) + addition["aliases"]))
-            addition["content_links"] = copy.deepcopy(old.get("content_links", []))
-        by_id[sid] = copy.deepcopy(addition)
+            # Start from the whole accepted record; update only materialization
+            # fields. In particular keep atlas/frame order, semantic manifests,
+            # aliases, content links, family, kind, notes and license evidence.
+            promoted = copy.deepcopy(old)
+            for field in ("runtime_path", "runtime_sha256", "availability", "provenance"):
+                promoted[field] = addition[field]
+            promoted["aliases"] = list(dict.fromkeys(old.get("aliases", []) + addition["aliases"]))
+            addition = promoted
+        by_id[sid] = addition
     aliases, paths = {}, {}
     for sid, entry in by_id.items():
         for alias in entry.get("aliases", []):
-            if alias in aliases and aliases[alias] != sid:
+            key = unicodedata.normalize("NFKC", alias).casefold()
+            if key in aliases and aliases[key] != sid:
                 raise PipelineError(f"registry alias collision: {alias}")
-            aliases[alias] = sid
+            if key in by_id:
+                raise PipelineError(f"registry alias/identity collision: {alias}")
+            aliases[key] = sid
         path = entry.get("runtime_path", "")
-        if path and path in paths and paths[path] != sid:
+        key = unicodedata.normalize("NFKC", path).casefold()
+        if path and key in paths and paths[key] != sid:
             raise PipelineError(f"registry runtime path collision: {path}")
         if path:
-            paths[path] = sid
+            paths[key] = sid
     candidate["assets"] = [by_id[sid] for sid in sorted(by_id)]
     return candidate
 
@@ -332,23 +358,24 @@ def build_plan(recipe: dict, selected: dict[str, bytes], archive_hash: str,
                registry: dict | None = None, prefix: str = "zerkov") -> dict[str, bytes]:
     recipe = validate_recipe(recipe)
     safe_path(prefix)
-    if not SHA.fullmatch(archive_hash):
+    if not isinstance(archive_hash, str) or not SHA.fullmatch(archive_hash):
         raise PipelineError("invalid archive digest")
+    if set(selected) != {s["id"] for s in recipe["sources"]}:
+        raise PipelineError("selected source set must exactly match the recipe")
     plan, runtime_sources = {}, {}
     for source in sorted(recipe["sources"], key=lambda row: row["id"]):
         sid = source["id"]
-        data = selected.get(sid)
-        if not isinstance(data, bytes) or digest(data) != source["sha256"]:
+        data = selected[sid]
+        if not isinstance(data, bytes):
             raise PipelineError(f"missing/unverified source bytes: {sid}")
+        _verify_pixels(data, source)
         path = "assets/original/" + source["path"]
         plan[path] = data
         plan[path + ".import"] = import_preset("res://" + path)
         regions = regions_for(source)
-        runtime_sources[sid] = {"path": "res://" + path, "filter": source["filter"],
-                                "regions": regions}
+        runtime_sources[sid] = {"path": "res://" + path, "filter": source["filter"], "regions": regions}
         for region in regions:
-            plan[f"game/content/art/slices/{sid}/{region['name']}.tres"] = atlas_resource(
-                "res://" + path, region["rect"])
+            plan[f"game/content/art/slices/{sid}/{region['name']}.tres"] = atlas_resource("res://" + path, region["rect"])
     clips = copy.deepcopy(recipe.get("clips", {}))
     for clip in clips.values():
         clip["frame_count"] = len(runtime_sources[clip["layers"][0]]["regions"])
@@ -369,10 +396,10 @@ def build_plan(recipe: dict, selected: dict[str, bytes], archive_hash: str,
 
 
 def publish_new_directory(plan: dict[str, bytes], output: Path) -> None:
-    """Preflight everything, stage next to destination, then publish once.
+    """Create-only publication; cooperative writers serialized by an exclusive lock.
 
-    Create-only by design. Never silently overwrite a checkout, prior build,
-    source archive, or another writer's output. A lock serializes this tool.
+    Parent directory must be trusted (not shared with hostile local writers).
+    This is a development compiler, not a filesystem privilege boundary.
     """
     for path, data in plan.items():
         safe_path(path)
@@ -411,7 +438,7 @@ def main() -> int:
     parser.add_argument("--archive", type=Path, required=True)
     parser.add_argument("--prefix", default="zerkov")
     parser.add_argument("--recipe", type=Path, default=DEFAULT_RECIPE)
-    parser.add_argument("--registry", type=Path, help="Existing registry; emit a merged candidate without editing it")
+    parser.add_argument("--registry", type=Path, help="Emit a merged candidate without editing the original registry")
     parser.add_argument("--output", type=Path, help="New directory only; omit for no-write preflight")
     args = parser.parse_args()
     try:

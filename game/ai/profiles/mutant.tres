@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ZAIProfile" load_steps=2 format=3]
+[ext_resource type="Script" path="res://game/ai/ai_profile.gd" id="1"]
+[resource]
+script = ExtResource("1")
+archetype = "mutant"
+reaction_ticks = 12
+attack_request_interval_ticks = 60
+attack_range_raw = 1250000
+retreat_health_milli = 0
+memory_ticks = 120
+search_ticks = 120
+sight_range_raw = 12000000
+cone_cos_million = 173648
