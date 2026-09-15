@@ -99,7 +99,7 @@ func _setup() -> bool:
 	_layout=load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
 	check(_layout!=null,"authored Sawmill layout")
 	_move=ZPlayerLocomotion.new();_move.configure(raid.admission().actor_id,Vector2(32,32),ZPlayerFacing.Facing4.EAST)
-	check(_move.register_with_authority(raid,raid.generation()),"real locomotion phase")
+	check(_move.register_with_authority(raid,1),"real locomotion phase")
 	_combat=RaidCombatSession.new();root.add_child(_combat);_nodes.append(_combat)
 	var roster: Array[Dictionary]=[{"actor_id":raid.admission().actor_id,"source":int(ZRaidIntent.Source.PLAYER),"movement":_move,"movement_handler":ZPlayerLocomotion.DEFAULT_PHASE_HANDLER_ID,"inventory":owner,"natural_melee":false}]
 	check(_combat.start(raid,roster),"combat baseline composition: "+String(_combat.last_error))
@@ -119,7 +119,7 @@ func _setup() -> bool:
 	for item: Dictionary in native.snapshot(first).get_items():
 		if item.item_definition_identifier==String(ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE):_objective_id=item.id
 	_progress=RaidProgression.new()
-	check(_progress.bind(raid,owner,_combat,_policy,_crate_map,1000,3),"task7 composition: "+String(_progress.last_error))
+	check(_progress.bind(raid,owner,_combat,_policy,_crate_map,1000,3,_move),"task7 composition: "+String(_progress.last_error))
 	_encoder=RaidGameplayInput.new()
 	check(_encoder.configure(raid.admission().session_id,raid.admission().actor_id,raid.admission().authority_epoch,raid.generation()),"single input sequence owner")
 	check(raid.transition(RaidAuthority.Lifecycle.ACTIVE,raid.generation()),"activate persisted deployment")
@@ -145,6 +145,10 @@ func _test_raid() -> void:
 	var raid:=_deployment.raid
 	_intent(SupplyRunGraph.CRATES[0]);if not _tick():return
 	check(_progress.snapshot().task.searched_crates==0,"distant interaction cannot complete objective")
+	var paused:=_progress.snapshot()
+	raid.clock.pause();raid.request_clock_ticks(10,raid.generation())
+	check(raid.drain_requested_ticks(raid.generation())==0 and _progress.snapshot()==paused,"paused queued ticks do not advance searches or timer")
+	raid.clock.clear_pending();raid.clock.resume()
 	for key: String in SupplyRunGraph.CRATES:
 		_place(key);_intent(key);if not _tick():return
 		var before: int=_progress.snapshot().task.searched_crates
@@ -180,6 +184,7 @@ func _test_raid() -> void:
 	if failures>0:return
 	check(final.receipt.task.status=="succeeded" and final.receipt.retained.size()>0,"committed task and retained native loadout")
 	check(_deployment.settlement.commit(raid.raid_id().canonical_key()).replayed,"lost result acknowledgement replays")
+	check(_progress.finish(_deployment.settlement).receipt==final.receipt,"post-commit controller retry returns the same result")
 	check(not raid.advance_one(raid.generation()),"completed raid cannot mutate profile result")
 	var loaded:=_store.load_profile();var native:=NativeSettlementInventory.new();native.configure()
 	check(native.validate_loadout(loaded.payload.domains[V.LOADOUT]),"settled native inventory reloads")

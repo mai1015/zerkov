@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Task 7 source-isolated and real-native contracts; source caches stay untouched."""
 from __future__ import annotations
-import argparse, json, os, re, shutil, subprocess, tempfile
+import argparse, json, os, re, shutil, subprocess, tempfile, uuid
 from pathlib import Path
 PURE = (
     'game/domain/z_identity_rules.gd', 'game/raid/raid_clock.gd',
@@ -26,14 +26,36 @@ renderer/rendering_method="gl_compatibility"
 '''
 ERROR = re.compile(r'SCRIPT ERROR|(?:^|\n)\s*(?:ERROR:|Parse Error:)|RUNNER_FAILED')
 def execute(command, marker=None, environment=None):
-    result = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            timeout=120, env=environment)
+    try:
+        result = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                timeout=120, env=environment)
+    except subprocess.TimeoutExpired as error:
+        output = error.stdout or ""
+        print(output.decode("utf-8", errors="replace") if isinstance(output, bytes) else output, flush=True)
+        raise
     print(result.stdout, end='', flush=True)
     if result.returncode or ERROR.search(result.stdout):
         raise RuntimeError(f'Execution/diagnostics failed: {command} (exit {result.returncode})')
     if marker and not re.search(rf'(?m)^{marker} checks=[1-9][0-9]* failures=0(?:\s|$)', result.stdout):
         raise RuntimeError(f'Missing passing completion: {marker}')
     return result.stdout
+
+def restart(godot_base, environment):
+    namespace = "task7_" + uuid.uuid4().hex
+    prefix = godot_base + ['--script', 'res://tests/raid/raid_restart_contract.gd', '--']
+    try:
+        prepared = execute(prefix + ['prepare', namespace], 'RAID_RESTART_RESULT', environment)
+        digest = re.search(r"mode=prepare input=([a-f0-9]{64})", prepared)
+        if not digest:
+            raise RuntimeError("Missing prepared restart digest")
+        recovered = execute(prefix + ['recover', namespace, digest[1]], 'RAID_RESTART_RESULT', environment)
+        final = re.search(r"mode=recover input=" + digest[1] + r" profile=([a-f0-9]{64})", recovered)
+        if not final:
+            raise RuntimeError("Missing committed restart fingerprint")
+        execute(prefix + ['verify', namespace, digest[1], final[1]], 'RAID_RESTART_RESULT', environment)
+    finally:
+        execute(prefix + ['cleanup', namespace], 'RAID_RESTART_CLEANUP', environment)
+
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -62,6 +84,8 @@ def main():
                 execute(base+['--script','res://tests/raid/raid_progression_contract.gd'],'RAID_PROGRESSION_RESULT',env)
             if args.native:
                 execute(base+['--script','res://tests/raid/native_raid_progression_contract.gd'],'NATIVE_RAID_PROGRESSION_RESULT',env)
+                restart(base, env)
+            execute(base+['--script','res://tests/raid/profile_store_contract.gd'],'PROFILE_STORE_RESULT',env)
         print('RAID_PROGRESSION_RUNNER_COMPLETE mode='+('native' if args.native else 'isolated'))
         return 0
     except (OSError,ValueError,KeyError,RuntimeError,subprocess.TimeoutExpired) as exc:

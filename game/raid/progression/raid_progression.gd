@@ -7,6 +7,9 @@ const HANDLER: StringName = &"raid_progression_audit"
 var last_error: StringName = &""
 var _raid: RaidAuthority
 var _owner: RaidInventoryOwner
+var _movement: ZPlayerLocomotion
+var _settlement_audited: bool = false
+var _discovery_released: bool = false
 var _combat: RaidCombatSession
 var _interaction: ZInteractionPolicyOwner
 var _task: SupplyRunTask
@@ -21,6 +24,7 @@ var _audit_cursor: int = 0
 var _damage_seen: Dictionary = {}
 var _stats := {"kills":0,"damage_dealt_micros":0,"damage_received_micros":0,"searched_crates":0,"rejected_inputs":0}
 var _frame: Dictionary = {}
+var _pending_frame: Dictionary = {}
 var _terminal: Dictionary = {}
 var _settlement: Dictionary = {}
 var _tick: int = 0
@@ -31,10 +35,11 @@ var _released: bool = false
 var _combat_released: bool = false
 
 func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSession,
-	interaction: ZInteractionPolicyOwner, crates: Dictionary, limit_ticks: int, countdown_ticks: int) -> bool:
+	interaction: ZInteractionPolicyOwner, crates: Dictionary, limit_ticks: int, countdown_ticks: int, movement: ZPlayerLocomotion) -> bool:
 	if _generation != 0 or raid == null or owner == null or combat == null or interaction == null \
 		or raid.lifecycle != RaidAuthority.Lifecycle.PREPARING or not owner.is_current_generation(owner.generation()) \
-		or combat.health == null or not combat.health.is_bound() or crates.size() != 3:
+		or combat.health == null or not combat.health.is_bound() or crates.size() != 3 \
+		or movement == null or movement.actor_id() == null or not movement.actor_id().is_equal(raid.admission().actor_id):
 		return _fail(&"progression_binding_invalid")
 	var ids: Dictionary = {}
 	for key: String in SupplyRunGraph.CRATES:
@@ -50,7 +55,7 @@ func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSess
 	_task = SupplyRunTask.new()
 	if not _task.configure(raid.raid_id().canonical_key()): return _fail(_task.last_error)
 	_raid=raid;_owner=owner;_combat=combat;_interaction=interaction;_crates=crates.duplicate()
-	_generation=raid.generation();_countdown_duration=countdown_ticks
+	_generation=raid.generation();_countdown_duration=countdown_ticks;_movement=movement
 	_recipient = 1 + int(raid.raid_id().canonical_key().sha256_text().substr(0,7).hex_to_int())
 	var accepted := owner.raid_authority().register_discovery_recipient(_recipient,_recipient)
 	if accepted.get("ok") != true: return _fail(&"progression_discovery_recipient_failed")
@@ -60,7 +65,7 @@ func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSess
 	return true
 
 func _advance(raid: RaidAuthority, phase: int, tick: int, intents: Array[ZRaidIntent]) -> bool:
-	if _released or _inside or raid != _raid or tick != _tick + 1 \
+	if _released or _inside or raid != _raid or tick != _tick + 1 or _tick != _closed_tick \
 		or not raid.is_dispatching_phase_registration(HANDLER,_registration,Callable(self,"_advance"),phase,tick,_generation):
 		return _fail(&"progression_phase_invalid")
 	_inside=true
@@ -71,10 +76,12 @@ func _advance(raid: RaidAuthority, phase: int, tick: int, intents: Array[ZRaidIn
 func _advance_inner(tick: int, intents: Array[ZRaidIntent]) -> bool:
 	var actor := _raid.admission().actor_id
 	var health := _combat.health.actor_snapshot(actor)
-	var pose := _raid.authoritative_weapon_actor_context(actor,tick,_generation)
-	if health.is_empty() or pose.get("ok") != true: return _fail(&"progression_actor_state_missing")
-	var origin: Dictionary = pose.authoritative_origin
-	var position := Vector2(int(origin.x),int(origin.y))*float(ZWorldUnits.GODOT_PIXELS_PER_WORLD_UNIT)/1000.0
+	# Weapon context reads are intentionally restricted to phase 4. Phase 7
+	# consumes the local movement owner's already-published same-tick snapshot.
+	var pose := _movement.get_snapshot()
+	if health.is_empty() or pose.get("last_processed_tick") != tick or not pose.get("pose_published",false) \
+		or pose.get("actor_id") != actor.canonical_key(): return _fail(&"progression_actor_state_missing")
+	var position: Vector2 = pose.position_px
 	if not _interaction.set_actor_position(actor,position,_generation): return _fail(_interaction.last_error)
 	var damaged := _consume_audit()
 	var cancel: bool = false
@@ -116,7 +123,7 @@ func _advance_inner(tick: int, intents: Array[ZRaidIntent]) -> bool:
 		if not _record(&"terminal",ZRaidEvent.EventKind.EXTRACTION,tick,{"outcome":String(result.outcome),"task":String(_task.snapshot().status)}): return false
 		_terminal = {"outcome":String(result.outcome),"tick":tick,"audit_available":true,
 			"audit_digest":_raid.journal.digest(),"stats":_stats.duplicate(),"health":_health_record(health),"task":_task.snapshot()}
-	_frame=RaidProgressionValues.freeze({"schema":"zerkov.raid.progression.v1","generation":_generation,
+	_pending_frame=RaidProgressionValues.freeze({"schema":"zerkov.raid.progression.v1","generation":_generation,
 		"raid_id":_raid.raid_id().canonical_key(),"tick":tick,"clock":result,"task":_task.snapshot(),
 		"searching":_search.get("crate",""),"terminal_pending_settlement":not _terminal.is_empty(),"summary_final":false})
 	return true
@@ -198,13 +205,17 @@ func after_tick() -> bool:
 		else (RaidAuthority.Lifecycle.EXTRACTING if _timer.snapshot().counting else RaidAuthority.Lifecycle.ACTIVE)
 	if desired!=_raid.lifecycle and not _raid.transition(desired,_generation): return _fail(_raid.last_error)
 	_closed_tick=_tick
+	_frame=_pending_frame
+	_pending_frame={}
 	return true
 
 ## The root first releases other owners (AI/vision/equipment contributions) in
 ## their documented order. This method releases combat and flushes its weapon
 ## state before serializing. Pre-commit failure leaves SETTLING and retryable.
 func finish(service: RaidSettlementService) -> Dictionary:
-	if _inside or _released or service==null or _terminal.is_empty() or _raid.lifecycle!=RaidAuthority.Lifecycle.SETTLING:
+	if not _inside and _released and not _settlement.is_empty() and _raid.lifecycle==RaidAuthority.Lifecycle.COMPLETED:
+		return RaidProgressionValues.freeze(_settlement)
+	if _inside or service==null or _terminal.is_empty() or _raid.lifecycle!=RaidAuthority.Lifecycle.SETTLING:
 		return RaidProgressionValues.failure(&"progression_not_settling")
 	if not _combat_released:
 		if not _combat.release(): return RaidProgressionValues.failure(_combat.last_error)
@@ -215,9 +226,11 @@ func finish(service: RaidSettlementService) -> Dictionary:
 	var committed := service.commit(_raid.raid_id().canonical_key())
 	if not committed.ok: return committed
 	_settlement=committed
-	if not _record(&"settlement",ZRaidEvent.EventKind.SETTLEMENT,_tick,
-		{"settlement_id":String(committed.receipt.settlement_id),"profile_generation":int(committed.receipt.profile_generation)}):
-		return {"ok":false,"committed":true,"reason":&"settlement_committed_audit_failed","receipt":committed.receipt}
+	if not _settlement_audited:
+		if not _record(&"settlement",ZRaidEvent.EventKind.SETTLEMENT,_tick,
+			{"settlement_id":String(committed.receipt.settlement_id),"profile_generation":int(committed.receipt.profile_generation)}):
+			return {"ok":false,"committed":true,"reason":&"settlement_committed_audit_failed","receipt":committed.receipt}
+		_settlement_audited=true
 	if not release(): return {"ok":false,"committed":true,"reason":last_error,"receipt":committed.receipt}
 	if not _raid.transition(RaidAuthority.Lifecycle.COMPLETED,_generation):
 		return {"ok":false,"committed":true,"reason":_raid.last_error,"receipt":committed.receipt}
@@ -226,13 +239,13 @@ func finish(service: RaidSettlementService) -> Dictionary:
 func snapshot() -> Dictionary:
 	return _frame
 func terminal_record() -> Dictionary:
-	return RaidProgressionValues.freeze(_terminal)
+	return RaidProgressionValues.freeze(_terminal if _closed_tick==_tick else {})
 func committed_summary() -> Dictionary:
 	return RaidProgressionValues.freeze(_settlement)
 
 func raid_view() -> RaidView:
 	if _frame.is_empty(): return null
-	var state := _timer.snapshot()
+	var state: Dictionary = _frame.clock
 	var status: RaidView.ExtractionStatus = RaidView.ExtractionStatus.LOCKED
 	if state.outcome=="extracted": status=RaidView.ExtractionStatus.COMPLETED
 	elif state.counting: status=RaidView.ExtractionStatus.COUNTING_DOWN
@@ -247,8 +260,14 @@ func raid_view() -> RaidView:
 func release() -> bool:
 	if _inside: return _fail(&"progression_release_during_tick")
 	if _released: return true
+	if _generation == 0:
+		if _task != null: _task.release()
+		_released=true
+		return true
 	if not _cancel_search(): return false
-	if not _owner.raid_authority().teardown_discovery_recipient(_recipient,_recipient).get("ok",false): return _fail(&"progression_discovery_release_failed")
+	if not _discovery_released:
+		if not _owner.raid_authority().teardown_discovery_recipient(_recipient,_recipient).get("ok",false): return _fail(&"progression_discovery_release_failed")
+		_discovery_released=true
 	if _raid.has_phase_handler(HANDLER,_generation) and not _raid.unregister_phase_handler(HANDLER,_generation): return _fail(_raid.last_error)
 	_task.release();_released=true
 	return true

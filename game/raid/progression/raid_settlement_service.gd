@@ -192,6 +192,21 @@ func _committed(current: Dictionary, raid_id: String, replayed: bool) -> Diction
 func _read() -> Dictionary:
 	var result := _store.load_profile()
 	if not result.ok: return V.failure(StringName(result.get("reason", &"profile_load_failed")))
+	var state: Variant=result.payload.project.get(V.STATE_KEY,V.initial_state())
+	if not state is Dictionary or not V.valid_state(state): return V.failure(&"raid_profile_schema_invalid")
+	for key: String in state.history:
+		var receipt:=V.decode(state.history[key])
+		if not key.begins_with("zerkov.raid."+_store.profile_id().sha256_text().substr(0,32)+".") \
+			or receipt.profile_generation>result.generation: return V.failure(&"raid_history_binding_invalid")
+	if not state.active.is_empty():
+		var active: Dictionary=state.active
+		var expected_ids:=V.ids(_store.profile_id(),state.next_sequence-1)
+		if state.next_sequence<2 or active.raid_id!=expected_ids.raid_id or active.settlement_id!=expected_ids.settlement_id \
+			or result.generation!=active.start_generation+(2 if active.phase=="prepared" else 1):
+			return V.failure(&"active_profile_generation_invalid")
+		var escrow: Variant=result.payload.domains.get(V.LOADOUT)
+		if not escrow is PackedByteArray or escrow.hex_encode().sha256_text()!=active.escrow_digest:
+			return V.failure(&"active_escrow_changed")
 	return result
 
 func _save(payload: Dictionary, generation: int) -> Dictionary:
@@ -215,5 +230,5 @@ func _enter() -> bool:
 static func _valid_terminal(value: Dictionary) -> bool:
 	return value.size() == 7 and value.get("outcome") in ["extracted", "dead", "timeout", "abandoned"] \
 		and typeof(value.get("tick")) == TYPE_INT and value.tick >= 0 and value.tick <= 2_147_483_647 \
-		and typeof(value.get("audit_available")) == TYPE_BOOL and ProfileCanonicalCodec.is_sha256(value.get("audit_digest")) \
+		and typeof(value.get("audit_available")) == TYPE_BOOL and V.sha(value.get("audit_digest")) \
 		and value.get("stats") is Dictionary and value.get("health") is Dictionary and value.get("task") is Dictionary
