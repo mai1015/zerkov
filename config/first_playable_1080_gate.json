@@ -177,9 +177,9 @@
       "purpose": "exact headless world markers driver",
       "sha256": "195b46a00ee088a845abcc260c38228ca4ebb7627194d6b0e578d508984dac79"
     },
-    "tests/tooling/run_bunker_hideout_gate.py": {
-      "purpose": "Exact-1080 graphical bunker capture gate",
-      "sha256": "f09a63daa84a6f6e28b3f4134f635cf6a5e6c95d125baa7be6ca398de1316713"
+    "tests/tooling/run_art_module_headless_gate.py": {
+      "purpose": "exact-1080 isolated art module driver; verified player assets and synthetic negative controls, no addon substitutions",
+      "sha256": "f6954f10ee1b497319a785f94eef39e83b184ae4ed0a96bd642ea4f656f7ee69"
     },
     "tests/tooling/run_map_studies_gate.py": {
       "purpose": "isolated exact-1080 map scene capture and repeatability",
@@ -200,6 +200,10 @@
     "tools/run_raid_progression_contracts.py": {
       "purpose": "exact headless native raid progression and separate-process settlement restart contracts",
       "sha256": "708399956f5264f132449cb23b49c01abff10fea485a3036b5d22d5d6e636e51"
+    },
+    "tests/tooling/run_bunker_hideout_gate.py": {
+      "purpose": "Exact-1080 graphical bunker capture gate",
+      "sha256": "f09a63daa84a6f6e28b3f4134f635cf6a5e6c95d125baa7be6ca398de1316713"
     }
   },
   "active_reviewed_support": {
