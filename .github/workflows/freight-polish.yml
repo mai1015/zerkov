@@ -3,34 +3,29 @@ on:
   pull_request:
     paths:
       - '.github/workflows/freight-polish.yml'
-      - 'tools/freight-transfer/**'
-      - 'tools/publish_freight_candidate.py'
       - 'game/presentation/northline_zone/**'
       - 'assets/world/northline_zone/**'
+      - 'game/presentation/map_studies/**'
+      - 'assets/world/map_studies/**'
       - 'tests/presentation/*freight*'
       - 'tests/presentation/northline_zone_contract.gd'
       - 'tests/tooling/*freight*'
       - 'tests/tooling/run_northline_zone_gate.py'
+      - 'tools/import_northline_review_outfit.py'
+      - 'tools/register_northline_zone.py'
+      - 'tools/check_map_study_scope.py'
       - 'config/first_playable_1080_gate.json'
 permissions:
   contents: read
 jobs:
   native-freight:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/northline-freight-polish'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-          persist-credentials: true
-      - name: Materialize the exact reviewed candidate
-        run: |
-          python3 tools/publish_freight_candidate.py
-          python3 tools/register_northline_zone.py
+          persist-credentials: false
       - name: Verify authored content and retained source policy
         run: |
           sudo apt-get update -qq
@@ -39,6 +34,8 @@ jobs:
           python3 -m unittest discover -s tests/tooling -p test_freight_polish.py -v
           python3 -m unittest discover -s tests/tooling -p test_northline_zone.py -v
           python3 -m unittest discover -s tests/tooling -p test_map_studies.py -v
+          python3 tools/register_northline_zone.py
+          git diff --exit-code -- config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py
           python3 tools/check_map_study_scope.py
           git diff --check
       - name: Fetch checksum-pinned Godot
@@ -61,21 +58,3 @@ jobs:
             ${{ runner.temp }}/freight-native/*.json
             ${{ runner.temp }}/freight-native/*.log
           retention-days: 30
-      - name: Retain ordinary reviewed source and native evidence on this branch only
-        env:
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          branch=feat/northline-freight-polish
-          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
-          test "$actual" = "$EXPECTED_HEAD"
-          cp "$RUNNER_TEMP/freight-native/capture.json" docs/qa/freight_polish/
-          cp "$RUNNER_TEMP/freight-native/northline-polish-before-1080.png" docs/qa/freight_polish/
-          cp "$RUNNER_TEMP/freight-native/northline-polish-after-1080.png" docs/qa/freight_polish/
-          git add -- assets/world/northline_zone/review_outfit.json assets/world/northline_zone/review_outfit.webp assets/world/northline_zone/review_outfit.webp.import docs/qa/freight_polish docs/spec/changes/polish-northline-freight-2026-09-15 game/presentation/northline_zone/northline_zone.gd game/presentation/northline_zone/polish/anchored_wind.gdshader game/presentation/northline_zone/polish/freight_polish.gd game/presentation/northline_zone/review_locomotion_pose.gd game/presentation/northline_zone/review_walker.gd game/presentation/northline_zone/zone_world.gd tests/presentation/freight_polish_contract.gd tests/presentation/northline_zone_contract.gd tests/tooling/run_northline_zone_gate.py tests/tooling/test_freight_polish.py tools/import_northline_review_outfit.py config/first_playable_1080_gate.json
-          git rm -- tools/freight-transfer/00.part tools/freight-transfer/01.part tools/freight-transfer/02.part tools/publish_freight_candidate.py
-          git diff --cached --check
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'feat(presentation): retain tested freight polish and resolved-motion animation'
-          git push origin "HEAD:refs/heads/$branch"
