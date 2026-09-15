@@ -1,0 +1,27 @@
+name: Extraction map studies
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/extraction-map-studies.yml'
+      - 'game/presentation/map_studies/**'
+      - 'assets/world/map_studies/**'
+      - 'tests/presentation/map_studies*'
+      - 'tests/tooling/*map_studies*'
+permissions:
+  contents: read
+jobs:
+  renderer-bootstrap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Prepare exact standard Godot renderer
+        run: |
+          mkdir -p "$RUNNER_TEMP/map-tools"
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/map-tools/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/map-tools/godot.zip" | sha256sum --check --strict
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: map-renderer-tooling
+          path: ${{ runner.temp }}/map-tools/godot.zip
+          compression-level: 0
+          retention-days: 1
