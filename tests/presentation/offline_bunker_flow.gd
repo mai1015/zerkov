@@ -84,7 +84,20 @@ func run() -> void:
 		root.position = Vector2i.ZERO
 		root.size = EXACT
 	await settle()
-	check(root.size == EXACT and root.get_visible_rect().size == Vector2(EXACT), "exact output")
+	print("OFFLINE_OUTPUT_PREFLIGHT window=", root.size, " viewport=", root.get_visible_rect().size)
+	var exact := root.size == EXACT and root.get_visible_rect().size == Vector2(EXACT)
+	check(exact, "exact output")
+	if not exact:
+		finish()
+		return
+	if DisplayServer.get_name() != "headless":
+		print("OFFLINE_PHYSICAL_DISPLAY window=", DisplayServer.window_get_size(root.get_window_id()), " screen=", DisplayServer.screen_get_size())
+		await RenderingServer.frame_post_draw
+		var preflight := root.get_texture().get_image()
+		check(Exact1080CaptureGuard.accepts(root, root, preflight), "physical output before product mount")
+		if not Exact1080CaptureGuard.accepts(root, root, preflight):
+			finish()
+			return
 	product = load("res://game/bootstrap/offline_application.tscn").instantiate()
 	root.add_child(product)
 	await settle()
