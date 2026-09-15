@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "source_archive_sha256": "ae2296dd78ba7310a512a2d3a9a575884dadefaf54eac8f9b3d535b31551b006",
+  "purpose": "fixed clothed review actor; not inventory-backed equipment",
+  "license_status": "user_supplied_internal_development_no_distribution_grant_claimed",
+  "frame_size": [
+    64,
+    64
+  ],
+  "frame_count": 6,
+  "feet_pivot": [
+    32,
+    48
+  ],
+  "atlas_sha256": "0e89f9a926c8468399b1c55b3289ac24211e3d123e1799c4661a313700f6bb97",
+  "atlas_rgba_sha256": "f8bf7d41402d2cfd0005cd0e71c33bb31867ce00234ff2666f6403e4e27d933a",
+  "sources": [
+    {
+      "member": "zerkov/Main character/skins legs/idle-legs_brown_jeans.png",
+      "sha256": "3c89774f2727850131e12ddfa3cc35941ba221a41750c2fb6e0000d3de05a820",
+      "rgba_sha256": "494acbd293c460a0ddc224e1133949cc15a26faba8215406bb948bdf0e3da5b6",
+      "row": 0
+    },
+    {
+      "member": "zerkov/Main character/skins torso/idle-torso_green_hoodie.png",
+      "sha256": "3d9c7c27ef42d6640411e21fdfa6989bda23ccd4098c5a27915ceedaf08bd91b",
+      "rgba_sha256": "b89fde06b3d4c252b427920ca4889020dee969499700bdb231d68becbdaea9cf",
+      "row": 1
+    },
+    {
+      "member": "zerkov/Main character/Skins arms/idle-arms_green_hoodie.png",
+      "sha256": "22e04e3488ac0b1b2f08ab0622aab8d8c8854dd9aa19765393a0eac97acba393",
+      "rgba_sha256": "b07b828c34031ac520cee03e1f5138e280c8a6458f10bcec39e2a7513126bb12",
+      "row": 2
+    },
+    {
+      "member": "zerkov/Main character/Animations/Idle/idle_head.png",
+      "sha256": "483939360f8e8df067ac11755e1f966df91aacedd7536e01c06e3423433dec88",
+      "rgba_sha256": "99e90f2ead469146368ad7c2e6ff98fab84f6d1284e0e7427c9c37dfe98bf388",
+      "row": 3
+    },
+    {
+      "member": "zerkov/Main character/skins legs/walk_legs_brown_jeans.png",
+      "sha256": "e9ed2b9ee85b5212c8c4a7775189505b61fde925da8fcd25b29cd5c04e497892",
+      "rgba_sha256": "72173f283cbdf8fdd2a9a20d37c7fe9143fc1475378118e9405f6a82ea0816e7",
+      "row": 4
+    },
+    {
+      "member": "zerkov/Main character/skins torso/walk_torso_green_hoodiepng.png",
+      "sha256": "c7147d82c98295a8d51485737285afdca6f91a82ec48a7dae8675ac818007ac1",
+      "rgba_sha256": "27c39fc2b5f12fb22fa055d5c91179c4f60c21858a1a75ec4e73fac0c78e1875",
+      "row": 5
+    },
+    {
+      "member": "zerkov/Main character/Skins arms/walk-arms_green_hoodies.png",
+      "sha256": "fb4682aa7039f453d517df8adccaebe653798cfcc5cad74acac400fbf0ea34a2",
+      "rgba_sha256": "21e5e094fa518cb965a6190229a488d153fb6c3b93706c3b4f6e0d681ef75bac",
+      "row": 6
+    },
+    {
+      "member": "zerkov/Main character/Animations/Walk/walk-head.png",
+      "sha256": "592b75b899f66390b74c615c915bd24bf65fae25205302901eff9698fc0ee0a8",
+      "rgba_sha256": "96c45ff78ce01bb216ba926600e46c9c3f3a90f458ba065059056fe0084eb8ca",
+      "row": 7
+    }
+  ]
+}
