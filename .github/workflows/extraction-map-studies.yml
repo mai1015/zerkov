@@ -8,36 +8,25 @@ on:
       - 'tests/presentation/map_studies*'
       - 'tests/tooling/*map_studies*'
       - 'tools/*map_stud*'
-      - 'tools/map-study-transfer/**'
       - 'config/first_playable_1080_gate.json'
 permissions:
   contents: read
 jobs:
   native-map-review:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/extraction-map-studies'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-          persist-credentials: true
-      - name: Publish the checksum-verified source candidate into the checkout
-        id: transfer
-        run: |
-          if test -f tools/map-study-transfer/00.part; then
-            python3 tools/unpack_map_study_transfer.py
-            echo 'decoded=true' >> "$GITHUB_OUTPUT"
-          fi
+          persist-credentials: false
       - name: Prepare native rendering and verify authored content
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb libgl1-mesa-dri
           python3 -m pip install 'Pillow==12.3.0'
           python3 tools/register_map_studies.py
+          git diff --exit-code -- config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py
           python3 -m unittest discover -s tests/tooling -p test_map_studies.py -v
           git diff --check
       - name: Report full-policy baseline findings and reject new issues
@@ -59,20 +48,3 @@ jobs:
             ${{ runner.temp }}/map-capture/*.json
             ${{ runner.temp }}/map-capture/*.log
           retention-days: 30
-      - name: Retain validated normal source and native evidence on this branch only
-        if: steps.transfer.outputs.decoded == 'true'
-        env:
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          branch=feat/extraction-map-studies
-          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
-          test "$actual" = "$EXPECTED_HEAD"
-          cp "$RUNNER_TEMP/map-capture/"*.png "$RUNNER_TEMP/map-capture/capture.json" docs/qa/map_studies/
-          git add -- assets/world/map_studies game/presentation/map_studies docs/qa/map_studies docs/spec/changes/add-extraction-map-studies-2026-09-15 tests/presentation/map_studies_contract.gd tests/tooling/run_map_studies_gate.py tests/tooling/test_map_studies.py tools/import_map_study_assets.py tools/register_map_studies.py config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py
-          git add -u -- tools/map-study-transfer
-          git rm -- tools/unpack_map_study_transfer.py
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'feat(maps): retain tested Northline and Mercury environments with native captures'
-          git push origin "HEAD:refs/heads/$branch"
