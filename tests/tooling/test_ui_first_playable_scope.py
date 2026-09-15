@@ -56,8 +56,8 @@ class FirstPlayable1080GateTests(unittest.TestCase):
         self.assertEqual(
             [], gate.classification_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
-        self.assertEqual(28, len(self.manifest["active_visual_entrypoints"]))
-        self.assertEqual(43, len(self.manifest["active_headless_entrypoints"]))
+        self.assertEqual(29, len(self.manifest["active_visual_entrypoints"]))
+        self.assertEqual(56, len(self.manifest["active_headless_entrypoints"]))
         self.assertEqual(
             (14, 2),
             tuple(len(self.manifest["retired_display_entrypoints"][kind])
@@ -134,6 +134,31 @@ class FirstPlayable1080GateTests(unittest.TestCase):
             issues = gate.classification_issues(minimal_manifest(), root, names)
             for name in names:
                 self.assertIn("unclassified GDScript entrypoint: " + name, issues)
+
+    def test_combat_execution_entries_cannot_disappear(self) -> None:
+        for name in ["tests/combat/native_combat_execution_contract.gd",
+                     "tests/combat/combat_execution_values_contract.gd"]:
+            omitted = copy.deepcopy(self.manifest)
+            omitted["active_headless_entrypoints"].remove(name)
+            self.assertIn("unclassified GDScript entrypoint: " + name,
+                          gate.classification_issues(omitted, PROJECT_ROOT, self.paths))
+
+    def test_raid_progression_entries_are_required(self) -> None:
+        for name in ["tests/raid/native_raid_progression_contract.gd", "tests/raid/raid_progression_contract.gd",
+                     "tests/raid/raid_restart_contract.gd"]:
+            omitted = copy.deepcopy(self.manifest)
+            omitted["active_headless_entrypoints"].remove(name)
+            self.assertIn("unclassified GDScript entrypoint: " + name,
+                          gate.classification_issues(omitted, PROJECT_ROOT, self.paths))
+
+    def test_tools_contract_drivers_are_independently_discovered(self) -> None:
+        names = ["tools/run_combat_input_contracts.py", "tools/run_ai_contracts.py",
+                 "tools/run_future_contracts.py", "tools/not_a_driver.py"]
+        self.assertEqual(set(names[:3]), gate.discover_python_display_drivers(PROJECT_ROOT, names))
+        omitted = copy.deepcopy(self.manifest)
+        del omitted["active_command_entrypoints"][names[0]]
+        self.assertIn("unclassified Python display driver: " + names[0],
+                      gate.classification_issues(omitted, PROJECT_ROOT, self.paths))
 
     def test_source_only_fixture_has_separate_inventory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -405,7 +430,7 @@ func run():
         self.assertEqual(
             [], gate.capture_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
-        self.assertEqual(9, len(self.manifest["sanctioned_capture_writers"]))
+        self.assertEqual(12, len(self.manifest["sanctioned_capture_writers"]))
 
     def test_sanctioned_writer_has_exactly_one_hashed_current_classification(self) -> None:
         omitted = copy.deepcopy(self.manifest)

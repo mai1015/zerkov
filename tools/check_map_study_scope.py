@@ -8,7 +8,7 @@ import copy,importlib.util
 from pathlib import Path
 import subprocess,tempfile
 ROOT=Path(__file__).resolve().parents[1]
-BASE='8039a0c19570e022cfc6ec855b77dd014da3e553'
+BASE='babd45e938b7105f5b11f1a4dcb9898c7e1c120b'
 PAIRS=[('tests/presentation/map_studies_contract.gd','tests/tooling/run_map_studies_gate.py'),('tests/presentation/northline_zone_contract.gd','tests/tooling/run_northline_zone_gate.py')]
 CHECKER='tools/check_first_playable_1080.py'
 POLICY='config/first_playable_1080_gate.json'
@@ -30,7 +30,8 @@ def main()->int:
                 del retained['sanctioned_capture_writers'][visual]
             if retained!=old:raise RuntimeError('Pre-existing policy changed')
             old_test=(baseline/TEST).read_text()
-            expected=old_test.replace('self.assertEqual(26, len(self.manifest["active_visual_entrypoints"]))','self.assertEqual(28, len(self.manifest["active_visual_entrypoints"]))')
+            # Each study adds one visual entrypoint and one sanctioned capture writer.
+            expected=old_test.replace('self.assertEqual(27, len(self.manifest["active_visual_entrypoints"]))','self.assertEqual(29, len(self.manifest["active_visual_entrypoints"]))').replace('self.assertEqual(10, len(self.manifest["sanctioned_capture_writers"]))','self.assertEqual(12, len(self.manifest["sanctioned_capture_writers"]))')
             if (ROOT/TEST).read_text()!=expected:raise RuntimeError('Policy tests changed beyond additive inventory count')
             for path in (baseline/'tests/ai').rglob('*.gd'):
                 if path.read_bytes()!=(ROOT/path.relative_to(baseline)).read_bytes():raise RuntimeError('Pre-existing AI test changed')

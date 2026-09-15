@@ -41,6 +41,7 @@ SOURCES = (
     "tests/ai/noise_service_contract.gd",
 )
 RENDER_SOURCES = (
+    "game/presentation/exact_1080_capture_guard.gd",
     "game/ai/debug/ai_debug_overlay.tscn",
     "tests/ai/ai_debug_render_contract.gd",
 )
@@ -72,7 +73,7 @@ def execute(command: list[str], *, result_name: str | None = None) -> str:
 
 
 def run_project(godot: Path, project: Path, *, native: bool, render: bool, capture: Path | None) -> None:
-    base = [str(godot), "--path", str(project), "--audio-driver", "Dummy"]
+    base = [str(godot), "--resolution", "1920x1080", "--path", str(project), "--audio-driver", "Dummy"]
     execute(base + ["--headless", "--editor", "--import", "--quit"])
     digests = []
     for _ in range(2):
