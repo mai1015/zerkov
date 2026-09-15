@@ -119,6 +119,10 @@
       "purpose": "exact diagnostic scene entrypoint",
       "sha256": "b720bc02f09d15df92c2f7d690590e13539f825c7e610500a8615ccd8313c72f"
     },
+    "tests/presentation/bunker_hideout_contract.gd": {
+      "purpose": "Native bunker production-view rendering and actual mouse input",
+      "sha256": "1f43d73f58845ffcd08f2842eb05fa8696dc16f0883bbde6173a5023a0aa3682"
+    },
     "tests/presentation/map_studies_contract.gd": {
       "purpose": "two original map studies; guarded native screenshots and input",
       "sha256": "9a03ebec67584bebfc441a29462205165beab2f9bb7e23b322bac054ca53d43b"
@@ -172,6 +176,10 @@
     "tests/tooling/run_world_markers_headless_gate.py": {
       "purpose": "exact headless world markers driver",
       "sha256": "195b46a00ee088a845abcc260c38228ca4ebb7627194d6b0e578d508984dac79"
+    },
+    "tests/tooling/run_bunker_hideout_gate.py": {
+      "purpose": "Exact-1080 graphical bunker capture gate",
+      "sha256": "f09a63daa84a6f6e28b3f4134f635cf6a5e6c95d125baa7be6ca398de1316713"
     },
     "tests/tooling/run_map_studies_gate.py": {
       "purpose": "isolated exact-1080 map scene capture and repeatability",
@@ -457,6 +465,13 @@
         "window.size = DESKTOP_CANVAS",
         "get_viewport().get_visible_rect().size == Vector2(DESKTOP_CANVAS)",
         "capture.get_size() == DESKTOP_CANVAS"
+      ]
+    },
+    "tests/presentation/bunker_hideout_contract.gd": {
+      "physical_guard_call": "Exact1080CaptureGuard.accepts(root, root, image)",
+      "guard_anchors": [
+        "root.size = Vector2i(1920, 1080)",
+        "image.get_size() == Vector2i(1920, 1080)"
       ]
     },
     "tests/presentation/map_studies_contract.gd": {
