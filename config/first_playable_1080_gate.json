@@ -204,6 +204,10 @@
     "tests/tooling/run_bunker_hideout_gate.py": {
       "purpose": "Exact-1080 graphical bunker capture gate",
       "sha256": "f09a63daa84a6f6e28b3f4134f635cf6a5e6c95d125baa7be6ca398de1316713"
+    },
+    "tools/run_local_flow_contracts.py": {
+      "purpose": "exact local root and isolated-file relaunch contracts",
+      "sha256": "d585d2310bd941e72542adec1c542141e88dda33008e318ef1a8b360ac162e06"
     }
   },
   "active_reviewed_support": {
@@ -245,6 +249,7 @@
     "tests/combat/native_combat_execution_contract.gd",
     "tests/combat/native_combat_intent_contract.gd",
     "tests/combat/weapon_combat_adapter_contract.gd",
+    "tests/local/native_local_flow_contract.gd",
     "tests/presentation/character_presentation_composition_contract.gd",
     "tests/presentation/ui_state_8_11_contract.gd",
     "tests/presentation/view_contracts_contract.gd",

@@ -1,0 +1,342 @@
+class_name LocalGame
+extends Node
+## Product composition for the local first-playable. Screens receive immutable
+## values and intent-only UI context; this root alone owns persistence and raids.
+signal published(frame: Dictionary)
+var last_error: StringName = &""
+var _campaign := LocalCampaign.new()
+var _provider := ZUIPresentationProvider.new()
+var _ui_port := LocalGameUI.new()
+var _character := LocalCharacterRuntime.new()
+var _character_binding: LocalCharacterBinding
+var _home: RaidInventoryOwner
+var _home_admission: ZSessionAdmission
+var _session: LocalRaidSession
+var _input_binding: ZCombatInputBinding
+var _interaction_handle: RefCounted
+var _ui: Control
+var _world: SubViewport
+var _world_image: TextureRect
+var _test_store: ProfileStore
+var _mode: String = "menu"
+var _epoch: int = 1
+var _serial: int = 0
+var _home_sequence: int = 0
+var _notice: String = ""
+var _summary: Dictionary = {}
+var _busy: bool = false
+var _closed: bool = false
+var _auto_advance: bool = true
+var _last_route: String = "title"
+
+## Integration tests must explicitly select an isolated real-file ProfileStore
+## BEFORE mounting. The default entrypoint never accepts a user-supplied path.
+func configure_test_store(store: ProfileStore, auto_advance: bool = false) -> bool:
+	if is_inside_tree() or store == null or not store.is_configured(): return false
+	_test_store = store
+	_auto_advance = auto_advance
+	return true
+
+func _ready() -> void:
+	get_tree().auto_accept_quit = false
+	if not _campaign.open(_test_store):
+		last_error = _campaign.last_error
+		_notice = "Save unavailable: " + String(last_error) + ". Existing files were not replaced."
+	elif not _campaign.recovered_result.is_empty():
+		_summary = _campaign.recovered_result.get("receipt", {})
+		_notice = "Interrupted raid recovered. Only committed results are restored."
+	else:
+		_notice = "Progress is saved on this computer. Steam co-op is not enabled in this build."
+	add_child(_provider)
+	add_child(_ui_port)
+	add_child(_character)
+	_provider.start_unavailable(_epoch)
+	_ui_port.requested.connect(_request)
+	_world = SubViewport.new()
+	_world.name = "AuthoritativeWorldViewport"
+	_world.size = ZWorldViewportPolicy.BASE_SURFACE_SIZE
+	_world.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_world.handle_input_locally = false
+	add_child(_world)
+	_world_image = TextureRect.new()
+	_world_image.name = "WorldPresentation"
+	_world_image.texture = _world.get_texture()
+	_world_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_world_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_world_image.size = Vector2(1920, 1080)
+	_world_image.visible = false
+	add_child(_world_image)
+	_publish()
+	_ui = load("res://ui/main.tscn").instantiate() as Control
+	_ui.set_script(load("res://ui/core/local/local_ui_host.gd"))
+	_ui.name = "Main"
+	if not _ui.inject_presentation_provider(_provider) or not _ui.inject_character_runtime(_character) \
+		or not _ui.inject_local_game_ui(_ui_port):
+		_error(&"local_ui_injection_failed")
+		return
+	add_child(_ui)
+	_ui.navigator.committed.connect(_route_changed)
+	set_physics_process(_auto_advance)
+
+func _physics_process(_delta: float) -> void:
+	if can_advance(): advance()
+
+func can_advance() -> bool:
+	return not _closed and not _busy and _mode == "raid" and _session != null \
+		and _input_binding != null and _ui != null and _ui.current_route == "hud" and not is_instance_valid(_ui.modal) and not is_instance_valid(_ui.picker)
+
+## Used by the product physics callback and integration tests, never screens.
+func advance() -> bool:
+	if not can_advance(): return false
+	var cursor := ZWorldViewportPolicy.screen_to_world(_ui.get_viewport().get_mouse_position(), _session.camera.global_position)
+	if cursor.ok:
+		_input_binding.set_aim_direction(cursor.world_position - _session.player_movement.position_px)
+	var receipt := _input_binding.flush_movement(_session.raid.last_processed_tick + 1)
+	if not receipt.is_empty() and receipt.get("admitted") != true: return _error(&"local_movement_admission_failed")
+	if not _session.advance(): return _error(_session.last_error)
+	var health := LocalHealthProjection.from_combat(_session.raid.admission(),
+		_session.combat.execution.frame_for(_session.raid.admission().actor_id.canonical_key()).health)
+	if health == null or not _character.publish_health_view(health): return _error(&"local_health_projection_failed")
+	if _session.raid.lifecycle == RaidAuthority.Lifecycle.SETTLING:
+		_mode = "settling"
+		_notice = "Saving the authoritative raid result locally…"
+		_release_input()
+		_publish()
+		_finish.call_deferred()
+	else: _publish()
+	return true
+
+func _request(command: StringName, epoch: int) -> void:
+	# Defer out of CommonUI dispatch before removing a route or native owner.
+	_consume.call_deferred(command, epoch)
+
+func _consume(command: StringName, epoch: int) -> void:
+	if _closed or epoch != _epoch or _busy: return
+	match command:
+		&"create":
+			if _mode != "menu" or not _campaign.create(self):
+				_error(_campaign.last_error if not _campaign.last_error.is_empty() else &"local_create_wrong_phase")
+				return
+			_open_home()
+		&"continue":
+			if _mode != "menu" or not _campaign.has_profile(): return
+			if not _summary.is_empty():
+				_mode = "summary"; _epoch += 1; _publish(); _navigate("summary_solo", false)
+			else: _open_home()
+		&"loadout", &"health", &"maps", &"tasks", &"controls", &"pause":
+			if _mode in ["home", "raid"] or (command == &"controls" and _mode == "menu"):
+				_navigate({&"loadout":"inventory", &"health":"health", &"maps":"maps", &"tasks":"tasks", &"controls":"controls", &"pause":"pause"}[command])
+		&"deploy":
+			if _mode == "home": _deploy()
+		&"resume":
+			if _mode == "raid": _navigate("hud", false)
+			elif _mode == "home": _navigate("bunker", false)
+			elif _mode == "menu": _navigate("main_menu", false)
+		&"interact":
+			if can_advance(): _interact()
+		&"cancel":
+			if can_advance(): _session.cancel_interaction()
+		&"return_home":
+			if _mode == "summary": _open_home()
+			elif _mode == "home": _navigate("bunker", false)
+		&"retry_save":
+			if _mode == "save_error" and _session != null: _finish()
+			elif _mode == "home" and _home != null:
+				if _campaign.save_home(_home): last_error = &""; _notice = "Loadout saved locally."; _publish()
+		&"abandon":
+			if _mode == "raid": _abandon()
+		&"quit":
+			if shutdown(): get_tree().quit()
+
+func _open_home() -> void:
+	_busy = true
+	_release_input()
+	_release_character()
+	if _session != null:
+		if not _session.release(): _busy = false; _error(_session.last_error); return
+		_session.queue_free(); _session = null
+	if _home != null:
+		_home.teardown(_home.generation()); _home.queue_free(); _home = null
+	if not _campaign.reload(): _busy = false; _error(_campaign.last_error); return
+	_home = _campaign.instantiate_home(self)
+	if _home == null: _busy = false; _error(&"local_home_inventory_failed"); return
+	_home_sequence += 1
+	var id := ZRaidId.from_parts(PackedStringArray(["local", "home", "v" + str(_home_sequence)]))
+	_home_admission = SessionCoordinator.new().open_offline(id, StringName("home" + str(_home_sequence)))
+	_character_binding = LocalCharacterBinding.new()
+	add_child(_character_binding)
+	if not _character_binding.bind(_character, _home, _home_admission, LocalHealthProjection.recovered_home(_home_admission), ZInventoryWorldPolicyPort.new()):
+		_busy = false; _error(_character_binding.last_error); return
+	_mode = "home"; _epoch += 1; _summary = {}; last_error = &""
+	_notice = "Saved locally · body and survival resources recover at home. Equipment is not replenished."
+	_world_image.hide()
+	_busy = false
+	_publish()
+	_navigate("bunker", false)
+
+func _deploy() -> void:
+	_busy = true
+	if not _campaign.save_home(_home): _busy = false; _error(_campaign.last_error); return
+	_release_character()
+	if not _home.teardown(_home.generation()): _busy = false; _error(&"local_home_teardown_failed"); return
+	_home.queue_free(); _home = null
+	_mode = "deploying"; _epoch += 1
+	_notice = "Recording deployment identity and loading Sawmill. Interrupted loading is recovered as an abandoned raid."
+	_publish()
+	_navigate("deploying", false)
+	_start_raid.call_deferred()
+
+func _start_raid() -> void:
+	if _closed: return
+	_session = LocalRaidSession.new()
+	_world.add_child(_session)
+	var sequence: int = _campaign.loaded.payload.project.get(RaidProgressionValues.STATE_KEY, RaidProgressionValues.initial_state()).next_sequence
+	var request := ZRequestId.from_parts(PackedStringArray(["local", "deploy", "g" + str(_campaign.loaded.generation), "r" + str(sequence)]))
+	if not _session.start(_campaign.store, request.canonical_key(), _campaign.loaded.generation, sequence):
+		_busy = false; _error(_session.last_error); return
+	var policy := LocalInventoryWorldPolicy.new()
+	policy.configure(_session)
+	_character_binding = LocalCharacterBinding.new()
+	add_child(_character_binding)
+	var health := LocalHealthProjection.from_combat(_session.raid.admission(), _session.combat.health.actor_snapshot(_session.raid.admission().actor_id))
+	if not _character_binding.bind(_character, _session.deployment.inventory, _session.raid.admission(), health, policy):
+		_busy = false; _error(_character_binding.last_error); return
+	_mode = "raid"; _world_image.show(); _busy = false; last_error = &""
+	_notice = "WASD move · mouse aim · LMB fire · R reload · V melee · E search/open/extract · Tab inventory · M map · Esc pause"
+	_publish()
+	_navigate("hud", false)
+
+func _route_changed(route: String, _screen: Control) -> void:
+	_release_input()
+	if _mode == "home" and _home != null and _last_route in ["inventory", "health", "stats"]:
+		if not _campaign.save_home(_home): _error(_campaign.last_error)
+	if _mode == "raid" and route == "hud":
+		_input_binding = ZCombatInputBinding.new()
+		add_child(_input_binding)
+		var native := get_node_or_null("/root/CommonUI") as CommonUIRuntime
+		if not _input_binding.bind(native, _ui.input_service, _session.player_router, _session.hud_model, _session.raid.generation()):
+			_error(&"local_gameplay_input_failed"); return
+		_interaction_handle = native.register_action(ZerkovInputActions.GAME_INTERACT, Callable(self, "_handle_interact"),
+			{"owner":self,"context":ZerkovInputActions.GAMEPLAY_CONTEXT,"priority":1,"ui_user":0})
+		if _interaction_handle == null: _error(&"local_interaction_input_failed"); return
+	_last_route = route
+	_publish()
+
+func _handle_interact(event: Dictionary) -> int:
+	if not can_advance(): return CommonUIRuntime.ROUTE_UNHANDLED
+	if event.get("phase") == CommonUIRuntime.PHASE_PRESSED: _consume.call_deferred(&"interact", _epoch)
+	return CommonUIRuntime.ROUTE_HANDLED
+
+func _interact() -> void:
+	var target := _session.nearest_target()
+	if target.is_empty(): _notice = "Move within reach of a marked crate or Road Gate."; _publish(); return
+	if _session.crate_ids.has(target) and _session.progression.was_crate_searched(target):
+		var controller := _character.inventory_controller() as LocalInventoryController
+		if not controller.bind_world_inventory(InventoryPresentationController.SOURCE_CRATE, _session.crate_ids[target]) \
+			or not controller.set_loot_container(InventoryPresentationController.SOURCE_CRATE) or not controller.open_loot_container():
+			_error(&"local_loot_workspace_failed"); return
+		_navigate("inventory")
+	elif target == SupplyRunGraph.ROAD_GATE and _session.progression.snapshot().clock.counting:
+		_session.cancel_interaction()
+	else:
+		if not _session.interact(target): _notice = "Interaction was not admitted. Move closer and retry."
+		_publish()
+
+func _finish() -> void:
+	if _closed or _session == null: return
+	_busy = true
+	_release_input(); _release_character()
+	var result := _session.finish()
+	_busy = false
+	if result.get("ok") != true or result.get("committed") != true:
+		_mode = "save_error"; _notice = "Result not acknowledged. Retry local save; do not start another raid. " + String(result.get("reason", "unknown"))
+		_publish(); _navigate("summary_solo", false); return
+	_summary = result.receipt
+	_mode = "summary"; _epoch += 1
+	_notice = "Raid result committed locally. Returning home will not apply it again."
+	_publish(); _navigate("summary_solo", false)
+
+func _abandon() -> void:
+	_release_input(); _release_character()
+	if not _session.release(): _error(_session.last_error); return
+	_session.queue_free(); _session = null
+	if not _campaign.reload(true): _error(_campaign.last_error); return
+	_summary = _campaign.recovered_result.get("receipt", {})
+	_mode = "summary"; _epoch += 1
+	_notice = "Raid abandoned. Only deployment-time secure contents were recovered."
+	_publish(); _navigate("summary_solo", false)
+
+func _publish() -> void:
+	if _closed: return
+	_serial += 1
+	var frame := {"epoch":_epoch,"serial":_serial,"mode":_mode,"has_profile":_campaign.has_profile(),
+		"can_create":_campaign.loaded.get("reason") == &"profile_missing" and _campaign.last_error.is_empty(),
+		"profile_generation":int(_campaign.loaded.get("generation", 0)),"notice":_notice,"error":String(last_error),
+		"summary":_summary,"progression":{},"combat":{},"tick":0,"map_markers":[],"searched_ids":[],"nearest_target":""}
+	if _session != null and _session.progression != null:
+		frame.progression = _session.progression.snapshot()
+		frame.lifecycle = int(_session.raid.lifecycle)
+		frame.exit_distance = roundi(_session.player_movement.position_px.distance_to(_session.layout.cell_center(_session.layout.anchor(SupplyRunGraph.ROAD_GATE).cell)) / ZWorldUnits.GODOT_PIXELS_PER_WORLD_UNIT)
+		frame.tick = int(frame.progression.get("tick", 0))
+		frame.searched_ids = frame.progression.get("searched_ids", [])
+		frame.nearest_target = _session.nearest_target() if _mode == "raid" else ""
+		if _session.hud_model != null:
+			frame.combat = _session.hud_model.snapshot()
+			frame.actor_id = _session.raid.admission().actor_id.canonical_key()
+			frame.weapon_id = String(_session.hud_model.confirmed_frame().get("weapon", {}).get("instance_id", ""))
+	var layout := load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
+	if layout != null:
+		for id: String in SupplyRunGraph.CRATES + [SupplyRunGraph.ROAD_GATE]:
+			frame.map_markers.append({"id":id,"label":LocalGameViews.display_item(id),"kind":"exit" if id == SupplyRunGraph.ROAD_GATE else "crate",
+				"position":layout.cell_center(layout.anchor(id).cell) / layout.world_bounds().size})
+		if _session != null and _session.player_movement != null:
+			frame.map_markers.append({"id":frame.get("actor_id", "zerkov.entity.local.player"),"label":"You","kind":"player", "position":_session.player_movement.position_px / layout.world_bounds().size})
+	var views := LocalGameViews.build(frame)
+	for view: ZReadOnlyView in views:
+		if view == null:
+			last_error = &"local_typed_view_invalid"
+			push_error(last_error)
+			return
+	var ok: bool = _provider.replace_views(_epoch, views[0], views[1], views[2], views[3], views[4]) if _epoch > _provider.generation() \
+		else _provider.publish_views(_epoch, views[0], views[1], views[2], views[3], views[4])
+	if not ok: last_error = _provider.last_error; push_error(last_error); return
+	_ui_port.publish(frame)
+	published.emit(_ui_port.snapshot())
+
+func _navigate(route: String, record: bool = true) -> void:
+	if _ui != null and not _ui.request_route(route, record): _error(&"local_route_rejected")
+
+func _release_character() -> void:
+	if _character_binding != null:
+		_character_binding.release(); _character_binding.queue_free(); _character_binding = null
+
+func _release_input() -> void:
+	if _interaction_handle != null: _interaction_handle.call("release"); _interaction_handle = null
+	if _input_binding != null: _input_binding.release(); _input_binding.queue_free(); _input_binding = null
+
+func shutdown() -> bool:
+	if _closed: return true
+	_release_input()
+	if _home != null and not _campaign.save_home(_home): return _error(_campaign.last_error)
+	_release_character()
+	if _session != null and not _session.release(): return _error(_session.last_error)
+	if _home != null and not _home.teardown(_home.generation()): return _error(&"local_home_teardown_failed")
+	if not _campaign.close(): return _error(&"local_profile_close_failed")
+	_closed = true
+	_ui_port.release()
+	return true
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if shutdown(): get_tree().quit()
+
+func _exit_tree() -> void:
+	if not _closed: shutdown()
+
+func _error(reason: StringName) -> bool:
+	last_error = reason
+	_notice = "Local session stopped: " + String(reason) + ". No sample state was substituted."
+	if _mode in ["raid", "deploying", "settling"]: _mode = "error"
+	_busy = false
+	_publish()
+	return false
