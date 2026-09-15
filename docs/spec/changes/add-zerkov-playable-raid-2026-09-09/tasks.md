@@ -439,11 +439,11 @@ failure after mutation. No UI layout was changed. See
   bandage and splint.
 - [x] 5.6 `[SOL]` Implement damage, injury, healing and death consequences with
   atomic or idempotent cross-entity application.
-- [ ] 5.7 `[LUNA]` Route aim, fire, reload, cancel reload, melee and quick-heal
+- [x] 5.7 `[LUNA]` Route aim, fire, reload, cancel reload, melee and quick-heal
   logical actions into bounded game intents.
-- [ ] 5.8 `[SOL]` Implement melee reach, wind-up, contact, recovery and stamina
+- [x] 5.8 `[SOL]` Implement melee reach, wind-up, contact, recovery and stamina
   rules without trusting presentation animation events as authority.
-- [ ] 5.9 `[LUNA]` Drive HUD ammo, reload, health, status and correction states
+- [x] 5.9 `[LUNA]` Drive HUD ammo, reload, health, status and correction states
   only from confirmed/reversible presentation events.
 - [ ] 5.10 `[SOL]` Add deterministic cadence, out-of-ammo, stale-revision,
   reload-race, duplicate-shot and death-during-action regressions.
