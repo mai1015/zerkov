@@ -42,7 +42,7 @@ def main()->int:
     with tempfile.TemporaryDirectory(prefix='northline-native-') as temp:
         project=Path(temp)
         for folder in FOLDERS:shutil.copytree(ROOT/folder,project/folder,ignore=shutil.ignore_patterns('*.uid'))
-        for name in ['game/presentation/exact_1080_capture_guard.gd','tests/presentation/northline_zone_contract.gd']:
+        for name in ['game/presentation/exact_1080_capture_guard.gd','tests/presentation/northline_zone_contract.gd','tests/presentation/freight_polish_contract.gd']:
             target=project/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/name,target)
         (project/'project.godot').write_text(PROJECT)
         run([engine,'--headless','--path',str(project),'--resolution','1920x1080','--editor','--import','--quit'],project,output/'import.log')
@@ -50,19 +50,19 @@ def main()->int:
         for i in range(2):
             dest=output/('run%d'%i);dest.mkdir()
             text=run(['xvfb-run','-a','-s','-screen 0 1920x1080x24',engine,'--path',str(project),'--resolution','1920x1080','--rendering-method','gl_compatibility','--audio-driver','Dummy','--script','res://tests/presentation/northline_zone_contract.gd','--','--output='+str(dest)],project,output/('native%d.log'%i))
-            match=re.search(r'NORTHLINE_NATIVE_RESULT checks=(\d+) failures=0 captures=12 sectors=9 output=1920x1080 world=640x360',text)
-            if match is None or int(match[1])<38:raise RuntimeError('Missing complete native result')
+            match=re.search(r'NORTHLINE_NATIVE_RESULT checks=(\d+) failures=0 captures=14 sectors=9 output=1920x1080 world=640x360',text)
+            if match is None or int(match[1])<79:raise RuntimeError('Missing complete native result')
             counts.append(int(match[1]));notices+=text.count(KNOWN)
             hashes.append({f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(dest.glob('*.png'))})
-            if len(hashes[-1])!=12:raise RuntimeError('Incomplete screenshot inventory')
+            if len(hashes[-1])!=14:raise RuntimeError('Incomplete screenshot inventory')
         if counts[0]!=counts[1] or hashes[0]!=hashes[1]:raise RuntimeError('Repeated native runs differ')
         for path in (output/'run0').glob('*.png'):shutil.copyfile(path,output/path.name)
-        seal={'source_commit':os.environ.get('SOURCE_SHA','local-uploaded-project'),'engine':PIN,'runs':2,'checks':sum(counts),'failures':0,'unexpected_diagnostics':0,'known_vsync_notices':notices,'output':[1920,1080],'world_raster':[640,360],'world_size':[2688,1792],'area_multiplier':16,'screenshots':hashes[0],'source_files':{},'scope':'full connected environment with review walker; not the live raid host','human_approval':False}
+        seal={'source_commit':os.environ.get('SOURCE_SHA','local-uploaded-project'),'engine':PIN,'runs':2,'checks':sum(counts),'failures':0,'unexpected_diagnostics':0,'known_vsync_notices':notices,'output':[1920,1080],'world_raster':[640,360],'world_size':[2688,1792],'area_multiplier':16,'screenshots':hashes[0],'source_files':{},'scope':'full connected environment with freight polish and review walker; not the live raid host','human_approval':False}
         for folder in FOLDERS:
             for path in sorted((ROOT/folder).rglob('*')):
                 if path.is_file() and path.suffix!='.uid':seal['source_files'][str(path.relative_to(ROOT))]=hashlib.sha256(path.read_bytes()).hexdigest()
         for path in [ROOT/'tests/presentation/northline_zone_contract.gd',Path(__file__)]:seal['source_files'][str(path.relative_to(ROOT))]=hashlib.sha256(path.read_bytes()).hexdigest()
         (output/'capture.json').write_text(json.dumps(seal,indent=2)+'\n')
-        print('NORTHLINE_GATE_RESULT runs=2 checks=%d failures=0 captures=12 repeatable=true'%sum(counts))
+        print('NORTHLINE_GATE_RESULT runs=2 checks=%d failures=0 captures=14 repeatable=true'%sum(counts))
     return 0
 if __name__=='__main__':raise SystemExit(main())

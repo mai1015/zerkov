@@ -2,10 +2,16 @@ class_name ZNorthlineReviewWalker
 extends CharacterBody2D
 ## Collision-aware inspector for this standalone environment. NOT a raid actor.
 ## No health, inventory, stamina, weapon state, persistence or authority mutation.
-const TEXTURE = preload("res://assets/world/northline_zone/review_walker.png")
+const TEXTURE = preload("res://assets/world/northline_zone/review_outfit.webp")
+# Fixed review wardrobe, not a claim of equipment/inventory binding.
+# Both supplied idle/walk families face LEFT before mirroring. Keep desired
+# world facing separate from source orientation; do not reverse frame order.
+const SOURCE_FACES_LEFT: bool = true
 var enabled: bool = false
 var animate: bool = false
-var elapsed: float = 0.0
+const Pose = preload("res://game/presentation/northline_zone/review_locomotion_pose.gd")
+var pose = Pose.new()
+var inspection_ring: bool = false
 var face_left: bool = false
 var layers: Array[Sprite2D] = []
 
@@ -31,12 +37,15 @@ func _ready() -> void:
 
 func _draw() -> void:
 	draw_circle(Vector2(0, -2), 9, Color(0.01,0.025,0.018,0.38))
-	draw_arc(Vector2.ZERO, 10, 0, TAU, 20, Color(0.57,0.82,0.74,0.75), 1)
+	if inspection_ring:
+		draw_arc(Vector2.ZERO, 10, 0, TAU, 20, Color(0.57,0.82,0.74,0.75), 1)
 
 func show_frame(moving: bool, frame: int) -> void:
+	var render_offset := global_position.round() - global_position
 	for row: int in range(layers.size()):
+		layers[row].position = Vector2(-32, -48) + render_offset
 		layers[row].region_rect = Rect2((frame % 6) * 64, (row + (4 if moving else 0)) * 64, 64, 64)
-		layers[row].flip_h = face_left
+		layers[row].flip_h = face_left != SOURCE_FACES_LEFT
 
 func _physics_process(delta: float) -> void:
 	if not enabled:
@@ -47,7 +56,11 @@ func _physics_process(delta: float) -> void:
 	velocity = input.normalized() * speed
 	if input.x != 0:
 		face_left = input.x < 0
+	var previous_position := position
 	move_and_slide()
+	var resolved_distance := position.distance_to(previous_position)
 	if animate:
-		elapsed += delta
-	show_frame(input != Vector2.ZERO, int(elapsed * (10 if input != Vector2.ZERO else 6)))
+		pose.advance(resolved_distance, minf(delta, 1.0))
+		show_frame(pose.moving, pose.frame)
+	else:
+		show_frame(resolved_distance > 0.01, 0)
