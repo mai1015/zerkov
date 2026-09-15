@@ -3,8 +3,7 @@ extends SceneTree
 ## locomotion and root combat composition. Test-only loadout seed is explicit.
 var checks: int = 0
 var failures: int = 0
-var serial: int = 0
-var _owners: Array[Node] = []
+var _owners: Array[RaidInventoryOwner] = []
 var _raid: RaidAuthority
 var _session: RaidCombatSession
 var _player: ZEntityId
@@ -22,7 +21,7 @@ func check(value: bool, message: String) -> void:
 		push_error("NATIVE_COMBAT_EXECUTION: " + message)
 func run() -> void:
 	# Test watchdog only; never advances the authoritative simulation.
-	create_timer(15.0).timeout.connect(_watchdog)
+	create_timer(45.0).timeout.connect(_watchdog)
 	if not ClassDB.class_exists("WeaponAuthority") or not ClassDB.class_exists("GameplayAbilityComponent"):
 		print("NATIVE_COMBAT_EXECUTION_BLOCKED missing_native_addons")
 		quit(2); return
@@ -38,8 +37,6 @@ func run() -> void:
 	if not _tick(): await _finish(); return
 	frame = _frame()
 	check(frame.weapon.phase == "reloading", "real reload begun")
-	print("NATIVE_COMBAT_EXECUTION_RELOAD ", frame.weapon.reload)
-	var due: int = _raid.last_processed_tick + ZerkovCombatContent.AKM_RELOAD_TICKS
 	for i in range(ZerkovCombatContent.AKM_RELOAD_TICKS):
 		if not _tick(): await _finish(); return
 	frame = _frame()
@@ -59,28 +56,65 @@ func run() -> void:
 	var second := _submit(&"reload", _reload_payload())
 	if not _tick(): await _finish(); return
 	check(_frame().weapon.phase == "reloading", "fire -> reload shares native command watermark")
-	var cancel := _submit(&"cancel_reload", {"weapon_id":_frame().weapon.instance_id,
-		"expected_weapon_revision":_frame().weapon.revision,"reservation_id":_frame().weapon.reload.reservation_id})
+	var held_reserve: int = _frame().reserve_rounds
+	var stale_cancel_payload := ZCombatInputBinding.payload_for(&"cancel_reload", _frame())
+	stale_cancel_payload.expected_weapon_revision += 1
+	var stale_cancel := _submit(&"cancel_reload", stale_cancel_payload)
+	if not _tick(): await _finish(); return
+	check(_receipt(stale_cancel).reason == &"weapon_revision_stale" and not _receipt(stale_cancel).committed, "cancel checks weapon revision at execution")
+	check(_frame().weapon.phase == "reloading" and _frame().reserve_rounds == held_reserve, "stale cancel cannot release the hold")
+	var wrong_reservation_payload := ZCombatInputBinding.payload_for(&"cancel_reload", _frame())
+	wrong_reservation_payload.reservation_id = "zerkov.reservation.not_current"
+	var wrong_reservation := _submit(&"cancel_reload", wrong_reservation_payload)
+	if not _tick(): await _finish(); return
+	check(_receipt(wrong_reservation).reason == &"reload_reservation_stale" and _frame().weapon.phase == "reloading", "cancel checks reservation identity independently")
+	var cancel := _submit(&"cancel_reload", ZCombatInputBinding.payload_for(&"cancel_reload", _frame()))
 	if not _tick(): await _finish(); return
 	check(_session.execution.receipt(cancel.request_id).committed and _frame().weapon.loaded_rounds == 29, "cancel returns real quantity hold without refill")
 	check(not _session.execution.receipt(second.request_id).committed, "cancelled reload not reported completed")
 	var prior_hp := _total_hp(_session.health.actor_snapshot(_enemy))
 	var stamina: int = _frame().health.stamina_micros
-	var melee := _submit(&"melee", {"weapon_id":_frame().melee_equipment.weapon_id,
-		"expected_equipment_revision":_frame().melee_equipment.revision})
+	var stale_melee_payload := ZCombatInputBinding.payload_for(&"melee", _frame())
+	stale_melee_payload.expected_equipment_revision += 1
+	var stale_melee := _submit(&"melee", stale_melee_payload)
+	if not _tick(): await _finish(); return
+	check(_receipt(stale_melee).reason == &"melee_equipment_stale", "melee revalidates equipment revision")
+	check(_frame().health.stamina_micros == stamina and _frame().melee.phase == &"ready", "stale melee neither spends nor starts")
+	var producer_frame := _frame().duplicate(true)
+	producer_frame.inventory_revision = int(producer_frame.melee_equipment.revision) + 100
+	var melee_payload := ZCombatInputBinding.payload_for(&"melee", producer_frame)
+	check(melee_payload.expected_equipment_revision == _frame().melee_equipment.revision and not melee_payload.has("expected_inventory_revision"), "producer does not substitute inventory revision for equipment revision")
+	var melee := _submit(&"melee", melee_payload)
 	if not _tick(): await _finish(); return
 	check(_session.execution.receipt(melee.request_id).committed, "swing cost admitted in real health phase")
 	check(_frame().health.stamina_micros == stamina - ZerkovCombatContent.MACHETE_STAMINA_COST_MICROUNITS, "stamina paid once through GAS")
 	check(_frame().melee.phase == &"windup", "windup starts at authoritative tick")
-	for i in range(9):
+	var busy := _submit(&"melee", ZCombatInputBinding.payload_for(&"melee", _frame()))
+	for i in range(ZMeleePolicy.MACHETE_WINDUP - 1):
 		if not _tick(): await _finish(); return
 		check(_total_hp(_session.health.actor_snapshot(_enemy)) == prior_hp, "no animation-driven early melee damage")
 	if not _tick(): await _finish(); return
+	check(_receipt(busy).reason == &"melee_busy", "second swing rejected during windup")
 	check(_total_hp(_session.health.actor_snapshot(_enemy)) < prior_hp, "real active sweep applies health consequence")
+	check(_frame().melee.phase == &"active", "active starts at exact authority tick")
+	check(_frame().health.stamina_micros == stamina - ZerkovCombatContent.MACHETE_STAMINA_COST_MICROUNITS, "busy retry and active contact cannot spend again")
 	var contact_hp := _total_hp(_session.health.actor_snapshot(_enemy))
 	for i in range(3):
 		if not _tick(): await _finish(); return
 	check(_total_hp(_session.health.actor_snapshot(_enemy)) == contact_hp, "one damage per swing")
+	check(_frame().melee.phase == &"recovery", "active end enters recovery")
+	var recovery_busy := _submit(&"melee", ZCombatInputBinding.payload_for(&"melee", _frame()))
+	if not _tick(): await _finish(); return
+	check(_receipt(recovery_busy).reason == &"melee_busy", "recovery blocks a new swing")
+	var ready_tick: int = _frame().melee.swing.ready_tick
+	while _raid.last_processed_tick < ready_tick - 1:
+		if not _tick(): await _finish(); return
+	check(_frame().melee.phase == &"recovery", "last recovery tick remains blocked")
+	if not _tick(): await _finish(); return
+	check(_frame().melee.phase == &"ready", "recovery ends at exact ready tick")
+	if failures == 0: print("NATIVE_COMBAT_EXECUTION_STAGE melee_timing_cost_contact_recovery_passed")
+	if not _test_quick_heal(): await _finish(); return
+	if not _test_miss_and_duplicate(): await _finish(); return
 	check(_model.snapshot().ammo == _frame().weapon.loaded_rounds, "HUD reads confirmed native ammo")
 	check(_model.snapshot().health_micros == _total_hp(_frame().health), "HUD reads confirmed body health")
 	await _finish()
@@ -131,23 +165,25 @@ func _make_router(actor: ZEntityId, source: ZRaidIntent.Source) -> ZCombatAction
 	var router := ZCombatActionRouter.new()
 	check(router.bind(encoder,sink), "router bound")
 	return router
-func _submit(kind: StringName, payload: Dictionary) -> Dictionary:
-	var outcome := _router.submit_action(kind,payload,_raid.last_processed_tick+1,1)
+func _submit(kind: StringName, payload: Dictionary, router: ZCombatActionRouter = null) -> Dictionary:
+	var target: ZCombatActionRouter = _router if router == null else router
+	check(ZCombatActionCodec.validate_payload(kind, payload).is_empty(), "production payload validates: " + String(kind))
+	var outcome := target.submit_action(kind,payload,_raid.last_processed_tick+1,1)
 	check(outcome.get("admitted")==true,"input admission " + String(kind) + ": " + str(outcome))
-	_model.predict(outcome)
+	if router == null: _model.predict(outcome)
 	return outcome
 func _tick() -> bool:
+	# Stop before dereferencing a rejected admission or cascading phase failure.
+	if failures > 0: return false
 	var ok := _raid.advance_one(1)
 	check(ok,"authority tick " + str(_raid.last_processed_tick)+": "+String(_raid.last_error)+" / "+String(_session.execution.last_error)+" / "+String(_session.health.last_error)+" / "+String(_session.fire.last_error))
-	return ok
+	return ok and failures == 0
 func _frame() -> Dictionary:
 	return _session.execution.frame_for(_player.canonical_key())
 func _fire_payload() -> Dictionary:
-	return {"weapon_id":_frame().weapon.instance_id,"expected_weapon_revision":_frame().weapon.revision}
+	return ZCombatInputBinding.payload_for(&"fire", _frame())
 func _reload_payload() -> Dictionary:
-	var payload := _fire_payload()
-	payload["expected_inventory_revision"] = _frame().inventory_revision
-	return payload
+	return ZCombatInputBinding.payload_for(&"reload", _frame())
 func _total_hp(state: Dictionary) -> int:
 	var total: int = 0
 	for zone: Dictionary in state.body_parts: total += int(zone.health_micros)
@@ -166,11 +202,13 @@ func _inventory(index: int) -> RaidInventoryOwner:
 		if int(c.provider_item) != 0: continue
 		if c.container_definition_identifier == ZerkovInventoryCatalog.CONTAINER_EQUIPMENT: equipment = c.id
 		if c.container_definition_identifier == ZerkovInventoryCatalog.CONTAINER_POCKETS: pockets = c.id
-	var definitions: Array = [ZerkovInventoryCatalog.ITEM_AKM,ZerkovInventoryCatalog.ITEM_MACHETE,ZerkovInventoryCatalog.ITEM_AMMO_762]
-	for item in range(3):
-		var placement := {"kind":"slot","container":equipment,"slot_identifier":String(EquippedItemReconciler.SLOT_PRIMARY if item==0 else EquippedItemReconciler.SLOT_MELEE)} 			if item<2 else {"kind":"spatial","container":pockets,"x":0,"y":0,"rotated":false}
-		var result := a.insert_item(id,String(definitions[item]),1 if item<2 else 60,placement,RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID, 2000+index*100+item)
-		check(result.get("accepted",false), "canonical fixture insert " + str(result))
+	var definitions: Array = [ZerkovInventoryCatalog.ITEM_AKM,ZerkovInventoryCatalog.ITEM_MACHETE,ZerkovInventoryCatalog.ITEM_AMMO_762,ZerkovInventoryCatalog.ITEM_BANDAGE,ZerkovInventoryCatalog.ITEM_SPLINT]
+	for item in range(definitions.size()):
+		var placement := {"kind":"slot","container":equipment,"slot_identifier":String(EquippedItemReconciler.SLOT_PRIMARY if item==0 else EquippedItemReconciler.SLOT_MELEE)} \
+			if item<2 else {"kind":"spatial","container":pockets,"x":item-2,"y":0,"rotated":false}
+		var result := a.insert_item(id,String(definitions[item]),1 if item<2 else (60 if item==2 else 2),placement,RaidInventoryOwner.FIXTURE_INSERT_ACTOR_ID, 2000+index*100+item)
+		check(result.get("accepted",false), "canonical fixture insert " + String(definitions[item]))
+		if not result.get("accepted",false): return null
 	return owner
 func _cleanup() -> void:
 	if _session != null:
@@ -180,6 +218,84 @@ func _cleanup() -> void:
 	for owner in _owners:
 		owner.queue_free()
 	await process_frame
+
+func _receipt(admission: Dictionary) -> Dictionary:
+	var result := _session.execution.receipt(String(admission.get("request_id", "")))
+	check(not result.is_empty(), "admitted action has an execution receipt")
+	return result
+
+func _quantity(index: int, definition: StringName) -> int:
+	var owner: RaidInventoryOwner = _owners[index]
+	var snapshot := owner.raid_authority().snapshot(owner.raid_player_inventory_id)
+	var count: int = 0
+	for item: Dictionary in snapshot.get_items():
+		if StringName(item.item_definition_identifier) == definition: count += int(item.quantity)
+	return count
+
+func _test_quick_heal() -> bool:
+	var enemy_frame := _session.execution.frame_for(_enemy.canonical_key())
+	var payload := ZCombatInputBinding.payload_for(&"quick_heal", enemy_frame)
+	check(not payload.is_empty(), "real damage produced a treatable injury")
+	if failures > 0: return false
+	check(typeof(payload.body_zone) == TYPE_STRING and typeof(payload.treatment) == TYPE_STRING, "quick-heal emits codec string types")
+	var before := _quantity(1, ZerkovInventoryCatalog.ITEM_BANDAGE)
+	check(payload.treatment == "bandage", "heavy bleeding takes priority")
+	var stale := payload.duplicate()
+	stale.expected_health_revision += 1
+	var rejection := _submit(&"quick_heal", stale, _enemy_router)
+	if not _tick(): return false
+	check(not _receipt(rejection).committed and _receipt(rejection).terminal, "stale treatment rejects in health authority")
+	check(_quantity(1, ZerkovInventoryCatalog.ITEM_BANDAGE) == before, "stale treatment cannot consume inventory")
+	enemy_frame = _session.execution.frame_for(_enemy.canonical_key())
+	payload = ZCombatInputBinding.payload_for(&"quick_heal", enemy_frame)
+	stale = payload.duplicate()
+	stale.expected_inventory_revision += 1
+	rejection = _submit(&"quick_heal", stale, _enemy_router)
+	if not _tick(): return false
+	check(not _receipt(rejection).committed and _receipt(rejection).terminal, "stale inventory treatment rejects independently")
+	check(_quantity(1, ZerkovInventoryCatalog.ITEM_BANDAGE) == before, "stale inventory treatment cannot consume inventory")
+	# Treat each actual injury, including fractures, through production selection.
+	# This avoids mistaking later periodic bleed for damage from a missed swing.
+	var treated: int = 0
+	for attempt in range(14):
+		enemy_frame = _session.execution.frame_for(_enemy.canonical_key())
+		payload = ZCombatInputBinding.payload_for(&"quick_heal", enemy_frame)
+		if payload.is_empty(): break
+		var definition: StringName = ZerkovInventoryCatalog.ITEM_BANDAGE if payload.treatment == "bandage" else ZerkovInventoryCatalog.ITEM_SPLINT
+		var quantity_before := _quantity(1, definition)
+		var heal := _submit(&"quick_heal", payload, _enemy_router)
+		if not _tick(): return false
+		check(_receipt(heal).committed and _receipt(heal).terminal, "production quick-heal commits through native health and inventory")
+		check(_quantity(1, definition) == quantity_before - 1, "medical item consumed exactly once")
+		enemy_frame = _session.execution.frame_for(_enemy.canonical_key())
+		for zone: Dictionary in enemy_frame.health.body_parts:
+			if String(zone.zone_identifier) == payload.body_zone:
+				check(not bool(zone.heavy_bleed if payload.treatment == "bandage" else zone.fractured), "selected real injury removed")
+		treated += 1
+	check(treated > 0 and ZCombatInputBinding.payload_for(&"quick_heal", enemy_frame).is_empty(), "all real injuries treated without direct state writes")
+	if failures == 0: print("NATIVE_COMBAT_EXECUTION_STAGE quick_heal_native_commit_passed")
+	return failures == 0
+
+func _test_miss_and_duplicate() -> bool:
+	# Rotate through admitted aim, not by writing canonical transforms.
+	var aim := _submit(&"aim", ZCombatInputBinding.payload_for(&"aim", _frame(), Vector2.LEFT, true))
+	if not _tick(): return false
+	check(_receipt(aim).committed, "aim executes before pose publication")
+	var before := _total_hp(_session.health.actor_snapshot(_enemy))
+	var stamina: int = _frame().health.stamina_micros
+	var swing := _submit(&"melee", ZCombatInputBinding.payload_for(&"melee", _frame()))
+	var duplicate := _router.submit_action(&"melee", ZCombatInputBinding.payload_for(&"melee", _frame()),
+		_raid.last_processed_tick + 1, 1, ZRequestId.parse(String(swing.get("request_id", ""))))
+	check(duplicate.get("admitted") == false and duplicate.get("reason") == &"duplicate_request", "duplicate swing request rejected before execution")
+	if not _tick(): return false
+	var ready_tick: int = _frame().melee.swing.ready_tick
+	while _raid.last_processed_tick < ready_tick:
+		if not _tick(): return false
+	check(_total_hp(_session.health.actor_snapshot(_enemy)) == before, "swing away cannot fabricate contact")
+	check(not _frame().melee.contact_committed, "miss remains a miss")
+	check(_frame().health.stamina_micros == stamina - ZerkovCombatContent.MACHETE_STAMINA_COST_MICROUNITS, "miss and duplicate spend only one swing cost")
+	if failures == 0: print("NATIVE_COMBAT_EXECUTION_STAGE miss_duplicate_passed")
+	return failures == 0
 
 func _watchdog() -> void:
 	push_error("NATIVE_COMBAT_EXECUTION: contract aborted or timed out before completion")
