@@ -57,7 +57,7 @@ class FirstPlayable1080GateTests(unittest.TestCase):
             [], gate.classification_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
         self.assertEqual(27, len(self.manifest["active_visual_entrypoints"]))
-        self.assertEqual(53, len(self.manifest["active_headless_entrypoints"]))
+        self.assertEqual(56, len(self.manifest["active_headless_entrypoints"]))
         self.assertEqual(
             (14, 2),
             tuple(len(self.manifest["retired_display_entrypoints"][kind])
@@ -138,6 +138,14 @@ class FirstPlayable1080GateTests(unittest.TestCase):
     def test_combat_execution_entries_cannot_disappear(self) -> None:
         for name in ["tests/combat/native_combat_execution_contract.gd",
                      "tests/combat/combat_execution_values_contract.gd"]:
+            omitted = copy.deepcopy(self.manifest)
+            omitted["active_headless_entrypoints"].remove(name)
+            self.assertIn("unclassified GDScript entrypoint: " + name,
+                          gate.classification_issues(omitted, PROJECT_ROOT, self.paths))
+
+    def test_raid_progression_entries_are_required(self) -> None:
+        for name in ["tests/raid/native_raid_progression_contract.gd", "tests/raid/raid_progression_contract.gd",
+                     "tests/raid/raid_restart_contract.gd"]:
             omitted = copy.deepcopy(self.manifest)
             omitted["active_headless_entrypoints"].remove(name)
             self.assertIn("unclassified GDScript entrypoint: " + name,
