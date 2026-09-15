@@ -1,0 +1,25 @@
+{
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "source_commit": "ae720242ed432273dad251c9c93a7a5a2ec326d8",
+  "renderer": "OpenGL Compatibility / llvmpipe / Xvfb",
+  "native_runs": 2,
+  "checks": 68,
+  "failures": 0,
+  "unexpected_diagnostics": 0,
+  "known_vsync_warnings": 2,
+  "output": [
+    1920,
+    1080
+  ],
+  "world": [
+    640,
+    360
+  ],
+  "integer_scale": 3,
+  "screenshots": {
+    "bunker-standard-1080.png": "b2adf3485588d6e7e53b04a37a3b30adc6d5c1f44ff48dfef4ecce39a9b0521e",
+    "bunker-emergency-1080.png": "15928ed86ea98ad8db8ccee3e7a5b0328a00f73efc73f1b9f1dbb49fd4a132de"
+  },
+  "human_approval": false,
+  "scope": "Actual production bunker presentation in isolation; full six-addon UI host not claimed"
+}
