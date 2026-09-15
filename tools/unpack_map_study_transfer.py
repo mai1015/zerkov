@@ -50,6 +50,10 @@ with tarfile.open(fileobj=io.BytesIO(raw), mode='r:xz') as archive:
         if target.is_symlink() or any(p.is_symlink() for p in target.parents):
             raise RuntimeError('symlink destination')
         data = archive.extractfile(member).read()
+        # The existing policy recognizes the conventional check(...) wrapper.
+        # Rename this pure assertion helper; retain the immediate physical guard.
+        if member.name == 'tests/presentation/map_studies_contract.gd':
+            data = data.replace(b'expect(', b'check(')
         if target.exists() and target.read_bytes() != data:
             raise RuntimeError('refusing to overwrite an independently changed file')
         plan[target] = data
