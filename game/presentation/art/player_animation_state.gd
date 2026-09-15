@@ -70,7 +70,9 @@ func consume(event: Dictionary) -> bool:
 	for field: String in ["generation", "sequence", "tick"]:
 		if typeof(event.get(field)) != TYPE_INT:
 			return false
-	if event.get("committed") != true or typeof(event.get("committed")) != TYPE_BOOL:
+	# GDScript does not allow every cross-type equality comparison. Validate the
+	# Variant before comparing it, otherwise a rejected event logs an error.
+	if typeof(event.get("committed")) != TYPE_BOOL or not event["committed"]:
 		return false
 	if not event.get("kind") is String:
 		return false

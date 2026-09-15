@@ -48,7 +48,7 @@
     "tests/tooling/run_sawmill_tileset_headless_gate.py": {"purpose": "exact headless Sawmill contract driver", "sha256": "9ffccca012c1c6cabec0879fa06decf99ec1bd7a26bb4a7062020be0fc551190"},
     "tests/tooling/run_world_camera_cursor_headless_gate.py": {"purpose": "exact headless world camera/cursor driver", "sha256": "52dc962f2fda2695bf40b624e3fe99cdf94fdd8dcd94b7333ab7ecb29a1809d7"},
     "tests/tooling/run_world_markers_headless_gate.py": {"purpose": "exact headless world markers driver", "sha256": "195b46a00ee088a845abcc260c38228ca4ebb7627194d6b0e578d508984dac79"},
-    "tools/run_art_module_contract.py": {"purpose": "exact-1080 isolated art module driver; verified player assets and synthetic negative controls, no addon substitutions", "sha256": "97775e7b9dcae9e03b8fadcac499d316f2464fd9b55707ffbef44a948fe59487"}
+    "tests/tooling/run_art_module_headless_gate.py": {"purpose": "exact-1080 isolated art module driver; verified player assets and synthetic negative controls, no addon substitutions", "sha256": "f6954f10ee1b497319a785f94eef39e83b184ae4ed0a96bd642ea4f656f7ee69"}
   },
   "active_reviewed_support": {
     "game/presentation/exact_1080_capture_guard.gd": {"purpose": "export-safe physical window, viewport, texture and raw-image final-write guard", "runner_inventory": false, "sha256": "88dce0333faefc3f3e67be8a52d2f42ab3838a29415b9f94e594beff83732d92"},

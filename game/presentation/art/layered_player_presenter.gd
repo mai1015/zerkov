@@ -46,7 +46,7 @@ func configure(manifest: Dictionary, textures: Dictionary, generation: int) -> b
 				return false
 			seen[id] = true
 			var source: Dictionary = sources[id]
-			if source.get("filter") != "nearest" or not textures.get(id) is Texture2D:
+			if not source.get("filter") is String or source["filter"] != "nearest" or not textures.get(id) is Texture2D:
 				return false
 			var texture: Texture2D = textures[id]
 			if not source.get("regions") is Array:
@@ -101,11 +101,13 @@ func configure(manifest: Dictionary, textures: Dictionary, generation: int) -> b
 
 
 func present(sample: Dictionary, face_left: bool = false) -> bool:
-	if _binding or _clips.is_empty() or sample.get("generation") != _generation:
+	if _binding or _clips.is_empty():
 		return false
 	for field: String in ["generation", "tick", "sequence", "frame"]:
 		if typeof(sample.get(field)) != TYPE_INT:
 			return false
+	if sample["generation"] != _generation:
+		return false
 	if not _whole(sample["tick"], 0, 2147483647) or not _whole(sample["sequence"], 0, 2147483647):
 		return false
 	if sample["tick"] < _tick or sample["sequence"] < _sequence:

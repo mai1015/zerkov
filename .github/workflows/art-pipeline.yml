@@ -5,7 +5,7 @@ on:
     paths:
       - 'assets/original/Main character/Animations/**'
       - 'tools/zerkov_art_pipeline.py'
-      - 'tools/run_art_module_contract.py'
+      - 'tests/tooling/run_art_module_headless_gate.py'
       - 'tools/check_art_scope_delta.py'
       - 'game/content/art/**'
       - 'game/presentation/art/**'
@@ -57,4 +57,4 @@ jobs:
           chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
       - name: Native real-player and synthetic module contracts, two identical runs
         if: ${{ !cancelled() }}
-        run: python3 tools/run_art_module_contract.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+        run: python3 tests/tooling/run_art_module_headless_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"

@@ -16,7 +16,8 @@ import subprocess
 import sys
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
 PIN = "4.7.2.stable.official.ed1daf0bf"
 FILES = ["game/presentation/art/player_animation_state.gd",
          "game/presentation/art/layered_player_presenter.gd",

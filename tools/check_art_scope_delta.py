@@ -8,6 +8,7 @@ The pinned baseline is current main when the art branch was integrated.
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -42,8 +43,17 @@ def main() -> int:
         baseline = Path(directory) / "baseline"
         git("worktree", "add", "--detach", str(baseline), BASE)
         try:
+            before_manifest = json.loads((baseline / "config/first_playable_1080_gate.json").read_text())
+            after_manifest = json.loads((ROOT / "config/first_playable_1080_gate.json").read_text())
+            art_entry = after_manifest["active_command_entrypoints"].pop("tests/tooling/run_art_module_headless_gate.py")
+            if not art_entry.get("sha256") or after_manifest != before_manifest:
+                raise RuntimeError("existing policy changed outside the single reviewed art launcher")
             before = issues(baseline)
             after = issues(ROOT)
+            for issue in before:
+                path = issue.rsplit(": ", 1)[-1]
+                if (baseline / path).is_file() and (baseline / path).read_bytes() != (ROOT / path).read_bytes():
+                    raise RuntimeError("file with baseline finding changed; independent review required: " + path)
         finally:
             git("worktree", "remove", "--force", str(baseline))
     for issue in sorted(before):
