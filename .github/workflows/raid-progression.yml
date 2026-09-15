@@ -24,36 +24,14 @@ jobs:
           curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
           ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
           echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
-      - name: Task runtime capability probe
+      - name: Real task, inventory, raid and settlement contracts
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/progression-diagnostics"
           git rev-parse HEAD > "$RUNNER_TEMP/progression-diagnostics/commit.txt"
-          "$ZERKOV_GODOT" --headless --path . --editor --import --quit > "$RUNNER_TEMP/progression-diagnostics/import.log" 2>&1
-          cat > "$RUNNER_TEMP/task_probe.gd" <<'GD'
-          extends SceneTree
-          func _initialize() -> void:
-              if not ClassDB.class_exists("LevelTaskRuntimeBridge"):
-                  print("TASK_CAPABILITY_BLOCKED missing_native_bridge")
-                  quit(2)
-                  return
-              var bridge: Object = ClassDB.instantiate("LevelTaskRuntimeBridge")
-              for method: Dictionary in bridge.get_method_list():
-                  if String(method.name).contains("task") or String(method.name).contains("catalog"):
-                      print("TASK_METHOD ", JSON.stringify(method))
-              var graph := {"identifier":"zerkov.task.probe", "entry_node_identifier":"entry", "terminal_outcomes":["success"],
-                  "nodes":[{"identifier":"entry","kind":0},{"identifier":"done","kind":9,"outcome_identifier":"success"}],
-                  "edges":[{"identifier":"e1","from_node_identifier":"entry","from_port_identifier":"entry","to_node_identifier":"done","to_port_identifier":"input"}]}
-              print("TASK_COMPILE ", bridge.call("compile_task_graph",graph))
-              print("TASK_START ", bridge.call("start_task_graph",graph,"zerkov.task.instance.probe","zerkov.raid.scope.probe",{}))
-              print("TASK_STEP ", bridge.call("step_task",1))
-              print("TASK_SUMMARY ", bridge.call("get_task_summary"))
-              print("TASK_TRACE ", bridge.call("get_task_trace"))
-              print("TASK_CAPABILITY_PROBE_COMPLETE; not an acceptance test")
-              quit()
-          GD
-          "$ZERKOV_GODOT" --headless --path . --script "$RUNNER_TEMP/task_probe.gd" 2>&1 | tee "$RUNNER_TEMP/progression-diagnostics/probe.log"
+          git ls-files -z 'game/raid/progression/**' 'tests/raid/*progression*' 'tools/run_raid_progression_contracts.py' | xargs -0 shasum -a 256 > "$RUNNER_TEMP/progression-diagnostics/source-sha256.txt"
+          python3 -u tools/run_raid_progression_contracts.py --godot "$ZERKOV_GODOT" --native 2>&1 | tee "$RUNNER_TEMP/progression-diagnostics/native.log"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
