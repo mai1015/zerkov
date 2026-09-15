@@ -40,13 +40,24 @@ These are initial tuning values, not accepted acoustics. This explicit radial
 policy ignores walls; it does not reuse visual occlusion or claim wall/portal
 propagation. Local cosmetic audio creates no event by itself.
 
-There are at most 64 events and 64 listeners per tick (4096 pair evaluations),
-and 8192 lifetime event fingerprints. Identities are deduplicated for the raid:
-exact retries succeed without re-emitting; conflicting reuse fails. Capacity
-exhaustion fails explicitly and never evicts deduplication records. Resolution
-orders events/listeners by stable identity, expires the prior frame, and
-validates the full listener batch before consuming a tick. Opposite coordinate
-extremes are subtracted as 64-bit scalars rather than overflowing Vector2i.
+There are at most 64 events and 64 listeners per tick (4096 pair evaluations).
+The dedup ledger is **tick-bounded**, not raid-lifetime-bounded. By default it
+retains 120 completed ticks plus the pending tick (at most 7744 fingerprints at
+64 events/tick), within the configured 8192-record hard cap. Each successful
+resolve prunes one expired bucket, including on quiet ticks. A full new tick is
+always reserved at configuration; long raids do not exhaust lifetime history.
+
+`configure(..., history, retry_window_ticks=-1)` chooses the smaller of 120 and
+`floor(history/events_per_tick)-1`. An explicit window must fit that capacity;
+zero allows pending-tick retries only. After resolving T, exact retries from
+`max(1,T-window+1)..T` succeed without re-emitting; conflicting reuse fails.
+Expired retries are rejected by their original tick even after their fingerprint
+is pruned, so they cannot become new observations. Consequence IDs must still be
+unique at the producer; this short retry ledger is not a permanent raid audit.
+
+Resolution orders events/listeners by stable identity and validates the entire
+listener batch before consuming a tick. Per-tick overload remains an explicit
+error. Opposite coordinate extremes use 64-bit scalar subtraction, not Vector2i.
 
 ## Verification and remaining work
 
@@ -56,7 +67,8 @@ clean diagnostics. The focused contract runs without native add-ons when these
 files and the unchanged `ZIdentityRules`, `ZWorldUnits`, and `ZUnitConversion`
 dependencies are placed in an isolated Godot project.
 
-The service and its contract are implemented. Production event-producer hooks,
-raid phase registration, and consumption by actual Scav/mutant decisions remain
-integration work; no task checkbox is changed. No task 3 files, shared bootstrap,
+`RaidAIRuntime` and `RaidAIPhaseDriver` schedule resolution and distribute facts.
+Concrete committed gameplay producers and real encounters remain integration
+work; no task checkbox is changed. `ai_review_regression_contract.gd` covers the
+original tick-4097 failure, a 54,000-tick service run and a 5,000-tick runtime run. No task 3 files, shared bootstrap,
 existing authority, addon lock, or UI file is modified by this component.

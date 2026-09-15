@@ -50,20 +50,31 @@ unavailable and startup rejects it. The implementation must provide:
   generation-, and tick-correlated. A missing receipt times out without inventing
   effects. Cosmetic AudioStream playback never creates hearing facts.
 
+Staging is mandatory once per **60 Hz authority tick**, not just the 20 Hz
+perception cadence. Unchanged ticks must repeat the full frame with unchanged
+revisions. An empty actor list means removal, not "no changes". A missing frame
+fails closed. Runtime roster capacity is checked before publishing a staged frame.
+
 Construction sequence (the movement handler ID comes from task 3):
 
 ```gdscript
+var scav := load("res://game/ai/profiles/scav.tres") as ZAIProfile
+var mutant := load("res://game/ai/profiles/mutant.tres") as ZAIProfile
 var registry := RaidVisionActorRegistry.new()
-assert(registry.configure(raid.generation()))
+assert(registry.configure(raid.generation(), scav, mutant))
 # Configure/register this same exact owner only once. Do not create a second world.
-assert(vision_owner.configure(world_id, {}, registry))
+assert(vision_owner.configure(world_id, {}, registry, raid.generation()))
 assert(vision_owner.register_with_raid_authority(raid))
 var ai := RaidAIRuntime.new()
 assert(ai.configure(raid.raid_id().canonical_key(), raid.generation(), seed,
-    game_ai_world_port, registry, ZAIProfile.scav(), ZAIProfile.mutant()))
+    game_ai_world_port, registry, scav, mutant))
 var driver := RaidAIPhaseDriver.new()
 assert(driver.bind(raid, raid.generation(), ai, movement_handler_id))
 ```
+
+Registry injection requires the explicit expected raid generation (fourth
+`configure` argument). Mismatches are rejected before native allocation and again
+before registering with the actual raid. Registry-free task-6.1 startup is unchanged.
 
 The snippet shows ownership/order, not a replacement for error handling. Keep
 all owners alive in the raid composition. Use weak authority references in port
@@ -85,10 +96,20 @@ moves toward a hidden live transform. Hearing gives a coarse historical region,
 not identity/visual confirmation. Cover candidates are not proof of protection.
 
 `profiles/scav.tres` and `profiles/mutant.tres` are provisional starting values.
-Scav reaction is 18 ticks (0.3 s), mutant 12 (0.2 s); perception remains the sealed
-18/12-tile sight and 180/120-tick memory. Search paths use deterministic seed-based
+Scav reaction defaults to 18 ticks (0.3 s), mutant 12 (0.2 s); sight defaults to
+18/12 tiles and memory to 180/120 ticks. `ZAIProfile` is the single authoring source
+for sight, cone and memory. Pass the same profiles to the registry and runtime;
+they snapshot configuration per generation. The runtime and perception adapter
+reject mismatched settings. Debug FOV reads that same snapshot, not magic numbers.
+Recreate the generation to apply tuning changes; this is not live hot-reconfiguration. Search paths use deterministic seed-based
 offsets, not global randomness. Attack-request cadence is subordinate to actual
 weapon/melee validation. These values are **not playtest-approved task 6.10**.
+
+`action_timeout_ticks` governs fire/reload/melee receipts independently of
+`path_timeout_ticks`. Retreat latches once per injury episode and rearms after
+health reaches `retreat_recover_health_milli`; remaining injured does not restart
+retreat on every timeout. Idle decisions emit no zero-move spam. A transition
+from movement still emits an explicit stop, and a rejected stop is retried.
 
 The default decision budget is 64; lower budgets use oldest-decision-first with
 stable-ID tie breaks. Hearing is retained in a bounded inbox while deferred. Dead
@@ -99,8 +120,11 @@ actors bypass decision deferral to clear pending state. The cap is 64 tracked NP
 ## Debugging and verification
 
 Mount `debug/ai_debug_overlay.tscn` under world presentation. It is disabled by
-default and consumes `ai.debug_snapshot()`; the root may append a detached latest
-Vision telemetry record as `vision_budget`. Labels distinguish current/remembered
+default and consumes `ai.debug_snapshot()` safely between phases and after failure.
+Entries missing from the newly staged actor frame are omitted; `staged_tick` and
+`observer_tick` distinguish pose timing from the last decision tick. The root may
+append `vision_budget = {consumed, budget, deferred}` with nonnegative integer
+counters; malformed records are rejected without replacing the last good frame. Labels distinguish current/remembered
 knowledge, paths, and decision/perception work. Never feed diagnostics into a brain.
 
 ```sh
@@ -116,10 +140,17 @@ acceptance. It executes the real game AI code with named Vision/world/authority
 test doubles and the real existing noise service. Native LOS/owner tests are
 separate. Missing CommonVisionWorld2D returns BLOCKED, never a pass.
 
-Review run: standard Godot 4.7.2.stable.official.ed1daf0bf; headless contract
-2,292 checks/0 failures twice, 64 NPCs over 120 ticks in both insertion orders.
-Exact-1080 synthetic debug render: 8 checks/0 failures, software OpenGL with a
-V-Sync warning. Native Vision and owner runs were blocked by missing Linux native
-classes. The modified owner's GDScript loaded using explicit semantic test stubs;
-that is not native lifecycle/authority validation. No full game, human encounter,
-Windows/Linux release, or task completion checkbox is claimed by those runs.
+The runner reads its engine version exclusively from `config/toolchain.lock.json`.
+Both modes import in temporary projects; `--native` copies the checkout without
+`.git`, `.godot`, or `.codegraph`, so it does not modify the working import cache.
+It runs the new noise-window/phase-gap regressions, and native mode also runs
+`native_ai_owner_review_contract.gd` (generation rejection, missing per-tick frame,
+partial native synchronization, collection failure, movement, geometry and removal).
+Runner unit tests: `python3 tests/tooling/test_ai_runner.py`.
+
+The reviewer reproduced the pre-fix `ac4ece85` native contracts on macOS with the
+pinned engine and real Common Vision: Vision 438/0, owner 47/0, and matching AI
+replay digests. Missing Linux artifacts were a local test-host limitation, not a
+project-wide native failure. The new owner regressions require a fresh supported
+native run; isolated tests or semantic stubs do not replace that gate. Per-revision
+results are recorded in PR #2, not committed as log bundles.

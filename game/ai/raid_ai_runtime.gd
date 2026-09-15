@@ -37,6 +37,8 @@ func configure(raid_id: String, generation: int, seed: int, world: RaidAIWorldPo
 		or not scav.is_valid() or not mutant.is_valid() or scav.archetype != "scav" or mutant.archetype != "mutant" \
 		or decision_budget < 1 or decision_budget > MAX_AGENTS:
 		return _reject(&"ai_runtime_configuration_invalid")
+	if not registry.matches_perception(generation, scav, mutant):
+		return _reject(&"ai_perception_profile_mismatch")
 	_noise = RaidNoiseService.new()
 	if not _noise.configure(raid_id, generation):
 		return _reject(_noise.last_error)
@@ -59,14 +61,22 @@ func stage_after_movement(generation: int, tick: int) -> bool:
 		or not frame.actors is Array or not frame.segments is Array \
 		or not ZAIValues.integer(frame.geometry_revision, 1, ZAIValues.MAX_TICK):
 		return _fail(&"ai_world_frame_invalid")
+	# Check this runtime's roster limit BEFORE changing the registry's staged
+	# frame. It includes retained dead NPCs; native observer capacity does not.
+	if frame.actors.size() > RaidVisionActorRegistry.MAX_ACTORS:
+		return _fail(&"ai_world_frame_invalid")
+	var next_actors: Dictionary = {}
+	for actor: Variant in frame.actors:
+		if not actor is Dictionary or typeof(actor.get("archetype")) != TYPE_STRING \
+			or not ZAIValues.entity(actor.get("entity_id")):
+			return _fail(&"ai_world_frame_invalid")
+		if actor.archetype != "player":
+			next_actors[actor.entity_id] = actor
+	if next_actors.size() > MAX_AGENTS:
+		return _fail(&"ai_agent_capacity")
 	if not _registry.stage_frame(generation, tick, frame.actors, frame.geometry_revision, frame.segments):
 		return _fail(_registry.last_error)
-	_actors = {}
-	for actor: Dictionary in frame.actors:
-		if actor.archetype != "player":
-			_actors[actor.entity_id] = actor.duplicate(true)
-	if _actors.size() > MAX_AGENTS:
-		return _fail(&"ai_agent_capacity")
+	_actors = next_actors.duplicate(true)
 	_staged_tick = tick
 	return true
 
@@ -160,7 +170,7 @@ func decide(generation: int, tick: int) -> bool:
 				return _fail(&"ai_intent_admission_invalid")
 			if not admission.admitted:
 				rejection_count += 1
-				if action.kind in [&"fire", &"reload", &"melee"]:
+				if action.kind in [&"fire", &"reload", &"melee", &"move"]:
 					if not _rejected_actions.has(key):
 						_rejected_actions[key] = []
 					_rejected_actions[key].append({"request_id": action.request_id, "generation": generation,
@@ -207,14 +217,20 @@ func debug_snapshot() -> Dictionary:
 	var keys := _brains.keys()
 	keys.sort()
 	for key: String in keys:
+		# MOVEMENT may have removed an actor before AI_DECISIONS prunes brains.
+		# Diagnostics must also remain usable if that decision phase has failed.
+		if not _actors.has(key):
+			continue
 		var entry: Dictionary = _brains[key].debug_snapshot().duplicate(true)
 		entry["observer_position_raw"] = _actors[key].position_raw
 		entry["observer_facing_raw"] = _actors[key].facing_raw
 		entry["archetype"] = _actors[key].archetype
+		entry["observer_tick"] = _staged_tick
+		entry["perception"] = _profiles[_actors[key].archetype].perception_record()
 		entry["vision"] = _knowledge_summary.get(key, {})
 		entries.append(entry)
 	return ZAIValues.frozen({"diagnostic_only": true, "generation": _generation,
-		"tick": _tick, "agents": entries, "budget": _metrics,
+		"tick": _tick, "staged_tick": _staged_tick, "agents": entries, "budget": _metrics,
 		"noise": _noise.diagnostics() if _noise != null else {}, "failed": _failed, "released": _released})
 
 

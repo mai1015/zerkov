@@ -9,6 +9,9 @@ const PROPAGATION: StringName = &"radial_distance_v1"
 const MAX_EVENTS_PER_TICK: int = 64
 const MAX_LISTENERS: int = 64
 const MAX_EVENT_HISTORY: int = 8192
+## Retain this many resolved ticks plus the current pending tick, not a raid's
+## lifetime event count. Smaller configured histories shorten the retry window.
+const DEFAULT_RETRY_WINDOW_TICKS: int = 120
 const MAX_TICK: int = 2_147_483_647
 const MAX_INTENSITY: int = 1000
 const ORIGIN_CELL_RAW: int = ZWorldUnits.VISION_MICROUNITS_PER_WORLD_UNIT
@@ -25,6 +28,8 @@ var _listener_limit: int = MAX_LISTENERS
 var _history_limit: int = MAX_EVENT_HISTORY
 var _pending: Dictionary = {}
 var _fingerprints: Dictionary = {}
+var _history_ticks: Dictionary = {}
+var _retry_window_ticks: int = DEFAULT_RETRY_WINDOW_TICKS
 var _observations: Dictionary = {}
 var _last_pair_checks: int = 0
 
@@ -34,7 +39,8 @@ func configure(
 	generation: int,
 	events_per_tick: int = MAX_EVENTS_PER_TICK,
 	listeners: int = MAX_LISTENERS,
-	history: int = MAX_EVENT_HISTORY
+	history: int = MAX_EVENT_HISTORY,
+	retry_window_ticks: int = -1
 ) -> bool:
 	last_error = &""
 	if _configured or _released:
@@ -42,8 +48,16 @@ func configure(
 	if not ZIdentityRules.is_valid(raid_key, &"raid") or generation <= 0 \
 			or events_per_tick < 1 or events_per_tick > MAX_EVENTS_PER_TICK \
 			or listeners < 1 or listeners > MAX_LISTENERS \
-			or history < events_per_tick or history > MAX_EVENT_HISTORY:
+			or history < events_per_tick or history > MAX_EVENT_HISTORY \
+			or retry_window_ticks < -1 or retry_window_ticks > DEFAULT_RETRY_WINDOW_TICKS:
 		return _reject(&"noise_configuration_invalid")
+	@warning_ignore("integer_division")
+	var capacity_window: int = history / events_per_tick - 1
+	var window: int = mini(DEFAULT_RETRY_WINDOW_TICKS, capacity_window) \
+		if retry_window_ticks == -1 else retry_window_ticks
+	if window > capacity_window:
+		return _reject(&"noise_retry_window_exceeds_history")
+	_retry_window_ticks = window
 	_raid_key = raid_key
 	_generation = generation
 	_event_limit = events_per_tick
@@ -77,6 +91,9 @@ func record_committed(
 			or intensity_milli < 1 or intensity_milli > MAX_INTENSITY \
 			or propagation != PROPAGATION:
 		return _reject(&"noise_event_invalid")
+	# Expired retries never re-enter pending work even after their IDs are pruned.
+	if tick < maxi(1, _resolved_tick - _retry_window_ticks + 1) or tick > _resolved_tick + 1:
+		return _reject(&"noise_event_tick_invalid")
 	# Only flat scalar data is retained; no live source object or caller-owned
 	# dictionary can update a past noise. Identity is scoped by this raid owner.
 	var fingerprint := JSON.stringify([
@@ -99,6 +116,9 @@ func record_committed(
 		"propagation": propagation, "radius_raw": radius,
 	}
 	_fingerprints[event_key] = fingerprint
+	if not _history_ticks.has(tick):
+		_history_ticks[tick] = []
+	_history_ticks[tick].append(event_key)
 	return true
 
 
@@ -147,6 +167,12 @@ func resolve_tick(generation: int, tick: int, listeners: Array) -> bool:
 	_last_pair_checks = pair_checks
 	_resolved_tick = tick
 	_pending.clear()
+	# Consecutive resolves expire at most one bounded bucket, including on quiet
+	# ticks. Capacity is reserved for a full next tick at configuration time.
+	var expired_tick: int = tick - _retry_window_ticks
+	for event_key: String in _history_ticks.get(expired_tick, []):
+		_fingerprints.erase(event_key)
+	_history_ticks.erase(expired_tick)
 	return true
 
 
@@ -173,6 +199,7 @@ func release(generation: int) -> bool:
 	_released = true
 	_pending.clear()
 	_fingerprints.clear()
+	_history_ticks.clear()
 	_observations = {}
 	_last_pair_checks = 0
 	return true
@@ -183,6 +210,8 @@ func diagnostics() -> Dictionary:
 	var result := {
 		"generation": _generation, "resolved_tick": _resolved_tick,
 		"pending_events": _pending.size(), "history_events": _fingerprints.size(),
+		"history_limit": _history_limit, "retry_window_ticks": _retry_window_ticks,
+		"oldest_retry_tick": maxi(1, _resolved_tick - _retry_window_ticks + 1),
 		"listeners": _observations.size(), "pair_checks": _last_pair_checks,
 		"pair_budget": _event_limit * _listener_limit, "released": _released,
 	}

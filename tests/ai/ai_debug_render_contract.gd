@@ -52,7 +52,7 @@ func run() -> void:
 	brain.step(1, 4, fixture.own(fixture.SCAV, Vector2i(4_000_000, 5_000_000)), fixture.knowledge(fixture.SCAV, 4))
 	var entry := brain.debug_snapshot().duplicate(true)
 	entry.merge({"observer_position_raw": Vector2i(4_000_000, 5_000_000), "observer_facing_raw": Vector2i(1_000_000, 0),
-		"archetype": "scav", "vision": {"state": "remembered", "completed_tick": 4, "fresh": true}, "path": [Vector2i(6_000_000, 5_000_000), Vector2i(8_000_000, 7_000_000), Vector2i(12_000_000, 6_000_000)]}, true)
+		"archetype": "scav", "perception": ZAIProfile.scav().perception_record(), "vision": {"state": "remembered", "completed_tick": 4, "fresh": true}, "path": [Vector2i(6_000_000, 5_000_000), Vector2i(8_000_000, 7_000_000), Vector2i(12_000_000, 6_000_000)]}, true)
 	var before := brain.debug_snapshot()
 	var frame := {"diagnostic_only": true, "tick": 4, "agents": [entry],
 		"budget": {"decisions": 1, "deferred": 0, "decision_budget": 8},

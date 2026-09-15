@@ -22,11 +22,19 @@ var _geometry_revision: int = 0
 var _segments: Array = []
 var _staged: Dictionary = {}
 var _projections: Dictionary = {}
+var _perception_profiles: Dictionary = {}
 
 
-func configure(generation: int) -> bool:
+func configure(generation: int, scav: ZAIProfile = null, mutant: ZAIProfile = null) -> bool:
 	if _generation != 0 or _released or generation < 1:
 		return _reject(&"vision_actor_configuration_invalid")
+	var scav_profile := ZAIProfile.scav() if scav == null else scav
+	var mutant_profile := ZAIProfile.mutant() if mutant == null else mutant
+	if not scav_profile.is_valid() or not mutant_profile.is_valid() \
+		or scav_profile.archetype != "scav" or mutant_profile.archetype != "mutant":
+		return _reject(&"vision_actor_profiles_invalid")
+	_perception_profiles = ZAIValues.frozen({"scav": scav_profile.perception_record(),
+		"mutant": mutant_profile.perception_record()})
 	_generation = generation
 	return true
 
@@ -157,10 +165,11 @@ func apply_staged(native: Object, generation: int, tick: int) -> bool:
 	_tick = tick
 	_staged = {}
 	# Immediately invalidate removed observers, even between cadence evaluations.
-	_projections = _projections.duplicate(true)
-	for key: String in _projections.keys():
+	var retained := _projections.duplicate(true)
+	for key: String in retained.keys():
 		if not _entities.has(key) or not _entities[key].actor.alive:
-			_projections.erase(key)
+			retained.erase(key)
+	_projections = ZAIValues.frozen(retained)
 	return true
 
 
@@ -174,6 +183,10 @@ func collect_projections(native: Object, generation: int, tick: int) -> bool:
 		var entry: Dictionary = _entities[key]
 		if not entry.actor.alive or entry.actor.archetype == "player":
 			continue
+		# Fail collection before a malformed retained identity reaches a native API.
+		# The owner must downgrade its successful advance and quarantine this batch.
+		if not ZAIValues.integer(entry.get("native_id"), 1, MAX_IDENTITIES):
+			return _fail(&"vision_projection_identity_invalid")
 		var result: Variant = native.call("get_projection", entry.native_id)
 		if not result is Dictionary:
 			return _fail(&"vision_projection_shape_invalid")
@@ -194,6 +207,18 @@ func projection_for(generation: int, entity_id: String) -> Dictionary:
 	if not is_active(generation):
 		return {}
 	return _projections.get(entity_id, {})
+
+
+## Frozen at configure; mutating a caller's Resource cannot retune a live raid.
+func perception_for(generation: int, archetype: String) -> Dictionary:
+	return _perception_profiles.get(archetype, {}) if is_active(generation) else {}
+
+
+func matches_perception(generation: int, scav: ZAIProfile, mutant: ZAIProfile) -> bool:
+	return is_active(generation) and scav != null and mutant != null \
+		and scav.is_valid() and mutant.is_valid() \
+		and perception_for(generation, "scav") == scav.perception_record() \
+		and perception_for(generation, "mutant") == mutant.perception_record()
 
 
 func entity_for_native_id(generation: int, native_id: int) -> String:
@@ -223,6 +248,7 @@ func release(generation: int) -> bool:
 func diagnostics() -> Dictionary:
 	return ZAIValues.frozen({"generation": _generation, "tick": _tick,
 		"actors": _entities.size(), "identities": _identity_map.size(),
+		"staged_tick": int(_staged.get("tick", 0)), "staged_frame_required_every_tick": true,
 		"geometry_revision": _geometry_revision, "failed": _failed, "released": _released})
 
 
@@ -258,13 +284,14 @@ static func _target(actor: Dictionary, native_id: int, revision: int) -> Diction
 		"revision": revision}
 
 
-static func _observer(actor: Dictionary, native_id: int, revision: int) -> Dictionary:
+func _observer(actor: Dictionary, native_id: int, revision: int) -> Dictionary:
 	var scav: bool = actor.archetype == "scav"
+	var profile: Dictionary = _perception_profiles[actor.archetype]
 	return {"id": native_id, "position": ZAIValues.encode_point(actor.position_raw),
-		"facing": ZAIValues.encode_point(actor.facing_raw), "range": 18_000_000 if scav else 12_000_000,
-		"cone_cos_million": 500000 if scav else 173648, "full_circle": false,
+		"facing": ZAIValues.encode_point(actor.facing_raw), "range": profile.sight_range_raw,
+		"cone_cos_million": profile.cone_cos_million, "full_circle": false,
 		"target_mask": 5 if scav else 3, "occluder_mask": 3,
-		"memory_ticks": 180 if scav else 120, "priority": 0, "urgent": false, "revision": revision}
+		"memory_ticks": profile.memory_ticks, "priority": 0, "urgent": false, "revision": revision}
 
 
 func _fail(reason: StringName) -> bool:

@@ -40,6 +40,10 @@ var _retry_at: int = 0
 var _action_serial: int = 0
 var _pending_actions: Dictionary = {}
 var _last_rejection: StringName = &""
+var _retreat_latched: bool = false
+var _last_move_direction: Vector2i = Vector2i.ZERO
+var _last_move_request_id: String = ""
+var _retry_stop: bool = false
 
 
 func configure(generation: int, entity_id: String, profile: ZAIProfile,
@@ -125,8 +129,14 @@ func step(generation: int, tick: int, own: Dictionary, knowledge: Dictionary,
 		_last_known = remembered.position_raw
 		_has_last_known = true
 		_enter(State.SEARCH, tick)
-	if _profile.retreat_health_milli > 0 and own.health_milli <= _profile.retreat_health_milli \
+	# One retreat per injury episode. A timeout must not re-enter retreat on the
+	# following low-health tick and discard the new search path repeatedly.
+	if own.health_milli >= _profile.retreat_recover_health_milli:
+		_retreat_latched = false
+	if not _retreat_latched and _profile.retreat_health_milli > 0 \
+		and own.health_milli <= _profile.retreat_health_milli \
 		and _has_last_known and _state != State.RETREAT:
+		_retreat_latched = true
 		_enter(State.RETREAT, tick)
 	if _state == State.IDLE and not _patrol.is_empty():
 		_enter(State.PATROL, tick)
@@ -191,7 +201,7 @@ func _navigate(own: Dictionary, actions: Array) -> Dictionary:
 	var request: Dictionary = {}
 	var direction := Vector2i.ZERO
 	if not own.can_move or not _has_goal or ZAIValues.within(own.position_raw, _goal, _profile.arrival_radius_raw):
-		_emit(actions, &"move", {"direction_milli": direction})
+		_emit_move(actions, direction)
 		return request
 	while _path_index < _path.size() and ZAIValues.within(own.position_raw, _path[_path_index], _profile.arrival_radius_raw):
 		_path_index += 1
@@ -204,8 +214,19 @@ func _navigate(own: Dictionary, actions: Array) -> Dictionary:
 			"deadline_tick": _tick + _profile.path_timeout_ticks, "navigation_revision": _navigation_revision,
 			"origin_raw": own.position_raw, "destination_raw": _goal, "reason": _goal_reason}
 		request = _path_request
-	_emit(actions, &"move", {"direction_milli": direction})
+	_emit_move(actions, direction)
 	return request
+
+
+## Keep nonzero movement tick-addressed. Emit zero only to stop prior movement
+## (or retry a rejected stop), not once per idle NPC per tick.
+func _emit_move(actions: Array, direction: Vector2i) -> void:
+	if direction == Vector2i.ZERO and _last_move_direction == Vector2i.ZERO and not _retry_stop:
+		return
+	_emit(actions, &"move", {"direction_milli": direction})
+	_last_move_direction = direction
+	_last_move_request_id = actions[-1].request_id
+	_retry_stop = false
 
 
 func _emit(actions: Array, kind: StringName, payload: Dictionary) -> void:
@@ -214,7 +235,7 @@ func _emit(actions: Array, kind: StringName, payload: Dictionary) -> void:
 	actions.append({"request_id": id, "generation": _generation, "actor_id": _id,
 		"decision_tick": _tick, "target_tick": _tick + 1, "kind": kind, "payload": payload})
 	if kind in [&"fire", &"reload", &"melee"]:
-		_pending_actions[id] = {"target_tick": _tick + 1, "deadline_tick": _tick + _profile.path_timeout_ticks}
+		_pending_actions[id] = {"target_tick": _tick + 1, "deadline_tick": _tick + _profile.action_timeout_ticks}
 
 
 func _accept_results(path_result: Dictionary, actions: Array, tick: int) -> void:
@@ -233,6 +254,10 @@ func _accept_results(path_result: Dictionary, actions: Array, tick: int) -> void
 			_last_rejection = &"path_failed"
 		_path_request = {}
 	for receipt: Dictionary in actions:
+		if receipt.request_id == _last_move_request_id:
+			_retry_stop = not receipt.accepted
+			_last_move_request_id = ""
+			continue
 		if not _pending_actions.has(receipt.request_id):
 			continue  # Stale, already resolved, or another actor's correlation.
 		if receipt.accepted and int(receipt.resolved_tick) < int(_pending_actions[receipt.request_id].target_tick):

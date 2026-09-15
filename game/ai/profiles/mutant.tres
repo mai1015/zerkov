@@ -9,3 +9,5 @@ attack_range_raw = 1250000
 retreat_health_milli = 0
 memory_ticks = 120
 search_ticks = 120
+sight_range_raw = 12000000
+cone_cos_million = 173648

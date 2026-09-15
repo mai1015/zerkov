@@ -5,6 +5,9 @@ extends Node
 ## Task 6.1 owns configuration, deterministic cadence, budgets and teardown.
 ## Task 6.2 optionally injects a value-only actor registry at construction.
 ## Actor synchronization stays inside this exact reserved Vision callback.
+## With a registry, composition MUST stage one full frame after MOVEMENT for
+## EVERY 60 Hz tick, including ticks with no changes or no visibility evaluation.
+## Missing frames fail closed; registry and raid generations must agree at bind.
 ##
 ## The live CommonVisionWorld2D exists only in lexical state captured by an
 ## opaque Callable. No Object/Resource property on this owner retains it, and
@@ -62,6 +65,7 @@ var _runtime_dispatch: Callable = Callable():
 			_runtime_dispatch = value
 var _runtime_alive: bool = false
 var _actor_registry_enabled: bool = false
+var _actor_registry_raid_generation: int = 0
 
 var _last_attempted_tick: int = 0
 var _last_successful_tick: int = 0
@@ -96,15 +100,18 @@ var _failed_evaluations: int = 0
 ## A rejected attempt leaves this owner empty and retryable; a successful owner
 ## cannot be reconfigured because native configure() is a destructive reset.
 func configure(world_id: int, configuration_record: Dictionary = {},
-	actor_registry: RaidVisionActorRegistry = null) -> bool:
+	actor_registry: RaidVisionActorRegistry = null, expected_raid_generation: int = 0) -> bool:
 	last_error = &""
 	if lifecycle != Lifecycle.NOT_STARTED or _runtime_alive \
 			or _runtime_dispatch.is_valid():
 		return _reject(&"owner_already_configured")
+	# The expected generation comes from the actual raid, not the registry itself.
+	# Require it explicitly when injecting a registry, before native allocation.
 	if actor_registry != null and (actor_registry.get_script() != preload(
 		"res://game/ai/vision/raid_vision_actor_registry.gd")
-		or not actor_registry.is_active(int(actor_registry.diagnostics().generation))):
-		return _reject(&"vision_actor_registry_invalid")
+		or expected_raid_generation <= 0
+		or not actor_registry.is_active(expected_raid_generation)):
+		return _reject(&"vision_actor_registry_generation_invalid")
 	if world_id <= 0 or world_id > ZerkovVisionConfig.WORLD_ID_MAX:
 		return _reject(&"vision_world_id_invalid")
 
@@ -146,6 +153,7 @@ func configure(world_id: int, configuration_record: Dictionary = {},
 		"alive": true,
 		"native": native_world,
 		"actors": actor_registry,
+		"actor_generation": expected_raid_generation,
 	}
 	var captured_owner_id := get_instance_id()
 	var captured_owner_generation := 1
@@ -181,7 +189,7 @@ func configure(world_id: int, configuration_record: Dictionary = {},
 				(native_value as CommonVisionWorld2D).free()
 			var actor_port: RaidVisionActorRegistry = runtime_state["actors"]
 			if actor_port != null:
-				actor_port.release(int(actor_port.diagnostics().generation))
+				actor_port.release(int(runtime_state["actor_generation"]))
 			runtime_state["actors"] = null
 			runtime_state["native"] = null
 			runtime_state["alive"] = false
@@ -220,6 +228,9 @@ func configure(world_id: int, configuration_record: Dictionary = {},
 			"res://game/ai/vision/raid_vision_actor_registry.gd"):
 			return {"ok": false, "code": 1, "diagnostic": 0, "detail": 0,
 				"reason": "vision_actor_registry_replaced"}
+		if actor_port != null and raid_generation != int(runtime_state["actor_generation"]):
+			return {"ok": false, "code": 1, "diagnostic": 0, "detail": 0,
+				"reason": "vision_actor_registry_generation_invalid"}
 		if operation == _RUNTIME_SYNC_ACTORS:
 			if actor_port != null and not actor_port.apply_staged(native_value, raid_generation, tick):
 				return {"ok": false, "code": 1, "diagnostic": 0, "detail": 0,
@@ -238,6 +249,7 @@ func configure(world_id: int, configuration_record: Dictionary = {},
 
 	_runtime_alive = true
 	_actor_registry_enabled = actor_registry != null
+	_actor_registry_raid_generation = expected_raid_generation if _actor_registry_enabled else 0
 	_configuration = candidate.duplicate(true)
 	_make_deep_read_only(_configuration)
 	_configuration_fingerprint = String(validation.get("fingerprint", ""))
@@ -250,8 +262,8 @@ func configure(world_id: int, configuration_record: Dictionary = {},
 
 
 func start(world_id: int, configuration_record: Dictionary = {},
-	actor_registry: RaidVisionActorRegistry = null) -> bool:
-	return configure(world_id, configuration_record, actor_registry)
+	actor_registry: RaidVisionActorRegistry = null, expected_raid_generation: int = 0) -> bool:
+	return configure(world_id, configuration_record, actor_registry, expected_raid_generation)
 
 
 func generation() -> int:
@@ -298,6 +310,8 @@ func configuration_receipt() -> Dictionary:
 		"phase_handler_id": String(PHASE_HANDLER_ID),
 		"native_handle_exposed": false,
 		"actor_lifecycle_ports_exposed": _actor_registry_enabled,
+		"actor_registry_raid_generation": _actor_registry_raid_generation,
+		"actor_frame_required_every_tick": _actor_registry_enabled,
 		"runtime_storage": "opaque_closure",
 	}
 	_make_deep_read_only(result)
@@ -318,6 +332,8 @@ func register_with_raid_authority(raid_authority: RaidAuthority) -> bool:
 	if _last_attempted_tick != 0:
 		return _reject(&"vision_tick_driver_already_started")
 	var captured_raid_generation := raid_authority.generation()
+	if _actor_registry_enabled and captured_raid_generation != _actor_registry_raid_generation:
+		return _reject(&"vision_actor_registry_raid_mismatch")
 	_raid_authority_ref = weakref(raid_authority)
 	_raid_authority_instance_id = raid_authority.get_instance_id()
 	_raid_authority_generation = captured_raid_generation

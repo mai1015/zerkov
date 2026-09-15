@@ -193,9 +193,11 @@ func _capacity_and_replay() -> void:
 	_check(not service.resolve_tick(1, 1, [_listener(), _listener(LISTENER + ".extra")]),
 		"listener work bound")
 	_check(service.resolve_tick(1, 1, [_listener()]), "full tick resolves")
-	_check(not _emit(service, EVENT + ".next", 2), "history exhausted: explicit failure, no eviction")
-	_check(service.last_error == &"noise_history_capacity_exhausted", "history exhaustion diagnostic")
-	_check(service.diagnostics().pending_events == 0, "capacity rejection is atomic")
+	_check(service.diagnostics().history_events == 0, "one-frame ledger expires on resolve")
+	_check(_emit(service, EVENT + ".next", 2), "next frame reuses bounded history capacity")
+	_check(not _emit(service, EVENT, 1), "expired retry cannot re-emit")
+	_check(service.last_error == &"noise_event_tick_invalid", "expired retry diagnostic")
+	_check(service.diagnostics().pending_events == 1, "expired rejection preserves current pending frame")
 	var normal := _service()
 	var reversed := _service()
 	var listeners: Array = []

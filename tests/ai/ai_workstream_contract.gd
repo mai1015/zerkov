@@ -187,7 +187,7 @@ func _test_navigation() -> void:
 	var own := F.own()
 	var result := ai.step(1, 1, own, F.knowledge(F.SCAV, 1))
 	var request: Dictionary = result.path_request
-	check(_action(result, &"move").payload.direction_milli == Vector2i.ZERO, "no path means stop, not wall-crossing direct chase")
+	check(_action(result, &"move").is_empty(), "initially stopped agent does not fabricate movement without a path")
 	var receipt := {"request_id": request.request_id, "generation": 1, "actor_id": F.SCAV,
 		"resolved_tick": 2, "navigation_revision": 1, "ok": true, "points": [Vector2i(4_000_000, 0)]}
 	result = ai.step(1, 2, own, F.knowledge(F.SCAV, 2), [], receipt)
@@ -198,13 +198,13 @@ func _test_navigation() -> void:
 	own.can_move = true
 	own.navigation_revision = 2
 	result = ai.step(1, 4, own, F.knowledge(F.SCAV, 4))
-	check(not result.path_request.is_empty() and _action(result, &"move").payload.direction_milli == Vector2i.ZERO, "navigation revision invalidates path")
+	check(not result.path_request.is_empty() and _action(result, &"move").is_empty(), "navigation revision invalidates path")
 	request = result.path_request
 	receipt.request_id = request.request_id
 	receipt.navigation_revision = 2
 	receipt.resolved_tick = 8
 	result = ai.step(1, 8, own, F.knowledge(F.SCAV, 8), [], receipt)
-	check(_action(result, &"move").payload.direction_milli == Vector2i.ZERO, "late path result cannot revive timed-out request")
+	check(_action(result, &"move").is_empty(), "late path result cannot revive timed-out request")
 	check(result.path_request.is_empty(), "failed path uses bounded retry delay")
 	check(ai.release(1) and not ai.step(1, 9, own, F.knowledge(F.SCAV, 9)).ok, "late callback after release rejected")
 
@@ -263,8 +263,11 @@ func _run_many(reverse_order: bool) -> String:
 			return ""
 		var snapshot := runtime.debug_snapshot()
 		check(snapshot.budget.decisions == 8 and snapshot.budget.deferred == 56, "bounded scheduler work")
+		# A scheduled decision may intentionally emit no intent while waiting.
+		for agent: Dictionary in snapshot.agents:
+			if agent.tick > 0:
+				all_visited[agent.entity_id] = true
 		for request: Dictionary in world.actions:
-			all_visited[request.actor_id] = true
 			check(request.target_tick == tick + 1, "queued intents are next-tick only")
 		hashes.append(JSON.stringify(world.actions).sha256_text())
 		world.actions.clear()

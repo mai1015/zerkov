@@ -80,7 +80,7 @@ func run() -> void:
 	check(registry.configure(generation), "registry configured")
 	owner = load("res://game/ai/vision/raid_vision_world_owner.gd").new() as Node
 	root.add_child(owner)
-	if not owner.configure(9602, {}, registry):
+	if not owner.configure(9602, {}, registry, generation):
 		check(false, "pinned native owner startup: " + String(owner.last_error))
 		owner.queue_free()
 		quit(1)

@@ -18,7 +18,11 @@ func _ready() -> void:
 
 func publish(frame: Dictionary) -> bool:
 	if frame.get("diagnostic_only") != true or not frame.get("agents") is Array \
-		or frame.agents.size() > RaidAIRuntime.MAX_AGENTS or not frame.get("budget") is Dictionary:
+		or frame.agents.size() > RaidAIRuntime.MAX_AGENTS \
+		or not _valid_counters(frame.get("budget"), ["tick", "agents", "decisions", "deferred",
+			"decision_budget", "actions", "admission_rejections"]) \
+		or not _valid_counters(frame.get("vision_budget", {}), ["consumed", "budget", "deferred"]) \
+		or not ZAIValues.integer(frame.get("tick", 0), 0, ZAIValues.MAX_TICK):
 		return false
 	# Input is a bounded runtime debug_snapshot, never arbitrary scene objects.
 	for row: Variant in frame.agents:
@@ -26,6 +30,13 @@ func publish(frame: Dictionary) -> bool:
 			or not ZAIValues.position(row.get("observer_facing_raw")) \
 			or not row.get("path") is Array or row.path.size() > ZAIAgent.MAX_POINTS \
 			or typeof(row.get("state")) != TYPE_STRING or typeof(row.get("entity_id")) != TYPE_STRING:
+			return false
+		if not row.get("perception") is Dictionary or not ZAIProfile.valid_perception(row.perception) \
+			or not row.get("vision", {}) is Dictionary:
+			return false
+		var vision: Dictionary = row.get("vision", {})
+		if typeof(vision.get("state", "unknown")) != TYPE_STRING \
+			or vision.get("state", "unknown") not in ["visible", "remembered", "unknown"]:
 			return false
 		if row.get("has_last_known") == true and not ZAIValues.position(row.get("last_known_raw")):
 			return false
@@ -55,8 +66,10 @@ func _draw() -> void:
 	for row: Dictionary in _frame.agents:
 		var origin := _pixel(row.observer_position_raw)
 		var facing: Vector2 = Vector2(row.observer_facing_raw).normalized()
-		var half_angle: float = deg_to_rad(80.0 if row.get("archetype") == "mutant" else 60.0)
-		var radius: float = 12.0 * 32.0 if row.get("archetype") == "mutant" else 18.0 * 32.0
+		var perception: Dictionary = row.perception
+		var half_angle: float = acos(float(perception.cone_cos_million) / 1_000_000.0)
+		var radius: float = float(perception.sight_range_raw) \
+			* ZWorldUnits.GODOT_PIXELS_PER_WORLD_UNIT / float(ZAIValues.UNIT)
 		var angle := facing.angle()
 		var tint := Color(0.35, 0.75, 1.0, 0.32)
 		draw_arc(origin, radius, angle - half_angle, angle + half_angle, 24, tint, 1.0)
@@ -76,6 +89,15 @@ func _draw() -> void:
 		var vision: Dictionary = row.get("vision", {})
 		var state_label: String = row.state.to_upper() + " / " + String(vision.get("state", "unknown")).to_upper()
 		draw_string(font, origin + Vector2(7, -8), state_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12)
+
+
+static func _valid_counters(value: Variant, allowed: Array) -> bool:
+	if not value is Dictionary or value.size() > allowed.size():
+		return false
+	for key: Variant in value:
+		if key not in allowed or not ZAIValues.integer(value[key], 0, ZAIValues.MAX_TICK):
+			return false
+	return true
 
 
 static func _pixel(point: Vector2i) -> Vector2:

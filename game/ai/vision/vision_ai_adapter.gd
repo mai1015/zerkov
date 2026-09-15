@@ -34,7 +34,8 @@ func consume(generation: int, tick: int, projection: Dictionary,
 	last_error = &""
 	if _released or generation != _generation or _generation == 0 or tick < 1 \
 		or tick >= ZAIValues.MAX_TICK or registry == null or not registry.is_active(generation) \
-		or profile == null or not profile.is_valid():
+		or profile == null or not profile.is_valid() \
+		or registry.perception_for(generation, profile.archetype) != profile.perception_record():
 		return _error(&"ai_vision_binding_invalid")
 	if projection.is_empty():
 		return _frame(tick, 0, [], false)
