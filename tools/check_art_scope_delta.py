@@ -14,7 +14,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "8039a0c19570e022cfc6ec855b77dd014da3e553"
+BASE = "08e2379078e5226c314c55b9442f45b8e5114d78"
 CHECKER = "tools/check_first_playable_1080.py"
 TEST = "tests/tooling/test_ui_first_playable_scope.py"
 

@@ -1,0 +1,60 @@
+{
+  "source_commit": "905c949b74c0c6cd761a3507691abc355d8b6ad5",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "runs": 2,
+  "checks": 76,
+  "failures": 0,
+  "unexpected_diagnostics": 0,
+  "known_vsync_notices": 2,
+  "output": [
+    1920,
+    1080
+  ],
+  "world_raster": [
+    640,
+    360
+  ],
+  "world_size": [
+    2688,
+    1792
+  ],
+  "area_multiplier": 16,
+  "screenshots": {
+    "northline-checkpoint-1080.png": "692edc1760c885ce2bb31a93dc5c4774c7f1a1ecd63bae5d0ba685f1c32011e2",
+    "northline-clinic-1080.png": "ba38a41479c99991bfdce54f3ab13f9ba1e2a56da531c2a195ca3a77e9c9dba9",
+    "northline-customs-1080.png": "8c2b725c9ba522556aa050860b4acd8e4eebdb9a77ed536c1fdf9baa00aff1c5",
+    "northline-drain-1080.png": "dde15c4ffee8a0d23e193b336556a94daa47f98367b398ee2b629efdd2592bf3",
+    "northline-freight-1080.png": "b03baedc30bea0af3db27a7497cca8e37b1a5c4bf5689704218f6d1b4dabc6a5",
+    "northline-full-map-1080.png": "e416c7725fbb8a1aa872c06366fd34c9c62dfd67471a00c9b754155c1d46a556",
+    "northline-motor-1080.png": "39a6913a77b969d698ffb2aacd133988be4727107004b2e1c28115483f79729c",
+    "northline-power-1080.png": "2d4ec47532e1d063b04d826b0de1317abc4543badaa9420dca6c5cb72718313b",
+    "northline-quarters-1080.png": "88065b6f4b5dc84cdeed85419bd94e4708a380bbed4447eaf3b71103e53272a8",
+    "northline-rail-1080.png": "63666829da7fd6904dd5182eebcb2ee51bce5be7d815686908c957aa53e73dc9",
+    "northline-routes-1080.png": "cfd525f39cf7d369b666fda2c4e96eea3a1afcb088caa8fce30037207a741c50",
+    "northline-walkthrough-1080.png": "70bf5a1f99a903d09b4781b97b7859fcfbabec1d07b1af2ac3cd13484d17318a"
+  },
+  "source_files": {
+    "game/presentation/northline_zone/README.md": "9044f1111c3b7cab71226fa984825dd7280fb8f3a0a9534ea1ac1e53cecf60a5",
+    "game/presentation/northline_zone/northline_zone.gd": "b84c0fc7b54d25f30d5e669a017bc0baedd6ea4c795a2d3848a37df6eb9e7626",
+    "game/presentation/northline_zone/northline_zone.tscn": "f80e383f3398ce138b8372e2a9706ef5c3958a7a3233e6f47a4c0df50d4e12a8",
+    "game/presentation/northline_zone/review_walker.gd": "5002cfe8409dcbf04c2c6718ed1232d190219be7cbab3bb92134951f5df0507a",
+    "game/presentation/northline_zone/zone.json": "53a3960f6d4b8df6129b36c0feb3c7e08ce745bee44f563ba6d93799eac6cba1",
+    "game/presentation/northline_zone/zone_overlay.gd": "61fb642dbb091d9a41e1ece5f650b85944bab14dd4cf9f87fc606990846d71ac",
+    "game/presentation/northline_zone/zone_world.gd": "f78470917b538caad305d7f1af451b0c5d86e5033837dd8367f5da5ebaa3b1bf",
+    "assets/world/northline_zone/review_walker.json": "d2370f158bc94de0383ca6279df477ed539b8f3308076f72a92dc6a7c7fb0290",
+    "assets/world/northline_zone/review_walker.png": "c2dcd766a884306cc0a1d71b131aca9534e4b64243e31c060891d1f56d737e0e",
+    "assets/world/northline_zone/review_walker.png.import": "9f03e46a9b0df4acef79ca7c2810a6c90f062005135ddbfbf819dd7dd3c1323f",
+    "game/presentation/map_studies/README.md": "df67f6239e91c1ff1e12c8d8a2bbec7150f7ee992ef6fa33ccbadc575f1cd7d2",
+    "game/presentation/map_studies/map_studies.gd": "6d778c5cd01c0f9d6ab96e9b2adea80360b6dd706babb2e1c42867292dcc615f",
+    "game/presentation/map_studies/map_studies.tscn": "37eb63b674318fa78f3f757efd56a9a26eec17bd1f7ff133da695a1906322daf",
+    "game/presentation/map_studies/map_study_world.gd": "e098ed61e8247c238d718eb426f7b16c3d6f2005f9c151f295e6fb10c91219d4",
+    "game/presentation/map_studies/maps.json": "6d98b0efc31538d2dc754984c5cb3591e435000b7c21bad68b622bb06183c2a4",
+    "assets/world/map_studies/atlas.json": "e0a74888be282c2884709bae9f67694429a45f20920e07617815a5ede492b85a",
+    "assets/world/map_studies/atlas.webp": "d2b018bd1fe2bfed07554c7e13c1aa2bbb7bd2d569698cf471539dfdb963179c",
+    "assets/world/map_studies/atlas.webp.import": "7abe8ec5bb0146b242aa6e529de0d73ac33382b156c6ddf246d1a04b37389204",
+    "tests/presentation/northline_zone_contract.gd": "084bc6f52a37620a1f264fee851d19927fab85695b9c0e3b00ad1d2e26772dac",
+    "tests/tooling/run_northline_zone_gate.py": "ff62f341e430b32e6e2ed35c7ed6f828d9aaee5b46b58f155eb08426ea3d58ad"
+  },
+  "scope": "full connected environment with review walker; not the live raid host",
+  "human_approval": false
+}

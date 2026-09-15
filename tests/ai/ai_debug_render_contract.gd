@@ -2,6 +2,8 @@ extends SceneTree
 ## Synthetic AI diagnostics only, not a Sawmill encounter or performance claim.
 ## Genuine 1920x1080 output with the approved 640x360 world at exact nearest 3x.
 
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
+
 func _initialize() -> void:
 	run.call_deferred()
 
@@ -82,6 +84,11 @@ func run() -> void:
 		var absolute := ProjectSettings.globalize_path(capture)
 		DirAccess.make_dir_recursive_absolute(absolute.get_base_dir())
 		checks += 1
-		if image.save_png(absolute) != OK: failures += 1
+		if not Exact1080CaptureGuard.accepts(root, root, image):
+			push_error("AI debug capture requires exact physical window, viewport and raw image")
+			quit(2)
+			return
+		var saved := image.save_png(absolute)
+		if saved != OK: failures += 1
 	print("AI_DEBUG_RENDER_RESULT checks=", checks, " failures=", failures, " output=1920x1080 world=640x360")
 	quit(0 if failures == 0 else 1)

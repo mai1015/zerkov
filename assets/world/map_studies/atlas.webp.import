@@ -1,0 +1,14 @@
+[remap]
+importer="texture"
+type="CompressedTexture2D"
+
+[deps]
+source_file="res://assets/world/map_studies/atlas.webp"
+
+[params]
+compress/mode=0
+mipmaps/generate=false
+process/size_limit=0
+process/fix_alpha_border=true
+process/premult_alpha=false
+detect_3d/compress_to=0

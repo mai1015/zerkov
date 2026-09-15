@@ -58,13 +58,13 @@ const AKM_ORIGIN_TOLERANCE_MILLIUNITS: int = 750
 # Weapon System's integer milliunit vocabulary so the later melee authority can
 # cross the same ZWorldUnits boundary without floats.  Time is authoritative
 # 60 Hz ticks, not animation time.
-const MACHETE_DAMAGE_MILLIUNITS: int = 55_000
-const MACHETE_REACH_MILLIUNITS: int = 1_750
-const MACHETE_SWEEP_RADIUS_MILLIUNITS: int = 350
-const MACHETE_WINDUP_TICKS: int = 10
-const MACHETE_ACTIVE_TICKS: int = 3
-const MACHETE_RECOVERY_TICKS: int = 18
-const MACHETE_STAMINA_COST_MICROUNITS: int = 175_000
+const MACHETE_DAMAGE_MILLIUNITS: int = ZMeleePolicy.MACHETE_DAMAGE
+const MACHETE_REACH_MILLIUNITS: int = ZMeleePolicy.MACHETE_REACH
+const MACHETE_SWEEP_RADIUS_MILLIUNITS: int = ZMeleePolicy.MACHETE_RADIUS
+const MACHETE_WINDUP_TICKS: int = ZMeleePolicy.MACHETE_WINDUP
+const MACHETE_ACTIVE_TICKS: int = ZMeleePolicy.MACHETE_ACTIVE
+const MACHETE_RECOVERY_TICKS: int = ZMeleePolicy.MACHETE_RECOVERY
+const MACHETE_STAMINA_COST_MICROUNITS: int = ZMeleePolicy.MACHETE_COST
 const MACHETE_MAX_TARGETS: int = 1
 
 # Game-owned melee validation uses the same conservative numeric envelope as
