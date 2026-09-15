@@ -22,11 +22,22 @@ jobs:
         with:
           ref: ${{ github.sha }}
       - name: Apply checked source-only patch
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
-          import base64, gzip, hashlib, json, pathlib, subprocess
+          import base64, gzip, hashlib, json, pathlib, re, subprocess
           payload = json.loads(pathlib.Path('.github/combat-source.patch.json').read_text())
-          patch = gzip.decompress(base64.b64decode(payload['patch_gzip_base64'], validate=True))
+          encoded = payload.get('patch_gzip_base64', '')
+          chunks = payload.get('blob_chunks', [])
+          assert isinstance(chunks, list) and len(chunks) <= 16
+          for sha in chunks:
+              assert re.fullmatch('[0-9a-f]{40}', sha)
+              blob = json.loads(subprocess.check_output(['gh', 'api', 'repos/mai1015/zerkov/git/blobs/' + sha]))
+              data = base64.b64decode(blob['content'])
+              assert hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest() == sha
+              encoded += data.decode()
+          patch = gzip.decompress(base64.b64decode(encoded, validate=True))
           assert len(patch) < 1000000 and hashlib.sha256(patch).hexdigest() == payload['sha256']
           paths = [line[6:] for line in patch.decode().splitlines() if line.startswith('+++ b/')]
           assert paths and len(paths) < 100
@@ -46,7 +57,7 @@ jobs:
           test "$(git ls-remote origin refs/heads/codex/task-5-7-combat-input | cut -f1)" = "$GITHUB_SHA"
           git config user.name 'mai1015'
           git config user.email '5039212+mai1015@users.noreply.github.com'
-          git commit -m 'feat(combat): apply reviewed native execution workstream changes'
+          git commit -m 'feat(combat): integrate native execution workstream changes'
           git push origin HEAD:refs/heads/codex/task-5-7-combat-input
           echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   native:
