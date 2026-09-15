@@ -21,6 +21,8 @@ func check(value: bool, message: String) -> void:
 		failures += 1
 		push_error("NATIVE_COMBAT_EXECUTION: " + message)
 func run() -> void:
+	# Test watchdog only; never advances the authoritative simulation.
+	create_timer(15.0).timeout.connect(_watchdog)
 	if not ClassDB.class_exists("WeaponAuthority") or not ClassDB.class_exists("GameplayAbilityComponent"):
 		print("NATIVE_COMBAT_EXECUTION_BLOCKED missing_native_addons")
 		quit(2); return
@@ -178,3 +180,7 @@ func _cleanup() -> void:
 	for owner in _owners:
 		owner.queue_free()
 	await process_frame
+
+func _watchdog() -> void:
+	push_error("NATIVE_COMBAT_EXECUTION: contract aborted or timed out before completion")
+	quit(1)
