@@ -45,7 +45,7 @@ python3 tools/zerkov_art_pipeline.py --archive /path/to/zerkov.zip
 python3 tools/zerkov_art_pipeline.py --archive /path/to/zerkov.zip \
   --registry game/content/asset_registry.json --output ../zerkov-art-overlay
 python3 tests/tooling/run_art_module_headless_gate.py --godot "$ZERKOV_GODOT"
-python3 tools/check_art_scope_delta.py
+python3 tools/check_first_playable_1080.py
 ```
 
 The native driver is registered under the existing independently discovered

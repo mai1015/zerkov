@@ -6,7 +6,6 @@ on:
       - 'assets/original/Main character/Animations/**'
       - 'tools/zerkov_art_pipeline.py'
       - 'tests/tooling/run_art_module_headless_gate.py'
-      - 'tools/check_art_scope_delta.py'
       - 'game/content/art/**'
       - 'game/presentation/art/**'
       - 'tests/tooling/test_art_*.py'
@@ -43,9 +42,6 @@ jobs:
           print('ART_REGISTRY_MERGE_RESULT before=%d after=%d failures=0' % (len(base['assets']), len(candidate['assets'])))
           PYCODE
           git diff --check
-      - name: Source-policy nonregression (existing main failures remain reported)
-        if: ${{ !cancelled() }}
-        run: python3 tools/check_art_scope_delta.py
       - name: Fetch checksum-pinned standard Godot
         if: ${{ !cancelled() }}
         env:

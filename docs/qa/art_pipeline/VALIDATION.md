@@ -90,13 +90,18 @@ Godot screenshot, gameplay capture, or visual approval.
   existing policy. It was moved to `tests/tooling/run_art_module_headless_gate.py`
   and registered with its exact hash, without weakening the checker.
 
-## Existing source-policy findings remain open
+## Source-policy status
 
-The unchanged checker reports the same eight findings on exact main baseline
-and the art branch: seven unclassified AI GDScript entrypoints and one
-unreviewed AI PNG writer. `check_art_scope_delta.py` verifies the checker,
-its tests, existing policy semantics and affected AI files have not been
-modified to hide those findings. It fails on any additional finding.
+The eight findings recorded here when this branch was written -- seven
+unclassified AI GDScript entrypoints and one unreviewed AI PNG writer -- were
+resolved on main by the combat execution merge, which registered those
+entrypoints. `check_first_playable_1080.py` now reports a clean tree, and it
+runs on every PR, so any new finding fails there.
+
+The branch-local `check_art_scope_delta.py` that previously guarded this has
+been removed. It compared the manifest against a hard-coded baseline SHA,
+which goes stale on every merge to main and failed unrelated PRs once it
+landed.
 
 A green art/nonregression workflow does NOT imply that the full repository
 source-policy gate passes. `full_policy_pass=False` is intentional disclosure,
@@ -120,7 +125,7 @@ license/distribution blockers remain unchanged.
 python3 -m pip install 'Pillow==12.3.0'
 python3 -m unittest discover -s tests/tooling -p 'test_art_*.py' -v
 python3 tests/tooling/run_art_module_headless_gate.py --godot "$ZERKOV_GODOT"
-python3 tools/check_art_scope_delta.py
+python3 tools/check_first_playable_1080.py
 python3 tools/zerkov_art_pipeline.py --archive /path/to/zerkov.zip
 python3 tools/zerkov_art_pipeline.py --archive /path/to/zerkov.zip \
   --registry game/content/asset_registry.json --output ../zerkov-art-overlay
