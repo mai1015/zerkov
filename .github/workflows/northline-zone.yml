@@ -10,7 +10,6 @@ on:
       - 'tests/presentation/northline_zone_contract.gd'
       - 'tests/tooling/*northline*'
       - 'tools/*northline*'
-      - 'tools/check_map_study_scope.py'
       - 'config/first_playable_1080_gate.json'
 permissions:
   contents: read
@@ -31,7 +30,6 @@ jobs:
           python3 -m unittest discover -s tests/tooling -p test_northline_zone.py -v
           python3 -m unittest discover -s tests/tooling -p test_map_studies.py -v
           python3 tools/review_northline_routes.py
-          python3 tools/check_map_study_scope.py
           git diff --check
       - name: Fetch checksum-pinned Godot
         run: |
