@@ -1,9 +1,11 @@
-# Combat input ingress (task 5.7 candidate)
+# Combat input ingress (task 5.7)
 
 This component converts the existing CommonUI combat actions, or root-owned AI
 requests, into the existing `ZRaidIntent` queue. It does **not** execute attacks,
-reloads, treatment or melee, install CommonUI callbacks, or change the production
-bootstrap. Task 5.7 stays unchecked until those integration paths are exercised.
+reloads, treatment or melee. `ZCombatInputBinding` installs CommonUI callbacks;
+`RaidCombatSession` composes the downstream authority consumers. Normal-launch
+deployment remains task 7 work. See `game/combat/execution/VALIDATION.md` for
+executed coverage and remaining acceptance boundaries.
 
 ## One sequence owner
 
@@ -28,13 +30,16 @@ Logical IDs remain `common_ui/zerkov/gameplay/<action>`; canonical kinds are
 | aim | `direction_milli: Vector2i`, `aiming: bool` |
 | fire | `weapon_id`, `expected_weapon_revision` |
 | reload | `weapon_id`, `expected_weapon_revision`, `expected_inventory_revision` |
-| cancel_reload | `weapon_id`, `reservation_id` |
-| melee | `weapon_id`, `expected_inventory_revision` |
+| cancel_reload | `weapon_id`, `expected_weapon_revision`, `reservation_id` |
+| melee | `weapon_id`, `expected_equipment_revision` |
 | quick_heal | `body_zone`, `treatment`, `expected_health_revision`, `expected_inventory_revision` |
 
 Weapon IDs identify runtime equipment instances, not short content definitions.
 Revisions are nonnegative integers. Treatment is `bandage` or `splint` and the
-body zone is one of the seven existing health zones. Aim direction is nonzero,
+body zone is one of the seven existing health zones; both are strings, not
+`StringName` values. `expected_equipment_revision` is the reconciler projection
+revision and must not be substituted with the current inventory revision.
+Aim direction is nonzero,
 with each component in [-1000,1000]; its magnitude does not grant range or speed.
 The direction convention matches AI requests. `aiming=false` represents aim
 release. Obtain cursor direction through the existing task-3 presentation/input
@@ -105,11 +110,16 @@ it does not fabricate successful weapon/health operations. Missing native
 classes and script errors fail the run, even when a process otherwise exits 0.
 The new entrypoints are registered in the existing exact-1080 gate inventory.
 
-The existing production bootstrap and UI are unchanged. The next combat change
-must connect accepted intents to aim/pose, `WeaponCombatAdapter.commit_fire`,
-`InventoryWeaponAdapter` and `HealthConsequenceAdapter.queue_treatment`, with
-current binding/revision checks and actual execution receipts. Task 5.8 must
-implement authoritative melee before a queued melee command can deal damage.
-Tasks 5.9 and 5.11-5.13 remain HUD, readability, encounter tuning and human
-playtest work. These routing regressions support 5.10 but do not prove its full
-cadence/ammo/reload/death acceptance matrix. No task checkbox is changed.
+For the integrated execution path, run:
+
+```sh
+python3 tools/run_combat_input_contracts.py --godot "$ZERKOV_GODOT" --native --execution
+```
+
+This adds real weapon, inventory, health, hitbox, locomotion and melee execution
+through the production codec and payload producer. Native integration must pass
+separately from the envelope-only and timeline/HUD-value contracts. The test
+roster is explicitly seeded; it is not a profile-backed production deployment.
+The normal-launch root, concrete AI action handoff, persistence and settlement
+remain task 7 integration work. Recorded encounters and blind human acceptance
+remain separate requirements; no task checkbox is changed by a headless result.

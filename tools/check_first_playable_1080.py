@@ -157,7 +157,8 @@ def discover_python_display_drivers(root: Path, names: Sequence[str]) -> Set[str
         if not name.endswith(".py"):
             continue
         if (name.startswith("docs/qa/") or name.startswith("tests/visual/")
-                or (name.startswith("tests/tooling/run_") and name.endswith("_gate.py"))):
+                or (name.startswith("tests/tooling/run_") and name.endswith("_gate.py"))
+                or (name.startswith("tools/run_") and name.endswith("_contracts.py"))):
             discovered.add(name)
     return discovered
 

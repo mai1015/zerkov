@@ -24,7 +24,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
-      - run: python3 tests/tooling/test_combat_input_runner.py
+      - name: Runner and repository gate regressions
+        run: |
+          python3 tests/tooling/test_combat_input_runner.py
+          python3 tests/tooling/test_ai_runner.py
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
       - name: Exact-revision source reproduction packet
         if: always()
         run: |
@@ -79,6 +84,11 @@ jobs:
         run: |
           set -o pipefail
           python3 -u tools/run_combat_input_contracts.py --godot "$ZERKOV_GODOT" --native --execution 2>&1 | tee "$RUNNER_TEMP/combat-diagnostics/native.log"
+      - name: Adjacent native AI regressions
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -u tools/run_ai_contracts.py --godot "$ZERKOV_GODOT" --native 2>&1 | tee "$RUNNER_TEMP/combat-diagnostics/ai-native.log"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
