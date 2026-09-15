@@ -15,6 +15,8 @@ import subprocess
 import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 PIN = '4.7.2.stable.official.ed1daf0bf'
+RENDERER_WARNINGS = 0
+VSYNC_WARNING = re.compile(r'^WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver\.\n\s+at: set_use_vsync \(platform/linuxbsd/x11/gl_manager_x11\.cpp:372\)\n', re.M)
 PROJECT = '''config_version=5
 [application]
 config/name="Zerkov bunker presentation"
@@ -35,7 +37,10 @@ def run(command, cwd):
         env={**os.environ,'GODOT_SILENCE_ROOT_WARNING':'1','LIBGL_ALWAYS_SOFTWARE':'1'})
     text=p.stdout+p.stderr
     print(text,flush=True)
-    if p.returncode or re.search(r'(?:SCRIPT ERROR|ERROR|WARNING|Parse Error):|ObjectDB instances leaked',text):
+    global RENDERER_WARNINGS
+    classified, count = VSYNC_WARNING.subn('', text)
+    RENDERER_WARNINGS += count
+    if count > 1 or p.returncode or re.search(r'(?:SCRIPT ERROR|ERROR|WARNING|Parse Error):|ObjectDB instances leaked',classified):
         raise RuntimeError('Godot process/diagnostic failure: %s' % p.returncode)
     return text
 
@@ -69,7 +74,7 @@ def main():
             if Image.open(args.output/'run0'/name).size!=(1920,1080):raise RuntimeError('Wrong raw dimensions')
             shutil.copyfile(args.output/'run0'/name,args.output/name)
             images[name]=hashlib.sha256(a).hexdigest()
-        record={'engine':PIN,'source_commit':os.environ.get('SOURCE_SHA','local'),'renderer':'OpenGL Compatibility / llvmpipe / Xvfb','native_runs':2,'checks':sum(results),'failures':0,'godot_diagnostics':0,'output':[1920,1080],'world':[640,360],'integer_scale':3,'screenshots':images,'human_approval':False,'scope':'Actual production bunker presentation in isolation; full six-addon UI host not claimed'}
+        record={'engine':PIN,'source_commit':os.environ.get('SOURCE_SHA','local'),'renderer':'OpenGL Compatibility / llvmpipe / Xvfb','native_runs':2,'checks':sum(results),'failures':0,'unexpected_diagnostics':0,'known_vsync_warnings':RENDERER_WARNINGS,'output':[1920,1080],'world':[640,360],'integer_scale':3,'screenshots':images,'human_approval':False,'scope':'Actual production bunker presentation in isolation; full six-addon UI host not claimed'}
         (args.output/'capture.json').write_text(json.dumps(record,indent=2)+'\n')
         print('BUNKER_CAPTURE_GATE',json.dumps(record))
     return 0
