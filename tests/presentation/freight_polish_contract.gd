@@ -3,6 +3,7 @@ extends RefCounted
 const Pose = preload("res://game/presentation/northline_zone/review_locomotion_pose.gd")
 
 func run(view: Control, check: Callable) -> void:
+	_test_source_facing(view, check)
 	var pose = Pose.new()
 	check.call(pose.advance(8.8, 0.1) and pose.moving and pose.frame == 1, "distance-driven first step")
 	pose.advance(8.8, 0.1)
@@ -70,3 +71,31 @@ func run(view: Control, check: Callable) -> void:
 	check.call(JSON.stringify(view.data) == original_data, "polish cannot mutate map data")
 	effect.freeze_at(3.0)
 	effect.update_camera(Rect2(view.camera.position - Vector2(320,180),Vector2(640,360)),view.overview)
+
+
+func _test_source_facing(view: Control, check: Callable) -> void:
+	# Visually verified against the original source sheets: the unmirrored
+	# gas-mask/hoodie artwork faces LEFT. Do not derive the expected flip from
+	# the implementation constant; doing so would repeat the original mistake.
+	var walker = view.walker
+	var saved_facing: bool = walker.face_left
+	var saved_region: Rect2 = walker.layers[0].region_rect
+	var saved_position: Vector2 = walker.position
+	var saved_velocity: Vector2 = walker.velocity
+	var saved_pose: Dictionary = walker.pose.snapshot()
+	for left: bool in [true, false]:
+		walker.face_left = left
+		for moving: bool in [false, true]:
+			for frame: int in range(6):
+				walker.show_frame(moving, frame)
+				var aligned: bool = true
+				for row: int in range(walker.layers.size()):
+					var layer: Sprite2D = walker.layers[row]
+					aligned = aligned and layer.flip_h == (not left)
+					aligned = aligned and layer.region_rect == Rect2(frame * 64, (row + (4 if moving else 0)) * 64, 64, 64)
+				check.call(aligned, "source-left art: all layers face " + ("left" if left else "right") + " in " + ("walk" if moving else "idle") + " frame " + str(frame))
+	# Turning the visual must not reverse frame order or mutate physics/gait.
+	check.call(walker.position == saved_position and walker.velocity == saved_velocity, "facing render does not alter physics")
+	check.call(walker.pose.snapshot() == saved_pose, "facing render does not alter gait phase")
+	walker.face_left = saved_facing
+	walker.show_frame(saved_region.position.y >= 256.0, int(saved_region.position.x / 64.0))

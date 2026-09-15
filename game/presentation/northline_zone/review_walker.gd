@@ -4,6 +4,9 @@ extends CharacterBody2D
 ## No health, inventory, stamina, weapon state, persistence or authority mutation.
 const TEXTURE = preload("res://assets/world/northline_zone/review_outfit.webp")
 # Fixed review wardrobe, not a claim of equipment/inventory binding.
+# Both supplied idle/walk families face LEFT before mirroring. Keep desired
+# world facing separate from source orientation; do not reverse frame order.
+const SOURCE_FACES_LEFT: bool = true
 var enabled: bool = false
 var animate: bool = false
 const Pose = preload("res://game/presentation/northline_zone/review_locomotion_pose.gd")
@@ -42,7 +45,7 @@ func show_frame(moving: bool, frame: int) -> void:
 	for row: int in range(layers.size()):
 		layers[row].position = Vector2(-32, -48) + render_offset
 		layers[row].region_rect = Rect2((frame % 6) * 64, (row + (4 if moving else 0)) * 64, 64, 64)
-		layers[row].flip_h = face_left
+		layers[row].flip_h = face_left != SOURCE_FACES_LEFT
 
 func _physics_process(delta: float) -> void:
 	if not enabled:
