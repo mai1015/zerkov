@@ -12,4 +12,7 @@ p.write_text(json.dumps(m,indent=2)+'\n')
 p=ROOT/'tests/tooling/test_ui_first_playable_scope.py'
 s=p.read_text()
 s=re.sub(r'self.assertEqual\(\d+, len\(self.manifest\["active_visual_entrypoints"\]\)\)',f'self.assertEqual({len(m["active_visual_entrypoints"])}, len(self.manifest["active_visual_entrypoints"]))',s)
+# Both independent inventories grow by exactly this one new guarded writer.
+s=s.replace('self.assertEqual(13, len(self.manifest["sanctioned_capture_writers"]))',
+            'self.assertEqual(14, len(self.manifest["sanctioned_capture_writers"]))')
 p.write_text(s)

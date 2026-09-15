@@ -253,9 +253,14 @@ func _build_offline_pause() -> void:
 	queue_adaptive_layout()
 
 func _offline_close_menu() -> void:
+	if not accepts_input():
+		return
+	var offline := app.offline_bunker()
+	if offline == null:
+		return
+	var expected_generation := int(offline.local_status().generation)
 	app.confirm("RETURN TO MENU", "All accepted inventory changes are saved locally. Close this bunker?", func():
-		var offline := app.offline_bunker()
-		if offline != null and offline.request(&"close", int(offline.local_status().generation)):
+		if offline.is_active() and offline.request(&"close", expected_generation):
 			go("main_menu"))
 
 func _offline_quit() -> void:
