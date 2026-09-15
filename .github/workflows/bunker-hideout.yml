@@ -28,21 +28,6 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb libgl1-mesa-dri
           python3 -m pip install 'Pillow==12.3.0'
-      - name: Assemble checksum-verified asset transport
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import hashlib
-          parts = sorted(Path('tools/bunker-transfer').glob('*.part'))
-          target = Path('assets/world/bunker/bunker_atlas.webp')
-          if parts:
-              assert len(parts) == 4
-              data = b''.join(p.read_bytes() for p in parts)
-              assert hashlib.sha256(data).hexdigest() == '3dcac749ede7e09146d8509909a824ad90d175e648aa71043da5ff523116e6ee'
-              target.write_bytes(data)
-              for p in parts: p.unlink()
-          assert hashlib.sha256(target.read_bytes()).hexdigest() == '3dcac749ede7e09146d8509909a824ad90d175e648aa71043da5ff523116e6ee'
-          PY
       - name: Validate authored kit and integrate the existing host
         run: |
           python3 tools/prepare_bunker_hideout.py
@@ -58,6 +43,15 @@ jobs:
         env:
           SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
         run: python3 tests/tooling/run_bunker_hideout_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/bunker-capture"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: bunker-native-1080
+          path: |
+            ${{ runner.temp }}/bunker-capture/bunker-standard-1080.png
+            ${{ runner.temp }}/bunker-capture/bunker-emergency-1080.png
+            ${{ runner.temp }}/bunker-capture/capture.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Retain exact native evidence on this PR branch only
         env:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
@@ -68,10 +62,11 @@ jobs:
           test "$actual" = "$EXPECTED_HEAD"
           mkdir -p docs/qa/bunker_hideout
           cp "$RUNNER_TEMP/bunker-capture/"*.png "$RUNNER_TEMP/bunker-capture/capture.json" docs/qa/bunker_hideout/
-          git add -- assets/world/bunker/bunker_atlas.webp ui/screens/bunker/bunker.tscn config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py docs/qa/bunker_hideout/*.png docs/qa/bunker_hideout/capture.json
-          if git ls-files tools/bunker-transfer | grep -q .; then git add -u -- tools/bunker-transfer; fi
+          git add -- ui/screens/bunker/bunker.tscn config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py docs/qa/bunker_hideout/*.png docs/qa/bunker_hideout/capture.json
           git diff --cached --stat
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'test(bunker): retain native captures and bind the bunker view'
-          git push origin "HEAD:refs/heads/$branch"
+          if ! git diff --cached --quiet; then
+            git commit -m 'test(bunker): retain native capture evidence'
+            git push origin "HEAD:refs/heads/$branch"
+          fi
