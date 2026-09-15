@@ -1,0 +1,56 @@
+name: Art pipeline candidate (not native acceptance)
+
+on:
+  pull_request:
+    paths:
+      - 'tools/art/**'
+      - 'tests/tooling/test_asset_pipeline.py'
+      - 'game/content/asset_registry.json'
+      - 'assets/**'
+      - '.github/workflows/art-pipeline.yml'
+  push:
+    branches: ['codex/task-9-asset-pipeline']
+
+permissions:
+  contents: read
+
+jobs:
+  asset-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4, pinned
+        with:
+          persist-credentials: false
+      - name: Synthetic filesystem contracts
+        run: python3 -m unittest discover -s tests/tooling -p 'test_asset_pipeline.py' -v
+      - name: Real checkout import-policy audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/art/asset_pipeline.py audit > "$RUNNER_TEMP/art-audit.json"
+          python3 - "$RUNNER_TEMP/art-audit.json" <<'PY'
+          import json, sys
+          data = json.load(open(sys.argv[1], encoding='utf-8'))
+          print('ART_CHECKOUT_AUDIT textures=%d pending=%d non_texture_hashes=%d native=not_run' % (
+              len(data['textures']), len(data['pending_unimported']), len(data['non_texture_hash_checked_only'])))
+          print('manifest_sha256=' + data['manifest_sha256'])
+          print('pending_unimported=' + ','.join(data['pending_unimported']))
+          PY
+      - name: Compile real Sawmill atlas twice without changing source assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/art/asset_pipeline.py compile --asset world.sawmill.greybox_atlas > "$RUNNER_TEMP/art-plan-1.json"
+          python3 tools/art/asset_pipeline.py compile --asset world.sawmill.greybox_atlas > "$RUNNER_TEMP/art-plan-2.json"
+          cmp "$RUNNER_TEMP/art-plan-1.json" "$RUNNER_TEMP/art-plan-2.json"
+          python3 - "$RUNNER_TEMP/art-plan-1.json" <<'PY'
+          import json, sys
+          data = json.load(open(sys.argv[1], encoding='utf-8'))
+          assert data['written'] is False and data['file_count'] == 33, data
+          print('ART_SAWMILL_COMPILE frames=16 files=33 repeats=2 identical=true native=not_run')
+          PY
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"
