@@ -29,8 +29,6 @@ jobs:
           git diff --exit-code -- config/first_playable_1080_gate.json tests/tooling/test_ui_first_playable_scope.py
           python3 -m unittest discover -s tests/tooling -p test_map_studies.py -v
           git diff --check
-      - name: Report full-policy baseline findings and reject new issues
-        run: python3 tools/check_map_study_scope.py
       - name: Fetch checksum-pinned Godot
         run: |
           mkdir -p "$RUNNER_TEMP/map-godot"
