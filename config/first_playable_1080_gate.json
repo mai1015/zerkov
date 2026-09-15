@@ -160,6 +160,10 @@
     "tests/tooling/run_world_markers_headless_gate.py": {
       "purpose": "exact headless world markers driver",
       "sha256": "195b46a00ee088a845abcc260c38228ca4ebb7627194d6b0e578d508984dac79"
+    },
+    "tools/run_combat_input_contracts.py": {
+      "purpose": "exact headless combat input contracts in temporary projects",
+      "sha256": "49df4196452d3ec55b669cd0c000492bdc48e1617968f76a6af6f044753a8eae"
     }
   },
   "active_reviewed_support": {
@@ -187,9 +191,11 @@
     "tests/combat/body_hitbox_capability_encapsulation_contract.gd",
     "tests/combat/body_hitbox_contract.gd",
     "tests/combat/body_hitbox_review_regression_contract.gd",
+    "tests/combat/combat_intent_contract.gd",
     "tests/combat/content_contract.gd",
     "tests/combat/health_ability_content_contract.gd",
     "tests/combat/health_consequence_adapter_contract.gd",
+    "tests/combat/native_combat_intent_contract.gd",
     "tests/combat/weapon_combat_adapter_contract.gd",
     "tests/presentation/character_presentation_composition_contract.gd",
     "tests/presentation/ui_state_8_11_contract.gd",
