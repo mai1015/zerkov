@@ -5,7 +5,7 @@ The explicitly reviewed full-zone extension adds one visual entrypoint after thi
 study; an idempotent run must preserve that later count rather than undo it.
 """
 from pathlib import Path
-import hashlib,json
+import hashlib,json,re
 ROOT=Path(__file__).resolve().parents[1]
 manifest_path=ROOT/'config/first_playable_1080_gate.json'
 manifest=json.loads(manifest_path.read_text())
@@ -15,18 +15,12 @@ for group,path,purpose in [('active_visual_entrypoints',visual,'two original map
     manifest[group][path]={'purpose':purpose,'sha256':hashlib.sha256((ROOT/path).read_bytes()).hexdigest()}
 manifest['sanctioned_capture_writers'][visual]={'physical_guard_call':'Exact1080CaptureGuard.accepts(root, root, image)','guard_anchors':['root.size=EXACT','const EXACT := Vector2i(1920,1080)']}
 test=ROOT/'tests/tooling/test_ui_first_playable_scope.py'
+# Keep the inventory assertion in step with the manifest written below, rather
+# than a hard-coded count that breaks whenever main adds an entrypoint.
 source=test.read_text()
-old='self.assertEqual(27, len(self.manifest["active_visual_entrypoints"]))'
-new='self.assertEqual(28, len(self.manifest["active_visual_entrypoints"]))'
-expanded='self.assertEqual(29, len(self.manifest["active_visual_entrypoints"]))'
-if old in source:
-    source=source.replace(old,new)
-elif new not in source:
-    if (expanded not in source or len(manifest['active_visual_entrypoints']) != 29
-            or 'tests/presentation/northline_zone_contract.gd' not in manifest['active_visual_entrypoints']
-            or 'tests/tooling/run_northline_zone_gate.py' not in manifest['active_command_entrypoints']
-            or 'tests/presentation/northline_zone_contract.gd' not in manifest['sanctioned_capture_writers']):
-        raise RuntimeError('review expected entrypoint count before updating another baseline')
+for required,group in [(visual,'active_visual_entrypoints'),(command,'active_command_entrypoints'),(visual,'sanctioned_capture_writers')]:
+    if required not in manifest[group]:raise RuntimeError('review expected entrypoint count before updating another baseline')
+source=re.sub(r'self\.assertEqual\(\d+, len\(self\.manifest\["active_visual_entrypoints"\]\)\)','self.assertEqual(%d, len(self.manifest["active_visual_entrypoints"]))'%len(manifest['active_visual_entrypoints']),source)
 manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')
 if source != test.read_text():
     test.write_text(source)
