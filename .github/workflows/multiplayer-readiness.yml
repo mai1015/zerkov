@@ -1,0 +1,73 @@
+name: Multiplayer readiness inventory
+on:
+  pull_request:
+    paths:
+      - 'addons/**'
+      - 'config/**'
+      - 'tools/audit_multiplayer_readiness.py'
+      - 'tests/tooling/test_multiplayer_readiness.py'
+      - 'docs/qa/multiplayer_readiness/**'
+      - '.github/workflows/multiplayer-readiness.yml'
+permissions:
+  contents: read
+concurrency:
+  group: readiness-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  inventory:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inventory negative controls
+        run: python tests/tooling/test_multiplayer_readiness.py
+      - name: Record real checked-out artifact prerequisites (not release approval)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/audit_multiplayer_readiness.py --output "$RUNNER_TEMP/multiplayer-inventory.json"
+          python - <<'PY'
+          import json, os, pathlib
+          report = json.loads((pathlib.Path(os.environ['RUNNER_TEMP']) / 'multiplayer-inventory.json').read_text())
+          assert report['network_ready'] is False
+          for target, state in report['platforms'].items():
+              print(target, 'artifact prerequisite=', state['artifact_prerequisite_passed'], 'blocked libraries=', state['blocked_libraries'], 'build/load/export=', state['build_load_export_status'])
+          PY
+      - name: Audit source reproduction (includes native bridge code, no binaries)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, subprocess, zipfile
+          root = pathlib.Path('.')
+          names = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          allowed = {'.gd', '.uid', '.tscn', '.tres', '.json', '.py', '.md', '.gdextension', '.yml', '.yaml', '.cpp', '.h', '.hpp', '.c', '.sh', '.ini', '.cfg'}
+          manifest = {}
+          with zipfile.ZipFile(pathlib.Path(os.environ['RUNNER_TEMP']) / 'audit-sources.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              for name in names:
+                  path = root / name
+                  if name and path.is_file() and not path.is_symlink() and (path.suffix in allowed or path.name in {'project.godot', 'SConstruct', 'SConscript', 'CMakeLists.txt'}):
+                      data = path.read_bytes()
+                      archive.writestr(name, data)
+                      manifest[name] = hashlib.sha256(data).hexdigest()
+              archive.writestr('REPRODUCTION_COMMIT', subprocess.check_output(['git', 'rev-parse', 'HEAD']))
+              archive.writestr('REPRODUCTION_SHA256.json', json.dumps(manifest, sort_keys=True, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: readiness-${{ runner.os }}
+          path: |
+            ${{ runner.temp }}/multiplayer-inventory.json
+            ${{ runner.temp }}/audit-sources.zip
+          retention-days: 3
