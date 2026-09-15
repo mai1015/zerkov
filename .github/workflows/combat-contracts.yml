@@ -33,11 +33,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
-      - name: Record source revision
+      - name: Record exact source revision
         run: |
-          git rev-parse HEAD
-          shasum -a 256 tests/combat/native_combat_execution_contract.gd
+          mkdir -p "$RUNNER_TEMP/combat-diagnostics"
+          git rev-parse HEAD > "$RUNNER_TEMP/combat-diagnostics/commit.txt"
+          git ls-files -z 'game/combat/**' 'tests/combat/**' 'game/input/combat/**' 'tools/run_combat*' | xargs -0 shasum -a 256 > "$RUNNER_TEMP/combat-diagnostics/source-sha256.txt"
+          cp tests/combat/native_combat_execution_contract.gd "$RUNNER_TEMP/combat-diagnostics/contract-source.gd"
+          cp tools/run_combat_input_contracts.py "$RUNNER_TEMP/combat-diagnostics/runner-source.py"
       - name: Install exact locked engine
         shell: bash
         run: |
@@ -47,4 +51,13 @@ jobs:
           ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
           echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
       - name: Real authority and combat execution contracts
-        run: python3 tools/run_combat_input_contracts.py --godot "$ZERKOV_GODOT" --native --execution
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -u tools/run_combat_input_contracts.py --godot "$ZERKOV_GODOT" --native --execution 2>&1 | tee "$RUNNER_TEMP/combat-diagnostics/native.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: combat-native-diagnostics
+          path: ${{ runner.temp }}/combat-diagnostics
+          retention-days: 3
