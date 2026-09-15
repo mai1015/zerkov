@@ -1,0 +1,53 @@
+name: Art pipeline and isolated native presentation
+
+on:
+  pull_request:
+    paths:
+      - 'tools/zerkov_art_pipeline.py'
+      - 'tools/run_art_module_contract.py'
+      - 'game/content/art/**'
+      - 'game/presentation/art/**'
+      - 'tests/tooling/test_art_*.py'
+      - 'tests/presentation/art_module_contract.gd'
+      - 'config/first_playable_1080_gate.json'
+      - '.github/workflows/art-pipeline.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-art-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Python contracts and exact-output policy
+        run: |
+          python3 -m pip install 'Pillow==12.3.0'
+          python3 -m unittest discover -s tests/tooling -p 'test_art_*.py' -v
+          python3 -m unittest discover -s tests/tooling -p test_ui_first_playable_scope.py -v
+          python3 - <<'PYCODE'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, 'tools')
+          import zerkov_art_pipeline as p
+          recipe = p.validate_recipe(p.read_json(p.DEFAULT_RECIPE))
+          base = p.read_json(Path('game/content/asset_registry.json'))
+          candidate = p.merge_registry(base, p.registry_additions(recipe, '0' * 64))
+          assert candidate['distribution_blockers'] == base['distribution_blockers']
+          print('ART_REGISTRY_MERGE_RESULT before=%d after=%d failures=0' % (len(base['assets']), len(candidate['assets'])))
+          PYCODE
+          git diff --check
+      - name: Fetch checksum-pinned standard Godot
+        env:
+          GODOT_URL: https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+        run: |
+          curl --fail --location --retry 3 "$GODOT_URL" -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Native isolated module contract, two identical runs
+        run: python3 tools/run_art_module_contract.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"

@@ -160,6 +160,10 @@
     "tests/tooling/run_world_markers_headless_gate.py": {
       "purpose": "exact headless world markers driver",
       "sha256": "195b46a00ee088a845abcc260c38228ca4ebb7627194d6b0e578d508984dac79"
+    },
+    "tools/run_art_module_contract.py": {
+      "purpose": "exact-1080 isolated art module driver; synthetic textures, no addon substitutions",
+      "sha256": "bded9e328e1d9a46ca317a78659e2b690691a10f0a00bb3ee0c2520c8d6c984d"
     }
   },
   "active_reviewed_support": {
