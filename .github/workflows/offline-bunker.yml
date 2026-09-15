@@ -1,39 +1,50 @@
 name: Offline bunker integration
 on:
   pull_request:
-    paths: ['.github/workflows/offline-bunker.yml', 'tools/offline_candidate.patch', 'game/offline/**', 'game/bootstrap/offline_application*', 'ui/**', 'tests/presentation/offline_bunker_flow.gd', 'tests/tooling/*offline_bunker*', 'project.godot', 'config/first_playable_1080_gate.json']
+    paths: ['.github/workflows/offline-bunker.yml', 'game/offline/**', 'game/bootstrap/offline_application*', 'ui/**', 'tests/presentation/offline_bunker_flow.gd', 'tests/tooling/*offline_bunker*', 'project.godot', 'config/first_playable_1080_gate.json']
 permissions:
   contents: read
+concurrency:
+  group: offline-bunker-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
+  source-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Retain reviewable source and exact base diff, without artwork or fonts
+        run: |
+          mkdir -p "$RUNNER_TEMP/offline-source"
+          python3 - <<'PY'
+          import os,pathlib,subprocess,zipfile
+          root=pathlib.Path.cwd(); out=pathlib.Path(os.environ['RUNNER_TEMP'])/'offline-source'
+          with zipfile.ZipFile(out/'source-text.zip','w',zipfile.ZIP_DEFLATED) as archive:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=root/name
+                  if name and p.is_file() and not p.is_symlink() and (p.suffix in {'.gd','.gdshader','.tscn','.tres','.godot','.py','.json','.md','.yml','.yaml','.gdextension','.cfg'} or name in {'.gitignore','.gitattributes'}):
+                      archive.write(p,name)
+          (out/'commit.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          (out/'changes.patch').write_bytes(subprocess.check_output(['git','diff','bfae2bd69c6ec3f5efd369bd7858fa629f7b9e05','HEAD']))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: offline-bunker-source-review
+          path: ${{ runner.temp }}/offline-source
+          retention-days: 3
   native-offline:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/offline-bunker-entry'
     runs-on: macos-latest
     timeout-minutes: 15
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-          persist-credentials: true
-      - name: Apply explicit reviewed correction with Git preimage checks
-        env:
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          if test -f tools/offline_candidate.patch; then
-            git apply --check --index tools/offline_candidate.patch
-            git apply --index tools/offline_candidate.patch
-            git rm -- tools/offline_candidate.patch
-            git diff --cached --check
-            actual=$(git ls-remote origin refs/heads/feat/offline-bunker-entry | cut -f1)
-            test "$actual" = "$EXPECTED_HEAD"
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'fix(offline): apply native integration correction'
-            git push origin HEAD:refs/heads/feat/offline-bunker-entry
-          fi
+          persist-credentials: false
       - name: Verify exact-output registration
         run: |
           python3 tests/tooling/test_ui_first_playable_scope.py
@@ -46,7 +57,7 @@ jobs:
           echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
       - name: Real offline startup, inventory, failure handling and independent Continue process
         run: python3 -u tests/tooling/run_offline_bunker_gate.py --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/offline-headless"
-      - name: Configure an exact native capture display on the ephemeral CI host
+      - name: Configure exact native capture display on the ephemeral CI host
         run: |
           cat > "$RUNNER_TEMP/offline-display.swift" <<'SWIFT'
           import CoreGraphics
@@ -67,7 +78,6 @@ jobs:
               CGCancelDisplayConfiguration(configuration)
               exit(2)
           }
-          // Retain the mode for this disposable login session, not only this helper process.
           guard CGCompleteDisplayConfiguration(configuration, .forSession) == .success else { exit(2) }
           guard let current = CGDisplayCopyDisplayMode(screen), current.pixelWidth == 1920 && current.pixelHeight == 1080 else { exit(2) }
           print("OFFLINE_DISPLAY_READY 1920x1080")
