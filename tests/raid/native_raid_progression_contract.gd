@@ -99,7 +99,7 @@ func _setup() -> bool:
 	_layout=load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
 	check(_layout!=null,"authored Sawmill layout")
 	_move=ZPlayerLocomotion.new();_move.configure(raid.admission().actor_id,Vector2(32,32),ZPlayerFacing.Facing4.EAST)
-	check(_move.register_with_authority(raid,1),"real locomotion phase")
+	check(_move.register_with_authority(raid,raid.generation()),"real locomotion phase")
 	_combat=RaidCombatSession.new();root.add_child(_combat);_nodes.append(_combat)
 	var roster: Array[Dictionary]=[{"actor_id":raid.admission().actor_id,"source":int(ZRaidIntent.Source.PLAYER),"movement":_move,"movement_handler":ZPlayerLocomotion.DEFAULT_PHASE_HANDLER_ID,"inventory":owner,"natural_melee":false}]
 	check(_combat.start(raid,roster),"combat baseline composition: "+String(_combat.last_error))
@@ -139,8 +139,7 @@ func _intent(target: String, cancel: bool=false) -> void:
 func _place(anchor_id: String) -> void:
 	# Test-owned authored pose fixture, not player teleport capability or traversal evidence.
 	var anchor:=_layout.anchor(anchor_id)
-	_move.position_px=_layout.cell_center(anchor.approach_cell)
-	_move.velocity_px=Vector2.ZERO
+	check(_move.teleport(_layout.cell_center(anchor.approach_cell)),"fixture placement through authoritative movement owner")
 func _test_raid() -> void:
 	var raid:=_deployment.raid
 	_intent(SupplyRunGraph.CRATES[0]);if not _tick():return
@@ -151,12 +150,15 @@ func _test_raid() -> void:
 	raid.clock.clear_pending();raid.clock.resume()
 	for key: String in SupplyRunGraph.CRATES:
 		_place(key);_intent(key);if not _tick():return
+		var evaluated:=_policy.evaluate_for_actor(raid.admission().actor_id,StringName(key),ZInteractionKind.CRATE,raid.generation())
+		check(_progress.snapshot().searching==key,"native search began for "+key+": "+str(_progress.snapshot())+" policy="+String(evaluated.reason))
+		if failures>0:return
 		var before: int=_progress.snapshot().task.searched_crates
 		for elapsed in range(53):
 			if not _tick():return
 		check(_progress.snapshot().task.searched_crates==before,"native search cannot complete early")
 		if not _tick():return
-		check(_progress.snapshot().task.searched_crates==before+1,"sealed 900ms search completes at 54 canonical ticks")
+		check(_progress.snapshot().task.searched_crates==before+1,"sealed 900ms search completes at 54 canonical ticks: "+str(_progress.snapshot()))
 		_intent(key);if not _tick():return
 		check(_progress.snapshot().task.searched_crates==before+1,"repeated crate open does not recount")
 	_place(SupplyRunGraph.ROAD_GATE);_intent(SupplyRunGraph.ROAD_GATE);if not _tick():return

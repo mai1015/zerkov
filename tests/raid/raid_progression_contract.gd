@@ -34,10 +34,12 @@ func run() -> void:
 	_test_countdown()
 	_test_persistence()
 	_test_active_recovery()
+	_test_malformed_state()
+	_test_deployment_prepare_faults()
 	for action: String in ["write:write_temp", "replace:backup_temp:backup", "replace:write_temp:primary"]:
 		for after: bool in [false,true]:
 			_test_fault(action,after)
-	print("RAID_PROGRESSION_RESULT checks=", checks," failures=",failures)
+	print("RAID_PROGRESSION_RESULT checks=",checks," failures=",failures)
 	quit(0 if failures == 0 else 1)
 
 func _fixture() -> Dictionary:
@@ -89,7 +91,7 @@ func _test_persistence() -> void:
 	var terminal := _terminal()
 	var prepared: Dictionary = f.service.prepare(raid,terminal,f.payload.domains[V.LOADOUT])
 	check(prepared.ok and prepared.prepared and not prepared.committed,"prepare durable plan not final result")
-	check(not f.service.summary(raid).ok,"pending result hidden")
+	check(not f.service.summary(raid).ok and RaidSummaryView.from_committed(prepared)==null,"pending result hidden")
 	check(f.service.prepare(raid,terminal,f.payload.domains[V.LOADOUT]).replayed,"prepare retry exactly once")
 	check(not f.service.prepare(raid,_terminal("dead"),f.payload.domains[V.LOADOUT]).ok,"conflicting outcome same identity rejected")
 	var committed: Dictionary = f.service.commit(raid)
@@ -98,6 +100,11 @@ func _test_persistence() -> void:
 	check(f.service.commit(raid).replayed and f.store.load_profile().generation==4,"commit ack loss cannot duplicate")
 	check(f.service.deploy("zerkov.request.deploy.one",1).status==&"already_settled","completed deployment request cannot rerun")
 	var receipts: Dictionary = f.service.summary(raid)
+	var view:=RaidSummaryView.from_committed(receipts)
+	check(view!=null and view.snapshot().final and view.snapshot().retained.is_read_only(),"only committed records produce immutable summary values")
+	var changed: Dictionary=receipts.duplicate(true)
+	changed.receipt.retained.clear()
+	check(not view.snapshot().retained.is_empty(),"later caller mutation cannot change summary")
 	check(receipts.receipt.lost.is_empty() and not receipts.receipt.valuation_available and receipts.receipt.currency_reward==0,"no invented loss or valuation")
 	var checkpoint: Dictionary = f.store.load_profile()
 	check(f.store.close(),"release store for process-like replacement")
@@ -135,3 +142,45 @@ func _test_fault(action: String, after: bool) -> void:
 	check(final.receipt.outcome=="extracted" and replacement.load_profile().generation==4,"no duplicate value / lost prepared plan")
 	check(service.commit(raid).replayed,"post-recovery acknowledgement is replay")
 	check(replacement.close(),"fault fixture cleanup")
+
+
+func _test_malformed_state() -> void:
+	for malformed: Variant in [true, {}, {"version":1,"next_sequence":2,"history":{},"active":{"phase":"prepared"}}]:
+		var f:=_fixture()
+		var loaded: Dictionary=f.store.load_profile()
+		var payload: Dictionary=loaded.payload.duplicate(true)
+		payload.project[V.STATE_KEY]=malformed
+		check(f.store.save_profile(payload,loaded.generation,loaded.generation+1).committed,"fixture has valid outer profile checksum")
+		check(not f.service.recover().ok,"semantic active schema fails closed without indexing missing keys")
+		f.store.close()
+	var f:=_fixture()
+	var deployed: Dictionary=f.service.deploy("zerkov.request.deploy.semantic",1)
+	var loaded: Dictionary=f.store.load_profile()
+	var altered: Dictionary=loaded.payload.duplicate(true)
+	altered.project["unrelated_change"]=true
+	check(f.store.save_profile(altered,2,3).committed,"external writer fixture")
+	check(not f.service.prepare(deployed.deployment.raid_id,_terminal(),f.payload.domains[V.LOADOUT]).ok,"profile generation cannot drift during escrow")
+	f.store.close()
+
+func _test_deployment_prepare_faults() -> void:
+	for phase: String in ["deployment","prepare"]:
+		for point: String in ["write:write_temp","replace:backup_temp:backup","replace:write_temp:primary"]:
+			for after: bool in [false,true]:
+				var f:=_fixture()
+				var raid: String=V.ids(f.store.profile_id(),1).raid_id
+				if phase=="prepare":check(f.service.deploy("zerkov.request.deploy.matrix",1).ok,"prepare fault deployment")
+				if after:f.ops.fail_after(point)
+				else:f.ops.fail_before(point)
+				var result: Dictionary=f.service.deploy("zerkov.request.deploy.matrix",1) if phase=="deployment" else f.service.prepare(raid,_terminal(),f.payload.domains[V.LOADOUT])
+				f.store.close()
+				var store:=ProfileStore.new();check(store.configure_with_trusted_operations("zerkov.profile.task7",f.ops),"reopen interrupted checkpoint")
+				var service:=RaidSettlementService.new();service.configure(store,InventoryDouble.new())
+				var recovered:=service.recover()
+				check(recovered.ok,"recover at "+phase+":"+point+":"+str(after))
+				var loaded_after:=store.load_profile()
+				if recovered.get("status")==&"no_active_raid":
+					check(loaded_after.generation==1,"uncommitted deployment did not allocate or lose anything")
+				else:
+					check(recovered.committed and recovered.receipt.outcome in ["abandoned","extracted"],"only persisted outcome or explicit no-resume policy")
+					check(service.commit(raid).replayed and loaded_after.generation==4,"checkpoint recovery applies value once")
+				store.close()

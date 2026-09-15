@@ -16,6 +16,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
+      - name: Progression runner and repository gate
+        run: |
+          python3 tests/tooling/test_raid_progression_runner.py
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
       - name: Install locked engine
         shell: bash
         run: |
@@ -30,7 +35,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/progression-diagnostics"
           git rev-parse HEAD > "$RUNNER_TEMP/progression-diagnostics/commit.txt"
-          git ls-files -z 'game/raid/progression/**' 'tests/raid/*progression*' 'tools/run_raid_progression_contracts.py' | xargs -0 shasum -a 256 > "$RUNNER_TEMP/progression-diagnostics/source-sha256.txt"
+          git ls-files -z 'game/raid/progression/**' 'tests/raid/*progression*' 'tests/raid/raid_restart_contract.gd' 'tests/tooling/test_raid_progression_runner.py' 'tools/run_raid_progression_contracts.py' | xargs -0 shasum -a 256 > "$RUNNER_TEMP/progression-diagnostics/source-sha256.txt"
           python3 -u tools/run_raid_progression_contracts.py --godot "$ZERKOV_GODOT" --native 2>&1 | tee "$RUNNER_TEMP/progression-diagnostics/native.log"
       - uses: actions/upload-artifact@v4
         if: always()

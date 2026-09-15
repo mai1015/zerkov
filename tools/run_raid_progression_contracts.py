@@ -7,6 +7,7 @@ PURE = (
     'game/domain/z_identity_rules.gd', 'game/raid/raid_clock.gd',
     'game/profile/profile_store.gd', 'game/profile/profile_canonical_codec.gd',
     'game/profile/profile_file_operations.gd', 'game/profile/godot_profile_file_operations.gd',
+    'game/raid/progression/raid_summary_view.gd',
     'game/raid/progression/raid_progression_values.gd', 'game/raid/progression/settlement_inventory_port.gd',
     'game/raid/progression/raid_settlement_service.gd', 'game/raid/progression/extraction_countdown.gd',
     'tests/raid/profile_store_contract.gd', 'tests/raid/raid_progression_contract.gd',
