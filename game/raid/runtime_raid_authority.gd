@@ -1,16 +1,16 @@
 class_name RuntimeRaidAuthority
 extends RaidAuthority
-## Same canonical authority, with a runtime fast path for the installed native
-## definition Resources. Only native property SCHEMAS are cached, never values,
+## Same canonical authority, with a runtime fast path for installed native
+## definition Resources. Only ClassDB property SCHEMAS are cached, never values,
 ## bearer-scan results, callback owners, or generation/liveness decisions.
-## Scripted/unknown objects keep the original complete reflection path. Native
-## metadata is always read afresh, including metadata added after registration.
-## The fixed shipped definition classes use ClassDB-registered property sets.
-## Extension hot-reload inside an active raid is outside the sealed toolchain.
+## Scripted/unknown objects keep the reference reflection path. Metadata is
+## always read afresh. Extension hot-reload is outside the sealed toolchain.
 const NATIVE_DEFINITIONS: PackedStringArray = [
 	"GameplayDefinitionCatalog", "GameplayTagDefinition", "GameplayAttributeDefinition",
 	"GameplayEffectDefinition", "GameplayAbilityDefinition", "GameplayModifierDeclaration",
-	"GameplayCueDefinition",
+	"GameplayCueDefinition", "GameplayMagnitude", "GameplayStackingPolicy",
+	"GameplayTagOperand", "GameplayTagQueryResource", "GameplayAbilityTrigger",
+	"GameplaySetByCallerField", "GameplayTagReactionDefinition", "GameplayTargetDataSchema",
 ]
 var _capture_schemas: Dictionary = {}
 
@@ -37,11 +37,9 @@ func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -
 			if object.get_script() == null and NATIVE_DEFINITIONS.has(native):
 				schema = _definition_schema(object, native)
 			if not schema.is_empty():
-				# The reference traversal also rejects a primitive child at depth 17.
 				if depth == 16 and schema.has_properties: return true
 				for name: StringName in schema.references:
 					if _capture_contains_bearer(object.get(name), depth + 1, visited): return true
-				# Metadata is not part of ClassDB's immutable registered schema.
 				for name: StringName in object.get_meta_list():
 					if _capture_contains_bearer(object.get_meta(name), depth + 1, visited): return true
 			else:
@@ -66,16 +64,15 @@ func _definition_schema(object: Object, native: String) -> Dictionary:
 		registered[StringName(property.name)] = int(property.type)
 	var references: Array[StringName] = []
 	var has_properties: bool = false
-	# Validate the native contract against a real instance before using it.
-	# Unknown/dynamic native properties fail back to complete reflection.
+	# Verify the documented fixed native schema against the actual instance.
+	# Unknown properties fail back to reflection; never cache a safe result.
 	for property: Dictionary in object.get_property_list():
 		var name := StringName(property.get("name", &""))
 		if name.is_empty(): continue
 		has_properties = true
 		if name == &"script" or String(name).begins_with("metadata/"): continue
 		var usage: int = int(property.get("usage", 0))
-		if (usage & (PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP)) != 0:
-			continue # Display grouping, not a stored property or reference.
+		if (usage & (PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP)) != 0: continue
 		if not registered.has(name) or registered[name] != int(property.type):
 			_capture_schemas[native] = {}
 			return {}

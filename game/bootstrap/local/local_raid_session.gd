@@ -109,8 +109,6 @@ func start(store: ProfileStore, request_id: String, profile_generation: int, see
 	ai = RaidAIRuntime.new()
 	if not ai.configure(raid.raid_id().canonical_key(), _generation, seed, _ai_port, registry, scav, mutant): return _fail(ai.last_error)
 	_ai_driver = RaidAIPhaseDriver.new()
-	# Every movement publisher runs before stage; noise consumes phase-6 committed
-	# combat, not phase-8 UI publication. No cross-phase dependency is declared.
 	if not _ai_driver.bind(raid, _generation, ai, RaidCombatSession.PUBLISHER, 300,
 		PackedStringArray(), 300): return _fail(_ai_driver.last_error)
 	hud_model = ZCombatHudModel.new()
@@ -127,7 +125,6 @@ func advance() -> bool:
 	if ok: ok = progression.after_tick()
 	_inside = false
 	if not ok: return _fail(raid.last_error if not raid.last_error.is_empty() else progression.last_error)
-	# Publish only after all phases AND the progression closeout succeeded.
 	var frame := combat.execution.frame_for(raid.admission().actor_id.canonical_key())
 	if not hud_model.publish(frame): return _fail(&"local_hud_frame_invalid")
 	camera.follow_locomotion(player_movement)
@@ -171,8 +168,6 @@ func finish() -> Dictionary:
 func release() -> bool:
 	if _inside: return _fail(&"local_release_during_tick")
 	if _released: return true
-	# Stop admission/pacing first; release reservations and native owners before
-	# terminalization clears the registered phase callbacks they must revoke.
 	_closing = true
 	if not _release_ai(): return false
 	if progression != null and not progression.release(): return _fail(progression.last_error)
@@ -183,6 +178,10 @@ func release() -> bool:
 	for presenter: LocalActorPresenter in _actors.values(): presenter.release()
 	if raid != null and raid.lifecycle in [RaidAuthority.Lifecycle.ACTIVE, RaidAuthority.Lifecycle.EXTRACTING, RaidAuthority.Lifecycle.PREPARING]:
 		if not raid.transition(RaidAuthority.Lifecycle.FAILED, _generation): return _fail(raid.last_error)
+	# Vision release during ACTIVE seals the raid. Keep it until gameplay owners
+	# have revoked their bindings; no guard is removed to allow late cleanup.
+	if _vision != null and _vision.generation() > 0 and _vision.lifecycle != RaidVisionWorldOwner.Lifecycle.TORN_DOWN \
+		and not _vision.teardown(_vision.generation()): return _fail(_vision.last_error)
 	if raid != null and not raid.teardown(_generation): return _fail(raid.last_error)
 	for owner: RaidInventoryOwner in _inventory_owners:
 		if owner.is_current_generation(owner.generation()) and not owner.teardown(owner.generation()): return _fail(&"local_inventory_release_failed")
@@ -192,8 +191,6 @@ func release() -> bool:
 func _release_ai() -> bool:
 	if _ai_released: return true
 	if _ai_driver != null and _ai_driver._generation != 0 and not _ai_driver.release(_generation): return _fail(_ai_driver.last_error)
-	if _vision != null and _vision.generation() > 0 and _vision.lifecycle != RaidVisionWorldOwner.Lifecycle.TORN_DOWN \
-		and not _vision.teardown(_vision.generation()): return _fail(_vision.last_error)
 	if _ai_port != null: _ai_port.release()
 	_ai_released = true
 	return true
@@ -221,8 +218,6 @@ func _create_crates() -> bool:
 		if id < 1: return _fail(&"local_crate_creation_failed")
 		crate_ids[SupplyRunGraph.CRATES[index]] = id
 		var container: int = native.snapshot(id).get_containers()[0].id
-		# Explicit map loot, independent of the selected profile. First crate offers
-		# recovery gear even when death left the next deployment unarmed.
 		var contents: Array = [[ZerkovInventoryCatalog.ITEM_AMMO_762, 60, 3, 0], [ZerkovInventoryCatalog.ITEM_BANDAGE, 2, 4, 0]]
 		if index == 0:
 			contents.append([ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE, 1, 0, 0])

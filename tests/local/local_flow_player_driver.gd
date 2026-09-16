@@ -122,6 +122,7 @@ func _fight_visible() -> void:
 	var motion := InputEventMouseMotion.new()
 	motion.position = candidates[0].screen; motion.global_position = motion.position
 	Input.parse_input_event(motion)
+	Input.flush_buffered_events()
 	var state := session.hud_model.snapshot()
 	var tick: int = session.raid.last_processed_tick
 	if state.reloading: return
@@ -173,16 +174,19 @@ func _key(code: Key, down: bool) -> void:
 	var event := InputEventKey.new()
 	event.keycode = code; event.physical_keycode = code; event.pressed = down
 	Input.parse_input_event(event)
+	Input.flush_buffered_events()
 
 func _mouse(point: Vector2, control: bool = false) -> void:
 	var motion := InputEventMouseMotion.new()
 	motion.position = point; motion.global_position = point
 	Input.parse_input_event(motion)
+	Input.flush_buffered_events()
 	for down: bool in [true, false]:
 		var event := InputEventMouseButton.new()
 		event.position = point; event.global_position = point; event.button_index = MOUSE_BUTTON_LEFT
 		event.pressed = down; event.ctrl_pressed = control
 		Input.parse_input_event(event)
+		Input.flush_buffered_events()
 
 func _stop() -> void:
 	for code: Key in [KEY_W, KEY_A, KEY_S, KEY_D]:
