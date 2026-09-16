@@ -82,14 +82,35 @@ func _menu(frame: Dictionary) -> void:
 	_card("MenuSettings", "CONTROLS", "Keyboard / controller bindings", &"controls", true)
 	_card("MenuExtras", "EXTRAS", "Unavailable in the first playable", &"", false)
 	_card("MenuQuit", "QUIT", "Close the local application", &"quit", true)
-	_text("ContinueCard/WorldTitle", "LOCAL CAMPAIGN" if frame.has_profile else "NO LOCAL CAMPAIGN")
+	_text("ContinueCard/WorldTitle", entry.title if not entry.enabled \
+		else ("LOCAL CAMPAIGN" if frame.has_profile else "NO LOCAL CAMPAIGN"))
 	_text("ContinueCard/Difficulty", "SOLO · SAWMILL")
 	_text("ContinueCard/LastPlayed", "PROFILE GENERATION %d" % frame.profile_generation)
 	_text("ContinueCard/CloudStatus", "LOCAL ONLY · NO CLOUD SAVE")
 	for path: String in ["ContinueCard/Stats", "Header/SwitchAccount", "ContinueCard/ManageSaves", "FriendsTitle", "FriendsSub", "FriendsRule", "FriendKevin", "FriendDenz", "FriendMara", "FriendCode", "PatchCard"]: _show(path, false)
 	_button("ContinueAction", &"continue", "CONTINUE LOCAL GAME", frame.has_profile)
-	_text("ContinueCard/CloudStatus", frame.notice)
+	# Saying the campaign is unavailable is not actionable on its own. The card
+	# body is empty in that state, so spend it on the folder holding the save.
+	if entry.enabled: _text("ContinueCard/CloudStatus", frame.notice)
+	else: _blocked_location(String(frame.get("save_location", "")))
 	_focus("MenuPlay/Hit" if entry.enabled else "MenuSettings/Hit")
+
+
+## The authored CloudStatus line is a single 220px strip, so a filesystem path
+## clips at the card edge unread. Hand it the empty card body and let it wrap.
+## Only the blocked path moves it; nothing here touches the save itself.
+func _blocked_location(location: String) -> void:
+	var card := _screen.get_node_or_null("ContinueCard") as Control
+	var label := _screen.get_node_or_null("ContinueCard/CloudStatus") as Label
+	if card == null or label == null or location.is_empty(): return
+	var home := OS.get_environment("HOME")
+	label.text = "To start a new local game, move or remove the save in:\n" \
+		+ (location if home.is_empty() or not location.begins_with(home) \
+			else "~" + location.substr(home.length()))
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	label.position = Vector2(14.0, 150.0)
+	label.size = Vector2(maxf(card.size.x - 28.0, 1.0), maxf(card.size.y - 160.0, 1.0))
 
 ## Value-only decision; an error always wins over inconsistent availability flags.
 ## Exposed separately so the exact UI rule can be tested without writing a save.

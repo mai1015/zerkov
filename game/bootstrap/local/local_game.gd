@@ -30,6 +30,7 @@ var _auto_advance: bool = true
 var _last_route: String = "title"
 var _quit_pending: bool = false
 var _map_layout: ZSawmillYardLayout
+var _save_location: String = ""
 
 ## Test storage overrides are only accepted before mounting. Normal launch
 ## always uses the fixed local profile path and the production file adapter.
@@ -43,6 +44,12 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	if not _campaign.open(_test_store):
 		last_error = _campaign.last_error
+		# A present-but-unreadable save disables Continue and New alike, so name
+		# the folder that holds it. Recovering is the operator's explicit act;
+		# nothing here rewrites or discards the file on their behalf.
+		if _test_store == null:
+			_save_location = ProjectSettings.globalize_path("%s/%s" % [GodotProfileFileOperations.ROOT_PATH,
+				GodotProfileFileOperations.DEFAULT_NAMESPACE]).simplify_path()
 		_notice = "Save unavailable: " + String(last_error) + ". Existing files were not replaced."
 	elif not _campaign.recovered_result.is_empty():
 		_summary = _campaign.recovered_result.get("receipt", {})
@@ -279,7 +286,8 @@ func _publish() -> void:
 	var frame := {"epoch":_epoch,"serial":_serial,"mode":_mode,"has_profile":_campaign.has_profile(),
 		"can_create":_campaign.loaded.get("reason") == &"profile_missing" and _campaign.last_error.is_empty(),
 		"profile_generation":int(_campaign.loaded.get("generation", 0)),"notice":_notice,"error":String(last_error),
-		"summary":_summary,"progression":{},"combat":{},"tick":0,"map_markers":[],"searched_ids":[],"nearest_target":""}
+		"summary":_summary,"progression":{},"combat":{},"tick":0,"map_markers":[],"searched_ids":[],"nearest_target":"",
+		"save_location":_save_location}
 	if _session != null and _session.progression != null:
 		frame.progression = _session.progression.snapshot()
 		frame.lifecycle = int(_session.raid.lifecycle)
