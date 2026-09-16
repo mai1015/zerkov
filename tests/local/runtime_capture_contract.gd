@@ -20,6 +20,7 @@ var _failures: int = 0
 func run(raid: RaidAuthority, check_callback: Callable) -> bool:
 	_raid = raid
 	_check = check_callback
+	if not _scanner_lifetime(): return false
 	var holder := Holder.new()
 	var bearer := BodyHitboxWorld2D.BindingCapability.new()
 	for native: String in RaidCallbackCaptureScanner.NATIVE_DEFINITIONS:
@@ -131,4 +132,24 @@ func _scalar_graph_cases(holder: Holder, bearer: RefCounted) -> bool:
 		values.pop_back()
 		if not _same(holder, true, "safe again without a cached verdict"): return false
 	holder.payload = null
+	return true
+
+# Exercise the retained dispatcher, then release both scanner and callback owner.
+# A closure calling an instance method captures self and leaks on RefCounted.
+func _scanner_lifetime() -> bool:
+	for index in range(16):
+		var scanner := RaidCallbackCaptureScanner.new()
+		var holder := Holder.new()
+		var scanner_ref: WeakRef = weakref(scanner)
+		var holder_ref: WeakRef = weakref(holder)
+		if not _assert(scanner._scan_dispatch.get_object() != scanner,
+			"scanner dispatcher does not retain self " + str(index)): return false
+		if not _assert(scanner.is_safe(Callable(holder, "noop"), _raid.get_instance_id()),
+			"lifetime probe exercises fresh traversal " + str(index)): return false
+		holder = null
+		if not _assert(holder_ref.get_ref() == null,
+			"scanner does not retain callback owner " + str(index)): return false
+		scanner = null
+		if not _assert(scanner_ref.get_ref() == null,
+			"scanner releases synchronously " + str(index)): return false
 	return true
