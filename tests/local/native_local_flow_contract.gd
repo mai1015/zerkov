@@ -107,6 +107,20 @@ func run() -> void:
 	if not await click("StationDetails/UpgradeAction") or not route("hud"): await finish(); return
 	check(_game._session.rows.size() == 3 and _game._session.ai != null, "player Scav and mutant in real runtime")
 	check(not _store.load_profile().payload.project[RaidProgressionValues.STATE_KEY].active.is_empty(), "deployment escrow precedes gameplay")
+	if OS.get_environment("ZERKOV_TEST_SCENARIO") == "clock":
+		var probe = load("res://tests/local/local_clock_driver.gd").new()
+		if not await probe.run(_game, self, Callable(self, "check")): await finish(); return
+		# The smoke ends a live raid by ordinary application shutdown, then uses
+		# the existing recovery path. It never manufactures an extraction result.
+		if not check(_game.shutdown(), "normal-clock application shutdown"): await finish(); return
+		_game.queue_free(); await settle(); _game = null
+		_store = ProfileStore.new()
+		_operations = GodotProfileFileOperations.new(StringName(_namespace))
+		if not check(_store.configure_with_trusted_operations(LocalCampaignContent.PROFILE_ID, _operations), "clock reopen real local files"): await finish(); return
+		var campaign := LocalCampaign.new()
+		if not check(campaign.open(_store), "clock recover interrupted raid"): await finish(); return
+		print("LOCAL_FLOW_FINGERPRINT ", _store.load_profile().fingerprint)
+		await finish(); return
 	if OS.get_environment("ZERKOV_TEST_SCENARIO") == "death":
 		var probe = load("res://tests/local/local_flow_player_driver.gd").new()
 		if not await probe.die_from_enemy(_game, self, Callable(self, "check")): await finish(); return

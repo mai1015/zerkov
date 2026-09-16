@@ -36,7 +36,8 @@ static func build(frame: Dictionary) -> Array[ZReadOnlyView]:
 			int(frame.get("lifecycle", RaidView.Lifecycle.ACTIVE)),
 			MAP, "Sawmill Yard", mini(tick, LocalCampaignContent.RAID_LIMIT_TICKS), LocalCampaignContent.RAID_LIMIT_TICKS, weapon, extracts, [])
 	var task_value: Dictionary = progression.get("task", frame.get("summary", {}).get("task", {}))
-	var tasks := _tasks(epoch, revision, tick, task_value, frame.get("searched_ids", []), frame.mode)
+	var task_raid := String(progression.get("raid_id", frame.get("summary", {}).get("raid_id", "")))
+	var tasks := _tasks(epoch, revision, tick, task_value, frame.get("searched_ids", []), frame.mode, task_raid)
 	var map := _map(epoch, revision, tick, frame.get("map_markers", []))
 	var summary := _summary(epoch, revision, tick, frame.get("summary", {}))
 	return [bunker, raid, tasks, map, summary]
@@ -46,7 +47,7 @@ static func task_identity(raid_key: String = "") -> ZTaskId:
 	var suffix := "preview" if raid_key.is_empty() else "r" + raid_key.sha256_text().substr(0, 32)
 	return ZTaskId.from_parts(PackedStringArray(["supply_run", suffix]))
 
-static func _tasks(epoch: int, revision: int, tick: int, value: Dictionary, searched: Array, mode: String) -> TaskView:
+static func _tasks(epoch: int, revision: int, tick: int, value: Dictionary, searched: Array, mode: String, raid_key: String) -> TaskView:
 	var objectives: Array[TaskView.Objective] = []
 	for index in range(3):
 		objectives.append(TaskView.Objective.create(StringName("zerkov.objective.local.crate%d" % index),
@@ -57,10 +58,10 @@ static func _tasks(epoch: int, revision: int, tick: int, value: Dictionary, sear
 	var status: TaskView.Status = TaskView.Status.AVAILABLE
 	if mode in ["raid", "settling", "save_error"]: status = TaskView.Status.ACTIVE
 	if mode == "summary": status = TaskView.Status.COMPLETED if value.get("completion_token", false) else TaskView.Status.FAILED
-	var entries: Array[TaskView.Entry] = [TaskView.Entry.create(task_identity(String(value.get("raid_id", ""))), "Supply Run",
+	var entries: Array[TaskView.Entry] = [TaskView.Entry.create(task_identity(raid_key), "Supply Run",
 		"Search three marked crates, take the supply crate, and hold Road Gate for five seconds. Damage, leaving or losing supplies interrupts extraction.",
 		"Local contract", MAP, status, true, objectives, [])]
-	return TaskView.create(epoch, revision, tick, entries, task_identity(String(value.get("raid_id", ""))))
+	return TaskView.create(epoch, revision, tick, entries, task_identity(raid_key))
 
 static func _map(epoch: int, revision: int, tick: int, points: Array) -> MapView:
 	var zones: Array[MapView.Zone] = [MapView.Zone.create(MAP, "Sawmill Yard", "Supply Run · three marked crates and Road Gate",

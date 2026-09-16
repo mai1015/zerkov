@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [full, death]
+        scenario: [full, death, clock]
     env:
       ZERKOV_TEST_SCENARIO: ${{ matrix.scenario }}
     runs-on: macos-latest

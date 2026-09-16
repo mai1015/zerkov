@@ -35,21 +35,30 @@ func _init() -> void:
 		schemas[native] = schema
 		return schema
 
+# Scalar Variants cannot contain a bearer. Avoid a GDScript recursive call for
+# each number/string in snapshots and definitions. This is type dispatch only;
+# current object properties, metadata, keys and references are still read at
+# every invocation. The depth rule also applies to scalars at depth 17.
+const REFERENCE_TYPES: int = (1 << TYPE_OBJECT) | (1 << TYPE_CALLABLE) | (1 << TYPE_DICTIONARY) | (1 << TYPE_ARRAY)
+
 func is_safe(callback: Callable, authority_instance_id: int) -> bool:
 	return callback.is_valid() and not _capture_contains_bearer(callback, 0, {authority_instance_id:true})
 
 func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -> bool:
 	if depth > 16: return true
-	if value is BodyHitboxWorld2D.BindingCapability: return true
 	match typeof(value):
 		TYPE_CALLABLE:
+			# The reference scanner visits even a null callable owner at depth+1.
+			if depth == 16: return true
 			var callback := value as Callable
 			if _capture_contains_bearer(callback.get_object(), depth + 1, visited): return true
 			for argument in callback.get_bound_arguments():
-				if _capture_contains_bearer(argument, depth + 1, visited): return true
+				if (REFERENCE_TYPES & (1 << typeof(argument))) != 0 \
+					and _capture_contains_bearer(argument, depth + 1, visited): return true
 		TYPE_OBJECT:
 			var object := value as Object
 			if object == null or not is_instance_valid(object): return false
+			if object is BodyHitboxWorld2D.BindingCapability: return true
 			var id := object.get_instance_id()
 			if visited.has(id): return false
 			visited[id] = true
@@ -60,22 +69,40 @@ func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -
 			if not schema.is_empty():
 				if depth == 16 and schema.has_properties: return true
 				for name: StringName in schema.references:
-					if _capture_contains_bearer(object.get(name), depth + 1, visited): return true
+					var child: Variant = object.get(name)
+					if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
+						and _capture_contains_bearer(child, depth + 1, visited): return true
 				for name: StringName in object.get_meta_list():
-					if _capture_contains_bearer(object.get_meta(name), depth + 1, visited): return true
+					if depth == 16: return true
+					var child: Variant = object.get_meta(name)
+					if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
+						and _capture_contains_bearer(child, depth + 1, visited): return true
 			else:
 				for property_value in object.get_property_list():
 					var name := StringName((property_value as Dictionary).get("name", &""))
-					if not name.is_empty() and _capture_contains_bearer(object.get(name), depth + 1, visited): return true
+					if name.is_empty(): continue
+					# Read the value even at the boundary: do not change getter calls.
+					var child: Variant = object.get(name)
+					if depth == 16: return true
+					if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
+						and _capture_contains_bearer(child, depth + 1, visited): return true
 			if object is RaidAuthority.PhaseHandlerRelay:
 				for connection: Dictionary in object.get_signal_connection_list(&"invoked"):
 					if _capture_contains_bearer(connection.get("callable", Callable()), depth + 1, visited): return true
 		TYPE_DICTIONARY:
+			# Nonempty collections at the boundary fail even with scalar children.
+			if depth == 16: return not value.is_empty()
 			for key in value.keys():
-				if _capture_contains_bearer(key, depth + 1, visited) or _capture_contains_bearer(value[key], depth + 1, visited): return true
+				if (REFERENCE_TYPES & (1 << typeof(key))) != 0 \
+					and _capture_contains_bearer(key, depth + 1, visited): return true
+				var child: Variant = value[key]
+				if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
+					and _capture_contains_bearer(child, depth + 1, visited): return true
 		TYPE_ARRAY:
+			if depth == 16: return not value.is_empty()
 			for child in value as Array:
-				if _capture_contains_bearer(child, depth + 1, visited): return true
+				if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
+					and _capture_contains_bearer(child, depth + 1, visited): return true
 	return false
 
 func _definition_schema(object: Object, native: String) -> Dictionary:

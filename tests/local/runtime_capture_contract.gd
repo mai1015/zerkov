@@ -61,6 +61,7 @@ func run(raid: RaidAuthority, check_callback: Callable) -> bool:
 	holder.payload = Callable(holder, "noop").bind(bearer)
 	if not _same(holder, false, "bound callable argument scanned"): return false
 	holder.payload = null
+	if not _scalar_graph_cases(holder, bearer): return false
 	if not _lifecycle_boundaries(): return false
 	print("RUNTIME_CAPTURE_RESULT checks=", _checks, " failures=", _failures)
 	return _failures == 0
@@ -106,4 +107,28 @@ func _lifecycle_boundaries() -> bool:
 		ok = _assert(owner.teardown(owner.generation()), ending + " owner disposal after slot release") and ok
 		owner.free()
 		if not ok: return false
+	return true
+
+# Same reference, both cold and warm schema caches, and late reference insertion.
+func _scalar_graph_cases(holder: Holder, bearer: RefCounted) -> bool:
+	var leaves: Array = [null, true, 42, -1, 0.25, "text", &"key", Vector2(1, 2),
+		Vector2i(1, 2), PackedByteArray([1, 2]), PackedInt64Array([3, 4]),
+		PackedStringArray(["a", "b"]), [], {}, Callable()]
+	for leaf in leaves:
+		var nested: Variant = leaf
+		for depth in range(20):
+			holder.payload = nested
+			if not _equivalent(holder, "scalar/reference depth " + str(depth)): return false
+			nested = {"child": nested} if depth % 2 == 0 else [nested]
+	for size in [0, 1, 16, 128, 512]:
+		var values: Array = []
+		for index in range(size):
+			values.append({"id": index, "text": "snapshot", "point": Vector2i(index, 1)})
+		holder.payload = values
+		if not _same(holder, true, "primitive-heavy current snapshot"): return false
+		values.append({"late": [bearer]})
+		if not _same(holder, false, "late bearer after scalar prefix"): return false
+		values.pop_back()
+		if not _same(holder, true, "safe again without a cached verdict"): return false
+	holder.payload = null
 	return true
