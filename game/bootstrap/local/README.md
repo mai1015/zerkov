@@ -4,6 +4,21 @@
 locked standard Godot and the real native addons. The supported native validation
 host is macOS. There is no .NET dependency for this flow.
 
+## Starting the actual game
+
+Open `project.godot` from the local-flow branch and use **Run Project (F5)**,
+not Run Current Scene on `ui/main.tscn`. The UI scene on its own is an unbound
+host for composition/QA; it does not own a ProfileStore or create a campaign.
+The project entrypoint must be `res://game/bootstrap/local/local_game.tscn`.
+
+The production menu displays **LOCAL SAVES**. Its primary action is **NEW LOCAL
+GAME** when no save exists, then **CONTINUE LOCAL GAME** once a valid campaign
+exists. Continuing never overwrites the campaign or issues starter gear again.
+The slice currently has one campaign, not multiple save slots or a reset action.
+A blocked load instead displays **LOCAL SAVE UNAVAILABLE** with the actual error.
+Do not delete save files to bypass that diagnostic. **PRODUCTION DATA UNAVAILABLE**
+is the separate UI-host lock, not a corrupt local campaign.
+
 ## Product path
 
 Title → New local game / Continue → Bunker → existing loadout workspace →

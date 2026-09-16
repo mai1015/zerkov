@@ -97,6 +97,9 @@ func run() -> void:
 	if not route("title"): await finish(); return
 	await key(KEY_ENTER)
 	if not route("main_menu"): await finish(); return
+	if OS.get_environment("ZERKOV_TEST_SCENARIO") == "launch":
+		await _verify_launch_menu()
+		await finish(); return
 	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
 	check(_store.load_profile().generation == 1, "explicit new game committed once")
 	check(not _game._ui_port.request(&"create", _game._epoch - 1), "retired UI epoch cannot issue a new profile")
@@ -206,3 +209,93 @@ func finish() -> void:
 	if _store != null and _store.is_configured(): _store.close()
 	print("NATIVE_LOCAL_FLOW_RESULT checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
+
+## Reopens the actual root on empty, valid and corrupt local files. The test
+## namespace is an isolated UUID, never the production `profiles` namespace.
+func _verify_launch_menu() -> void:
+	var entry: Dictionary = LocalFlowBinding.primary_entry({"has_profile":true, "can_create":true, "error":"read_failed"})
+	check(not entry.enabled and entry.command.is_empty(), "save error wins over stale availability flags")
+	entry = LocalFlowBinding.primary_entry({"has_profile":false, "can_create":false, "error":"", "notice":"not injected"})
+	check(not entry.enabled and not entry.detail.is_empty(), "unavailable data never enables fixture creation")
+	var play := _game._ui.screen.get_node("MenuPlay") as ZMenuActionCard
+	if not check(not play.disabled and not play.get_focus_target().disabled and play.card_title == "NEW LOCAL GAME", "empty local profile enables real New Game"): return
+	if not check((_game._ui.screen.get_node("MenuContinue") as ZMenuActionCard).disabled, "no Continue before a campaign exists"): return
+	if not await click("MenuPlay/Hit") or not route("bunker"): return
+	var created := _store.load_profile()
+	if not check(created.ok and created.generation == 1, "New Game creates exactly one local generation"): return
+	if not await _close_launch_root(): return
+	if not await _mount_launch_root(): return
+	await key(KEY_ENTER)
+	if not route("main_menu"): return
+	play = _game._ui.screen.get_node("MenuPlay") as ZMenuActionCard
+	check(not play.disabled and not play.get_focus_target().disabled and play.card_title == "CONTINUE LOCAL GAME", "existing save leaves the primary entry enabled as Continue")
+	check(play.card_subtitle.contains("kept") and not play.tooltip_text.is_empty(), "primary entry explains save preservation")
+	var bound := _game._ui.screen.get("_local_binding") as LocalFlowBinding
+	# Same-screen re-publication must retire the earlier command, not retain two
+	# callbacks. Restore the real frame before physical input; no save is mutated.
+	bound.call("_card", "MenuPlay", "NEW LOCAL GAME", "test transition", &"create", true)
+	bound.refresh()
+	var callbacks := play.get_signal_connection_list(&"activated")
+	var ours: int = 0
+	for row: Dictionary in callbacks:
+		var callback: Callable = row.callable
+		if callback.get_object() == bound:
+			ours += 1
+			check(callback.get_bound_arguments() == [&"continue"], "old create callback was retired")
+	check(ours == 1, "one current primary action after rebinding")
+	if not await click("MenuPlay/Hit") or not route("bunker"): return
+	var continued := _store.load_profile()
+	check(continued.fingerprint == created.fingerprint and continued.generation == 1, "primary Continue preserves exact saved bytes and never reissues starter content")
+	if not await _close_launch_root(): return
+	# Save originals before creating a corruption scenario in this private namespace.
+	var originals: Dictionary = {}
+	for slot: StringName in [ProfileFileOperations.SLOT_PRIMARY, ProfileFileOperations.SLOT_BACKUP]:
+		originals[slot] = _operations.read_slot(slot, ProfileStore.MAX_PROFILE_FILE_BYTES)
+	var corrupt := "not a valid profile envelope".to_utf8_buffer()
+	var injected: bool = true
+	for pair: Array in [[ProfileFileOperations.SLOT_WRITE_TEMP, ProfileFileOperations.SLOT_PRIMARY],
+		[ProfileFileOperations.SLOT_BACKUP_TEMP, ProfileFileOperations.SLOT_BACKUP]]:
+		injected = check(_operations.write_temp(pair[0], corrupt).get("ok", false), "isolated corruption write") and injected
+		injected = check(_operations.replace_slot(pair[0], pair[1]).get("ok", false), "isolated corruption replacement") and injected
+	if injected and await _mount_launch_root():
+		await key(KEY_ENTER)
+		check(_game._ui.current_route == "main_menu" and not _game.last_error.is_empty(), "corrupt save reaches a diagnostic menu")
+		play = _game._ui.screen.get_node("MenuPlay") as ZMenuActionCard
+		check(play.disabled and play.get_focus_target().disabled, "corrupt save cannot be silently replaced")
+		check(play.card_title == "LOCAL SAVE UNAVAILABLE" and play.card_subtitle.contains(String(_game.last_error)), "disabled primary visibly explains the actual failure")
+		var notices := (_game._ui.screen.get_node("ContinueCard/CloudStatus") as Label).text
+		check(notices.contains(String(_game.last_error)), "save failure remains visible outside the disabled button")
+		await click("MenuPlay/Hit")
+		check(_game._ui.current_route == "main_menu", "disabled New Game cannot navigate or create")
+		for slot: StringName in originals:
+			check(_operations.read_slot(slot, ProfileStore.MAX_PROFILE_FILE_BYTES).get("bytes") == corrupt, "launch did not overwrite the corrupt file")
+		await _close_launch_root()
+	# Restore only this test's files, regardless of the corrupt-state assertions.
+	for pair: Array in [[ProfileFileOperations.SLOT_WRITE_TEMP, ProfileFileOperations.SLOT_PRIMARY],
+		[ProfileFileOperations.SLOT_BACKUP_TEMP, ProfileFileOperations.SLOT_BACKUP]]:
+		var original: Dictionary = originals[pair[1]]
+		if original.get("state") == ProfileFileOperations.STATE_MISSING:
+			check(_operations.remove_slot(pair[1]).get("ok", false), "remove isolated test backup that did not originally exist")
+		else:
+			check(_operations.write_temp(pair[0], original.bytes).get("ok", false), "restore isolated original bytes")
+			check(_operations.replace_slot(pair[0], pair[1]).get("ok", false), "restore isolated original slot")
+	if not await _mount_launch_root(): return
+	var restored := _store.load_profile()
+	check(restored.ok and restored.fingerprint == created.fingerprint, "all launch cases preserve the original campaign")
+	print("LOCAL_LAUNCH_MENU_COMPLETE fresh_create=true existing_continue=true corrupt_preserved=true")
+	print("LOCAL_FLOW_FINGERPRINT ", restored.fingerprint)
+
+func _close_launch_root() -> bool:
+	if not check(_game.shutdown(), "launch scenario closes local writer"): return false
+	_game.queue_free(); await settle(); _game = null
+	return true
+
+func _mount_launch_root() -> bool:
+	_operations = GodotProfileFileOperations.new(StringName(_namespace))
+	_store = ProfileStore.new()
+	if not check(_store.configure_with_trusted_operations(LocalCampaignContent.PROFILE_ID, _operations), "launch scenario reopens isolated real file store"): return false
+	_game = load("res://game/bootstrap/local/local_game.tscn").instantiate() as LocalGame
+	if not check(_game.configure_test_store(_store, false), "launch store injection before mount"): return false
+	root.add_child(_game)
+	await settle()
+	return check(_game._ui != null and _game._ui.current_route == "title", "normal local root mounts the title")

@@ -72,7 +72,12 @@ func _menu(frame: Dictionary) -> void:
 	_text("Header/SignedIn", "PROFILE")
 	_text("Header/AccountName", "LOCAL OPERATOR")
 	_card("MenuContinue", "CONTINUE", "Open the saved local loadout", &"continue", frame.has_profile)
-	_card("MenuPlay", "NEW LOCAL GAME", "Create once · starter equipment · no account required", &"create", frame.can_create)
+	# The primary entry always leads into the playable campaign when it is safe.
+	# Existing saves are continued, never overwritten or given starter gear again.
+	var entry := primary_entry(frame)
+	_card("MenuPlay", entry.title, entry.detail, entry.command, entry.enabled)
+	var primary := _screen.get_node_or_null("MenuPlay") as Control
+	if primary != null: primary.tooltip_text = entry.detail
 	_card("MenuJoinFriend", "STEAM CO-OP", "Not enabled in this build", &"", false)
 	_card("MenuSettings", "CONTROLS", "Keyboard / controller bindings", &"controls", true)
 	_card("MenuExtras", "EXTRAS", "Unavailable in the first playable", &"", false)
@@ -84,7 +89,23 @@ func _menu(frame: Dictionary) -> void:
 	for path: String in ["ContinueCard/Stats", "Header/SwitchAccount", "ContinueCard/ManageSaves", "FriendsTitle", "FriendsSub", "FriendsRule", "FriendKevin", "FriendDenz", "FriendMara", "FriendCode", "PatchCard"]: _show(path, false)
 	_button("ContinueAction", &"continue", "CONTINUE LOCAL GAME", frame.has_profile)
 	_text("ContinueCard/CloudStatus", frame.notice)
-	_focus("MenuContinue/Hit" if frame.has_profile else "MenuPlay/Hit")
+	_focus("MenuPlay/Hit" if entry.enabled else "MenuSettings/Hit")
+
+## Value-only decision; an error always wins over inconsistent availability flags.
+## Exposed separately so the exact UI rule can be tested without writing a save.
+static func primary_entry(frame: Dictionary) -> Dictionary:
+	var reason := String(frame.get("error", ""))
+	if not reason.is_empty():
+		return {"title":"LOCAL SAVE UNAVAILABLE", "command":StringName(), "enabled":false,
+			"detail":"Cannot open the campaign: " + reason + ". Existing save files were not replaced."}
+	if frame.get("has_profile", false):
+		return {"title":"CONTINUE LOCAL GAME", "command":&"continue", "enabled":true,
+			"detail":"Open your saved campaign. Your existing loadout and progress are kept."}
+	if frame.get("can_create", false):
+		return {"title":"NEW LOCAL GAME", "command":&"create", "enabled":true,
+			"detail":"Create a local campaign with starter equipment. No account or Steam connection required."}
+	return {"title":"LOCAL SAVE UNAVAILABLE", "command":StringName(), "enabled":false,
+		"detail":"Campaign data is unavailable. No new save was created. " + String(frame.get("notice", ""))}
 
 func _home(frame: Dictionary) -> void:
 	for child in _children("StationDetails"):
@@ -287,11 +308,9 @@ func _button(path: String, command: StringName, title: String = "", enabled: boo
 	if button == null: return
 	button.disabled = not enabled or command.is_empty()
 	if button is Button and not title.is_empty(): button.text = title
+	var event := "triggered" if button.has_signal("triggered") else "pressed"
 	var previous: StringName = _commands.get(path, &"")
 	if previous == command: return
-	var event := "triggered" if button.has_signal("triggered") else "pressed"
-	# Retiring the previous command is required: a node rebound to a different
-	# command would otherwise keep both connections and send both on one press.
 	if not previous.is_empty():
 		var retired := _send.bind(previous)
 		if button.is_connected(event, retired): button.disconnect(event, retired)
@@ -309,6 +328,12 @@ func _card(path: String, title: String, detail: String, command: StringName, ena
 	var card := _screen.get_node_or_null(path) as ZMenuActionCard
 	if card == null: return
 	card.card_title = title; card.card_subtitle = detail; card.disabled = not enabled
+	var key := "card:" + path
+	var previous: StringName = _commands.get(key, &"")
+	if previous != command and not previous.is_empty():
+		var retired := _send.bind(previous)
+		if card.activated.is_connected(retired): card.activated.disconnect(retired)
+	_commands[key] = command
 	if not command.is_empty():
 		var callback := _send.bind(command)
 		if not card.activated.is_connected(callback): card.activated.connect(callback)
