@@ -1,0 +1,36 @@
+name: Northline source resolution
+on:
+  pull_request:
+    paths: ['.github/workflows/northline-source-resolution.yml', 'game/presentation/northline_zone/**', 'assets/world/northline_zone/**', 'tests/**/*northline*', 'tools/*northline*', 'docs/spec/changes/restore-northline-source-resolution-2026-09-16/**']
+permissions:
+  contents: read
+jobs:
+  repair-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Package exact review sources without fonts or engine/addon binaries
+        run: |
+          mkdir -p "$RUNNER_TEMP/northline-review"
+          python3 - <<'PY'
+          import os,pathlib,subprocess,zipfile
+          root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'northline-review'
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=root/name
+                  if not name or not p.is_file() or p.is_symlink():continue
+                  text=p.suffix in {'.gd','.gdshader','.tscn','.tres','.godot','.py','.json','.md','.yml','.yaml','.cfg','.import','.gdextension'}
+                  art=name.startswith(('assets/world/map_studies/','assets/world/northline_zone/'))
+                  if text or art:z.write(p,name)
+          (out/'commit.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: northline-resolution-review
+          path: ${{ runner.temp }}/northline-review
+          retention-days: 7
