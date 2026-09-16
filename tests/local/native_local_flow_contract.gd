@@ -63,6 +63,7 @@ func route(expected: String) -> bool:
 
 func run() -> void:
 	root.size = EXACT_SIZE
+	print("LOCAL_FLOW_SCENARIO ", OS.get_environment("ZERKOV_TEST_SCENARIO"))
 	create_timer(600.0).timeout.connect(func() -> void: push_error("LOCAL_FLOW_TIMEOUT"); quit(1))
 	var args := OS.get_cmdline_user_args()
 	if args.size() < 2 or args[0] not in ["run", "verify", "cleanup"] \
@@ -106,6 +107,13 @@ func run() -> void:
 	if not await click("StationDetails/UpgradeAction") or not route("hud"): await finish(); return
 	check(_game._session.rows.size() == 3 and _game._session.ai != null, "player Scav and mutant in real runtime")
 	check(not _store.load_profile().payload.project[RaidProgressionValues.STATE_KEY].active.is_empty(), "deployment escrow precedes gameplay")
+	if OS.get_environment("ZERKOV_TEST_SCENARIO") == "death":
+		var probe = load("res://tests/local/local_flow_player_driver.gd").new()
+		if not await probe.die_from_enemy(_game, self, Callable(self, "check")): await finish(); return
+		var committed := _store.load_profile()
+		check(committed.ok and committed.payload.project[RaidProgressionValues.STATE_KEY].active.is_empty(), "targeted death committed locally")
+		print("LOCAL_FLOW_FINGERPRINT ", committed.fingerprint)
+		await finish(); return
 	for _i in range(70):
 		if not check(_game.advance(), "all native phases and after-tick closeout"): await finish(); return
 	var timer: String = (_game._ui.screen.get_node("TimerGroup/Timer") as Label).text

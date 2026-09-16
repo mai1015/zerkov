@@ -9,6 +9,13 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native-macos:
+    name: native-macos (${{ matrix.scenario }})
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [full, death]
+    env:
+      ZERKOV_TEST_SCENARIO: ${{ matrix.scenario }}
     runs-on: macos-latest
     timeout-minutes: 20
     steps:
@@ -36,6 +43,6 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: local-flow-diagnostics
+          name: local-flow-diagnostics-${{ matrix.scenario }}
           path: ${{ runner.temp }}/local-flow
           retention-days: 3

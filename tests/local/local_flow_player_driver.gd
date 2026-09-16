@@ -113,6 +113,14 @@ func _tick(direction: Vector2) -> bool:
 		print("LOCAL_FLOW_TICK begin=", ticks, " pos=", _game._session.player_movement.position_px,
 			" ms=", Time.get_ticks_msec() - _started_ms, " held=", _game._input_binding._held,
 			" active=", _game._input_binding._active(), " move_error=", _game._session.player_movement.last_error)
+	if _death_run and ticks % 128 == 0:
+		print("LOCAL_FLOW_ENEMY_DIAGNOSTICS ", _game._session.ai.debug_snapshot())
+		for actor_key: String in _game._session.rows:
+			var row: Dictionary = _game._session.rows[actor_key]
+			var actor_frame: Dictionary = _game._session.combat.execution.frame_for(actor_key)
+			print("LOCAL_FLOW_ACTOR ", actor_key, " position=", row.movement.position_px,
+				" facing=", row.movement.facing_direction, " melee=", actor_frame.get("melee", {}),
+				" health=", actor_frame.get("health", {}))
 	var ok := _game.advance()
 	ticks += 1
 	if not _assert(ok, "production tick: " + String(_game.last_error)): return false
