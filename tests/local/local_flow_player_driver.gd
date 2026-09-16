@@ -1,33 +1,30 @@
 extends RefCounted
-## White-box automation, real player input. Reads authored paths and visible
-## actor state to steer; never teleports, inserts items, or selects an outcome.
-## This is not a blind-human or visual-readability acceptance test.
+## White-box automation through actual Input events. Authored navigation and
+## visible actor positions guide input; no teleports, item seeding or forced outcome.
 var _game: LocalGame
 var _tree: SceneTree
 var _check: Callable
 var _held: Dictionary = {}
 var _last_shot: int = -100
 var _last_reload: int = -100
+var _started_ms: int = 0
 var ticks: int = 0
 var fired: int = 0
 var searched: int = 0
 var transferred: bool = false
-var _started_ms: int = 0
 
 func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool:
 	_game = game; _tree = tree; _check = check_callback
 	_started_ms = Time.get_ticks_msec()
-	print("LOCAL_FLOW_DRIVER start tick=", _game._session.raid.last_processed_tick)
 	var capture_contract = load("res://tests/local/runtime_capture_contract.gd").new()
 	if not capture_contract.run(_game._session.raid, _check): return false
 	_profile_read_only_costs()
-	# Reload through the actual logical R action before leaving the entry.
 	_key(KEY_R, true); _key(KEY_R, false)
 	for _i in range(ZerkovCombatContent.AKM_RELOAD_TICKS + 2):
 		if not await _tick(Vector2.ZERO): return false
 	if not _assert(_game._session.hud_model.snapshot().ammo > 0, "physical reload loads real ammunition"): return false
 	for id: String in SupplyRunGraph.CRATES:
-		if not await _walk_to(_game._session.layout.cell_center(_game._session.layout.anchor(id).cell)): return false
+		if not await _walk_to(_game._session.layout.cell_center(_game._session.layout.anchor(id).approach_cell)): return false
 		_stop()
 		for _i in range(10):
 			if not await _tick(Vector2.ZERO): return false
@@ -41,16 +38,15 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 		if not _assert(completed, "timed native search completes " + id): return false
 		searched += 1
 		print("LOCAL_FLOW_SEARCH tick=", ticks, " crate=", id)
-		if id == SupplyRunGraph.CRATES[0]:
-			if not await _take_objective(): return false
+		if id == SupplyRunGraph.CRATES[0] and not await _take_objective(): return false
 	var clock_before: int = _game._session.raid.last_processed_tick
 	_key(KEY_M, true); _key(KEY_M, false)
 	if not await _wait_route("maps"): return false
 	if not _assert(_game._provider.map_view(_game._epoch).is_ready(), "real map provider ready after searches"): return false
 	_key(KEY_ESCAPE, true); _key(KEY_ESCAPE, false)
 	if not await _wait_route("hud"): return false
-	if not _assert(_game._session.raid.last_processed_tick == clock_before, "map navigation does not advance paused solo clock"): return false
-	var exit_point := _game._session.layout.cell_center(_game._session.layout.anchor(SupplyRunGraph.ROAD_GATE).cell)
+	if not _assert(_game._session.raid.last_processed_tick == clock_before, "map pauses solo clock"): return false
+	var exit_point := _game._session.layout.cell_center(_game._session.layout.anchor(SupplyRunGraph.ROAD_GATE).approach_cell)
 	if not await _walk_to(exit_point): return false
 	_stop()
 	for _i in range(10):
@@ -58,29 +54,28 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 	_key(KEY_E, true); _key(KEY_E, false)
 	await _tree.process_frame
 	if not await _tick(Vector2.ZERO): return false
-	if not _assert(_game._session.progression.snapshot().clock.counting, "physical interact starts eligible extraction"): return false
+	if not _assert(_game._session.progression.snapshot().clock.counting, "physical interact starts extraction"): return false
 	for _i in range(LocalCampaignContent.EXTRACTION_TICKS + 4):
 		if _game._mode != "raid": break
 		if not await _tick(Vector2.ZERO): return false
 	if not await _wait_route("summary_solo"): return false
 	var result: Dictionary = _game._summary
-	if not _assert(_game._mode == "summary" and result.get("outcome") == "extracted", "input-driven extraction produces a committed summary"): return false
-	if not _assert(result.get("task", {}).get("completion_token") == true, "three searches and actual retained supply complete native task"): return false
+	if not _assert(_game._mode == "summary" and result.get("outcome") == "extracted", "committed extracted summary"): return false
+	if not _assert(result.get("task", {}).get("completion_token") == true, "native Supply Run completed"): return false
 	var retained: bool = false
 	for row: Dictionary in result.get("retained", []):
 		if StringName(row.definition) == ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE and row.quantity == 1: retained = true
-	if not _assert(retained and transferred and searched == 3, "one UI-transferred supply is retained in committed receipt"): return false
+	if not _assert(retained and transferred and searched == 3, "one UI-transferred supply retained"): return false
 	print("LOCAL_FLOW_EXTRACT ticks=", ticks, " fire_inputs=", fired, " searched=", searched,
 		" kills=", result.get("stats", {}).get("kills", 0), " outcome=", result.outcome)
 	return true
 
 func _walk_to(goal: Vector2) -> bool:
-	print("LOCAL_FLOW_WALK goal=", goal, " ticks=", ticks)
 	var session := _game._session
 	var start: Vector2i = ZWorldUnits.godot_to_tile(session.player_movement.position_px).vector2i_value
 	var target: Vector2i = ZWorldUnits.godot_to_tile(goal).vector2i_value
 	var path := session._navigation.request_path(start, target, session._navigation.revision())
-	if not _assert(path.is_ok(), "authored navigation provides walking route to " + str(target)): return false
+	if not _assert(path.is_ok(), "navigation route to " + str(target)): return false
 	for cell: Vector2i in path.cells:
 		var waypoint := ZWorldUnits.tile_center_to_godot(cell).vector2_value
 		var reached: bool = false
@@ -94,17 +89,18 @@ func _walk_to(goal: Vector2) -> bool:
 	return true
 
 func _tick(direction: Vector2) -> bool:
-	if not _assert(_game._mode == "raid" and _game.can_advance(), "live input tick available: " + _game._mode): return false
+	if not _assert(_game._mode == "raid" and _game.can_advance(), "live input tick: " + _game._mode): return false
 	for code: Key in [KEY_W, KEY_A, KEY_S, KEY_D]:
 		var down: bool = (code == KEY_W and direction.y < 0) or (code == KEY_S and direction.y > 0) \
 			or (code == KEY_A and direction.x < 0) or (code == KEY_D and direction.x > 0)
 		if bool(_held.get(code, false)) != down: _key(code, down); _held[code] = down
 	_fight_visible()
 	if ticks % 32 == 0:
-		print("LOCAL_FLOW_TICK begin=", ticks, " pos=", _game._session.player_movement.position_px, " ms=", Time.get_ticks_msec() - _started_ms)
+		print("LOCAL_FLOW_TICK begin=", ticks, " pos=", _game._session.player_movement.position_px,
+			" ms=", Time.get_ticks_msec() - _started_ms, " held=", _game._input_binding._held,
+			" active=", _game._input_binding._active(), " move_error=", _game._session.player_movement.last_error)
 	var ok := _game.advance()
 	ticks += 1
-	if ticks % 32 == 1: print("LOCAL_FLOW_TICK completed=", ticks)
 	if not _assert(ok, "production tick: " + String(_game.last_error)): return false
 	if ticks % 8 == 0: await _tree.process_frame
 	return true
@@ -124,9 +120,8 @@ func _fight_visible() -> void:
 		return a.distance < b.distance if a.distance != b.distance else a.key < b.key)
 	if candidates.is_empty(): return
 	var motion := InputEventMouseMotion.new()
-	motion.position = candidates[0].screen
-	motion.global_position = motion.position
-	_tree.root.push_input(motion)
+	motion.position = candidates[0].screen; motion.global_position = motion.position
+	Input.parse_input_event(motion)
 	var state := session.hud_model.snapshot()
 	var tick: int = session.raid.last_processed_tick
 	if state.reloading: return
@@ -135,11 +130,7 @@ func _fight_visible() -> void:
 			_key(KEY_R, true); _key(KEY_R, false); _last_reload = tick
 		return
 	if tick - _last_shot < ZerkovCombatContent.AKM_CADENCE_TICKS + 1: return
-	for down: bool in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.position = motion.position; event.global_position = motion.position
-		event.button_index = MOUSE_BUTTON_LEFT; event.pressed = down
-		_tree.root.push_input(event)
+	_mouse(motion.position)
 	_last_shot = tick; fired += 1
 
 func _clear_segment(start: Vector2, end: Vector2) -> bool:
@@ -162,34 +153,36 @@ func _take_objective() -> bool:
 	var items: Array = screen.call("_items_for", "loot")
 	var item_id: int = 0
 	for item: Dictionary in items:
-		if StringName(item.get("definition_id", "")) == ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE:
-			item_id = int(item.item_id)
+		if StringName(item.get("definition_id", "")) == ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE: item_id = int(item.item_id)
 	var grid: Control = screen.call("_grid_for_source", "loot")
 	var target: Control
 	if grid != null:
 		for slot: Control in grid.get("_slots"):
 			if int(slot.get("item").get("item_id", 0)) == item_id and item_id > 0: target = slot; break
-	if not _assert(target != null and target.is_visible_in_tree(), "searched objective has a visible real inventory slot"): return false
-	var point := target.get_global_rect().get_center()
-	var motion := InputEventMouseMotion.new(); motion.position = point; motion.global_position = point
-	_tree.root.push_input(motion)
-	for down: bool in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.position = point; event.global_position = point; event.button_index = MOUSE_BUTTON_LEFT
-		event.pressed = down; event.ctrl_pressed = true
-		_tree.root.push_input(event)
+	if not _assert(target != null and target.is_visible_in_tree(), "visible real inventory objective slot"): return false
+	_mouse(target.get_global_rect().get_center(), true)
 	for _i in range(8): await _tree.process_frame
 	var owner := _game._session.deployment.inventory
 	for item: Dictionary in owner.raid_authority().snapshot(owner.raid_player_inventory_id).get_items():
 		if StringName(item.get("item_definition_identifier", "")) == ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE: transferred = true
-	if not _assert(transferred, "physical Ctrl-click transfers objective through existing inventory UI"): return false
+	if not _assert(transferred, "Ctrl-click transfers through existing inventory UI"): return false
 	_key(KEY_ESCAPE, true); _key(KEY_ESCAPE, false)
 	return await _wait_route("hud")
 
 func _key(code: Key, down: bool) -> void:
 	var event := InputEventKey.new()
 	event.keycode = code; event.physical_keycode = code; event.pressed = down
-	_tree.root.push_input(event)
+	Input.parse_input_event(event)
+
+func _mouse(point: Vector2, control: bool = false) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = point; motion.global_position = point
+	Input.parse_input_event(motion)
+	for down: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.position = point; event.global_position = point; event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down; event.ctrl_pressed = control
+		Input.parse_input_event(event)
 
 func _stop() -> void:
 	for code: Key in [KEY_W, KEY_A, KEY_S, KEY_D]:
@@ -202,21 +195,19 @@ func _wait_route(expected: String) -> bool:
 		if not _game.last_error.is_empty(): break
 		if _game._ui.current_route == expected and _game._ui.screen.is_routing_active(): return true
 		await _tree.create_timer(0.02).timeout
-	return _assert(false, "await real route " + expected + ": " + _game._ui.current_route + " / " + String(_game.last_error))
+	return _assert(false, "await route " + expected + ": " + _game._ui.current_route + " / " + String(_game.last_error))
 
 func _assert(ok: bool, message: String) -> bool:
 	return bool(_check.call(ok, message))
 
 func _profile_read_only_costs() -> void:
 	var session := _game._session
-	var start := Time.get_ticks_usec()
-	_game._publish()
-	print("LOCAL_FLOW_PROFILE publish_usec=", Time.get_ticks_usec() - start)
 	for owner in [session.combat, session.combat.execution, session.combat.health, session.ai]:
 		var callback := Callable(owner, "get_instance_id")
-		start = Time.get_ticks_usec()
+		var start := Time.get_ticks_usec()
 		var safe := session.raid.phase_handler_callback_is_safe(callback)
 		var elapsed := Time.get_ticks_usec() - start
 		var reference := not session.raid._variant_graph_contains_hitbox_bearer(callback, 0, {session.raid.get_instance_id():true})
-		_assert(safe == reference, "runtime and reference callback scans agree")
+		_assert(safe == reference, "runtime/reference capture agreement")
 		print("LOCAL_FLOW_PROFILE runtime_capture_usec=", elapsed, " safe=", safe)
+	print("LOCAL_FLOW_SCHEMAS ", session.raid._capture_schemas)
