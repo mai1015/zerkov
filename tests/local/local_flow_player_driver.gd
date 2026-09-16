@@ -18,6 +18,8 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 	_game = game; _tree = tree; _check = check_callback
 	_started_ms = Time.get_ticks_msec()
 	print("LOCAL_FLOW_DRIVER start tick=", _game._session.raid.last_processed_tick)
+	var capture_contract = load("res://tests/local/runtime_capture_contract.gd").new()
+	if not capture_contract.run(_game._session.raid, _check): return false
 	_profile_read_only_costs()
 	# Reload through the actual logical R action before leaving the entry.
 	_key(KEY_R, true); _key(KEY_R, false)
@@ -206,122 +208,15 @@ func _assert(ok: bool, message: String) -> bool:
 	return bool(_check.call(ok, message))
 
 func _profile_read_only_costs() -> void:
-	var start: int = Time.get_ticks_usec()
+	var session := _game._session
+	var start := Time.get_ticks_usec()
 	_game._publish()
 	print("LOCAL_FLOW_PROFILE publish_usec=", Time.get_ticks_usec() - start)
-	var session := _game._session
-	var owners := {"combat":session.combat, "execution":session.combat.execution,
-		"health":session.combat.health, "progression":session.progression,
-		"movement":session.player_movement, "ai":session.ai, "ai_driver":session._ai_driver,
-		"vision":session._vision, "interaction":session.interaction}
-	# Generic registrations deliberately hide their raw callback. The safety
-	# predicate scans the callable's owner and bound arguments, not its method.
-	# Measuring an existing zero-argument Object method traverses the same owner
-	# graph without inventing a nonexistent registration.callback field.
-	for key: String in owners:
+	for owner in [session.combat, session.combat.execution, session.combat.health, session.ai]:
+		var callback := Callable(owner, "get_instance_id")
 		start = Time.get_ticks_usec()
-		var safe := session.raid.phase_handler_callback_is_safe(Callable(owners[key], "get_instance_id"))
-		print("LOCAL_FLOW_PROFILE owner=", key, " safety_usec=", Time.get_ticks_usec() - start, " safe=", safe)
-		start = Time.get_ticks_usec()
-		var optimized := not _candidate_capture_scan(Callable(owners[key], "get_instance_id"), 0, {session.raid.get_instance_id():true})
-		print("LOCAL_FLOW_PROFILE owner=", key, " scalar_fast_usec=", Time.get_ticks_usec() - start, " same=", optimized == safe)
-		_assert(optimized == safe, "candidate capture scan agrees on " + key)
-	_profile_nodes.clear()
-	_profile_properties = 0
-	_profile_recursive_visits = 0
-	var stats: Dictionary = {}
-	_profile_capture_scan(Callable(session.combat, "get_instance_id"), 0, {session.raid.get_instance_id():true}, stats)
-	print("LOCAL_FLOW_CAPTURE_STATS calls=", _profile_recursive_visits, " properties=", _profile_properties, " by_type=", stats)
-	_profile_nodes.sort_custom(func(a:Dictionary,b:Dictionary)->bool:return a.usec>b.usec)
-	print("LOCAL_FLOW_CAPTURE_OBJECTS ", _profile_nodes.slice(0,20))
-
-
-func _candidate_capture_scan(value: Variant, depth: int, visited: Dictionary) -> bool:
-	if depth > 16: return true
-	match typeof(value):
-		TYPE_OBJECT:
-			if value is BodyHitboxWorld2D.BindingCapability: return true
-			var object := value as Object
-			if object == null or not is_instance_valid(object): return false
-			var instance_id := object.get_instance_id()
-			if visited.has(instance_id): return false
-			visited[instance_id] = true
-			for property_value in object.get_property_list():
-				var property_name := StringName((property_value as Dictionary).get("name", &""))
-				if property_name.is_empty(): continue
-				var child: Variant = object.get(property_name)
-				if depth == 16: return true
-				match typeof(child):
-					TYPE_OBJECT, TYPE_CALLABLE, TYPE_DICTIONARY, TYPE_ARRAY:
-						if _candidate_capture_scan(child, depth + 1, visited): return true
-			if object is RaidAuthority.PhaseHandlerRelay:
-				for connection_value in object.get_signal_connection_list(&"invoked"):
-					var connection := connection_value as Dictionary
-					if _candidate_capture_scan(connection.get("callable", Callable()), depth + 1, visited): return true
-		TYPE_CALLABLE:
-			var callback := value as Callable
-			if _candidate_capture_scan(callback.get_object(), depth + 1, visited): return true
-			for argument in callback.get_bound_arguments():
-				if _candidate_capture_scan(argument, depth + 1, visited): return true
-		TYPE_DICTIONARY:
-			var dictionary := value as Dictionary
-			if depth == 16 and not dictionary.is_empty(): return true
-			for key in dictionary.keys():
-				match typeof(key):
-					TYPE_OBJECT, TYPE_CALLABLE, TYPE_DICTIONARY, TYPE_ARRAY:
-						if _candidate_capture_scan(key, depth + 1, visited): return true
-				var child: Variant = dictionary[key]
-				match typeof(child):
-					TYPE_OBJECT, TYPE_CALLABLE, TYPE_DICTIONARY, TYPE_ARRAY:
-						if _candidate_capture_scan(child, depth + 1, visited): return true
-		TYPE_ARRAY:
-			if depth == 16 and not value.is_empty(): return true
-			for child in value as Array:
-				match typeof(child):
-					TYPE_OBJECT, TYPE_CALLABLE, TYPE_DICTIONARY, TYPE_ARRAY:
-						if _candidate_capture_scan(child, depth + 1, visited): return true
-	return false
-
-var _profile_nodes: Array[Dictionary] = []
-var _profile_properties: int = 0
-var _profile_recursive_visits: int = 0
-func _profile_capture_scan(value: Variant, depth: int, visited: Dictionary, stats:Dictionary) -> bool:
-	_profile_recursive_visits += 1
-	stats[typeof(value)] = int(stats.get(typeof(value),0)) + 1
-	if depth > 16: return true
-	if value is BodyHitboxWorld2D.BindingCapability: return true
-	if typeof(value) == TYPE_CALLABLE:
-		var callback := value as Callable
-		if _profile_capture_scan(callback.get_object(),depth+1,visited,stats):return true
-		for argument in callback.get_bound_arguments():
-			if _profile_capture_scan(argument,depth+1,visited,stats):return true
-		return false
-	if typeof(value) == TYPE_OBJECT:
-		var object := value as Object
-		if object == null or not is_instance_valid(object):return false
-		var id:=object.get_instance_id()
-		if visited.has(id):return false
-		visited[id]=true
-		var start:=Time.get_ticks_usec()
-		var props:=object.get_property_list()
-		var own_time:=Time.get_ticks_usec()-start
-		for prop:Dictionary in props:
-			var name:=StringName(prop.get("name",&""))
-			if name.is_empty():continue
-			start=Time.get_ticks_usec()
-			var child:Variant=object.get(name)
-			own_time+=Time.get_ticks_usec()-start
-			_profile_properties+=1
-			if _profile_capture_scan(child,depth+1,visited,stats):return true
-		_profile_nodes.append({"type":object.get_class(),"script":str(object.get_script()),"props":props.size(),"usec":own_time})
-		if object is RaidAuthority.PhaseHandlerRelay:
-			for connection:Dictionary in object.get_signal_connection_list(&"invoked"):
-				if _profile_capture_scan(connection.get("callable",Callable()),depth+1,visited,stats):return true
-		return false
-	if value is Dictionary:
-		for key in value.keys():
-			if _profile_capture_scan(key,depth+1,visited,stats) or _profile_capture_scan(value[key],depth+1,visited,stats):return true
-	if value is Array:
-		for child in value:
-			if _profile_capture_scan(child,depth+1,visited,stats):return true
-	return false
+		var safe := session.raid.phase_handler_callback_is_safe(callback)
+		var elapsed := Time.get_ticks_usec() - start
+		var reference := not session.raid._variant_graph_contains_hitbox_bearer(callback, 0, {session.raid.get_instance_id():true})
+		_assert(safe == reference, "runtime and reference callback scans agree")
+		print("LOCAL_FLOW_PROFILE runtime_capture_usec=", elapsed, " safe=", safe)
