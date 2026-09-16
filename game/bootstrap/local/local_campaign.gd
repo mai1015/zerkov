@@ -56,7 +56,8 @@ func instantiate_home(parent: Node) -> RaidInventoryOwner:
 	return _native.instantiate_owner(parent, loaded.payload.domains) if has_profile() else null
 
 func save_home(owner: RaidInventoryOwner) -> bool:
-	if not has_profile() or owner == null or not owner.is_current_generation(owner.generation()):
+	if store == null or not store.is_configured() or loaded.get("ok") != true \
+		or owner == null or not owner.is_current_generation(owner.generation()):
 		return _fail(&"local_loadout_unavailable")
 	var current := store.load_profile()
 	if not current.ok or current.generation != loaded.generation: return _fail(&"local_profile_generation_changed")
@@ -65,7 +66,10 @@ func save_home(owner: RaidInventoryOwner) -> bool:
 	var payload: Dictionary = current.payload.duplicate(true)
 	payload.domains[V.LOADOUT] = owner.raid_authority().make_persistence_record(owner.raid_player_inventory_id)
 	payload.domains[V.STASH] = owner.profile_authority().make_persistence_record(owner.profile_inventory_id)
-	if payload == current.payload: return true
+	if payload == current.payload:
+		loaded = current
+		last_error = &""
+		return true
 	if not _valid_domains(payload): return _fail(&"local_loadout_invalid")
 	var result := store.save_profile(payload, current.generation, current.generation + 1)
 	if result.get("committed") != true: return _fail(StringName(result.get("reason", &"local_save_failed")))

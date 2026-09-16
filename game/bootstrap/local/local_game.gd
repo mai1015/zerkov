@@ -184,10 +184,9 @@ func _deploy() -> void:
 	_notice = "Recording deployment identity and loading Sawmill. Interrupted loading is recovered as an abandoned raid."
 	_publish()
 	_navigate("deploying", false)
-	_start_raid.call_deferred()
 
 func _start_raid() -> void:
-	if _closed: return
+	if _closed or _mode != "deploying" or _session != null: return
 	_session = LocalRaidSession.new()
 	_world.add_child(_session)
 	var sequence: int = _campaign.loaded.payload.project.get(RaidProgressionValues.STATE_KEY, RaidProgressionValues.initial_state()).next_sequence
@@ -221,6 +220,9 @@ func _route_changed(route: String, _screen: Control) -> void:
 		if _interaction_handle == null: _error(&"local_interaction_input_failed"); return
 	_last_route = route
 	_publish()
+	# Wait for the loading route to commit. Queuing HUD while this transition
+	# is in flight captures the old origin and is correctly rejected as stale.
+	if _mode == "deploying" and route == "deploying": _start_raid.call_deferred()
 
 func _handle_interact(event: Dictionary) -> int:
 	if not can_advance(): return CommonUIRuntime.ROUTE_UNHANDLED
