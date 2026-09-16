@@ -195,7 +195,7 @@
     },
     "tools/run_combat_input_contracts.py": {
       "purpose": "exact headless combat input, melee/HUD values and native execution regressions in temporary projects",
-      "sha256": "93d337c5f7bb2bd61497ba5b5ada9d155210ca047ff1d3f8b55d0b49ff9308dc"
+      "sha256": "aad9d574a285d798c5ce90ab866ca86f78f4d12e3d6a2ef157155687835fe035"
     },
     "tools/run_raid_progression_contracts.py": {
       "purpose": "exact headless native raid progression and separate-process settlement restart contracts",
@@ -284,7 +284,8 @@
     "tests/raid/weapon_instance_context_adversarial_contract.gd",
     "tests/raid/weapon_instance_context_contract.gd",
     "tests/raid/weapon_persistence_integration_contract.gd",
-    "tests/raid/world_markers_contract.gd"
+    "tests/raid/world_markers_contract.gd",
+    "tests/combat/native_combat_death_contract.gd"
   ],
   "retired_display_entrypoints": {
     "gdscript": [
