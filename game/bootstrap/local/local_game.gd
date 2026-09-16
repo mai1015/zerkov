@@ -29,8 +29,8 @@ var _closed: bool = false
 var _auto_advance: bool = true
 var _last_route: String = "title"
 
-## Integration tests must explicitly select an isolated real-file ProfileStore
-## BEFORE mounting. The default entrypoint never accepts a user-supplied path.
+## Test storage overrides are only accepted before mounting. Normal launch
+## always uses the fixed local profile path and the production file adapter.
 func configure_test_store(store: ProfileStore, auto_advance: bool = false) -> bool:
 	if is_inside_tree() or store == null or not store.is_configured(): return false
 	_test_store = store
@@ -85,7 +85,7 @@ func can_advance() -> bool:
 	return not _closed and not _busy and _mode == "raid" and _session != null \
 		and _input_binding != null and _ui != null and _ui.current_route == "hud" and not is_instance_valid(_ui.modal) and not is_instance_valid(_ui.picker)
 
-## Used by the product physics callback and integration tests, never screens.
+## Product physics and native tests share this path. Screens cannot call it.
 func advance() -> bool:
 	if not can_advance(): return false
 	var cursor := ZWorldViewportPolicy.screen_to_world(_ui.get_viewport().get_mouse_position(), _session.camera.global_position)
@@ -107,7 +107,6 @@ func advance() -> bool:
 	return true
 
 func _request(command: StringName, epoch: int) -> void:
-	# Defer out of CommonUI dispatch before removing a route or native owner.
 	_consume.call_deferred(command, epoch)
 
 func _consume(command: StringName, epoch: int) -> void:
@@ -220,8 +219,6 @@ func _route_changed(route: String, _screen: Control) -> void:
 		if _interaction_handle == null: _error(&"local_interaction_input_failed"); return
 	_last_route = route
 	_publish()
-	# Wait for the loading route to commit. Queuing HUD while this transition
-	# is in flight captures the old origin and is correctly rejected as stale.
 	if _mode == "deploying" and route == "deploying": _start_raid.call_deferred()
 
 func _handle_interact(event: Dictionary) -> int:
@@ -233,9 +230,7 @@ func _interact() -> void:
 	var target := _session.nearest_target()
 	if target.is_empty(): _notice = "Move within reach of a marked crate or Road Gate."; _publish(); return
 	if _session.crate_ids.has(target) and _session.progression.was_crate_searched(target):
-		var controller := _character.inventory_controller() as LocalInventoryController
-		if not controller.bind_world_inventory(InventoryPresentationController.SOURCE_CRATE, _session.crate_ids[target]) \
-			or not controller.set_loot_container(InventoryPresentationController.SOURCE_CRATE) or not controller.open_loot_container():
+		if not _character.open_world_loot(InventoryPresentationController.SOURCE_CRATE, _session.crate_ids[target]):
 			_error(&"local_loot_workspace_failed"); return
 		_navigate("inventory")
 	elif target == SupplyRunGraph.ROAD_GATE and _session.progression.snapshot().clock.counting:
@@ -269,7 +264,8 @@ func _abandon() -> void:
 	_publish(); _navigate("summary_solo", false)
 
 func _publish() -> void:
-	if _closed: return
+	# A teardown error must not publish into an already-retired provider.
+	if _closed or not _provider.is_active(): return
 	_serial += 1
 	var frame := {"epoch":_epoch,"serial":_serial,"mode":_mode,"has_profile":_campaign.has_profile(),
 		"can_create":_campaign.loaded.get("reason") == &"profile_missing" and _campaign.last_error.is_empty(),

@@ -1,16 +1,19 @@
 class_name RuntimeRaidAuthority
 extends RaidAuthority
-## Same canonical authority, with a runtime fast path for installed native
-## definition Resources. Only ClassDB property SCHEMAS are cached, never values,
-## bearer-scan results, callback owners, or generation/liveness decisions.
-## Scripted/unknown objects keep the reference reflection path. Metadata is
-## always read afresh. Extension hot-reload is outside the sealed toolchain.
+## Same authority; cache only schemas of fixed native definition Resources.
+## Never cache callback safety, object values, metadata, or lifecycle decisions.
+## Unknown/scripted objects retain the complete reference scan. The installed
+## ClassDB property schema is verified before caching; hot-reload during a raid
+## is outside the sealed toolchain. Differential contracts cover every class.
 const NATIVE_DEFINITIONS: PackedStringArray = [
 	"GameplayDefinitionCatalog", "GameplayTagDefinition", "GameplayAttributeDefinition",
 	"GameplayEffectDefinition", "GameplayAbilityDefinition", "GameplayModifierDeclaration",
 	"GameplayCueDefinition", "GameplayMagnitude", "GameplayStackingPolicy",
 	"GameplayTagOperand", "GameplayTagQueryResource", "GameplayAbilityTrigger",
 	"GameplaySetByCallerField", "GameplayTagReactionDefinition", "GameplayTargetDataSchema",
+	"InventoryCatalogResource", "InventoryContainerConstraints", "InventoryContainerDefinition",
+	"InventoryDiscoveryPolicy", "InventoryItemDefinition", "InventoryItemTraitValue",
+	"InventoryNamedSlot", "InventoryProfileDefinition", "InventoryProfileLimits", "InventoryTraitSchema",
 ]
 var _capture_schemas: Dictionary = {}
 
@@ -64,8 +67,6 @@ func _definition_schema(object: Object, native: String) -> Dictionary:
 		registered[StringName(property.name)] = int(property.type)
 	var references: Array[StringName] = []
 	var has_properties: bool = false
-	# Verify the documented fixed native schema against the actual instance.
-	# Unknown properties fail back to reflection; never cache a safe result.
 	for property: Dictionary in object.get_property_list():
 		var name := StringName(property.get("name", &""))
 		if name.is_empty(): continue
