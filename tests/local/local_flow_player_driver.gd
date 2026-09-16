@@ -34,6 +34,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 			if _game._session.progression.was_crate_searched(id): completed = true; break
 		if not _assert(completed, "timed native search completes " + id): return false
 		searched += 1
+		print("LOCAL_FLOW_SEARCH tick=", ticks, " crate=", id)
 		if id == SupplyRunGraph.CRATES[0]:
 			if not await _take_objective(): return false
 	var clock_before: int = _game._session.raid.last_processed_tick
@@ -132,8 +133,9 @@ func _fight_visible() -> void:
 	_last_shot = tick; fired += 1
 
 func _clear_segment(start: Vector2, end: Vector2) -> bool:
-	for collider: Dictionary in _game._session.layout.colliders():
-		var cells: Rect2i = collider.rect_cells
+	for collider: Dictionary in _game._session.layout.structures:
+		if collider.layer != "Obstacles": continue
+		var cells: Rect2i = collider.rect
 		var box := Rect2(Vector2(cells.position) * float(ZWorldUnits.SOURCE_TILE_PIXELS), Vector2(cells.size) * float(ZWorldUnits.SOURCE_TILE_PIXELS))
 		if box.has_point(start) or box.has_point(end): return false
 		var a := box.position; var b := Vector2(box.end.x, box.position.y)
