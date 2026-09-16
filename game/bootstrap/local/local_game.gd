@@ -31,6 +31,7 @@ var _last_route: String = "title"
 var _quit_pending: bool = false
 var _map_layout: ZSawmillYardLayout
 var _save_location: String = ""
+var _walkthrough: Control
 
 ## Test storage overrides are only accepted before mounting. Normal launch
 ## always uses the fixed local profile path and the production file adapter.
@@ -164,6 +165,8 @@ func _consume(command: StringName, epoch: int) -> void:
 					_publish()
 		&"abandon":
 			if _mode == "raid": _abandon()
+		&"walk_zone":
+			if _mode == "home": _open_walkthrough()
 		&"quit":
 			_quit()
 
@@ -284,6 +287,47 @@ func _abandon() -> void:
 	_mode = "summary"; _epoch += 1
 	_notice = "Raid abandoned. Only deployment-time secure contents were recovered."
 	_publish(); _navigate("summary_solo", false)
+
+## Northline is an authored environment with collision and its own walkthrough,
+## but no raid wiring: no layout resource, interaction targets, crates or
+## extraction. It is reachable as exactly that -- a walkthrough -- so the map is
+## inspectable without claiming a second playable raid. It mounts over the UI
+## rather than into the raid SubViewport because it owns its own 640x360 surface
+## and camera, and it runs no raid authority, so it is not subject to the tick cost.
+func _open_walkthrough() -> void:
+	if _walkthrough != null: return
+	var scene := load("res://game/presentation/northline_zone/northline_zone.tscn")
+	_walkthrough = scene.instantiate() as Control if scene != null else null
+	if _walkthrough == null:
+		_error(&"local_walkthrough_scene_missing")
+		return
+	_ui.hide()
+	add_child(_walkthrough)
+	_mode = "walkthrough"
+	_notice = "Northline Depot walkthrough · P walk · M overview · Q/E sectors · Tab routes · Esc leave"
+	_publish()
+
+
+func _close_walkthrough() -> void:
+	if _walkthrough == null: return
+	_walkthrough.queue_free(); _walkthrough = null
+	_ui.show()
+	_mode = "home"
+	_notice = "Saved locally · body and survival resources recover at home. Equipment is not replenished."
+	_publish()
+	_navigate("bunker", false)
+
+
+## _input, not _unhandled_input: the review scene marks every pressed key as
+## handled, so leaving it has to be caught before unhandled routing. Only the
+## leave key is taken; the walkthrough keeps P/M/Q/E/Tab for itself.
+func _input(event: InputEvent) -> void:
+	if _mode != "walkthrough" or _walkthrough == null: return
+	if event is InputEventKey and event.pressed and not event.is_echo() \
+			and (event as InputEventKey).physical_keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		_close_walkthrough.call_deferred()
+
 
 func _publish() -> void:
 	# A teardown error must not publish into an already-retired provider, nor

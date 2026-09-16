@@ -196,9 +196,17 @@ func _maps(frame: Dictionary) -> void:
 	_text("ZoneRisk0", "SCAV / MUTANT")
 	_text("ZoneMeta0", "15:00 · SOLO · ROAD GATE")
 	_text("ZoneTaskCount0", "SUPPLY RUN")
-	for index in range(1, 5):
+	# Northline is authored and walkable but has no raid wiring, so it is offered
+	# as a walkthrough and never as a deployable zone. The remaining slots have
+	# no level behind them at all and say so rather than implying a live raid.
+	_text("ZoneName1", "NORTHLINE DEPOT")
+	_text("ZoneRisk1", "WALKTHROUGH")
+	_text("ZoneMeta1", "AUTHORED MAP · NO RAID, LOOT OR EXTRACTION")
+	_text("ZoneTaskCount1", "—")
+	_button("ZoneHit1", &"walk_zone", "", frame.mode == "home")
+	for index in range(2, 5):
 		_text("ZoneRisk%d" % index, "LOCKED")
-		_text("ZoneMeta%d" % index, "NOT CONNECTED TO LIVE RAID")
+		_text("ZoneMeta%d" % index, "NO LEVEL AUTHORED")
 		_text("ZoneTaskCount%d" % index, "—")
 	_text("HistoryStats", "LOCAL PROFILE GENERATION %d" % frame.profile_generation)
 	_text("RegionNote", "Authored geometry · your position · task and exit markers")

@@ -9,7 +9,7 @@ var _epoch: int = 0
 var _serial: int = 0
 var _dispatching: bool = false
 var _released: bool = false
-const COMMANDS: Array[StringName] = [&"create", &"continue", &"loadout", &"maps", &"tasks", &"deploy", &"resume", &"pause", &"interact", &"cancel", &"return_home", &"retry_save", &"quit", &"health", &"controls", &"abandon"]
+const COMMANDS: Array[StringName] = [&"create", &"continue", &"loadout", &"maps", &"tasks", &"deploy", &"resume", &"pause", &"interact", &"cancel", &"return_home", &"retry_save", &"quit", &"health", &"controls", &"abandon", &"walk_zone"]
 const ROUTE_COMMANDS: Dictionary = {"bunker":&"return_home", "inventory":&"loadout", "health":&"health",
 	"maps":&"maps", "tasks":&"tasks", "hud":&"resume", "pause":&"pause", "settings":&"controls", "controls":&"controls"}
 
