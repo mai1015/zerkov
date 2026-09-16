@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+# Generic owning-workspace build recipe for the exact candidate native sources.
+# SDK checkout is pinned and checked by CI before SCons executes it.
+import os
+from pathlib import Path
+sdk=Path(os.environ['GODOT_CPP']).resolve()
+source=Path(os.environ['ADDON_CANDIDATE']).resolve()
+# Trim only unused godot-cpp generated bindings, never addon source or tests.
+if 'build_profile' not in ARGUMENTS:
+ raise RuntimeError('Pass absolute build_profile=.../tools/addon_hardening/build_profile.json')
+env=SConscript(str(sdk/'SConstruct'))
+env.Append(CXXFLAGS=['/std:c++17'] if env.get('is_msvc',False) else ['-std=c++17'])
+outputs=[]
+for name in ('weapon_system','gameplay_abilities'):
+ e=env.Clone();root=source/'addons'/name/'native'
+ e.Append(CPPPATH=[str(root)])
+ sources=[str(p) for p in sorted(root.rglob('*.cpp'))]
+ if not sources: raise RuntimeError('Missing native sources '+name)
+ platform=e['platform']; arch=e['arch']; target=e['target']
+ suffix={'macos':'.dylib','linux':'.so','windows':'.dll'}[platform]
+ file=source/'addons'/name/'bin'/('lib'+name+'.'+platform+'.'+target+'.'+arch+suffix)
+ nodes=e.SharedLibrary(target=str(file),source=sources)
+ e.NoCache(nodes);outputs.extend(nodes)
+Default(outputs)

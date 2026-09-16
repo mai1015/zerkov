@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "changes": [
+    {
+      "path": "addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.cpp",
+      "before": "7f1c2d74e66a8fb770acd49424fa9cbda99baabeb3740268ca95bc53102ecd32",
+      "after": "ed09e353b41e8fe88e48b1920bc36a590bac56e67cf4506cfc408327edea24c2",
+      "edits": [
+        {
+          "old": "\tif (!relevant_peer_override.is_empty()) {\n\t\treturn relevant_peer_override;\n\t}\n\tconst Ref<MultiplayerAPI> api = get_multiplayer();\n\treturn api.is_valid() ? api->get_peers() : PackedInt32Array();\n}\n\n// ---------------------------------------------------------------------------\n",
+          "new": "\tif (!relevant_peer_override.is_empty()) {\n\t\treturn relevant_peer_override;\n\t}\n\t// Unset relevance is no audience, never all connected peers.\n\treturn PackedInt32Array();\n}\n\n// ---------------------------------------------------------------------------\n"
+        }
+      ]
+    },
+    {
+      "path": "addons/gameplay_abilities/native/godot/gameplay_ability_network_bridge.h",
+      "before": "792040cf2d5d7384ffcf1a591ce5fff8bd30470df7e12c1ed6d2479487727e73",
+      "after": "d10963f4ae1c6936789d304bff171b9761882cb4c63202bff1e4d12de0ba8559",
+      "edits": [
+        {
+          "old": "\tvoid set_target_authorization_callback(const Callable &p_callback) { target_authorization_callback = p_callback; }\n\tCallable get_target_authorization_callback() const { return target_authorization_callback; }\n\n\t// Finding 8: false (the default) preserves this addon's original opt-in\n\t// posture -- an unset callback means \"this game does not need per-target\n\t// authorization\", exactly as before this property existed. A game whose\n\t// gameplay REQUIRES target authorization for every targeted ability sets\n\t// this true so an unset callback becomes a fail-closed configuration\n\t// error instead of a silent \"allow everything\": a targeted command\n\t// arriving while no callback is configured is then rejected\n\t// (ABILITY_INVALID_TARGET) with a bounded `network_diagnostic`, exactly\n\t// like a callback that itself returned false.\n\tvoid set_require_target_authorization(bool p_require) { require_target_authorization = p_require; }\n\tbool get_require_target_authorization() const { return require_target_authorization; }\n\n",
+          "new": "\tvoid set_target_authorization_callback(const Callable &p_callback) { target_authorization_callback = p_callback; }\n\tCallable get_target_authorization_callback() const { return target_authorization_callback; }\n\n\t// Required by default: an unset callback rejects targeted activations.\n\t// Disabling this is an explicit trusted-host opt-out, not readiness signoff.\n\tvoid set_require_target_authorization(bool p_require) { require_target_authorization = p_require; }\n\tbool get_require_target_authorization() const { return require_target_authorization; }\n\n"
+        },
+        {
+          "old": "\t// state\").\n\tint64_t debug_owner_stream_head_sequence() const;\n\n\t// Restricts `push_full_state` to an explicit peer allow-list (server\n\t// visibility policy). Empty (the default -- and UNCHANGED by task 7.18\n\t// below: an explicit call with an empty array still means this) means\n\t// \"every currently connected peer is relevant\" -- a minimal, honest\n\t// default; a game wanting real spatial/team relevance calls this to\n\t// narrow it. Superseded by a later `set_relevant_peers`/\n\t// `set_no_relevant_peers` call, whichever comes last.\n\tvoid set_relevant_peers(const PackedInt32Array &p_peers) {\n\t\trelevant_peer_override = p_peers;\n\t\trelevant_peers_none = false;\n\t}\n\n\t// Task 7.18: explicit \"no peers are relevant\" -- distinct from the\n\t// DEFAULT empty-override state above, which means \"every connected\n\t// peer.\" Before this existed, there was no way to express \"nobody\": a\n\t// server-owned entity with no local mirror (e.g. an NPC no client\n\t// controls or observes yet) left `relevant_peer_override` empty because\n\t// there was nothing else to put there, which `current_relevant_peers()`\n\t// read as \"broadcast to everyone\" -- so `push_full_state`/cue forwarding\n\t// silently sent snapshots and presentation events to peers that were\n\t// never relevant to this entity and cannot receive them meaningfully.\n\t// Calling this makes `current_relevant_peers()` return an empty list\n\t// UNCONDITIONALLY (never falling back to \"every connected peer\") until\n\t// a later `set_relevant_peers` call (empty or not) supersedes it.\n\tvoid set_no_relevant_peers() {\n\t\trelevant_peer_override.clear();\n\t\trelevant_peers_none = true;\n",
+          "new": "\t// state\").\n\tint64_t debug_owner_stream_head_sequence() const;\n\n\t// Explicit recipient allowlist. Unset and empty both mean no recipients.\n\tvoid set_relevant_peers(const PackedInt32Array &p_peers) {\n\t\trelevant_peer_override = p_peers;\n\t\trelevant_peers_none = p_peers.is_empty();\n\t}\n\n\t// Revokes every recipient until another explicit nonempty allowlist.\n\tvoid set_no_relevant_peers() {\n\t\trelevant_peer_override.clear();\n\t\trelevant_peers_none = true;\n"
+        },
+        {
+          "old": "\tPackedStringArray hidden_effect_identifiers;\n\tCallable target_authorization_callback;\n\t// Finding 8: see `set_require_target_authorization()`'s own doc comment.\n\tbool require_target_authorization = false;\n\tPackedInt32Array relevant_peer_override;\n\t// Task 7.18: see `set_no_relevant_peers()`. When true,\n\t// `current_relevant_peers()` returns empty unconditionally, regardless\n\t// of `relevant_peer_override`/connected-peer fallback.\n\tbool relevant_peers_none = false;\n\n\tGameplayAbilityComponent *component = nullptr;\n\tga::proto::SessionId local_session_id = 1;\n",
+          "new": "\tPackedStringArray hidden_effect_identifiers;\n\tCallable target_authorization_callback;\n\t// Finding 8: see `set_require_target_authorization()`'s own doc comment.\n\tbool require_target_authorization = true;\n\tPackedInt32Array relevant_peer_override;\n\t// Task 7.18: see `set_no_relevant_peers()`. When true,\n\t// `current_relevant_peers()` returns empty unconditionally, regardless\n\t// of `relevant_peer_override`/connected-peer fallback.\n\tbool relevant_peers_none = true;\n\n\tGameplayAbilityComponent *component = nullptr;\n\tga::proto::SessionId local_session_id = 1;\n"
+        }
+      ]
+    },
+    {
+      "path": "addons/weapon_system/native/godot/weapon_network_bridge.cpp",
+      "before": "faae067d570cd3b0105bce32c3b079d990d3b9739acb6ac84ea7489f803abbda",
+      "after": "80886fdca4ace5a86fc846fd8c6bedf1f0fb2d19f05bf5cc2a1dae17f34627c2",
+      "replacement": "weapon_network_bridge.cpp"
+    },
+    {
+      "path": "addons/weapon_system/native/godot/weapon_network_bridge.h",
+      "before": "52fb15f49e732022aff39bcfc9f6c9f42402718588c63c47723f30f5aef6c131",
+      "after": "d6bda3240bca9a9dcf0000c12a4abbc1038c18d0ed5c997da3e1de32c6da0f4f",
+      "replacement": "weapon_network_bridge.h"
+    },
+    {
+      "path": "addons/weapon_system/native/protocol/wpn_replica.cpp",
+      "before": "366704bfe5f935c9c669c33c535ce78a871d7030b935851931347fd740eee041",
+      "after": "e835a2de798fa2d71bb8b6b69b00d3cc18c550af5e8cd3294899dc63e00e2d3e",
+      "edits": [
+        {
+          "old": "\t\tids.push_back(entry.first);\n\t}\n\treturn ids;\n}\n\nStatus WeaponReplica::apply_snapshot(const WeaponSnapshot &p_snapshot) {\n",
+          "new": "\t\tids.push_back(entry.first);\n\t}\n\treturn ids;\n}\n\nvoid WeaponReplica::forget_instance(const std::string &p_instance_id) {\n\tinstances.erase(p_instance_id);\n}\n\nStatus WeaponReplica::apply_snapshot(const WeaponSnapshot &p_snapshot) {\n"
+        }
+      ]
+    },
+    {
+      "path": "addons/weapon_system/native/protocol/wpn_replica.h",
+      "before": "2d8a706aee32b707b5eaa18f907ff1fa8c6d584fd936428cabcb7e09c0263bab",
+      "after": "7cae7a74b656cc25dd2965b3798a428513b2883d854e8515282bb53801945431",
+      "edits": [
+        {
+          "old": "\tstd::uint64_t sequence_baseline(const std::string &p_instance_id) const;\n\tbool needs_resync(const std::string &p_instance_id) const; // false if untracked.\n\tstd::vector<std::string> tracked_instance_ids() const;\n\n\t// Atomic single-instance full-snapshot replacement (weapon-protocol\n\t// spec, \"Client joins late\"). On success: last_applied_revision()\n",
+          "new": "\tstd::uint64_t sequence_baseline(const std::string &p_instance_id) const;\n\tbool needs_resync(const std::string &p_instance_id) const; // false if untracked.\n\tstd::vector<std::string> tracked_instance_ids() const;\n\n\t// Recipient grant revocation, not a canonical weapon teardown.\n\tvoid forget_instance(const std::string &p_instance_id);\n\n\t// Atomic single-instance full-snapshot replacement (weapon-protocol\n\t// spec, \"Client joins late\"). On success: last_applied_revision()\n"
+        }
+      ]
+    }
+  ]
+}
