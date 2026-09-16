@@ -65,3 +65,40 @@ reproduction recipe. A successful candidate build/load is not a full-platform
 export or task-10 public release signoff. Promotion requires owner review,
 release version/provenance, a normal locked-package import and full game-side
 regressions with promoted artifacts. Until then, shipped networking stays off.
+
+
+## Validation scope and known loader prerequisite
+
+The revised candidate additionally rejects mismatched DTO protocol versions and
+unsigned counters that cannot be represented by the game-facing int64 port.
+Revoking or replacing a grant changes any cancelled pending command's cached
+status to terminal denial; regranting must not turn queue admission into a
+fabricated execution-success replay.
+
+Verification loads each newly built configuration through an explicit
+`.godot/extension_list.cfg` containing only the two known descriptor paths. No
+script/import cache is copied, no failing process is retried, and nonzero exits
+or script errors still fail the job. Both native test runs use actual ENet
+connections and actual WeaponAuthority state. Gameplay Abilities coverage here
+is native default/accessor verification; this does **not** reproduce the full
+GAS target-authorization/relevance RPC suite.
+
+**Unresolved discovery issue:** on the tested Linux engine, a pristine editor
+that automatically discovers these libraries aborts at the end of its first
+import. The same abort was reproduced with the *unchanged* Weapon addon rebuilt
+against the same SDK/profile. Explicit startup registration avoids this path.
+That isolates the symptom from the candidate bridge changes but is not a root
+cause diagnosis or a fix for cold editor discovery. This prerequisite remains
+open for package promotion. A green candidate job must not be described as
+cold-discovery, export, deployment, or full platform qualification.
+
+Windows candidate builds use GNU MinGW: existing core arithmetic uses
+`__int128`, which stock MSVC rejected. This is not an MSVC compatibility claim.
+Compiler versions, source and binary hashes, engine pin and loading mode are
+included in the artifacts. Test-source changes trigger new native runs.
+
+Run `test_verification.py` for fail-closed verifier negative controls. New spec
+notes under `docs/spec/changes/harden-network-addon-candidates/` distinguish this
+local fork experiment from approved package replacement. No upstream release
+or version-number change is fabricated, and installed addon directories stay
+byte-for-byte pinned until a separately reviewed promotion passes its gates.

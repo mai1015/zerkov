@@ -34,7 +34,7 @@
     {
       "path": "addons/weapon_system/native/godot/weapon_network_bridge.cpp",
       "before": "faae067d570cd3b0105bce32c3b079d990d3b9739acb6ac84ea7489f803abbda",
-      "after": "bd6a72c3d64a8cb96ec010e70f73c055d004c303ccd55ef34501869d4b50007f",
+      "after": "80886fdca4ace5a86fc846fd8c6bedf1f0fb2d19f05bf5cc2a1dae17f34627c2",
       "replacement": "weapon_network_bridge.cpp"
     },
     {

@@ -88,6 +88,15 @@ func run() -> void:
  # Reset only this connection, retaining native authority: both clients now send c1.
  s.begin_session(p1,110);s.authorize_instance(p1,OWN,1);await frames(15)
  s.set_command_admission_handler(_admit)
+ var bad_protocol := raw_fire("wrong.protocol",1,OWN,0,0)
+ bad_protocol.encode_u16(0,999)
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),bad_protocol))
+ var wide_sequence := raw_fire("wide.sequence",1,OWN,0,0)
+ # sequence follows the u16 protocol and counted command ID.
+ wide_sequence.encode_u64(2+4+"wide.sequence".length(),-1)
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),wide_sequence))
+ await frames(6)
+ check(queued.is_empty() and provider_calls==0,"wrong DTO protocol and unrepresentable sequence rejected before game callback")
  var client1 = c1.request_fire_networked(fire_request(OWN))
  var client2 = c2.request_fire_networked(fire_request(OTHER))
  check(client1.sent and client2.sent,"two clients emit requests")
@@ -136,7 +145,7 @@ func run() -> void:
  check(queued.is_empty() and weapons.snapshot(OWN).loaded_rounds==before,"duplicate packet cannot repeat canonical operation")
  # Existing session with forged incompatible manifest loses readiness, no egress.
  var old_token: PackedByteArray = c1.connection_token()
- var incompatible := PackedByteArray();incompatible.resize(30);incompatible.fill(0)
+ var incompatible := PackedByteArray();incompatible.resize(30);incompatible.fill(0);incompatible.encode_u16(0,2)
  c1.rpc_id(1,"_rpc_compatibility_handshake",wire(old_token,incompatible));await frames(8)
  check(not s.peer_state(p1).ready,"W1 malformed/incompatible manifest does not open compatibility")
  c1.request_resync(OWN);await frames(3)
@@ -155,6 +164,7 @@ func run() -> void:
  check(s.authorize_instance(p1,OWN,1),"new session reauthorized")
  await frames(8)
  var old_count := queued.size()
+ var invalidated_packet := PackedByteArray()
  c1.rpc_id(1,"_rpc_fire_intent",wire(old_token,raw_fire("old.1",1,OWN,weapons.snapshot(OWN).revision,1)))
  c1.rpc_id(1,"_rpc_acknowledgement_batch",wire(old_token,ack))
  await frames(8)
@@ -163,6 +173,7 @@ func run() -> void:
  await frames(8);check(queued.size()==1,"retained weapon accepts fresh session client sequence")
  if queued.size()==1:
   var cmd: Dictionary=queued[0]
+  invalidated_packet=raw_fire(String(cmd.client_command_id),int(cmd.client_sequence),OWN,int(cmd.expected_revision),0)
   check(s.command_still_current(cmd.command_id),"queued context currently executable")
   s.revoke_instance(p1,OWN)
   check(not s.command_still_current(cmd.command_id),"revocation invalidates already admitted queued work")
@@ -170,6 +181,22 @@ func run() -> void:
   queued.clear()
  await frames(8)
  check(c1.confirmed_snapshot(OWN).is_empty(),"no stale receipt revives revoked replica")
+ # Regrant does not convert cancelled admission into cached execution success.
+ var confirmed_before := confirmations
+ s.authorize_instance(p1,OWN,1);await frames(6)
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),invalidated_packet));await frames(6)
+ check(queued.is_empty() and confirmations==confirmed_before,"cancelled admission cannot replay success after regrant")
+ # A live grant replacement also invalidates work admitted under the old grant.
+ var replacement: Dictionary = c1.request_fire_networked(fire_request(OWN));await frames(6)
+ check(replacement.sent and queued.size()==1,"grant replacement fixture admits pending input")
+ if queued.size()==1:
+  var command: Dictionary=queued[0]
+  s.authorize_instance(p1,OWN,1)
+  check(not s.command_still_current(command.command_id),"replacing a grant cannot revive queued work")
+  var cancelled := raw_fire(String(command.client_command_id),int(command.client_sequence),OWN,int(command.expected_revision),0)
+  queued.clear()
+  c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),cancelled));await frames(6)
+  check(queued.is_empty() and confirmations==confirmed_before,"grant replacement retains a negative replay receipt")
  # Wrong catalog must stay incompatible and unexposed even with a host grant.
  s.begin_session(p2,104);c2.set_client_catalog_fingerprint(weapons.content_fingerprint()+1)
  s.authorize_instance(p2,SECRET,0);await frames(35)

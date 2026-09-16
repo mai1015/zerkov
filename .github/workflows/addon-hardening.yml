@@ -19,14 +19,17 @@ jobs:
             platform: linux
             arch: x86_64
             engine_asset: linux.x86_64
+            compiler_flags: ""
           - os: macos-latest
             platform: macos
             arch: universal
             engine_asset: macos.universal
+            compiler_flags: ""
           - os: windows-latest
             platform: windows
             arch: x86_64
             engine_asset: win64.exe
+            compiler_flags: "use_mingw=yes"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     steps:
@@ -43,12 +46,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          msystem: UCRT64
+          install: mingw-w64-ucrt-x86_64-gcc
+          path-type: inherit
+      - name: Select GNU Windows compiler for existing int128 arithmetic
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '"C:/msys64/ucrt64/bin" | Out-File -FilePath $env:GITHUB_PATH -Append'
       - name: Exact source and SDK prerequisites
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install scons==4.10.1
           python tools/addon_hardening/test_staging.py
+          python tools/addon_hardening/test_verification.py
           python - <<'PY'
           import json, subprocess
           expected=json.load(open('config/toolchain.lock.json'))['native_sdk']['godot_cpp_commit']
@@ -72,17 +86,28 @@ jobs:
           matches[0].chmod(0o755)
           with open(os.environ['GITHUB_ENV'],'a') as f:f.write('CANDIDATE_GODOT='+str(matches[0])+'\n')
           PY
+      - name: Compiler and operating-system provenance
+        shell: bash
+        run: |
+          python - <<'PYINFO'
+          import json, os, pathlib, platform, subprocess
+          compiler='clang++' if platform.system()=='Darwin' else 'g++'
+          report={'os':platform.platform(),'python':platform.python_version(),
+            'compiler':subprocess.check_output([compiler,'--version'],text=True),
+            'scons':subprocess.check_output(['scons','--version'],text=True)}
+          (pathlib.Path(os.environ['ADDON_CANDIDATE'])/'toolchain.json').write_text(json.dumps(report,indent=2))
+          PYINFO
       - name: Build and test debug candidate
         shell: bash
         run: |
           set -euo pipefail
-          scons -f tools/addon_hardening/SConstruct platform=${{ matrix.platform }} arch=${{ matrix.arch }} target=template_debug build_profile="$GITHUB_WORKSPACE/tools/addon_hardening/build_profile.json" -j2 2>&1 | tee "$ADDON_CANDIDATE/debug-build.log"
+          scons -f tools/addon_hardening/SConstruct platform=${{ matrix.platform }} arch=${{ matrix.arch }} target=template_debug ${{ matrix.compiler_flags }} build_profile="$GITHUB_WORKSPACE/tools/addon_hardening/build_profile.json" -j2 2>&1 | tee "$ADDON_CANDIDATE/debug-build.log"
           python -u tools/addon_hardening/verify.py --root "$GITHUB_WORKSPACE" --candidate "$ADDON_CANDIDATE" --godot "$CANDIDATE_GODOT" --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --target template_debug 2>&1 | tee "$ADDON_CANDIDATE/debug-test.log"
       - name: Build and test release candidate
         shell: bash
         run: |
           set -euo pipefail
-          scons -f tools/addon_hardening/SConstruct platform=${{ matrix.platform }} arch=${{ matrix.arch }} target=template_release build_profile="$GITHUB_WORKSPACE/tools/addon_hardening/build_profile.json" -j2 2>&1 | tee "$ADDON_CANDIDATE/release-build.log"
+          scons -f tools/addon_hardening/SConstruct platform=${{ matrix.platform }} arch=${{ matrix.arch }} target=template_release ${{ matrix.compiler_flags }} build_profile="$GITHUB_WORKSPACE/tools/addon_hardening/build_profile.json" -j2 2>&1 | tee "$ADDON_CANDIDATE/release-build.log"
           python -u tools/addon_hardening/verify.py --root "$GITHUB_WORKSPACE" --candidate "$ADDON_CANDIDATE" --godot "$CANDIDATE_GODOT" --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --target template_release 2>&1 | tee "$ADDON_CANDIDATE/release-test.log"
       - name: Linux source-only SDK reproduction
         if: always() && runner.os == 'Linux'

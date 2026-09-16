@@ -128,7 +128,9 @@ bool WeaponNetworkBridge::unpack_client(const PackedByteArray &wire,size_t maxim
  if(peer<=0 || it==sessions.end() || (require_ready && !it->second->ready)) return false;
  // Rate budget precedes copying/decoding, including malformed and auxiliary RPCs.
  if(!rate.admit_command(peer,tick,uint32_t(tick_rate)).ok()) return false;
- return unpack(wire,it->second->token,maximum,bytes);
+ if (!unpack(wire,it->second->token,maximum,bytes) || bytes.size()<2) return false;
+ // Session compatibility does not authorize a different DTO protocol version.
+ return (uint16_t(bytes[0]) | (uint16_t(bytes[1]) << 8)) == wpn::PROTOCOL_VERSION;
 }
 bool WeaponNetworkBridge::unpack_server(const PackedByteArray &wire,size_t maximum,std::vector<uint8_t> &bytes) const {
  return server_sender() && client_ready && unpack(wire,client_token,maximum,bytes);
@@ -173,6 +175,16 @@ bool WeaponNetworkBridge::authorize_instance(int peer,const String &instance,int
  if(role!=ROLE_SERVER||in_admission||!sessions.count(peer)||(permission!=0&&permission!=1)||!wpn::validate_identifier(text(instance)).ok()) return false;
  auto session=sessions.at(peer);
  if(session->grants.size()>=wpn::MAX_BOUND_INSTANCES_PER_PEER&&!session->grants.count(instance))return false;
+ // Replacing a grant invalidates queued work under the old grant. Preserve a
+ // terminal denial in the replay cache: an admitted-but-cancelled request must
+ // never later replay as successful execution merely because pending was erased.
+ for(auto it=pending.begin();it!=pending.end();) {
+  if(it->second.peer==peer&&it->second.instance==instance) {
+   const auto old=it->second;
+   session->sequence.record(text(instance),text(old.client_id),old.sequence,old.payload_hash,denied());
+   it=pending.erase(it);
+  } else ++it;
+ }
  session->grants[instance]=permission;session->acked.erase(instance);session->sent.erase(instance);
  send_state(peer,instance,true);return true;
 }
@@ -180,7 +192,13 @@ bool WeaponNetworkBridge::revoke_instance(int peer,const String &instance) {
  if(role!=ROLE_SERVER||in_admission||!sessions.count(peer)) return false;
  auto s=sessions.at(peer);if(!s->grants.erase(instance))return false;
  s->acked.erase(instance);s->sent.erase(instance);
- for(auto it=pending.begin();it!=pending.end();) {if(it->second.peer==peer&&it->second.instance==instance)it=pending.erase(it);else ++it;}
+ for(auto it=pending.begin();it!=pending.end();) {
+  if(it->second.peer==peer&&it->second.instance==instance) {
+   const auto old=it->second;
+   s->sequence.record(text(instance),text(old.client_id),old.sequence,old.payload_hash,denied());
+   it=pending.erase(it);
+  } else ++it;
+ }
  auto bytes=instance.to_utf8_buffer();std::vector<uint8_t> value(bytes.ptr(),bytes.ptr()+bytes.size());
  rpc_id(peer,"_rpc_instance_revoked",pack(s->token,value));return true;
 }
@@ -299,7 +317,7 @@ void WeaponNetworkBridge::send_result(int peer,const String &instance,const Stri
  if(!status.ok())emit_signal("command_rejected",peer,client_id,instance,status_dict(status));
 }
 void WeaponNetworkBridge::dispatch(int peer,const String &instance,const String &client_id,uint64_t sequence,const std::vector<uint8_t> &bytes,Dictionary request) {
- if(!recipient_ready(peer,instance,1)||sequence==0){send_result(peer,instance,client_id,denied(),false);return;}
+ if(!recipient_ready(peer,instance,1)||sequence==0||sequence>uint64_t(INT64_MAX)||client_id.is_empty()){send_result(peer,instance,client_id,denied(),false);return;}
  auto session=sessions.at(peer);uint64_t hash=wpn::hash_bytes(bytes);wpn::Status previous;
  auto decision=session->sequence.check(text(instance),text(client_id),sequence,hash,previous);
  String canonical="net."+(session->token.hex_encode()+"|"+instance+"|"+client_id).sha256_text();
@@ -339,25 +357,25 @@ bool WeaponNetworkBridge::complete_command(const String &id,bool accepted) {
 }
 void WeaponNetworkBridge::_rpc_fire_intent(const PackedByteArray &wire) {
  int peer=0;std::vector<uint8_t> bytes;if(!unpack_client(wire,wpn::MAX_COMMAND_BYTES,peer,bytes))return;
- wpn::protocol::FireIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_fire_intent(reader,i).ok())return;
+ wpn::protocol::FireIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_fire_intent(reader,i).ok()||i.expected_revision>uint64_t(INT64_MAX))return;
  Dictionary d;d["kind"]="fire";d["expected_revision"]=int64_t(i.expected_revision);d["claimed_origin"]=point(i.claimed_origin);d["claimed_aim"]=point(i.claimed_aim);
  dispatch(peer,String(i.instance_id.c_str()),String(i.command_id.c_str()),i.sequence,bytes,d);
 }
 void WeaponNetworkBridge::_rpc_begin_reload_intent(const PackedByteArray &wire) {
  int peer=0;std::vector<uint8_t> bytes;if(!unpack_client(wire,wpn::MAX_COMMAND_BYTES,peer,bytes))return;
- wpn::protocol::BeginReloadIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_begin_reload_intent(reader,i).ok())return;
+ wpn::protocol::BeginReloadIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_begin_reload_intent(reader,i).ok()||i.expected_revision>uint64_t(INT64_MAX))return;
  Dictionary d;d["kind"]="begin_reload";d["expected_revision"]=int64_t(i.expected_revision);d["reservation_id"]=String(i.reservation_id.c_str());d["reserved_rounds"]=int64_t(i.reserved_rounds);
  dispatch(peer,String(i.instance_id.c_str()),String(i.command_id.c_str()),i.sequence,bytes,d);
 }
 void WeaponNetworkBridge::_rpc_cancel_reload_intent(const PackedByteArray &wire) {
  int peer=0;std::vector<uint8_t> bytes;if(!unpack_client(wire,wpn::MAX_COMMAND_BYTES,peer,bytes))return;
- wpn::protocol::CancelReloadIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_cancel_reload_intent(reader,i).ok())return;
+ wpn::protocol::CancelReloadIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_cancel_reload_intent(reader,i).ok()||i.expected_revision>uint64_t(INT64_MAX))return;
  Dictionary d;d["kind"]="cancel_reload";d["expected_revision"]=int64_t(i.expected_revision);
  dispatch(peer,String(i.instance_id.c_str()),String(i.command_id.c_str()),i.sequence,bytes,d);
 }
 void WeaponNetworkBridge::_rpc_configure_attachments_intent(const PackedByteArray &wire) {
  int peer=0;std::vector<uint8_t> bytes;if(!unpack_client(wire,wpn::MAX_COMMAND_BYTES,peer,bytes))return;
- wpn::protocol::ConfigureAttachmentsIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_configure_attachments_intent(reader,i).ok())return;
+ wpn::protocol::ConfigureAttachmentsIntent i;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_configure_attachments_intent(reader,i).ok()||i.expected_revision>uint64_t(INT64_MAX))return;
  Array loadout;for(const auto &a:i.desired_loadout){Dictionary e;e["slot_id"]=String(a.slot_id.c_str());e["attachment_id"]=String(a.attachment_id.c_str());e["attachment_version"]=int(a.attachment_version);loadout.append(e);}
  Dictionary d;d["kind"]="configure_attachments";d["expected_revision"]=int64_t(i.expected_revision);d["desired_loadout"]=loadout;
  dispatch(peer,String(i.instance_id.c_str()),String(i.command_id.c_str()),i.sequence,bytes,d);
@@ -417,7 +435,7 @@ void WeaponNetworkBridge::acknowledge(const std::set<std::string> &ids) {
 }
 void WeaponNetworkBridge::_rpc_snapshot_batch(const PackedByteArray &wire) {
  std::vector<uint8_t> bytes;if(!unpack_server(wire,wpn::MAX_SNAPSHOT_BYTES,bytes))return;
- wpn::protocol::WeaponSnapshotBatch batch;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_snapshot_batch(reader,batch).ok())return;
+ wpn::protocol::WeaponSnapshotBatch batch;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_snapshot_batch(reader,batch).ok()||batch.protocol_version!=wpn::PROTOCOL_VERSION)return;
  std::set<std::string> ids;for(const auto &id:replica->tracked_instance_ids())ids.insert(id);
  for(const auto &s:batch.snapshots)ids.insert(s.instance_id);for(const auto &s:batch.tombstones)ids.insert(s.instance_id);
  if(ids.size()>wpn::MAX_BOUND_INSTANCES_PER_PEER)return;
@@ -429,7 +447,7 @@ void WeaponNetworkBridge::_rpc_snapshot_batch(const PackedByteArray &wire) {
 }
 void WeaponNetworkBridge::_rpc_delta_batch(const PackedByteArray &wire) {
  std::vector<uint8_t> bytes;if(!unpack_server(wire,wpn::MAX_DELTA_BYTES,bytes))return;
- wpn::protocol::WeaponDeltaBatch batch;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_delta_batch(reader,batch).ok())return;
+ wpn::protocol::WeaponDeltaBatch batch;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_delta_batch(reader,batch).ok()||batch.protocol_version!=wpn::PROTOCOL_VERSION)return;
  std::set<std::string> ids;
  for(const auto &d:batch.deltas){std::string id=d.lifecycle==wpn::protocol::WeaponLifecycleState::TOMBSTONED&&d.tombstone?d.tombstone->instance_id:d.snapshot.instance_id;
   if(!replica->find(id)&&!replica->is_tombstoned(id)&&replica->tracked_instance_ids().size()>=wpn::MAX_BOUND_INSTANCES_PER_PEER)continue;
@@ -440,9 +458,10 @@ void WeaponNetworkBridge::_rpc_delta_batch(const PackedByteArray &wire) {
 }
 void WeaponNetworkBridge::apply_result(const PackedByteArray &wire,bool success_allowed) {
  std::vector<uint8_t> bytes;if(!unpack_server(wire,wpn::MAX_COMMAND_BYTES,bytes))return;
- wpn::protocol::CommandRejection result;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_command_rejection(reader,result).ok())return;
+ wpn::protocol::CommandRejection result;wpn::ByteReader reader(bytes);if(!wpn::protocol::decode_command_rejection(reader,result).ok()||result.protocol_version!=wpn::PROTOCOL_VERSION)return;
  if(result.status.ok()&&!success_allowed)return;
  auto pending_intent=prediction->reject(result.command_id);if(!pending_intent)return;
+ if(pending_intent->intent.instance_id!=result.instance_id){emit_signal("presentation_diverged",String(pending_intent->intent.command_id.c_str()),String(pending_intent->intent.instance_id.c_str()),int(pending_intent->intent.kind));return;}
  String id(result.command_id.c_str()),instance(result.instance_id.c_str());
  if(result.status.ok())emit_signal("presentation_confirmed",id,instance,int(pending_intent->intent.kind));
  else emit_signal("presentation_reverted",id,instance,int(pending_intent->intent.kind),status_dict(result.status),confirmed_snapshot(instance));
