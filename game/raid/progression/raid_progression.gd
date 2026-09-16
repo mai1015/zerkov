@@ -125,7 +125,7 @@ func _advance_inner(tick: int, intents: Array[ZRaidIntent]) -> bool:
 			"audit_digest":_raid.journal.digest(),"stats":_stats.duplicate(),"health":_health_record(health),"task":_task.snapshot()}
 	_pending_frame=RaidProgressionValues.freeze({"schema":"zerkov.raid.progression.v1","generation":_generation,
 		"raid_id":_raid.raid_id().canonical_key(),"tick":tick,"clock":result,"task":_task.snapshot(),
-		"searching":_search.get("crate",""),"terminal_pending_settlement":not _terminal.is_empty(),"summary_final":false})
+		"searched_ids":_searched.keys(),"searching":_search.get("crate",""),"terminal_pending_settlement":not _terminal.is_empty(),"summary_final":false})
 	return true
 
 func _begin_search(crate: String, tick: int) -> bool:
@@ -238,6 +238,10 @@ func finish(service: RaidSettlementService) -> Dictionary:
 
 func snapshot() -> Dictionary:
 	return _frame
+## Only completed tick publication authorizes opening the searched container.
+func was_crate_searched(crate_id: String) -> bool:
+	return _frame.get("searched_ids", []).has(crate_id)
+
 func terminal_record() -> Dictionary:
 	return RaidProgressionValues.freeze(_terminal if _closed_tick==_tick else {})
 func committed_summary() -> Dictionary:

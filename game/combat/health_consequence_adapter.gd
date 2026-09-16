@@ -2075,10 +2075,18 @@ func _interrupt_actor_reloads(actor: Dictionary, tick: int) -> Dictionary:
 	var outcomes: Array[Dictionary] = []
 	for weapon_id in weapon_ids:
 		var outcome := adapter.interrupt_reload(weapon_id, &"death", tick)
-		outcomes.append(outcome)
 		if not bool(outcome.get("accepted", false)):
 			return {"accepted": false, "reason": &"reload_interrupt_failed",
-				"outcomes": outcomes}
+				"outcomes": outcomes, "failed_weapon_id": weapon_id}
+		# Health receipts carry stable interruption references, not native reload
+		# snapshots, ammo profiles, or commit capabilities. Embedding the complete
+		# result exceeds the canonical value depth/type budget after a real cancel.
+		outcomes.append({
+			"weapon_id": weapon_id,
+			"reservation_id": String(outcome.get("reservation_id", "")),
+			"kind": StringName(outcome.get("kind", &"")),
+			"quantity": int(outcome.get("quantity", 0)),
+		})
 	return {"accepted": true, "interrupted": outcomes}
 
 

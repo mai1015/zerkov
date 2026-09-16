@@ -57,7 +57,9 @@ class FirstPlayable1080GateTests(unittest.TestCase):
             [], gate.classification_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
         self.assertEqual(30, len(self.manifest["active_visual_entrypoints"]))
-        self.assertEqual(56, len(self.manifest["active_headless_entrypoints"]))
+        self.assertEqual(58, len(self.manifest["active_headless_entrypoints"]))
+        self.assertIn("tests/local/native_local_flow_contract.gd",
+                      self.manifest["active_headless_entrypoints"])
         self.assertEqual(
             (14, 2),
             tuple(len(self.manifest["retired_display_entrypoints"][kind])

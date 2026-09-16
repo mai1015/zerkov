@@ -10,6 +10,7 @@ var _layout_snapshot: ZLayoutSnapshot
 var _layout_size := Vector2(-1, -1)
 var lower_contexts: Array[CommonUIContextHandle] = []
 var _production_state_locked: bool = false
+var _local_binding: LocalFlowBinding
 
 const PRODUCTION_SELF_MANAGED_ROUTES: PackedStringArray = [
 	"title", "controls", "inventory", "health", "stats",
@@ -112,6 +113,9 @@ func accepts_input() -> bool:
 	return app != null and not _production_state_locked and app.accepts_input(self)
 
 func refresh_view() -> void:
+	if _local_binding != null:
+		_local_binding.refresh()
+		return
 	if _should_render_locked_state():
 		var reason := &"fixture_provider_stale_generation" \
 				if app != null and app.fixture_generation() > 0 else &""
@@ -148,6 +152,18 @@ func _build_for_context() -> void:
 			_build_locked_state(&"fixture_provider_stale_generation")
 			return
 		build()
+		return
+	var local := app.local_game_ui()
+	if local != null and LocalFlowBinding.supports(app.current_route):
+		var binding := LocalFlowBinding.new()
+		add_child(binding)
+		if not binding.bind(self, local):
+			# A retained failed binding would swallow every later refresh_view()
+			# and reflow(), leaving the locked state frozen at its first size.
+			binding.queue_free()
+			_build_locked_state(&"local_binding_invalid")
+			return
+		_local_binding = binding
 		return
 	if _should_render_locked_state():
 		_build_locked_state()

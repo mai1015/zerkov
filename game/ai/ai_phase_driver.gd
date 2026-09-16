@@ -17,6 +17,12 @@ var _inside: bool = false
 var _released: bool = false
 
 
+## True once bind() has taken a generation, so owners can skip releasing a
+## driver that never registered without reaching into its private state.
+func is_bound() -> bool:
+	return _generation != 0
+
+
 func bind(raid: RefCounted, generation: int, runtime: RaidAIRuntime,
 	movement_handler: StringName, movement_priority: int = 100,
 	audit_after: PackedStringArray = PackedStringArray(), audit_priority: int = 100) -> bool:
@@ -87,8 +93,11 @@ func release(generation: int) -> bool:
 		for index: int in range(HANDLERS.size() - 1, -1, -1):
 			var id: StringName = HANDLERS[index]
 			if _registrations.has(id):
-				if not bool(raid.call("unregister_phase_handler", id, generation)):
-					return _reject(&"ai_phase_release_blocked")
+				if bool(raid.call("has_phase_handler", id, generation)):
+					if raid.call("phase_handler_registration_id", id, generation) != _registrations[id]:
+						return _reject(&"ai_phase_release_registration_replaced")
+					if not bool(raid.call("unregister_phase_handler", id, generation)):
+						return _reject(&"ai_phase_release_blocked")
 				_registrations.erase(id)
 	if _runtime != null:
 		_runtime.release(generation)

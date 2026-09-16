@@ -15,6 +15,8 @@ var _presentation_generation: int = 0
 ## It does not confer permission to forge later catalog selections.
 var developer_context: bool = false
 var route_payload: ZUIRoutePayload
+var _local_game_ui: WeakRef
+var _local_epoch: int = 0
 var _character_runtime: WeakRef
 ## Route immediately beneath this view when it was pushed, or the inherited
 ## return target when it replaced a view. CommonUI remains stack authority.
@@ -55,6 +57,21 @@ func _init(
 	developer_context = is_developer_context
 	route_payload = payload if payload != null else ZUIRoutePayload.empty()
 	_character_runtime = weakref(character_runtime) if character_runtime != null else null
+	if fixture_provider == null and not is_developer_context and host.has_method("local_game_ui"):
+		var local: LocalGameUI = host.call("local_game_ui")
+		if local != null:
+			_local_game_ui = weakref(local)
+			_local_epoch = int(local.snapshot().get("epoch", 0))
+
+
+func local_game_ui() -> LocalGameUI:
+	var local := _local_game_ui.get_ref() as LocalGameUI if _local_game_ui != null else null
+	return local if local != null and int(local.snapshot().get("epoch", 0)) == _local_epoch else null
+
+
+func local_epoch() -> int:
+	return _local_epoch
+
 
 
 ## Bind this context to the one screen instance created with it. The opaque
@@ -236,6 +253,10 @@ func navigate(
 	record: bool = true,
 	payload: ZUIRoutePayload = null
 ) -> bool:
+	var local := local_game_ui()
+	if _local_game_ui != null and local == null: return false
+	var command := LocalGameUI.route_command(route)
+	if local != null and not command.is_empty(): return local.request(command, _local_epoch)
 	var host := _service()
 	if host == null:
 		return false
@@ -248,6 +269,11 @@ func navigate(
 	)))
 
 func back() -> bool:
+	var local := local_game_ui()
+	if _local_game_ui != null and local == null: return false
+	if local != null:
+		if current_route == "summary_solo": return local.request(&"return_home", _local_epoch)
+		return local.request(&"pause" if current_route in ["hud", "bunker"] else &"resume", _local_epoch)
 	var host := _service()
 	if host == null:
 		return false

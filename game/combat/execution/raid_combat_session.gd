@@ -55,6 +55,10 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 	source_rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.actor_id.canonical_key() < b.actor_id.canonical_key())
 	var ordinal: int = 0
 	var local_context: WeaponInstanceContextAdapter
+	# One authored definition graph per session. Each native component still
+	# seals its own runtime and owns independent attributes/grants. Catalog
+	# fingerprint validation remains active; this is not a global mutable cache.
+	var definition_catalog := ZerkovGameplayAbilityContent.build_definition_catalog()
 	for source: Dictionary in source_rows:
 		ordinal += 1
 		var row: Dictionary = source.duplicate()
@@ -65,7 +69,7 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 		component.role = GameplayAbilityComponent.ROLE_OFFLINE_AUTHORITY
 		component.entity_id = 100_000 + ordinal
 		component.tick_rate = RaidClock.TICK_RATE
-		component.definition_catalog = ZerkovGameplayAbilityContent.build_definition_catalog()
+		component.definition_catalog = definition_catalog
 		add_child(component)
 		row["component"] = component
 		_rows.append(row) # Own every allocation even if a later startup step fails.

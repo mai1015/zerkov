@@ -1870,10 +1870,17 @@ func _phase_handler_roster_commitment() -> String:
 	return encoded.sha256_text()
 
 
+var _callback_capture_scanner: RefCounted
+
 func phase_handler_callback_is_safe(callback: Callable) -> bool:
-	return callback.is_valid() \
-		and not _variant_graph_contains_hitbox_bearer(
-			callback, 0, {get_instance_id(): true})
+	# Keep the lifecycle on this exact script; subclassing changes the lexical
+	# attestation identity expected by the native Vision owner during release.
+	# The helper caches only fixed ClassDB schemas, never a safety decision.
+	if _callback_capture_scanner == null:
+		_callback_capture_scanner = load("res://game/raid/raid_callback_capture_scanner.gd").new()
+	if _callback_capture_scanner.get_script() != load("res://game/raid/raid_callback_capture_scanner.gd"):
+		return false
+	return _callback_capture_scanner.is_safe(callback, get_instance_id())
 
 
 func _phase_callback_is_anonymous(callback: Callable) -> bool:
