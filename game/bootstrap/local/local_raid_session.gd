@@ -178,11 +178,12 @@ func release() -> bool:
 	for presenter: LocalActorPresenter in _actors.values(): presenter.release()
 	if raid != null and raid.lifecycle in [RaidAuthority.Lifecycle.ACTIVE, RaidAuthority.Lifecycle.EXTRACTING, RaidAuthority.Lifecycle.PREPARING]:
 		if not raid.transition(RaidAuthority.Lifecycle.FAILED, _generation): return _fail(raid.last_error)
-	# Vision release during ACTIVE seals the raid. Keep it until gameplay owners
-	# have revoked their bindings; no guard is removed to allow late cleanup.
+	# Authority owns the reserved Vision slot, including SETTLING shutdown.
+	# Release other consumers first, then let authority revoke Vision atomically.
+	# Direct owner teardown is deliberately forbidden while settlement is pending.
+	if raid != null and not raid.teardown(_generation): return _fail(raid.last_error)
 	if _vision != null and _vision.generation() > 0 and _vision.lifecycle != RaidVisionWorldOwner.Lifecycle.TORN_DOWN \
 		and not _vision.teardown(_vision.generation()): return _fail(_vision.last_error)
-	if raid != null and not raid.teardown(_generation): return _fail(raid.last_error)
 	for owner: RaidInventoryOwner in _inventory_owners:
 		if owner.is_current_generation(owner.generation()) and not owner.teardown(owner.generation()): return _fail(&"local_inventory_release_failed")
 	_released = true

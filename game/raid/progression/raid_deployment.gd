@@ -29,7 +29,7 @@ func begin(parent: Node, store: ProfileStore, request_id: String, profile_genera
 	var session_scope := StringName("p"+store.profile_id().sha256_text().substr(0,16)+"r"+String(deployment.raid_id).sha256_text().substr(0,16))
 	var admission := sessions.open_offline(id,session_scope,&"player")
 	if not admission.is_usable(): return _fail(admission.reason)
-	raid = RuntimeRaidAuthority.new()
+	raid = RaidAuthority.new()
 	if not raid.configure(id,admission,seed): return _fail(&"deployment_authority_failed_recovery_required")
 	return true
 

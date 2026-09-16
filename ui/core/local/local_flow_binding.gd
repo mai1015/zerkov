@@ -229,7 +229,9 @@ func _summary(frame: Dictionary) -> void:
 		if (String(node.name).begins_with("Timeline") or String(node.name).begins_with("Skill") or String(node.name) in ["XPPanel", "ProgressTitle"]) and node is CanvasItem: node.hide()
 	_text("LootTitle", "RETAINED / LOST · LOCAL SETTLEMENT")
 	_text("LootTrailing", "Currency valuation unavailable")
-	var lines: Array[SummaryView.LootLine] = view.loot() if final else []
+	var lines: Array[SummaryView.LootLine] = []
+	if final:
+		lines.assign(view.loot())
 	for index in range(9):
 		for prefix: String in ["LootItem", "LootName", "LootValue"]: _show(prefix + "%02d" % index, index < lines.size())
 		_show("LootIcon%02d" % index, false)

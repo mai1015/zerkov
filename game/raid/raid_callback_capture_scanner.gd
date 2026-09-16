@@ -1,6 +1,8 @@
-class_name RuntimeRaidAuthority
-extends RaidAuthority
-## Same authority; cache only schemas of fixed native definition Resources.
+class_name RaidCallbackCaptureScanner
+extends RefCounted
+## Cache only schemas of fixed native definition Resources.
+## This is a scanner, NOT a RaidAuthority subtype: release attestations must
+## originate from the exact RaidAuthority script that owns the lifecycle.
 ## Never cache callback safety, object values, metadata, or lifecycle decisions.
 ## Unknown/scripted objects retain the complete reference scan. The installed
 ## ClassDB property schema is verified before caching; hot-reload during a raid
@@ -15,10 +17,26 @@ const NATIVE_DEFINITIONS: PackedStringArray = [
 	"InventoryDiscoveryPolicy", "InventoryItemDefinition", "InventoryItemTraitValue",
 	"InventoryNamedSlot", "InventoryProfileDefinition", "InventoryProfileLimits", "InventoryTraitSchema",
 ]
-var _capture_schemas: Dictionary = {}
+# Cached schemas are lexical and immutable at the publication boundary.
+# Reflection can query the dispatcher, but cannot replace it or edit its cache.
+var _schema_dispatch: Callable = Callable():
+	set(value):
+		if not _schema_dispatch.is_valid(): _schema_dispatch = value
 
-func phase_handler_callback_is_safe(callback: Callable) -> bool:
-	return callback.is_valid() and not _capture_contains_bearer(callback, 0, {get_instance_id():true})
+func _init() -> void:
+	var schemas: Dictionary = {}
+	_schema_dispatch = func(object: Object, native: String) -> Dictionary:
+		if object == null or not is_instance_valid(object) or object.get_script() != null \
+			or object.get_class() != native or not NATIVE_DEFINITIONS.has(native): return {}
+		if schemas.has(native): return schemas[native]
+		var schema := _build_definition_schema(object, native)
+		if schema.has("references"): schema.references.make_read_only()
+		schema.make_read_only()
+		schemas[native] = schema
+		return schema
+
+func is_safe(callback: Callable, authority_instance_id: int) -> bool:
+	return callback.is_valid() and not _capture_contains_bearer(callback, 0, {authority_instance_id:true})
 
 func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -> bool:
 	if depth > 16: return true
@@ -49,7 +67,7 @@ func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -
 				for property_value in object.get_property_list():
 					var name := StringName((property_value as Dictionary).get("name", &""))
 					if not name.is_empty() and _capture_contains_bearer(object.get(name), depth + 1, visited): return true
-			if object is PhaseHandlerRelay:
+			if object is RaidAuthority.PhaseHandlerRelay:
 				for connection: Dictionary in object.get_signal_connection_list(&"invoked"):
 					if _capture_contains_bearer(connection.get("callable", Callable()), depth + 1, visited): return true
 		TYPE_DICTIONARY:
@@ -61,7 +79,9 @@ func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -
 	return false
 
 func _definition_schema(object: Object, native: String) -> Dictionary:
-	if _capture_schemas.has(native): return _capture_schemas[native]
+	return _schema_dispatch.call(object, native)
+
+static func _build_definition_schema(object: Object, native: String) -> Dictionary:
 	var registered: Dictionary = {}
 	for property: Dictionary in ClassDB.class_get_property_list(StringName(native)):
 		registered[StringName(property.name)] = int(property.type)
@@ -75,11 +95,9 @@ func _definition_schema(object: Object, native: String) -> Dictionary:
 		var usage: int = int(property.get("usage", 0))
 		if (usage & (PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP)) != 0: continue
 		if not registered.has(name) or registered[name] != int(property.type):
-			_capture_schemas[native] = {}
 			return {}
 		match int(property.type):
 			TYPE_NIL, TYPE_OBJECT, TYPE_CALLABLE, TYPE_DICTIONARY, TYPE_ARRAY:
 				references.append(name)
 	var schema := {"references":references, "has_properties":has_properties}
-	_capture_schemas[native] = schema
 	return schema

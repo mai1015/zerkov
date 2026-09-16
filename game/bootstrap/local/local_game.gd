@@ -246,9 +246,11 @@ func _finish() -> void:
 	var result := _session.finish()
 	_busy = false
 	if result.get("ok") != true or result.get("committed") != true:
+		last_error = StringName(result.get("reason", &"local_settlement_failed"))
 		_mode = "save_error"; _notice = "Result not acknowledged. Retry local save; do not start another raid. " + String(result.get("reason", "unknown"))
 		_publish(); _navigate("summary_solo", false); return
 	_summary = result.receipt
+	last_error = &""
 	_mode = "summary"; _epoch += 1
 	_notice = "Raid result committed locally. Returning home will not apply it again."
 	_publish(); _navigate("summary_solo", false)

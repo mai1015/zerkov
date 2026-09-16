@@ -13,16 +13,16 @@ class ScriptedDefinition:
 	func _get(property: StringName) -> Variant:
 		return payload if property == &"pretend_integer" else null
 
-var _raid: RuntimeRaidAuthority
+var _raid: RaidAuthority
 var _check: Callable
 var _checks: int = 0
 var _failures: int = 0
-func run(raid: RuntimeRaidAuthority, check_callback: Callable) -> bool:
+func run(raid: RaidAuthority, check_callback: Callable) -> bool:
 	_raid = raid
 	_check = check_callback
 	var holder := Holder.new()
 	var bearer := BodyHitboxWorld2D.BindingCapability.new()
-	for native: String in RuntimeRaidAuthority.NATIVE_DEFINITIONS:
+	for native: String in RaidCallbackCaptureScanner.NATIVE_DEFINITIONS:
 		var definition := ClassDB.instantiate(StringName(native)) as Resource
 		if not _assert(definition != null, "shipped native definition exists " + native): return false
 		holder.payload = definition
@@ -61,6 +61,7 @@ func run(raid: RuntimeRaidAuthority, check_callback: Callable) -> bool:
 	holder.payload = Callable(holder, "noop").bind(bearer)
 	if not _same(holder, false, "bound callable argument scanned"): return false
 	holder.payload = null
+	if not _lifecycle_boundaries(): return false
 	print("RUNTIME_CAPTURE_RESULT checks=", _checks, " failures=", _failures)
 	return _failures == 0
 
@@ -78,3 +79,31 @@ func _assert(ok: bool, label: String) -> bool:
 	_checks += 1
 	if not ok: _failures += 1
 	return bool(_check.call(ok, "capture audit: " + label))
+
+# Short real-native reproduction of the production failure: a derived authority
+# could run ticks but its lexical release attestation had the wrong script ID.
+func _lifecycle_boundaries() -> bool:
+	var index: int = 0
+	for ending: String in ["completed", "failed", "settling_shutdown"]:
+		index += 1
+		var authority := RaidAuthority.new()
+		var id := ZRaidId.from_parts(PackedStringArray(["capture", ending]))
+		var admission := SessionCoordinator.new().open_offline(id, StringName("capture" + ending))
+		if not _assert(authority.configure(id, admission, 1), ending + " configures exact authority"): return false
+		var owner := RaidVisionWorldOwner.new()
+		(Engine.get_main_loop() as SceneTree).root.add_child(owner)
+		var ok := _assert(owner.configure(9_000 + index), ending + " configures real Vision")
+		ok = _assert(owner.register_with_raid_authority(authority), ending + " registers reserved owner") and ok
+		ok = _assert(authority.transition(RaidAuthority.Lifecycle.ACTIVE, authority.generation()), ending + " activates") and ok
+		ok = _assert(authority.advance_one(authority.generation()), ending + " executes real native tick") and ok
+		ok = _assert(authority.transition(RaidAuthority.Lifecycle.SETTLING, authority.generation()), ending + " enters settling") and ok
+		if ending == "completed":
+			ok = _assert(authority.transition(RaidAuthority.Lifecycle.COMPLETED, authority.generation()), "completion releases Vision with exact lexical attestation") and ok
+		elif ending == "failed":
+			ok = _assert(authority.transition(RaidAuthority.Lifecycle.FAILED, authority.generation()), "failure releases Vision with exact lexical attestation") and ok
+		ok = _assert(authority.teardown(authority.generation()), ending + " authority teardown") and ok
+		ok = _assert(owner.lifecycle == RaidVisionWorldOwner.Lifecycle.QUARANTINED, ending + " owner is synchronously quarantined") and ok
+		ok = _assert(owner.teardown(owner.generation()), ending + " owner disposal after slot release") and ok
+		owner.free()
+		if not ok: return false
+	return true

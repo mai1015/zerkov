@@ -60,7 +60,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 		if not await _tick(Vector2.ZERO): return false
 	if not await _wait_route("summary_solo"): return false
 	var result: Dictionary = _game._summary
-	if not _assert(_game._mode == "summary" and result.get("outcome") == "extracted", "committed extracted summary"): return false
+	if not _assert(_game._mode == "summary" and result.get("outcome") == "extracted", "committed extracted summary: " + _game._notice): return false
 	if not _assert(result.get("task", {}).get("completion_token") == true, "native Supply Run completed"): return false
 	var retained: bool = false
 	for row: Dictionary in result.get("retained", []):
@@ -214,4 +214,3 @@ func _profile_read_only_costs() -> void:
 		var reference := not session.raid._variant_graph_contains_hitbox_bearer(callback, 0, {session.raid.get_instance_id():true})
 		_assert(safe == reference, "runtime/reference capture agreement")
 		print("LOCAL_FLOW_PROFILE runtime_capture_usec=", elapsed, " safe=", safe)
-	print("LOCAL_FLOW_SCHEMAS ", session.raid._capture_schemas)
