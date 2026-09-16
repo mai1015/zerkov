@@ -5,6 +5,9 @@ import os
 from pathlib import Path
 sdk=Path(os.environ['GODOT_CPP']).resolve()
 source=Path(os.environ['ADDON_CANDIDATE']).resolve()
+# Trim only unused godot-cpp generated bindings, never addon source or tests.
+if 'build_profile' not in ARGUMENTS:
+ raise RuntimeError('Pass absolute build_profile=.../tools/addon_hardening/build_profile.json')
 env=SConscript(str(sdk/'SConstruct'))
 env.Append(CXXFLAGS=['/std:c++17'] if env.get('is_msvc',False) else ['-std=c++17'])
 outputs=[]

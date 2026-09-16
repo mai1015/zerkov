@@ -81,14 +81,17 @@ func run() -> void:
  await frames(10)
  check(s.peer_state(p1).acknowledged.get(OWN,-1)==acked,"forged unsent/future ack cannot advance baseline")
  check(c1.confirmed_snapshot(SECRET).is_empty(),"W3 known-name hidden resync yields no state")
- var nohandler := c1.request_fire_networked(fire_request(OWN));check(nohandler.sent,"wire fire sent")
+ var nohandler: Dictionary = c1.request_fire_networked(fire_request(OWN));check(nohandler.sent,"wire fire sent")
  await frames(10)
  check(weapons.snapshot(OWN).loaded_rounds==30 and queued.is_empty(),"W5 absent host handler cannot mutate weapons")
  check(reversions>0,"missing host admission produces explicit rejection")
+ # Reset only this connection, retaining native authority: both clients now send c1.
+ s.begin_session(p1,110);s.authorize_instance(p1,OWN,1);await frames(15)
  s.set_command_admission_handler(_admit)
  var client1 = c1.request_fire_networked(fire_request(OWN))
  var client2 = c2.request_fire_networked(fire_request(OTHER))
  check(client1.sent and client2.sent,"two clients emit requests")
+ check(client1.command_id=="c1" and client2.command_id=="c1", "identical client command names exercised across real peers")
  await frames(10)
  check(queued.size()==2,"only eligible commands reach game-owned queue")
  if queued.size()==2:
@@ -102,6 +105,24 @@ func run() -> void:
  check(confirmations==2,"only explicit post-execution results confirm prediction")
  check(deltas>=2,"W4 acknowledged initial baseline advances via native deltas")
  check(c1.confirmed_snapshot(OWN).loaded_rounds==29,"replica matches committed snapshot")
+ # Observer privilege and valid-but-unowned attachments must never mutate.
+ check(s.authorize_instance(p1,SECRET,0), "host permits observation only")
+ await frames(6)
+ var observed_before := weapons.snapshot(SECRET)
+ var calls_before := provider_calls
+ check(c1.request_fire_networked(fire_request(SECRET)).sent, "observer attack sent as hostile request")
+ await frames(6)
+ check(provider_calls==calls_before and weapons.snapshot(SECRET)==observed_before, "observer cannot reach command admission")
+ var inventory_before := weapons.snapshot(OWN)
+ check(c1.request_configure_attachments_networked({"instance_id":OWN,"expected_revision":inventory_before.revision,
+  "desired_loadout":[{"slot_id":"zerkov.slot.akm.optic","attachment_id":"zerkov.attachment.red_dot","attachment_version":1}]}).sent,
+  "catalog-valid attachment request reaches transport")
+ check(c1.request_begin_reload_networked({"instance_id":OWN,"expected_revision":inventory_before.revision,
+  "reservation_id":"test.reservation.unowned","reserved_rounds":1}).sent, "unowned reload reservation sent")
+ await frames(10)
+ check(provider_calls==calls_before+2 and queued.is_empty() and weapons.snapshot(OWN)==inventory_before,
+  "required host inventory admission rejects attachment and reload claims without native mutation")
+ s.revoke_instance(p1,SECRET);await frames(5)
  # Forge entropy directly into a protocol-valid FireIntent; the host never receives it.
  s.push_state(90)
  var entropy_packet := raw_fire("malicious.1",9,OWN,weapons.snapshot(OWN).revision,999999)
@@ -110,11 +131,11 @@ func run() -> void:
  check(queued.size()==1 and not queued[0].has("spread_seed"),"raw chosen-entropy packet still cannot control execution sampling")
  flush_game_queue();await frames(8)
  # Exact duplicate packet is not re-enqueued or fired twice.
- var before := weapons.snapshot(OWN).loaded_rounds
+ var before: int = weapons.snapshot(OWN).loaded_rounds
  c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),entropy_packet));await frames(6)
  check(queued.is_empty() and weapons.snapshot(OWN).loaded_rounds==before,"duplicate packet cannot repeat canonical operation")
  # Existing session with forged incompatible manifest loses readiness, no egress.
- var old_token := c1.connection_token()
+ var old_token: PackedByteArray = c1.connection_token()
  var incompatible := PackedByteArray();incompatible.resize(30);incompatible.fill(0)
  c1.rpc_id(1,"_rpc_compatibility_handshake",wire(old_token,incompatible));await frames(8)
  check(not s.peer_state(p1).ready,"W1 malformed/incompatible manifest does not open compatibility")
@@ -138,7 +159,7 @@ func run() -> void:
  c1.rpc_id(1,"_rpc_acknowledgement_batch",wire(old_token,ack))
  await frames(8)
  check(queued.size()==old_count,"old-session command and ack rejected after replacement")
- var newer := c1.request_fire_networked(fire_request(OWN));check(newer.sent,"new-session counter restarts safely")
+ var newer: Dictionary = c1.request_fire_networked(fire_request(OWN));check(newer.sent,"new-session counter restarts safely")
  await frames(8);check(queued.size()==1,"retained weapon accepts fresh session client sequence")
  if queued.size()==1:
   var cmd: Dictionary=queued[0]
@@ -154,6 +175,22 @@ func run() -> void:
  s.authorize_instance(p2,SECRET,0);await frames(35)
  check(not c2.is_session_ready() and not s.peer_state(p2).ready,"different local content cannot complete handshake")
  check(c2.confirmed_snapshot(SECRET).is_empty(),"catalog-mismatched client gets no first snapshot")
+ # A real transport disconnect must clear the replica, not only a host token replacement.
+ s.authorize_instance(p1,OWN,1);await frames(8)
+ check(not c1.confirmed_snapshot(OWN).is_empty(), "visible state before physical disconnect")
+ peers[0].disconnect_peer(p1)
+ await frames(25)
+ check(not c1.is_session_ready() and c1.connection_token().is_empty() and c1.confirmed_snapshot(OWN).is_empty(),
+  "physical server disconnect clears confirmed and pending client state")
+ peers[1].close()
+ var reconnected := ENetMultiplayerPeer.new()
+ check(reconnected.create_client("127.0.0.1",PORT)==OK,"reconnect real ENet transport")
+ peers[1]=reconnected;apis[1].multiplayer_peer=reconnected
+ await frames(30)
+ var replacement_peer: int=apis[1].get_unique_id()
+ s.begin_session(replacement_peer,120);s.authorize_instance(replacement_peer,OWN,1)
+ await frames(25)
+ check(c1.is_session_ready() and not c1.confirmed_snapshot(OWN).is_empty(), "replacement transport negotiates fresh authorized snapshot")
  for i in range(3): peers[i].close()
  await frames(5)
  for scope in scopes: scope.queue_free()

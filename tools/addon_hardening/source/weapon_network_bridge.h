@@ -80,6 +80,7 @@ public:
  bool is_instance_tombstoned(const String &instance) const;
 protected:
  static void _bind_methods();
+public: // Godot-cpp virtual dispatch registration requires public overrides.
  void _ready() override;
  void _process(double delta) override;
  void _exit_tree() override;

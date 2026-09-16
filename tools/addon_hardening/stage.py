@@ -15,7 +15,7 @@ ALLOWED = {
 def sha(data): return hashlib.sha256(data).hexdigest()
 def safe(root, name):
  path=Path(name)
- if path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name: raise ValueError('invalid path '+name)
+ if not name or name.startswith('/') or path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name: raise ValueError('invalid path '+name)
  p=root
  for part in path.parts:
   p=p/part
@@ -28,6 +28,7 @@ def stage(root, out):
  manifest=json.loads((root/'tools/addon_hardening/changes.json').read_text())
  if {r['path'] for r in manifest['changes']}!=ALLOWED or len(manifest['changes'])!=len(ALLOWED): raise ValueError('unexpected changes')
  files={}
+ source_hashes={}
  for row in manifest['changes']:
   before=safe(root,row['path']).read_bytes()
   if sha(before)!=row['before']: raise ValueError('source base differs: '+row['path'])
@@ -49,11 +50,15 @@ def stage(root, out):
    if source.is_symlink(): raise ValueError('addon contains symlink')
    if source.is_file() and source.suffix in {'.cpp','.h','.hpp','.gd','.uid','.tscn','.tres','.json','.gdextension','.md','.cfg'}:
     target=out/source.relative_to(root);target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
- for path,data in files.items(): (out/path).write_bytes(data)
+    source_hashes[source.relative_to(root).as_posix()]=sha(source.read_bytes())
+ for path,data in files.items():
+  (out/path).write_bytes(data)
+  source_hashes[path]=sha(data)
  (out/'candidate-source.json').write_text(json.dumps({'schema_version':1,'status':'candidate_not_installed',
   'base_addon_lock_sha256':sha((root/'config/addons.lock.json').read_bytes()),
   'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),
-  'changed_files':{name:sha(data) for name,data in files.items()},'upstream_signoff':False},indent=2)+'\n')
+  'changed_files':{name:sha(data) for name,data in files.items()},
+  'source_files':source_hashes,'upstream_signoff':False},indent=2)+'\n')
  return files
 
 if __name__=='__main__':
