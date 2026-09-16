@@ -42,6 +42,13 @@ func configure_test_store(store: ProfileStore, auto_advance: bool = false) -> bo
 
 func _ready() -> void:
 	get_tree().auto_accept_quit = false
+	# One authoritative tick per rendered frame. A tick currently costs far more
+	# than its 60 Hz budget, so the default catch-up allowance spends eight of
+	# them per frame and still never catches up: measured 1.66 FPS at 13.3
+	# ticks/s against 12.9 FPS at 12.9 ticks/s here. The extra ticks buy no
+	# simulation progress, only a frozen window and unusable input latency.
+	# This bounds the symptom; the tick cost itself is the open performance work.
+	Engine.max_physics_steps_per_frame = 1
 	if not _campaign.open(_test_store):
 		last_error = _campaign.last_error
 		# A present-but-unreadable save disables Continue and New alike, so name
