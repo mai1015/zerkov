@@ -209,10 +209,16 @@ func _profile_read_only_costs() -> void:
 	var start: int = Time.get_ticks_usec()
 	_game._publish()
 	print("LOCAL_FLOW_PROFILE publish_usec=", Time.get_ticks_usec() - start)
-	var raid := _game._session.raid
-	var keys := raid._handler_ids.keys(); keys.sort()
-	for key in keys:
-		var entry: Dictionary = raid._handler_ids[key]
+	var session := _game._session
+	var owners := {"combat":session.combat, "execution":session.combat.execution,
+		"health":session.combat.health, "progression":session.progression,
+		"movement":session.player_movement, "ai":session.ai, "ai_driver":session._ai_driver,
+		"vision":session._vision, "interaction":session.interaction}
+	# Generic registrations deliberately hide their raw callback. The safety
+	# predicate scans the callable's owner and bound arguments, not its method.
+	# Measuring an existing zero-argument Object method traverses the same owner
+	# graph without inventing a nonexistent registration.callback field.
+	for key: String in owners:
 		start = Time.get_ticks_usec()
-		var safe := raid.phase_handler_callback_is_safe(entry.callback)
-		print("LOCAL_FLOW_PROFILE handler=", key, " safety_usec=", Time.get_ticks_usec() - start, " safe=", safe)
+		var safe := session.raid.phase_handler_callback_is_safe(Callable(owners[key], "get_instance_id"))
+		print("LOCAL_FLOW_PROFILE owner=", key, " safety_usec=", Time.get_ticks_usec() - start, " safe=", safe)
