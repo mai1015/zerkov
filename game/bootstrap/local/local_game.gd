@@ -272,8 +272,9 @@ func _abandon() -> void:
 	_publish(); _navigate("summary_solo", false)
 
 func _publish() -> void:
-	# A teardown error must not publish into an already-retired provider.
-	if _closed or not _provider.is_active(): return
+	# A teardown error must not publish into an already-retired provider, nor
+	# into one the SceneTree already freed while an exit path was still failing.
+	if _closed or not is_instance_valid(_provider) or not _provider.is_active(): return
 	_serial += 1
 	var frame := {"epoch":_epoch,"serial":_serial,"mode":_mode,"has_profile":_campaign.has_profile(),
 		"can_create":_campaign.loaded.get("reason") == &"profile_missing" and _campaign.last_error.is_empty(),
