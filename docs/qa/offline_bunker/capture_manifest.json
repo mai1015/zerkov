@@ -1,0 +1,27 @@
+{
+  "source_commit": "83cfcb6a5d24cd72cf6acb8951ee92ae5ad88c55",
+  "workflow_run": 35038486063,
+  "artifact_id": 10424182040,
+  "archive_sha256": "d32d5859f9eefcfeff59bd4a5f5436d52db62fd31c1af6265c65fefbb9d34e69",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "headless_checks": 136,
+  "graphical_checks": 148,
+  "failures": 0,
+  "processes": 4,
+  "output": [1920, 1080],
+  "profile_fingerprint": "3867c9aaa503309b121f7edb374c580e9a18b3e48e38e02947f498d38a64599f",
+  "scope": "normal offline application, real local-save bunker and inventory; no raid or multiplayer",
+  "human_approval": false,
+  "screenshots": {
+    "offline-graphical/continue/offline-bunker-1080.png": "6bb161ebf1013e64d0526ead6d98f32511c494e9c3d10cc9cc12e6edd312ec06",
+    "offline-graphical/continue/offline-inventory-1080.png": "1033843b345d1b7c238d257ad649850baba5a616bb9197a310ef220814a00782",
+    "offline-graphical/continue/offline-menu-1080.png": "d32bf7d4f76ddd45256764712a3e85e82abd7ebd9db41ea8e9f95d1a10adcd82",
+    "offline-graphical/continue/offline-settings-1080.png": "cf77af01fd0c3a81427303533d6cdcf564f1ba15741a8fae14df3a7005f8e246",
+    "offline-graphical/continue/offline-title-1080.png": "4a8d4e2137d347b3fd9791fa6e2e6e1ab49f2d7f6ebdd626a77ac38602214be5",
+    "offline-graphical/create/offline-bunker-1080.png": "3798c2285b9713bb2495627283a7c48233ac400f293ea54a0e265d88d768a4da",
+    "offline-graphical/create/offline-inventory-1080.png": "8b2f3e139a0df4359294503c2a831534a8bcfb999f9fb8c4175a320af8c050a9",
+    "offline-graphical/create/offline-menu-1080.png": "2a0cc2cfbe982023ca5a6f0a0ec5494e6a43da91ead28b5d90c37c3679bb5208",
+    "offline-graphical/create/offline-settings-1080.png": "739ed1658a304dc5108bb37d65f5c84260c4da8f68cc610be03d31e0b02449eb",
+    "offline-graphical/create/offline-title-1080.png": "4a8d4e2137d347b3fd9791fa6e2e6e1ab49f2d7f6ebdd626a77ac38602214be5"
+  }
+}

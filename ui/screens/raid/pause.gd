@@ -12,6 +12,9 @@ const CLEAR := Color.TRANSPARENT
 ## after compact reflow, and the left-hand menu retains keyboard focus order.
 
 func build() -> void:
+	if app.offline_bunker() != null:
+		_build_offline_pause()
+		return
 	reset_adaptive_layout()
 	active_route = str(app.current_route)
 	menu_entries.clear()
@@ -227,3 +230,39 @@ func _set_pause_privacy(value: String) -> void:
 
 func layout_compact(view: Vector2) -> void:
 	preload("res://ui/screens/frontflow/components/frontflow_layout.gd").new(self).apply(view)
+
+
+func _build_offline_pause() -> void:
+	reset_adaptive_layout()
+	menu_entries.clear()
+	_install_scale_safe_styles()
+	$SessionPanel.hide()
+	_wire_button($ActionsPanel/ResumeRow/Hit, _resume_pause)
+	_wire_button($ActionsPanel/CharacterRow/Hit, _open_character)
+	_wire_button($ActionsPanel/SettingsRow/Hit, _open_settings)
+	_wire_button($ControlsButton, _open_controls)
+	_wire_button($ActionsPanel/SaveQuitRow/Hit, _offline_close_menu)
+	_wire_button($ActionsPanel/QuitDesktopRow/Hit, _offline_quit)
+	$ActionsPanel/SessionRow/Hit.disabled = true
+	$ActionsPanel/MapRow/Hit.disabled = true
+	$ActionsPanel/CharacterRow/Hit.disabled = not app.offline_bunker().local_status().open
+	for node: Node in find_children("*", "Label", true, false):
+		if node.text.contains("ONLINE") or node.text.contains("INVITE") or node.text.contains("EU-WEST"):
+			node.text = "OFFLINE · LOCAL SESSION"
+	_build_focus_graph()
+	queue_adaptive_layout()
+
+func _offline_close_menu() -> void:
+	if not accepts_input():
+		return
+	var offline := app.offline_bunker()
+	if offline == null:
+		return
+	var expected_generation := int(offline.local_status().generation)
+	app.confirm("RETURN TO MENU", "All accepted inventory changes are saved locally. Close this bunker?", func():
+		if offline.is_active() and offline.request(&"close", expected_generation):
+			go("main_menu"))
+
+func _offline_quit() -> void:
+	var offline := app.offline_bunker()
+	offline.request(&"quit", int(offline.local_status().generation))

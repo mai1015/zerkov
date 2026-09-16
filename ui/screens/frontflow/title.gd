@@ -10,6 +10,13 @@ func build() -> void:
 	reset_adaptive_layout()
 	active_route = str(app.current_route)
 	_install_scale_safe_styles()
+	if app.offline_bunker() != null:
+		$ConnectionPrefix.text = "LOCAL PLAY · "
+		$ConnectionStatus.text = "OFFLINE"
+		$ConnectionRegion.text = " · NO SERVER REQUIRED"
+		$SignedInAs.text = "PROFILE"
+		$AccountName.text = "LOCAL"
+		$Version.text = "PRE-RAID BUILD"
 	queue_adaptive_layout()
 
 
