@@ -228,6 +228,10 @@ var _maximum_energy: int = 0:
 	set(value):
 		if not _sealed_view:
 			_maximum_energy = value
+var _energy_available: bool = true:
+	set(value):
+		if not _sealed_view:
+			_energy_available = value
 var _body_parts: Array[BodyPart] = []:
 	set(value):
 		if not _sealed_view:
@@ -255,7 +259,8 @@ static func create(
 	p_energy: int,
 	p_maximum_energy: int,
 	p_body_parts: Array[BodyPart],
-	p_effects: Array[StatusEffect]
+	p_effects: Array[StatusEffect],
+	p_energy_available: bool = true
 ) -> HealthView:
 	if p_actor_id == null or not p_actor_id.is_initialized() or p_body_parts.is_empty():
 		return null
@@ -300,6 +305,7 @@ static func create(
 	result._maximum_stamina = p_maximum_stamina
 	result._hydration = p_hydration
 	result._maximum_hydration = p_maximum_hydration
+	result._energy_available = p_energy_available
 	result._energy = p_energy
 	result._maximum_energy = p_maximum_energy
 	result._body_parts.assign(staged_parts)
@@ -418,6 +424,10 @@ func maximum_hydration() -> int:
 	return _maximum_hydration
 
 
+func energy_available() -> bool:
+	return _energy_available
+
+
 func energy() -> int:
 	return _energy
 
@@ -459,6 +469,8 @@ func _build_content_digest(
 		"maximum_energy=" + str(_maximum_energy),
 		"parts=" + str(_body_parts.size()),
 	])
+	if not _energy_available:
+		chunks.append("energy_available=false")
 	for part in _body_parts:
 		chunks.append("part=" + _digest_frame(String(part.part_id()))
 			+ _digest_frame(part.display_name())

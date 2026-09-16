@@ -33,6 +33,8 @@ func _process(delta: float) -> void:
 		super._process(delta)
 		return
 	# Cosmetic elapsed time is never used to fill ammunition or heal the actor.
+	if app != null and app.local_game_ui() != null:
+		get_node("CrosshairGroup").position = get_viewport().get_mouse_position()
 	_shot_time = maxf(0.0, _shot_time - delta)
 	if is_instance_valid(_crosshair):
 		_crosshair.set("spread", _shot_time * 20.0)
@@ -320,3 +322,12 @@ func _bind_overlays() -> void:
 		ring.set("progress", _reload_progress)
 		ring.call("set_progress", _reload_progress)
 		_ring_nodes.append(ring)
+
+
+## Root-owned LocalGameUI projection, never a fixture or authority reference.
+func apply_local_combat(view: Dictionary) -> void:
+	_combat_bound_once = true
+	_crosshair = get_node_or_null("CrosshairGroup/Crosshair") as Control
+	set_process(true)
+	set_process_unhandled_input(false)
+	_apply_combat_view(view)

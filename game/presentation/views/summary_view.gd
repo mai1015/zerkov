@@ -267,6 +267,14 @@ var _audit_digest: String = "":
 	set(value):
 		if not _sealed_view:
 			_audit_digest = value
+var _audit_available: bool = true:
+	set(value):
+		if not _sealed_view:
+			_audit_available = value
+var _valuation_available: bool = true:
+	set(value):
+		if not _sealed_view:
+			_valuation_available = value
 var _corrections: Array[Correction] = []:
 	set(value):
 		if not _sealed_view:
@@ -290,14 +298,17 @@ static func create(
 	p_reward_value: int,
 	p_loss_value: int,
 	p_audit_digest: String,
-	p_corrections: Array[Correction]
+	p_corrections: Array[Correction],
+	p_audit_available: bool = true,
+	p_valuation_available: bool = true
 ) -> SummaryView:
 	if p_raid_id == null or not p_raid_id.is_initialized() \
 			or p_settlement_id == null or not p_settlement_id.is_initialized():
 		return null
 	if p_duration_ticks < 0 or p_kill_count < 0 or p_damage_dealt < 0 \
 			or p_damage_taken < 0 or p_reward_value < 0 or p_loss_value < 0 \
-			or not _digest_is_valid(p_audit_digest):
+			or (p_audit_available and not _digest_is_valid(p_audit_digest)) \
+			or (not p_audit_available and not p_audit_digest.is_empty() and not _digest_is_valid(p_audit_digest)):
 		return null
 	if not enum_value_is_valid(int(p_outcome), Outcome.size()):
 		return null
@@ -356,6 +367,8 @@ static func create(
 	result._reward_value = p_reward_value
 	result._loss_value = p_loss_value
 	result._audit_digest = p_audit_digest.to_lower()
+	result._audit_available = p_audit_available
+	result._valuation_available = p_valuation_available
 	if not result._initialize_view(p_generation, p_revision, p_source_tick, SyncState.READY):
 		return null
 	return result
@@ -403,7 +416,8 @@ func settlement_id() -> ZSettlementId:
 
 
 func _ready_payload_is_valid() -> bool:
-	if raid_id() == null or settlement_id() == null or not _digest_is_valid(_audit_digest) \
+	if raid_id() == null or settlement_id() == null or (_audit_available and not _digest_is_valid(_audit_digest)) \
+			or (not _audit_available and not _audit_digest.is_empty() and not _digest_is_valid(_audit_digest)) \
 			or not enum_value_is_valid(int(_outcome), Outcome.size()) \
 			or _duration_ticks < 0 or _kill_count < 0 or _damage_dealt < 0 \
 			or _damage_taken < 0 or _reward_value < 0 or _loss_value < 0:
@@ -498,3 +512,11 @@ func corrections() -> Array[Correction]:
 		result.append(correction.snapshot())
 	result.make_read_only()
 	return result
+
+
+func audit_available() -> bool:
+	return _audit_available
+
+
+func valuation_available() -> bool:
+	return _valuation_available
