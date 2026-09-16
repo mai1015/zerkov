@@ -3,7 +3,7 @@ extends RefCounted
 ## Converts closed, value-only local application frames into the established UI
 ## contracts. UI generation is a presentation lineage, not a raid authority epoch.
 const MAP: StringName = &"zerkov.level.sawmill_yard"
-const TASK: String = "zerkov.task.supply_run"
+const TASK_CONTENT: StringName = &"zerkov.task.supply_run"
 const MISSING = ZReadOnlyView.SyncState.UNBOUND
 
 static func build(frame: Dictionary) -> Array[ZReadOnlyView]:
@@ -41,6 +41,11 @@ static func build(frame: Dictionary) -> Array[ZReadOnlyView]:
 	var summary := _summary(epoch, revision, tick, frame.get("summary", {}))
 	return [bunker, raid, tasks, map, summary]
 
+static func task_identity(raid_key: String = "") -> ZTaskId:
+	# The native graph definition ID is content, not a canonical instance ID.
+	var suffix := "preview" if raid_key.is_empty() else "r" + raid_key.sha256_text().substr(0, 32)
+	return ZTaskId.from_parts(PackedStringArray(["supply_run", suffix]))
+
 static func _tasks(epoch: int, revision: int, tick: int, value: Dictionary, searched: Array, mode: String) -> TaskView:
 	var objectives: Array[TaskView.Objective] = []
 	for index in range(3):
@@ -52,10 +57,10 @@ static func _tasks(epoch: int, revision: int, tick: int, value: Dictionary, sear
 	var status: TaskView.Status = TaskView.Status.AVAILABLE
 	if mode in ["raid", "settling", "save_error"]: status = TaskView.Status.ACTIVE
 	if mode == "summary": status = TaskView.Status.COMPLETED if value.get("completion_token", false) else TaskView.Status.FAILED
-	var entries: Array[TaskView.Entry] = [TaskView.Entry.create(ZTaskId.parse(TASK), "Supply Run",
+	var entries: Array[TaskView.Entry] = [TaskView.Entry.create(task_identity(String(value.get("raid_id", ""))), "Supply Run",
 		"Search three marked crates, take the supply crate, and hold Road Gate for five seconds. Damage, leaving or losing supplies interrupts extraction.",
 		"Local contract", MAP, status, true, objectives, [])]
-	return TaskView.create(epoch, revision, tick, entries, ZTaskId.parse(TASK))
+	return TaskView.create(epoch, revision, tick, entries, task_identity(String(value.get("raid_id", ""))))
 
 static func _map(epoch: int, revision: int, tick: int, points: Array) -> MapView:
 	var zones: Array[MapView.Zone] = [MapView.Zone.create(MAP, "Sawmill Yard", "Supply Run · three marked crates and Road Gate",
@@ -69,6 +74,8 @@ static func _map(epoch: int, revision: int, tick: int, points: Array) -> MapView
 
 static func _summary(epoch: int, revision: int, tick: int, receipt: Dictionary) -> SummaryView:
 	if receipt.is_empty(): return SummaryView.unavailable(MISSING, &"settlement_not_committed", epoch, revision, tick)
+	if not RaidProgressionValues.valid_receipt(receipt):
+		return SummaryView.unavailable(ZReadOnlyView.SyncState.UNBOUND, &"settlement_receipt_invalid", epoch, revision, tick)
 	var lines: Array[SummaryView.LootLine] = []
 	for group: String in ["retained", "lost"]:
 		for row: Dictionary in receipt.get(group, []):
@@ -77,9 +84,20 @@ static func _summary(epoch: int, revision: int, tick: int, receipt: Dictionary) 
 	var outcome: SummaryView.Outcome = SummaryView.Outcome.EXTRACTED if receipt.outcome == "extracted" else (
 		SummaryView.Outcome.DIED if receipt.outcome == "dead" else SummaryView.Outcome.FAILED)
 	var stats: Dictionary = receipt.get("stats", {})
+	var injuries: Array[StringName] = []
+	for part: Dictionary in receipt.health.get("body_parts", []):
+		var zone := String(part.get("zone", ""))
+		if part.get("bleeding", false): injuries.append(StringName("zerkov.injury." + zone + ".bleeding"))
+		if part.get("fractured", false): injuries.append(StringName("zerkov.injury." + zone + ".fracture"))
+		if int(part.get("health_micros", 0)) == 0: injuries.append(StringName("zerkov.injury." + zone + ".destroyed"))
+	var task_results: Array[SummaryView.TaskResult] = []
+	if not receipt.task.is_empty():
+		var completed: bool = receipt.task.get("completion_token", false)
+		var count := 4 if completed else clampi(int(receipt.task.get("searched_crates", 0)), 0, 3)
+		task_results.append(SummaryView.TaskResult.create(task_identity(receipt.raid_id), "Supply Run", count, 4, completed, 0))
 	return SummaryView.create(epoch, revision, tick, ZRaidId.parse(receipt.raid_id), ZSettlementId.parse(receipt.settlement_id),
 		outcome, receipt.duration_ticks, stats.get("kills", 0), int(stats.get("damage_dealt_micros", 0)) / 1_000_000,
-		int(stats.get("damage_received_micros", 0)) / 1_000_000, [], lines, [], 0, 0,
+		int(stats.get("damage_received_micros", 0)) / 1_000_000, injuries, lines, task_results, 0, 0,
 		receipt.audit_digest, [], receipt.audit_available, false)
 
 static func display_item(identifier: String) -> String:
