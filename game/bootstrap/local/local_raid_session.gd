@@ -191,7 +191,7 @@ func release() -> bool:
 
 func _release_ai() -> bool:
 	if _ai_released: return true
-	if _ai_driver != null and _ai_driver._generation != 0 and not _ai_driver.release(_generation): return _fail(_ai_driver.last_error)
+	if _ai_driver != null and _ai_driver.is_bound() and not _ai_driver.release(_generation): return _fail(_ai_driver.last_error)
 	if _ai_port != null: _ai_port.release()
 	_ai_released = true
 	return true

@@ -28,6 +28,8 @@ var _busy: bool = false
 var _closed: bool = false
 var _auto_advance: bool = true
 var _last_route: String = "title"
+var _quit_pending: bool = false
+var _map_layout: ZSawmillYardLayout
 
 ## Test storage overrides are only accepted before mounting. Normal launch
 ## always uses the fixed local profile path and the production file adapter.
@@ -142,10 +144,14 @@ func _consume(command: StringName, epoch: int) -> void:
 			if _mode == "save_error" and _session != null: _finish()
 			elif _mode == "home" and _home != null:
 				if _campaign.save_home(_home): last_error = &""; _notice = "Loadout saved locally."; _publish()
+				else:
+					last_error = _campaign.last_error
+					_notice = "Local save failed: " + String(last_error) + ". The stored loadout is unchanged; retry."
+					_publish()
 		&"abandon":
 			if _mode == "raid": _abandon()
 		&"quit":
-			if shutdown(): get_tree().quit()
+			_quit()
 
 func _open_home() -> void:
 	_busy = true
@@ -233,7 +239,7 @@ func _interact() -> void:
 		if not _character.open_world_loot(InventoryPresentationController.SOURCE_CRATE, _session.crate_ids[target]):
 			_error(&"local_loot_workspace_failed"); return
 		_navigate("inventory")
-	elif target == SupplyRunGraph.ROAD_GATE and _session.progression.snapshot().clock.counting:
+	elif target == SupplyRunGraph.ROAD_GATE and _session.progression.snapshot().get("clock", {}).get("counting", false):
 		_session.cancel_interaction()
 	else:
 		if not _session.interact(target): _notice = "Interaction was not admitted. Move closer and retry."
@@ -284,7 +290,9 @@ func _publish() -> void:
 			frame.combat = _session.hud_model.snapshot()
 			frame.actor_id = _session.raid.admission().actor_id.canonical_key()
 			frame.weapon_id = String(_session.hud_model.confirmed_frame().get("weapon", {}).get("instance_id", ""))
-	var layout := load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
+	if _map_layout == null:
+		_map_layout = load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
+	var layout := _map_layout
 	if layout != null:
 		for id: String in SupplyRunGraph.CRATES + [SupplyRunGraph.ROAD_GATE]:
 			frame.map_markers.append({"id":id,"label":LocalGameViews.display_item(id),"kind":"exit" if id == SupplyRunGraph.ROAD_GATE else "crate",
@@ -326,9 +334,20 @@ func shutdown() -> bool:
 	_ui_port.release()
 	return true
 
+## A failed local write must never trap the operator inside the window. The
+## first request surfaces the error and keeps the unsaved state on disk; an
+## explicit second request exits without inventing a successful save.
+func _quit() -> void:
+	if shutdown() or _quit_pending:
+		get_tree().quit()
+		return
+	_quit_pending = true
+	_notice = "Local save failed: " + String(last_error) \
+		+ ". Retry the save, or request quit again to exit without saving."
+	_publish()
+
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		if shutdown(): get_tree().quit()
+	if what == NOTIFICATION_WM_CLOSE_REQUEST: _quit()
 
 func _exit_tree() -> void:
 	if not _closed: shutdown()

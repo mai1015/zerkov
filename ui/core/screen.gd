@@ -155,9 +155,15 @@ func _build_for_context() -> void:
 		return
 	var local := app.local_game_ui()
 	if local != null and LocalFlowBinding.supports(app.current_route):
-		_local_binding = LocalFlowBinding.new()
-		add_child(_local_binding)
-		if not _local_binding.bind(self, local): _build_locked_state(&"local_binding_invalid")
+		var binding := LocalFlowBinding.new()
+		add_child(binding)
+		if not binding.bind(self, local):
+			# A retained failed binding would swallow every later refresh_view()
+			# and reflow(), leaving the locked state frozen at its first size.
+			binding.queue_free()
+			_build_locked_state(&"local_binding_invalid")
+			return
+		_local_binding = binding
 		return
 	if _should_render_locked_state():
 		_build_locked_state()

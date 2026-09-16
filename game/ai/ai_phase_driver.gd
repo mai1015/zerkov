@@ -17,6 +17,12 @@ var _inside: bool = false
 var _released: bool = false
 
 
+## True once bind() has taken a generation, so owners can skip releasing a
+## driver that never registered without reaching into its private state.
+func is_bound() -> bool:
+	return _generation != 0
+
+
 func bind(raid: RefCounted, generation: int, runtime: RaidAIRuntime,
 	movement_handler: StringName, movement_priority: int = 100,
 	audit_after: PackedStringArray = PackedStringArray(), audit_priority: int = 100) -> bool:

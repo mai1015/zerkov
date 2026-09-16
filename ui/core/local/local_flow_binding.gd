@@ -7,6 +7,7 @@ var _screen: ZScreen
 var _port: LocalGameUI
 var _epoch: int = 0
 var _map: LocalMapCanvas
+var _commands: Dictionary = {}
 
 static func supports(route: String) -> bool:
 	return ROUTES.has(route)
@@ -32,7 +33,8 @@ func bind(screen: ZScreen, port: LocalGameUI) -> bool:
 		top.connect("menu_requested", _send.bind(&"pause"))
 		for button: Node in top.find_children("*", "BaseButton", true, false): (button as BaseButton).disabled = false
 	if screen.app.current_route == "maps":
-		var canvas := screen.get_node("RegionCanvas") as Control
+		var canvas := screen.get_node_or_null("RegionCanvas") as Control
+		if canvas == null: return false
 		for child in canvas.get_children():
 			if child is CanvasItem: child.hide()
 		_map = LocalMapCanvas.new()
@@ -85,7 +87,7 @@ func _menu(frame: Dictionary) -> void:
 	_focus("MenuContinue/Hit" if frame.has_profile else "MenuPlay/Hit")
 
 func _home(frame: Dictionary) -> void:
-	for child in _screen.get_node("StationDetails").get_children():
+	for child in _children("StationDetails"):
 		if child is CanvasItem: child.hide()
 	for path: String in ["StationDetails/AltTitle", "StationDetails/AltDetail", "StationDetails/AltDescription", "StationDetails/AltUseAction", "StationDetails/UpgradeAction"]: _show(path, true)
 	_text("StationDetails/AltTitle", "LOCAL HOME")
@@ -135,7 +137,7 @@ func _hud(frame: Dictionary) -> void:
 	_text("TimerGroup/Extract", status)
 	_show("FeedGroup", true)
 	for name: String in ["Loot", "Kill"]:
-		for node in _screen.get_node("FeedGroup").get_children():
+		for node in _children("FeedGroup"):
 			if String(node.name).begins_with(name) and node is CanvasItem: node.hide()
 	_text("FeedGroup/TaskText", "SUPPLY RUN · %d / 3 searched · supplies %s" % [int(progression.get("task", {}).get("searched_crates", 0)), "HELD" if progression.get("task", {}).get("holds_objective", false) else "NOT HELD"])
 
@@ -285,13 +287,27 @@ func _button(path: String, command: StringName, title: String = "", enabled: boo
 	if button == null: return
 	button.disabled = not enabled or command.is_empty()
 	if button is Button and not title.is_empty(): button.text = title
+	var previous: StringName = _commands.get(path, &"")
+	if previous == command: return
+	var event := "triggered" if button.has_signal("triggered") else "pressed"
+	# Retiring the previous command is required: a node rebound to a different
+	# command would otherwise keep both connections and send both on one press.
+	if not previous.is_empty():
+		var retired := _send.bind(previous)
+		if button.is_connected(event, retired): button.disconnect(event, retired)
+	_commands[path] = command
 	if command.is_empty(): return
 	var callback := _send.bind(command)
-	var event := "triggered" if button.has_signal("triggered") else "pressed"
 	if not button.is_connected(event, callback): button.connect(event, callback)
 
+func _children(path: String) -> Array[Node]:
+	var node := _screen.get_node_or_null(path)
+	if node == null: return []
+	return node.get_children()
+
 func _card(path: String, title: String, detail: String, command: StringName, enabled: bool) -> void:
-	var card := _screen.get_node(path) as ZMenuActionCard
+	var card := _screen.get_node_or_null(path) as ZMenuActionCard
+	if card == null: return
 	card.card_title = title; card.card_subtitle = detail; card.disabled = not enabled
 	if not command.is_empty():
 		var callback := _send.bind(command)
