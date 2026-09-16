@@ -8,6 +8,7 @@ var _port: LocalGameUI
 var _epoch: int = 0
 var _map: LocalMapCanvas
 var _commands: Dictionary = {}
+var _hideout: Control
 
 static func supports(route: String) -> bool:
 	return ROUTES.has(route)
@@ -41,6 +42,7 @@ func bind(screen: ZScreen, port: LocalGameUI) -> bool:
 		canvas.add_child(_map)
 		_map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if screen.app.current_route == "hud": screen.call("apply_local_combat", {})
+	if screen.app.current_route == "bunker" and not _install_hideout(screen): return false
 	port.changed.connect(refresh)
 	refresh.call_deferred()
 	return true
@@ -133,7 +135,65 @@ static func primary_entry(frame: Dictionary) -> Dictionary:
 	return {"title":"LOCAL SAVE UNAVAILABLE", "command":StringName(), "enabled":false,
 		"detail":"Campaign data is unavailable. No new save was created. " + String(frame.get("notice", ""))}
 
+## bunker.tscn carries the authored station layout only as a placeholder; the
+## production hideout view is the real bunker and is what build() installs
+## everywhere outside the local flow. The binding skips build(), so install it
+## here too, then hand it the actions the local campaign actually owns.
+func _install_hideout(screen: ZScreen) -> bool:
+	var scene := load("res://game/presentation/bunker/bunker_hideout_view.tscn")
+	var view := scene.instantiate() as Control if scene != null else null
+	if view == null: return false
+	for child: Node in screen.get_children():
+		if child is CanvasItem: (child as CanvasItem).hide()
+	view.name = "BunkerHideoutView"
+	screen.add_child(view)
+	_hideout = view
+	if view.has_signal("menu_requested"): view.connect("menu_requested", _send.bind(&"pause"))
+	# The authored footer advertises build/craft/upgrade and calls the systems
+	# locked. Neither is true here, and the space is the only free width on the
+	# screen, so it carries the two real actions instead.
+	for node: Node in view.get_children():
+		if node is Label:
+			var text := (node as Label).text
+			if text.begins_with("BUILD") or text.begins_with("Systems locked") \
+				or text.begins_with("Click a room"): (node as Label).hide()
+			elif text.begins_with("OFFLINE"): (node as Label).text = "LOCAL SAVE  /  SOLO"
+	_hideout_button(view, "LocalLoadout", &"loadout", "OPEN LOADOUT", Vector2(1004, 1016))
+	_hideout_button(view, "LocalDeploy", &"deploy", "DEPLOY TO SAWMILL", Vector2(1256, 1016))
+	_hideout_label(view, "LocalNotice", Rect2(388, 1016, 600, 46), 11)
+	_hideout_label(view, "LocalProfile", Rect2(1576, 122, 272, 20), 11)
+	return true
+
+
+## The view owns the bunker's type and button styling, so build the local
+## actions through its own helpers rather than dropping default-themed controls
+## onto authored art.
+func _hideout_button(view: Control, name: String, command: StringName, text: String, at: Vector2) -> void:
+	var button := view.call("button", text, Rect2(at, Vector2(236, 36))) as Button
+	if button == null: return
+	button.name = name
+	_button("BunkerHideoutView/" + name, command, text)
+
+
+func _hideout_label(view: Control, name: String, rect: Rect2, size: int) -> void:
+	var text := view.call("label", "", rect, size, view.get("MUTED")) as Label
+	if text == null: return
+	text.name = name
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+
 func _home(frame: Dictionary) -> void:
+	if _hideout != null:
+		_text("BunkerHideoutView/LocalNotice", frame.notice)
+		_text("BunkerHideoutView/LocalProfile", "LOCAL · PROFILE GENERATION %d" % frame.profile_generation)
+		_button("BunkerHideoutView/LocalLoadout", &"loadout", "OPEN LOADOUT")
+		_button("BunkerHideoutView/LocalDeploy", &"deploy", "DEPLOY TO SAWMILL", frame.error.is_empty())
+		_focus("BunkerHideoutView/LocalDeploy")
+		return
+	_home_placeholder(frame)
+
+
+func _home_placeholder(frame: Dictionary) -> void:
 	for child in _children("StationDetails"):
 		if child is CanvasItem: child.hide()
 	for path: String in ["StationDetails/AltTitle", "StationDetails/AltDetail", "StationDetails/AltDescription", "StationDetails/AltUseAction", "StationDetails/UpgradeAction"]: _show(path, true)

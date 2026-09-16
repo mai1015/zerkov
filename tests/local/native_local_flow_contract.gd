@@ -107,11 +107,11 @@ func run() -> void:
 	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
 	check(_store.load_profile().generation == 1, "explicit new game committed once")
 	check(not _game._ui_port.request(&"create", _game._epoch - 1), "retired UI epoch cannot issue a new profile")
-	if not await click("StationDetails/AltUseAction") or not route("inventory"): await finish(); return
+	if not await click("BunkerHideoutView/LocalLoadout") or not route("inventory"): await finish(); return
 	check(_game._character.inventory_view(&"raid").is_ready(), "existing inventory workspace consumes native loadout")
 	await key(KEY_ESCAPE)
 	if not route("bunker"): await finish(); return
-	if not await click("StationDetails/UpgradeAction") or not route("hud"): await finish(); return
+	if not await click("BunkerHideoutView/LocalDeploy") or not route("hud"): await finish(); return
 	check(_game._session.rows.size() == 3 and _game._session.ai != null, "player Scav and mutant in real runtime")
 	check(not _store.load_profile().payload.project[RaidProgressionValues.STATE_KEY].active.is_empty(), "deployment escrow precedes gameplay")
 	if OS.get_environment("ZERKOV_TEST_SCENARIO") == "clock":
@@ -155,7 +155,7 @@ func run() -> void:
 	var extract_generation: int = _store.load_profile().generation
 	if not await click("BackBunker") or not route("bunker"): await finish(); return
 	check(_store.load_profile().generation == extract_generation, "return after extract does not settle twice")
-	if not await click("StationDetails/UpgradeAction") or not route("hud"): await finish(); return
+	if not await click("BunkerHideoutView/LocalDeploy") or not route("hud"): await finish(); return
 	check(_game._session.hud_model.snapshot().has_weapon, "extraction retains actual equipped weapon")
 	await key(KEY_ESCAPE)
 	if not await click("ActionsPanel/SaveQuitRow/Hit"): await finish(); return
@@ -180,7 +180,7 @@ func run() -> void:
 	var generation: int = _store.load_profile().generation
 	if not await click("BackBunker") or not route("bunker"): await finish(); return
 	check(_store.load_profile().generation == generation, "return does not settle twice")
-	if not await click("StationDetails/UpgradeAction") or not route("hud"): await finish(); return
+	if not await click("BunkerHideoutView/LocalDeploy") or not route("hud"): await finish(); return
 	check(_game._session.combat.health.actor_snapshot(_game._session.raid.admission().actor_id).alive, "new raid creates recovered live GAS actor")
 	check(not _game._session.hud_model.snapshot().has_weapon, "loss does not trigger weapon seed")
 	var death_driver = load("res://tests/local/local_flow_player_driver.gd").new()
@@ -190,7 +190,7 @@ func run() -> void:
 	check(not _game._summary.health.alive and _game._summary.stats.damage_received_micros > 0, "death summary uses actual committed health and damage")
 	if not await click("BackBunker") or not route("bunker"): await finish(); return
 	check(_store.load_profile().generation == death_generation, "home recovery does not rewrite historical death settlement")
-	if not await click("StationDetails/UpgradeAction") or not route("hud"): await finish(); return
+	if not await click("BunkerHideoutView/LocalDeploy") or not route("hud"): await finish(); return
 	check(_game._session.combat.health.actor_snapshot(_game._session.raid.admission().actor_id).alive, "post-death deployment creates live recovered health")
 	check(not _game._session.hud_model.snapshot().has_weapon, "death recovery does not recreate lost firearm")
 	check(_game.shutdown(), "shutdown leaves live escrow, not fabricated results")
