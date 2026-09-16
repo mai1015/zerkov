@@ -92,21 +92,26 @@ func _menu(frame: Dictionary) -> void:
 	# Saying the campaign is unavailable is not actionable on its own. The card
 	# body is empty in that state, so spend it on the folder holding the save.
 	if entry.enabled: _text("ContinueCard/CloudStatus", frame.notice)
-	else: _blocked_location(String(frame.get("save_location", "")))
+	else: _blocked_location(String(frame.error), String(entry.detail), String(frame.get("save_location", "")))
 	_focus("MenuPlay/Hit" if entry.enabled else "MenuSettings/Hit")
 
 
 ## The authored CloudStatus line is a single 220px strip, so a filesystem path
 ## clips at the card edge unread. Hand it the empty card body and let it wrap.
 ## Only the blocked path moves it; nothing here touches the save itself.
-func _blocked_location(location: String) -> void:
+func _blocked_location(reason: String, detail: String, location: String) -> void:
 	var card := _screen.get_node_or_null("ContinueCard") as Control
 	var label := _screen.get_node_or_null("ContinueCard/CloudStatus") as Label
-	if card == null or label == null or location.is_empty(): return
-	var home := OS.get_environment("HOME")
-	label.text = "To start a new local game, move or remove the save in:\n" \
-		+ (location if home.is_empty() or not location.begins_with(home) \
-			else "~" + location.substr(home.length()))
+	if card == null or label == null: return
+	# The reason has to stay readable here and not only on the disabled button,
+	# and on its own it is not actionable, so the folder follows it. The button
+	# already carries the full sentence, so the body keeps only what differs.
+	label.text = "Cannot open the campaign: " + reason + "." if not reason.is_empty() else detail
+	if not location.is_empty():
+		var home := OS.get_environment("HOME")
+		label.text += "\n\nTo start a new local game, move or remove the save in:\n" \
+			+ (location if home.is_empty() or not location.begins_with(home) \
+				else "~" + location.substr(home.length()))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	label.position = Vector2(14.0, 150.0)
