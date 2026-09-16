@@ -1,0 +1,29 @@
+# Run with the same pinned godot-cpp SDK/profile as the candidate. Linux only.
+# Source copies, objects and libraries go in a new outside build directory.
+import os
+import shutil
+from pathlib import Path
+
+root = Path(Dir('#').abspath)  # Run from the repository root.
+source = root / 'tools/cold_discovery'
+out = Path(os.environ['DISCOVERY_BUILD']).resolve()
+sdk = Path(os.environ['GODOT_CPP']).resolve()
+if out.is_relative_to(root) or root.is_relative_to(out):
+    raise ValueError('DISCOVERY_BUILD must be outside the source checkout')
+if ARGUMENTS.get('platform') != 'linux' or ARGUMENTS.get('arch') != 'x86_64':
+    raise ValueError('This reproducer was qualified only on Linux x86-64')
+if not ARGUMENTS.get('build_profile'):
+    raise ValueError('Pass the absolute pinned candidate build_profile path')
+env = SConscript(str(sdk / 'SConstruct'))
+env.Append(CXXFLAGS=['-std=c++17'])
+out.mkdir(parents=True, exist_ok=True)
+outputs = []
+for name, defines in [('one_class', []), ('zero_classes', ['DISCOVERY_ZERO_CLASSES'])]:
+    target_source = out / (name + '.cpp')
+    if target_source.exists() and target_source.read_bytes() != (source / 'probe.cpp').read_bytes():
+        raise ValueError('Refusing to replace existing different probe source')
+    shutil.copyfile(source / 'probe.cpp', target_source)
+    e = env.Clone()
+    e.Append(CPPDEFINES=defines)
+    outputs += e.SharedLibrary(target=str(out / name), source=[str(target_source)])
+Default(outputs)

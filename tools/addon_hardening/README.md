@@ -87,8 +87,9 @@ GAS target-authorization/relevance RPC suite.
 that automatically discovers these libraries aborts at the end of its first
 import. The same abort was reproduced with the *unchanged* Weapon addon rebuilt
 against the same SDK/profile. Explicit startup registration avoids this path.
-That isolates the symptom from the candidate bridge changes but is not a root
-cause diagnosis or a fix for cold editor discovery. This prerequisite remains
+The follow-up `docs/qa/cold_discovery/REPORT.md` now root-causes the reproduced
+Linux fast-exit abort to a deferred engine documentation callback after cleanup.
+No production engine fix has been built or shipped. This prerequisite remains
 open for package promotion. A green candidate job must not be described as
 cold-discovery, export, deployment, or full platform qualification.
 
