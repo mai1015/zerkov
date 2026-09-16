@@ -18,6 +18,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 	_game = game; _tree = tree; _check = check_callback
 	_started_ms = Time.get_ticks_msec()
 	print("LOCAL_FLOW_DRIVER start tick=", _game._session.raid.last_processed_tick)
+	_profile_read_only_costs()
 	# Reload through the actual logical R action before leaving the entry.
 	_key(KEY_R, true); _key(KEY_R, false)
 	for _i in range(ZerkovCombatContent.AKM_RELOAD_TICKS + 2):
@@ -30,7 +31,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 			if not await _tick(Vector2.ZERO): return false
 		if not _assert(_game._session.nearest_target() == id, "input traversal reaches " + id): return false
 		_key(KEY_E, true); _key(KEY_E, false)
-		await _tree.process_frame # Root consumes interaction outside input dispatch.
+		await _tree.process_frame
 		var completed: bool = false
 		for _i in range(120):
 			if not await _tick(Vector2.ZERO): return false
@@ -203,3 +204,15 @@ func _wait_route(expected: String) -> bool:
 
 func _assert(ok: bool, message: String) -> bool:
 	return bool(_check.call(ok, message))
+
+func _profile_read_only_costs() -> void:
+	var start: int = Time.get_ticks_usec()
+	_game._publish()
+	print("LOCAL_FLOW_PROFILE publish_usec=", Time.get_ticks_usec() - start)
+	var raid := _game._session.raid
+	var keys := raid._handler_ids.keys(); keys.sort()
+	for key in keys:
+		var entry: Dictionary = raid._handler_ids[key]
+		start = Time.get_ticks_usec()
+		var safe := raid.phase_handler_callback_is_safe(entry.callback)
+		print("LOCAL_FLOW_PROFILE handler=", key, " safety_usec=", Time.get_ticks_usec() - start, " safe=", safe)
