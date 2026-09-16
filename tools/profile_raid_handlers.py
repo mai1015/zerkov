@@ -151,6 +151,7 @@ def execute(command: list[str], env: dict[str, str], timeout: int = 300) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", type=Path, required=True)
+    parser.add_argument("--baseline-ref", help="Git revision supplying the two optimized production files")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[1]
     engine = str(args.godot.expanduser().resolve(strict=True))
@@ -160,14 +161,25 @@ def main() -> int:
         raise ValueError("Godot must match the lock")
     checksums = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
                  for p in [source / "game/raid/raid_authority.gd", source / "game/combat/health_consequence_adapter.gd",
-                           source / "game/raid/raid_callback_capture_scanner.gd", source / "game/bootstrap/local/local_game.gd"]}
+                           source / "game/raid/raid_callback_capture_scanner.gd", source / "game/bootstrap/local/local_game.gd",
+                           source / "game/combat/content/zerkov_health_ability_content.gd"]}
     print("RAID_PROFILE_SOURCE " + json.dumps(checksums), flush=True)
     traces = []
-    for enabled in (False, True):
-        print("RAID_PROFILE_MODE " + ("instrumented" if enabled else "control"), flush=True)
+    modes = ["baseline", "control", "control", "baseline", "instrumented"] if args.baseline_ref else ["control", "instrumented"]
+    optimized = ("game/raid/raid_callback_capture_scanner.gd", "game/combat/content/zerkov_health_ability_content.gd")
+    baseline = {}
+    if args.baseline_ref:
+        revision = subprocess.check_output(["git", "rev-parse", "--verify", args.baseline_ref + "^{commit}"], cwd=source, text=True).strip()
+        baseline = {name: subprocess.check_output(["git", "show", revision + ":" + name], cwd=source) for name in optimized}
+        print("RAID_PROFILE_BASELINE " + json.dumps({"revision":revision, "files":{name:hashlib.sha256(data).hexdigest() for name,data in baseline.items()}}), flush=True)
+    for mode in modes:
+        enabled = mode == "instrumented"
+        print("RAID_PROFILE_MODE " + mode, flush=True)
         with tempfile.TemporaryDirectory(prefix="zerkov-handler-profile-") as temp:
             project = Path(temp) / "project"
             shutil.copytree(source, project, ignore=shutil.ignore_patterns(".git", ".godot", ".codegraph", "__pycache__"))
+            if mode == "baseline":
+                for name, data in baseline.items(): (project / name).write_bytes(data)
             instrument(project, enabled)
             env["XDG_DATA_HOME"] = str(Path(temp) / "userdata")
             base = [engine, "--headless", "--path", str(project), "--resolution", "1920x1080", "--audio-driver", "Dummy"]
@@ -184,12 +196,12 @@ def main() -> int:
                 traces.append(json.loads(match[1]))
             finally:
                 execute(script + ["cleanup", namespace], env)
-    if traces[0] != traces[1]:
-        raise RuntimeError("Instrumentation changed the authoritative trace")
+    if any(trace != traces[0] for trace in traces):
+        raise RuntimeError("Baseline, candidate or instrumentation changed the authoritative trace")
     for name, digest in checksums.items():
         if hashlib.sha256((source / name).read_bytes()).hexdigest() != digest:
             raise RuntimeError("Original checkout changed during profiling")
-    print("RAID_PROFILE_COMPLETE control_matches_instrumented=true original_checkout_unchanged=true")
+    print("RAID_PROFILE_COMPLETE control_matches_instrumented=true original_checkout_unchanged=true baseline_matches_candidate=" + ("true" if args.baseline_ref else "not_run"))
     return 0
 
 
