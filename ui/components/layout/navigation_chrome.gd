@@ -19,6 +19,11 @@ const ACCENT := Color("e8962e")
 
 const CHARACTER_ROUTES := ["inventory", "health", "stats", "character"]
 
+var offline_profile_mode: bool = false:
+	set(value):
+		offline_profile_mode = value
+		_refresh_state()
+
 @export var active_route: String = "inventory":
 	set(value):
 		active_route = value
@@ -116,9 +121,16 @@ func _refresh_state() -> void:
 	if not is_node_ready():
 		return
 
-	_level_label.text = level_text
-	_money_label.text = money_text
+	_level_label.text = "OFFLINE" if offline_profile_mode else level_text
+	_money_label.text = "LOCAL PROFILE" if offline_profile_mode else money_text
 	_task_count_label.text = str(maxi(task_count, 0))
+	if offline_profile_mode:
+		$TaskBadge.hide()
+		_maps_button.disabled = true
+		_tasks_button.disabled = true
+		_insurance_button.disabled = true
+		for button: CommonButton in [_maps_button, _tasks_button, _insurance_button]:
+			button.tooltip_text = "Unavailable in the offline bunker milestone"
 
 	_set_route_state(_character_button, _character_underline, "inventory")
 	_set_route_state(_maps_button, _maps_underline, "maps")

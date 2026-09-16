@@ -12,6 +12,9 @@ const SETTINGS_SECTIONS := ["gameplay", "hud", "video", "audio"]
 
 
 func build() -> void:
+    if app.offline_bunker() != null:
+        _build_offline_settings()
+        return
     reset_adaptive_layout()
     route = "settings"
     var saved_scroll = _state_value("utility_settings_scroll", {})
@@ -333,3 +336,91 @@ func _apply_preview_state() -> void:
     if ring_inner != null:
         ring_inner.visible = shape == "RING"
         ring_inner.add_theme_stylebox_override("panel", _style_box(Color.TRANSPARENT, color, 2))
+
+
+var _offline_settings_generation: int = -1
+
+func _build_offline_settings() -> void:
+    reset_adaptive_layout()
+    route = "settings"
+    _configure_static_styles()
+    _bind_chrome()
+    for node: Node in get_children():
+        var section := str(node.get_meta("settings_section", ""))
+        if section in SETTINGS_SECTIONS:
+            node.visible = section == "audio"
+    for node: Node in find_children("*", "Button", true, false):
+        if node.has_meta("settings_kind") or node.has_meta("settings_category") or node.has_meta("settings_preset"):
+            node.disabled = true
+            node.tooltip_text = "Unavailable before raid integration"
+    for node: Node in find_children("*", "HSlider", true, false):
+        node.editable = false
+        node.tooltip_text = "Unavailable before raid integration"
+    for name: String in ["PreviewApply", "PreviewRevert"]:
+        var button := get_node_or_null(name) as Button
+        if button != null:
+            button.disabled = true
+    for node: Node in get_children():
+        if node is CanvasItem and (str(node.name).begins_with("Preview") or str(node.name).begins_with("Preset") or str(node.name).begins_with("QuickBind")):
+            node.hide()
+    get_node("SessionInfo").text = "LOCAL PROFILE · NO SERVER CONNECTION"
+    get_node("BuildInfo").text = "Offline bunker milestone"
+    get_node("SidebarHeaderNote").text = "LOCAL"
+    get_node("SettingAudioPushToTalkState").text = "UNAVAILABLE"
+    get_node("SettingAudioPushToTalkIndicator").hide()
+    var summary := get_node_or_null("OfflineSettingsSummary") as Label
+    if summary == null:
+        summary = U.label(self, "", Rect2(1392, 136, 480, 220), 14, U.MUTED)
+        summary.name = "OfflineSettingsSummary"
+        summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    summary.text = "LOCAL SETTINGS\n\nMaster volume saves with this profile.\n\nKeyboard and controller bindings are available below. Raid previews, voice, gameplay presets and other audio channels are not enabled."
+    var status := app.offline_bunker().local_status()
+    _offline_settings_generation = int(status.generation)
+    var volume: HSlider = null
+    for node: Node in find_children("*", "HSlider", true, false):
+        if str(node.get_meta("settings_key", "")) == "audio_master":
+            volume = node
+    if volume != null:
+        volume.min_value = 0
+        volume.max_value = 100
+        volume.step = 1
+        volume.set_value_no_signal(int(status.get("master_volume", 80)))
+        get_node("SettingAudioMasterValue").text = "%d%%" % int(status.get("master_volume", 80))
+        volume.editable = bool(status.open)
+        volume.tooltip_text = "Master volume · saved on this local profile" if status.open else "Open your local profile first"
+        if not volume.value_changed.is_connected(_offline_volume_changed):
+            volume.value_changed.connect(_offline_volume_changed)
+    var chrome := get_node_or_null("NavigationChrome") as ZNavigationChrome
+    if chrome != null:
+        chrome.show()
+        chrome.layout_for(Vector2(1920, 1080))
+    var controls := get_node_or_null("OfflineSettingsNotice") as Label
+    if controls == null:
+        controls = U.label(self, "Offline settings · master volume saves with this profile. Other gameplay settings are unavailable.", Rect2(380, 948, 1130, 28), 12, U.SOFT)
+        controls.name = "OfflineSettingsNotice"
+    var bindings := get_node_or_null("OfflineControlBindings") as Button
+    if bindings == null:
+        bindings = Button.new()
+        bindings.name = "OfflineControlBindings"
+        bindings.text = "KEYBOARD / CONTROLLER BINDINGS"
+        bindings.position = Vector2(1550, 930)
+        bindings.size = Vector2(322, 42)
+        bindings.pressed.connect(_offline_open_controls)
+        add_child(bindings)
+    default_focus = get_path_to(bindings)
+    queue_adaptive_layout()
+
+func _offline_volume_changed(value: float) -> void:
+    var offline := app.offline_bunker()
+    if offline == null or not accepts_input():
+        return
+    if not offline.request(&"volume", _offline_settings_generation, int(value)):
+        for node: Node in find_children("*", "HSlider", true, false):
+            if str(node.get_meta("settings_key", "")) == "audio_master":
+                node.set_value_no_signal(int(offline.local_status().master_volume))
+        toast("Volume was not saved · " + String(offline.local_status().error))
+    get_node("SettingAudioMasterValue").text = "%d%%" % int(offline.local_status().master_volume)
+
+func _offline_open_controls() -> void:
+    if accepts_input():
+        go("controls")

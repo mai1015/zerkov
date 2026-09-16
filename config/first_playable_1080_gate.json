@@ -134,6 +134,10 @@
     "tests/ai/ai_debug_render_contract.gd": {
       "purpose": "synthetic AI diagnostics with approved 640x360 nearest 3x world; not native gameplay acceptance",
       "sha256": "d755dee2ff26a69721e115867752373e3d677d7cb2e386fdf64225f530d31475"
+    },
+    "tests/presentation/offline_bunker_flow.gd": {
+      "purpose": "offline default normal-input bunker and native inventory persistence",
+      "sha256": "84a2979af69e4556dfd518eeb6473c5851d803a0ad7802a414f2eb028337fac0"
     }
   },
   "active_command_entrypoints": {
@@ -204,6 +208,10 @@
     "tests/tooling/run_bunker_hideout_gate.py": {
       "purpose": "Exact-1080 graphical bunker capture gate",
       "sha256": "f09a63daa84a6f6e28b3f4134f635cf6a5e6c95d125baa7be6ca398de1316713"
+    },
+    "tests/tooling/run_offline_bunker_gate.py": {
+      "purpose": "offline default normal-input bunker and native inventory persistence",
+      "sha256": "35b2bad6621fe45a922423944661613efe900cdd4c0b42a94bbbb0cc0656c720"
     }
   },
   "active_reviewed_support": {
@@ -501,6 +509,13 @@
         "world.size = Vector2i(640, 360)",
         "image_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST",
         "image_rect.size = Vector2(1920, 1080)"
+      ]
+    },
+    "tests/presentation/offline_bunker_flow.gd": {
+      "physical_guard_call": "Exact1080CaptureGuard.accepts(root, root, image)",
+      "guard_anchors": [
+        "root.size = EXACT",
+        "const EXACT := Vector2i(1920, 1080)"
       ]
     }
   }
