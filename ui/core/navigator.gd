@@ -138,7 +138,12 @@ func _open(intent: ZUIRouteIntent) -> void:
 	# injected runtime without touching fixture storage.
 	if host.screen != null and host.screen.has_method("stash_character_interaction_state"):
 		host.screen.call("stash_character_interaction_state")
-	if host.current_route == route and host.screen is ZScreen:
+	# A settled result keeps the same route name but replaces the local epoch.
+	# Never refresh a retired context: its intent port is deliberately invalid.
+	# Stage the replacement through CommonUI so old callbacks stay rejected.
+	if host.current_route == route and host.screen is ZScreen \
+			and host.screen.app != null \
+			and (host.screen.app.local_epoch() == 0 or host.screen.app.local_game_ui() != null):
 		host.screen.refresh_view()
 		return
 	var instance := scene.instantiate()

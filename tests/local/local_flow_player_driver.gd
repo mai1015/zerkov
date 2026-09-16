@@ -211,7 +211,9 @@ func _wait_route(expected: String, allow_save_error: bool = false) -> bool:
 	var deadline: int = Time.get_ticks_msec() + 4000
 	while Time.get_ticks_msec() < deadline:
 		if not _game.last_error.is_empty() and not (allow_save_error and _game._mode == "save_error"): break
-		if _game._ui.current_route == expected and _game._ui.screen.is_routing_active(): return true
+		if _game._ui.current_route == expected and _game._ui.screen.is_routing_active() \
+			and _game._ui.screen.is_visible_in_tree() \
+			and _game._ui.screen.app.local_epoch() == _game._epoch: return true
 		await _tree.create_timer(0.02).timeout
 	return _assert(false, "await route " + expected + ": " + _game._ui.current_route + " / " + String(_game.last_error))
 
@@ -235,6 +237,7 @@ func _retry_pending_save() -> bool:
 	if not _assert(_game._summary.is_empty() and not _game._provider.summary_view(_game._epoch).is_ready(), "no committed summary before successful write"): return false
 	var button: Button = _game._ui.screen.get_node("BackBunker") as Button
 	if not _assert(button.text == "RETRY LOCAL SAVE" and not button.disabled, "pending-summary retry control is usable"): return false
+	var pending_epoch: int = _game._epoch
 	var before := _game._campaign.store.load_profile()
 	var raid_id: String = _game._session.raid.raid_id().canonical_key()
 	if not _assert(not before.payload.project[RaidProgressionValues.STATE_KEY].history.has(raid_id), "failed prepare cannot publish history"): return false
@@ -244,6 +247,8 @@ func _retry_pending_save() -> bool:
 		await _tree.create_timer(0.02).timeout
 	if not await _wait_route("summary_solo"): return false
 	if not _assert(_game._mode == "summary" and _game._summary.raid_id == raid_id, "same raid commits once after physical retry"): return false
+	if not _assert(_game._epoch > pending_epoch and _game._ui.screen.accepts_input(), "committed summary has a fresh usable UI context"): return false
+	if not _assert(not _game._ui_port.request(&"retry_save", pending_epoch), "retired pending-summary commands are rejected"): return false
 	print("LOCAL_FLOW_SAVE_RETRY committed=true injected_writes=1")
 	return true
 
