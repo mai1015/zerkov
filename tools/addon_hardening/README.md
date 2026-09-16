@@ -1,0 +1,67 @@
+# Task 10.1 — native hardening candidate
+
+This is a **reviewable local-fork candidate**, not an upstream hardening signoff
+or a silently re-vendored package. The canonical sibling repositories were not
+available to this connection. Exact audited sources are reproduced outside the
+checkout; the six approved source transformations are byte-checked before and
+after. No production addon directory, addon lock or release manifest is edited.
+
+## Reconciliation
+
+- W1: actual core compatibility comparison, a server-originated offer and a
+  connection-bound handshake. The client must load its own sealed catalog.
+- W2: fresh random connection token scopes command identity. The host receives a
+  server-created canonical ID, not a bare client `c1`. Client-selected entropy is
+  excluded from the execution envelope. Client and native command sequences are
+  deliberately distinct; only the game executor assigns native sequences.
+- W3: snapshots, deltas, resync, acknowledgement and result feeds all check live
+  session/compatibility/grant. Only actually sent revisions can be acknowledged.
+  Bounds precede packet copying; unauthorised errors expose no instance revision.
+- W4: initial snapshot ack includes revision zero; later state uses deltas. Fresh
+  connection tokens invalidate old packets. Replacement/disconnect clears
+  confirmed and predicted state and requires fresh explicit grants. Revocation
+  removes the local replica without inventing a gameplay tombstone.
+- W5: RPC handlers never call native mutation. A required game callback admits
+  values into its own tick queue and defaults to denial, including attachment
+  and reload inventory claims. Before execution, the game must call
+  `command_still_current`; after its real outcome, `complete_command`. Queue
+  admission never confirms predicted success and snapshots from other actors
+  cannot confirm a client's intent by an unrelated sequence watermark.
+- G1/G2: target authorization defaults required; unset/empty relevance defaults
+  nobody. Explicit nonempty host allowlists remain supported.
+
+## Deliberately changed optional-bridge contract
+
+`WNB1` is a new bridge envelope over the unchanged core Weapon protocol DTOs.
+It is not wire-compatible with the previously shipped bridge. An old client
+must fail negotiation, not be treated as compatible. This is a candidate for
+review, not a version-bump/release-authority substitute. The old context/profile
+provider setter names remain for migration but no longer enable direct RPC
+mutations. Install a command-admission handler instead. Returning a malformed
+admission result invalidates that connection rather than promising safe retry.
+
+The token is connection correlation, not account authentication. The host still
+owns peer authentication, actor ownership, canonical tick, inventory and world
+validation, server entropy, multi-domain transactions and save policy. This does
+not implement Steam transport, matchmaking, public PvP or a hosted backend.
+
+## Build and evidence
+
+CI stages the candidate, checks the godot-cpp SDK against the project's exact
+lock, builds both addons, loads the resulting libraries in isolated projects,
+and runs a real-ENet three-peer contract. Native gameplay libraries are not
+replaced by GDScript doubles. Artifacts include changed-source digests, build
+metadata, native result logs, and candidate libraries. Read-only CI has no
+patch-application/auto-push workflow or credential persistence.
+
+`tools/addon_hardening/tests/bridge_contract.gd.in` is a candidate-only test
+source template. It is deliberately not an importable production GDScript:
+unchanged installed binaries do not yet expose the candidate API. The verifier
+materializes it only in the isolated exact-1080 candidate test project.
+
+Run `python3 tools/addon_hardening/test_staging.py` for the source guard tests.
+The SCons/verify invocations in `.github/workflows/addon-hardening.yml` are the
+reproduction recipe. A successful candidate build/load is not a full-platform
+export or task-10 public release signoff. Promotion requires owner review,
+release version/provenance, a normal locked-package import and full game-side
+regressions with promoted artifacts. Until then, shipped networking stays off.
