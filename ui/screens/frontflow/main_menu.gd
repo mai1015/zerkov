@@ -157,21 +157,21 @@ func _build_offline_menu() -> void:
 	$Header/SwitchAccount.tooltip_text = "One local profile. Accounts are not required."
 	$MenuContinue.card_title = "CONTINUE" if exists else "NEW LOCAL GAME"
 	$MenuContinue.card_subtitle = "Open your saved bunker" if exists else "Create a local bunker with a one-time starter kit"
-	$MenuPlay.card_title = "NEW GAME"
-	$MenuPlay.card_subtitle = "Existing profile kept — reset is unavailable" if exists else "Create your local profile"
+	$MenuPlay.card_title = "PROFILE MANAGEMENT"
+	$MenuPlay.card_subtitle = "One local save · reset is unavailable"
 	$MenuJoinFriend.card_title = "MULTIPLAYER"
 	$MenuJoinFriend.card_subtitle = "Future Steam sessions · unavailable"
+	$MenuSettings.card_subtitle = "Local audio · input bindings"
 	$MenuExtras.card_title = "DEPLOY"
 	$MenuExtras.card_subtitle = "Raid integration is not enabled"
 	var rows := ["MenuContinue", "MenuPlay", "MenuJoinFriend", "MenuSettings", "MenuExtras", "MenuQuit"]
 	for id: String in rows:
 		var card: ZMenuActionCard = get_node(id)
 		var target: Button = card.get_focus_target()
-		target.disabled = id in ["MenuJoinFriend", "MenuExtras"] or (id == "MenuPlay" and exists)
+		target.disabled = id in ["MenuPlay", "MenuJoinFriend", "MenuExtras"]
 		if not target.disabled:
 			menu_entries.append(target)
 	_wire_offline_card("MenuContinue", _offline_open)
-	_wire_offline_card("MenuPlay", _offline_open)
 	_wire_offline_card("MenuSettings", func(): go("settings"))
 	_wire_offline_card("MenuQuit", func(): offline.request(&"quit", int(offline.local_status().generation)))
 	var action := $ContinueAction as Button
@@ -186,16 +186,22 @@ func _build_offline_menu() -> void:
 	$ContinueCard/Stats/CharacterValue.text = "LOCKED"
 	$ContinueCard/Stats/PlaytimeLabel.text = "STORAGE"
 	$ContinueCard/Stats/PlaytimeValue.text = "DEVICE"
-	$ContinueCard/CloudStatus.text = "No cloud or server sync. Inventory changes save on acceptance."
+	$ContinueCard/CloudStatus.text = "LOCAL SAVE · NO CLOUD SYNC"
+	$ContinueCard/CloudStatus.clip_text = true
+	$ContinueCard/CloudStatus.tooltip_text = "Inventory changes are saved locally before acceptance. No cloud or server sync."
 	$ContinueCard/ManageSaves.text = "PROFILE STATUS"
 	_wire_button($ContinueCard/ManageSaves, func(): toast(_offline_status_message()))
 	for id: String in ["FriendKevin", "FriendDenz", "FriendMara", "FriendCode"]:
 		get_node(id).hide()
 	$FriendsTitle.text = "LOCAL FIRST"
-	$FriendsSubtitle.text = "Steam multiplayer is planned. No login is needed to play offline."
+	$FriendsSubtitle.text = "No login or server required"
+	$PatchCard/PatchTitle.text = "PRE-RAID MVP"
+	$PatchCard/PatchAge.text = "LOCAL"
+	$PatchCard/PatchSummary.text = "Bunker · stash · loadout"
 	_build_focus_graph()
 	if not state.error.is_empty():
-		$ContinueCard/CloudStatus.text = "PROFILE ERROR · " + String(state.error).replace("_", " ")
+		$ContinueCard/CloudStatus.text = "PROFILE NEEDS ATTENTION"
+		$ContinueCard/CloudStatus.tooltip_text = String(state.error).replace("_", " ")
 	queue_adaptive_layout()
 
 func _wire_offline_card(id: String, action: Callable) -> void:
