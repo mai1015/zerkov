@@ -58,7 +58,7 @@ results; the original full scanner remains the differential-test reference.
 ## Controls
 
 WASD move; mouse aim; left mouse fire; R reload; V melee; E search/open/extract;
-Tab inventory; M map; T Tasks; Escape pause/back. Search must complete before E
+I inventory; M map; J Tasks; Escape pause/back. Search must complete before E
 opens the existing loot workspace. Ctrl-click or the existing inventory controls
 transfer items. Road Gate requires three distinct searches and retained supplies.
 Its five-second countdown is canonical; taking damage or leaving interrupts it.

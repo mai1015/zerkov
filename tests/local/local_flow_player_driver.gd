@@ -41,7 +41,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 		print("LOCAL_FLOW_SEARCH tick=", ticks, " crate=", id)
 		if id == SupplyRunGraph.CRATES[0] and not await _take_objective(): return false
 	var clock_before: int = _game._session.raid.last_processed_tick
-	_key(KEY_T, true); _key(KEY_T, false)
+	_key(KEY_J, true); _key(KEY_J, false)
 	if not await _wait_route("tasks"): return false
 	var task_screen: Control = _game._ui.screen
 	for index in range(3):

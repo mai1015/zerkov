@@ -6,8 +6,8 @@ class FailOnceFileOperations:
 	extends GodotProfileFileOperations
 	var fail_next_write: bool = false
 	var injected_count: int = 0
-	func _init(namespace: StringName) -> void:
-		super(namespace)
+	func _init(test_namespace: StringName) -> void:
+		super(test_namespace)
 	func write_temp(slot: StringName, bytes: PackedByteArray) -> Dictionary:
 		if fail_next_write:
 			fail_next_write = false
