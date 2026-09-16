@@ -8,7 +8,8 @@ from pathlib import Path
 import hashlib,json,re
 ROOT=Path(__file__).resolve().parents[1]
 manifest_path=ROOT/'config/first_playable_1080_gate.json'
-manifest=json.loads(manifest_path.read_text())
+original_manifest = manifest_path.read_text()
+manifest=json.loads(original_manifest)
 visual='tests/presentation/map_studies_contract.gd'
 command='tests/tooling/run_map_studies_gate.py'
 for group,path,purpose in [('active_visual_entrypoints',visual,'two original map studies; guarded native screenshots and input'),('active_command_entrypoints',command,'isolated exact-1080 map scene capture and repeatability')]:
@@ -21,7 +22,10 @@ source=test.read_text()
 for required,group in [(visual,'active_visual_entrypoints'),(command,'active_command_entrypoints'),(visual,'sanctioned_capture_writers')]:
     if required not in manifest[group]:raise RuntimeError('review expected entrypoint count before updating another baseline')
 source=re.sub(r'self\.assertEqual\(\d+, len\(self\.manifest\["active_visual_entrypoints"\]\)\)','self.assertEqual(%d, len(self.manifest["active_visual_entrypoints"]))'%len(manifest['active_visual_entrypoints']),source)
-manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')
+# A registration-only check must not rewrite a semantically current manifest
+# just because another reviewed change uses a different JSON layout.
+if manifest != json.loads(original_manifest):
+    manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')
 if source != test.read_text():
     test.write_text(source)
 print('MAP_STUDY_POLICY_REGISTERED: map entrypoints current; later reviewed full-zone inventory retained')

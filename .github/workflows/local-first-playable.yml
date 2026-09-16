@@ -16,6 +16,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
+      - name: Registration byte-idempotence
+        run: python3 tests/tooling/test_registration_idempotence.py
       - name: Install exact locked engine
         shell: bash
         run: |

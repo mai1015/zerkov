@@ -4,13 +4,17 @@ from pathlib import Path
 import hashlib,json,re
 ROOT=Path(__file__).resolve().parents[1]
 path=ROOT/'config/first_playable_1080_gate.json'
-manifest=json.loads(path.read_text())
+original_manifest = path.read_text()
+manifest=json.loads(original_manifest)
 visual='tests/presentation/northline_zone_contract.gd'
 command='tests/tooling/run_northline_zone_gate.py'
 for group,name,purpose in [('active_visual_entrypoints',visual,'full Northline native map, GUI and collision walkthrough'),('active_command_entrypoints',command,'exact-1080 full-zone capture and repeatability')]:
     manifest[group][name]={'purpose':purpose,'sha256':hashlib.sha256((ROOT/name).read_bytes()).hexdigest()}
 manifest['sanctioned_capture_writers'][visual]={'physical_guard_call':'Exact1080CaptureGuard.accepts(root, root, image)','guard_anchors':['root.size = EXACT','const EXACT := Vector2i(1920,1080)']}
-path.write_text(json.dumps(manifest,indent=2)+'\n')
+# Preserve bytes when registration is already current; CI checks for actual
+# content drift, not unrelated pretty-printing of a shared manifest.
+if manifest != json.loads(original_manifest):
+    path.write_text(json.dumps(manifest,indent=2)+'\n')
 test=ROOT/'tests/tooling/test_ui_first_playable_scope.py'
 # Keep the inventory assertion in step with the manifest just written, rather
 # than a hard-coded count that breaks whenever main adds an entrypoint.
