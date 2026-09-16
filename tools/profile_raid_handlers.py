@@ -115,7 +115,7 @@ def instrument(project: Path, enabled: bool) -> None:
     text = path.read_text(encoding="utf-8")
     old = '\t\t\tif not authority.phase_handler_callback_is_safe(callback):\n\t\t\t\tresult_box.append(false)\n\t\t\t\treturn\n\t\t\tresult_box.append(callback.call(authority, phase, tick, intents))'
     new = '\t\t\tvar profile_start := Time.get_ticks_usec()\n'
-    new += '\t\t\tvar profile_safe := authority.phase_handler_callback_is_safe(callback)\n'
+    new += '\t\t\tvar profile_safe: bool = authority.phase_handler_callback_is_safe(callback)\n'
     new += '\t\t\tvar profile_body_start := Time.get_ticks_usec()\n'
     new += '\t\t\tif not profile_safe:\n\t\t\t\tresult_box.append(false)\n\t\t\t\treturn\n'
     new += '\t\t\tvar profile_outcome: Variant = callback.call(authority, phase, tick, intents)\n'
