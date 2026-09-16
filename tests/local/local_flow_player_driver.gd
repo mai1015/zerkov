@@ -108,26 +108,18 @@ func _tick(direction: Vector2) -> bool:
 		var down: bool = (code == KEY_W and direction.y < 0) or (code == KEY_S and direction.y > 0) \
 			or (code == KEY_A and direction.x < 0) or (code == KEY_D and direction.x > 0)
 		if bool(_held.get(code, false)) != down: _key(code, down); _held[code] = down
-	if not _death_run: _fight_visible()
+	_face_visible_threat()
 	if ticks % 32 == 0:
 		print("LOCAL_FLOW_TICK begin=", ticks, " pos=", _game._session.player_movement.position_px,
 			" ms=", Time.get_ticks_msec() - _started_ms, " held=", _game._input_binding._held,
 			" active=", _game._input_binding._active(), " move_error=", _game._session.player_movement.last_error)
-	if _death_run and ticks % 128 == 0:
-		print("LOCAL_FLOW_ENEMY_DIAGNOSTICS ", _game._session.ai.debug_snapshot())
-		for actor_key: String in _game._session.rows:
-			var row: Dictionary = _game._session.rows[actor_key]
-			var actor_frame: Dictionary = _game._session.combat.execution.frame_for(actor_key)
-			print("LOCAL_FLOW_ACTOR ", actor_key, " position=", row.movement.position_px,
-				" facing=", row.movement.facing_direction, " melee=", actor_frame.get("melee", {}),
-				" health=", actor_frame.get("health", {}))
 	var ok := _game.advance()
 	ticks += 1
 	if not _assert(ok, "production tick: " + String(_game.last_error)): return false
 	if ticks % 8 == 0: await _tree.process_frame
 	return true
 
-func _fight_visible() -> void:
+func _face_visible_threat() -> void:
 	var session := _game._session
 	var origin: Vector2 = session.player_movement.position_px
 	var candidates: Array[Dictionary] = []
@@ -145,6 +137,10 @@ func _fight_visible() -> void:
 	motion.position = candidates[0].screen; motion.global_position = motion.position
 	Input.parse_input_event(motion)
 	Input.flush_buffered_events()
+	# Explicit input posture makes the lethal test independent of the cursor
+	# left behind by the previous menu. Face the visible attacker, never fire.
+	# Repeated hits to a zero-health nonlethal limb do not currently spill over.
+	if _death_run: return
 	var state := session.hud_model.snapshot()
 	var tick: int = session.raid.last_processed_tick
 	if state.reloading: return

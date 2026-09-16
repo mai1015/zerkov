@@ -92,3 +92,14 @@ addresses 7.3; live HUD, Tasks/Maps and deployment/receipt binding address
 checking acceptance. No claim of ten consecutive extract/death cycles, complete
 controller navigation, native combat readability, VFX/audio completion, human
 visual approval, a hit-reaction clip, or Steam support is made here.
+
+## Known combat-policy limit
+
+The current health policy kills at zero head/thorax health, but caps damage in
+other body zones at zero without transferring excess damage to a lethal zone.
+A stationary attacker can therefore keep hitting an already-destroyed limb
+without killing its target. This remains a gameplay/balance limitation; this PR
+does not silently change the accepted damage/bleed policy to make a test pass.
+The lethal-flow regression explicitly faces the visible attacker through actual
+mouse input, instead of inheriting the cursor position from the previous menu.
+It neither sets facing directly nor changes health, damage, AI or the outcome.
