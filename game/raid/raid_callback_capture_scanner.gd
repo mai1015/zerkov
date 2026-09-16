@@ -29,8 +29,10 @@ func _init() -> void:
 	var schemas: Dictionary = {}
 	for native in NATIVE_DEFINITIONS:
 		schemas[native] = false # Known native class, schema not built yet.
+	# A static call is essential: an instance call captures self, making the
+	# retained dispatcher a RefCounted cycle that survives raid teardown.
 	_scan_dispatch = func(callback: Callable, authority_instance_id: int) -> bool:
-		return callback.is_valid() and not _capture_contains_bearer(
+		return callback.is_valid() and not RaidCallbackCaptureScanner._capture_contains_bearer(
 			callback, 0, {authority_instance_id:true}, schemas)
 
 # Scalar Variants cannot contain a bearer. Avoid a GDScript recursive call for
@@ -42,7 +44,7 @@ const REFERENCE_TYPES: int = (1 << TYPE_OBJECT) | (1 << TYPE_CALLABLE) | (1 << T
 func is_safe(callback: Callable, authority_instance_id: int) -> bool:
 	return _scan_dispatch.call(callback, authority_instance_id)
 
-func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary, schemas: Dictionary) -> bool:
+static func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary, schemas: Dictionary) -> bool:
 	if depth > 16: return true
 	match typeof(value):
 		TYPE_CALLABLE:
