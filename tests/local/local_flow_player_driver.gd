@@ -12,9 +12,12 @@ var ticks: int = 0
 var fired: int = 0
 var searched: int = 0
 var transferred: bool = false
+var _started_ms: int = 0
 
 func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool:
 	_game = game; _tree = tree; _check = check_callback
+	_started_ms = Time.get_ticks_msec()
+	print("LOCAL_FLOW_DRIVER start tick=", _game._session.raid.last_processed_tick)
 	# Reload through the actual logical R action before leaving the entry.
 	_key(KEY_R, true); _key(KEY_R, false)
 	for _i in range(ZerkovCombatContent.AKM_RELOAD_TICKS + 2):
@@ -69,6 +72,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool
 	return true
 
 func _walk_to(goal: Vector2) -> bool:
+	print("LOCAL_FLOW_WALK goal=", goal, " ticks=", ticks)
 	var session := _game._session
 	var start: Vector2i = ZWorldUnits.godot_to_tile(session.player_movement.position_px).vector2i_value
 	var target: Vector2i = ZWorldUnits.godot_to_tile(goal).vector2i_value
@@ -93,8 +97,11 @@ func _tick(direction: Vector2) -> bool:
 			or (code == KEY_A and direction.x < 0) or (code == KEY_D and direction.x > 0)
 		if bool(_held.get(code, false)) != down: _key(code, down); _held[code] = down
 	_fight_visible()
+	if ticks % 32 == 0:
+		print("LOCAL_FLOW_TICK begin=", ticks, " pos=", _game._session.player_movement.position_px, " ms=", Time.get_ticks_msec() - _started_ms)
 	var ok := _game.advance()
 	ticks += 1
+	if ticks % 32 == 1: print("LOCAL_FLOW_TICK completed=", ticks)
 	if not _assert(ok, "production tick: " + String(_game.last_error)): return false
 	if ticks % 8 == 0: await _tree.process_frame
 	return true
