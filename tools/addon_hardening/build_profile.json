@@ -8,6 +8,10 @@
     "ResourceLoader",
     "MultiplayerAPI",
     "MultiplayerPeer",
-    "Crypto"
+    "Crypto",
+    "OS",
+    "Engine",
+    "ClassDB",
+    "EditorPlugin"
   ]
 }

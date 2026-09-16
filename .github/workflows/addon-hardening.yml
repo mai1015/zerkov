@@ -26,7 +26,7 @@ jobs:
           - os: windows-latest
             platform: windows
             arch: x86_64
-            engine_asset: win64
+            engine_asset: win64.exe
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     steps:
@@ -84,6 +84,28 @@ jobs:
           set -euo pipefail
           scons -f tools/addon_hardening/SConstruct platform=${{ matrix.platform }} arch=${{ matrix.arch }} target=template_release build_profile="$GITHUB_WORKSPACE/tools/addon_hardening/build_profile.json" -j2 2>&1 | tee "$ADDON_CANDIDATE/release-build.log"
           python -u tools/addon_hardening/verify.py --root "$GITHUB_WORKSPACE" --candidate "$ADDON_CANDIDATE" --godot "$CANDIDATE_GODOT" --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --target template_release 2>&1 | tee "$ADDON_CANDIDATE/release-test.log"
+      - name: Linux source-only SDK reproduction
+        if: always() && runner.os == 'Linux'
+        shell: bash
+        run: |
+          python - <<'PYSDK'
+          import zipfile, pathlib, os, subprocess, hashlib, json, SCons
+          root=pathlib.Path('.candidate-sdk')
+          output=pathlib.Path(os.environ['RUNNER_TEMP'])/'addon-candidate'/'sdk-source.zip'
+          names=subprocess.check_output(['git','-C',str(root),'ls-files','-z']).decode().split('\0')
+          hashes={}
+          with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
+              for name in names:
+                  path=root/name
+                  if name and path.is_file() and not path.is_symlink():
+                      data=path.read_bytes();archive.writestr('godot-cpp/'+name,data);hashes['godot-cpp/'+name]=hashlib.sha256(data).hexdigest()
+              package=pathlib.Path(SCons.__file__).parent
+              for path in package.rglob('*.py'):
+                  name='SCons/'+path.relative_to(package).as_posix()
+                  data=path.read_bytes();archive.writestr(name,data);hashes[name]=hashlib.sha256(data).hexdigest()
+              archive.writestr('REPRODUCTION_COMMIT',subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD']))
+              archive.writestr('REPRODUCTION_SHA256.json',json.dumps(hashes,sort_keys=True))
+          PYSDK
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -91,5 +113,6 @@ jobs:
           path: |
             ${{ runner.temp }}/addon-candidate/*.log
             ${{ runner.temp }}/addon-candidate/*.json
+            ${{ runner.temp }}/addon-candidate/sdk-source.zip
             ${{ runner.temp }}/addon-candidate/addons/*/bin/*
           retention-days: 3
