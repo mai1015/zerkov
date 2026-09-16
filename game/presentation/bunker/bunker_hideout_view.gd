@@ -3,6 +3,9 @@ extends Control
 ## The production bunker presentation, also instantiated by native capture.
 ## Selection and lighting are local view state. There are no gameplay writes.
 signal menu_requested
+## Emitted with a room id when the operator walks up to that room's station.
+signal station_entered(room_id: String)
+signal station_left
 const WorldScene = preload("res://game/presentation/bunker/bunker_world.tscn")
 const LIGHTING = preload("res://game/presentation/bunker/bunker_lighting.gdshader")
 const CREAM := Color("e6e3d5")
@@ -12,6 +15,8 @@ var world: ZBunkerHideoutWorld
 var surface: SubViewport
 var current_room := "workshop"
 var emergency := false
+var operator: ZBunkerOperator
+var _station_room: String = ""
 var _material: ShaderMaterial
 var _buttons: Dictionary = {}
 var _heading: Label
@@ -61,6 +66,53 @@ func _ready() -> void:
 		var at: Array = room["label_at"]
 		label(String(room["number"]) + " / " + String(room["name"]), Rect2(at[0] * 3, at[1] * 3, 300, 20), 12, Color("c4c3af"))
 	select_room("workshop")
+
+
+## Put the operator in the hideout so it can be walked rather than only
+## inspected. Presentation only; the bunker runs no raid authority.
+func enable_walk(at: Vector2 = Vector2(264, 150)) -> bool:
+	if operator != null or world == null or not world.valid:
+		return false
+	var walker := ZBunkerOperator.new()
+	walker.name = "Operator"
+	world.add_child(walker)
+	if not walker.configure(world, _nearest_free(at)):
+		walker.queue_free()
+		return false
+	operator = walker
+	set_process(true)
+	return true
+
+
+## The authored spawn may sit inside a prop footprint after a layout edit, so
+## settle onto the closest free floor rather than starting the walk stuck.
+func _nearest_free(at: Vector2) -> Vector2:
+	if world.is_walkable(at):
+		return at
+	for radius: int in range(1, 64):
+		for step: int in range(0, 360, 15):
+			var probe := at + Vector2(radius, 0).rotated(deg_to_rad(step))
+			if world.is_walkable(probe):
+				return probe
+	return at
+
+
+func _process(delta: float) -> void:
+	if operator == null:
+		return
+	var direction := Vector2(
+		float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A)),
+		float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W)))
+	operator.walk(direction, delta)
+	var room := world.room_at(operator.position)
+	# Following the operator keeps the inspector describing where they stand.
+	if room != _station_room:
+		_station_room = room
+		if room.is_empty():
+			station_left.emit()
+		else:
+			select_room(room)
+			station_entered.emit(room)
 
 func _build_header() -> void:
 	box(Rect2(0, 0, 1920, 58), Color("0e1213"))

@@ -168,6 +168,17 @@ func _draw() -> void:
 	for y: int in [280, 290, 300]:
 		draw_polyline(PackedVector2Array([Vector2(266, y), Vector2(272, y + 3), Vector2(278, y)]), Color("b79658"), 1)
 
+## Free floor in 640x360 world space: outside the wall plan, which already has
+## its doorways carved out, and clear of the prop footprints the props declare.
+func is_walkable(point: Vector2) -> bool:
+	if not valid or _solid(int(floorf(point.x)), int(floorf(point.y))):
+		return false
+	for footprint: Rect2 in footprints:
+		if footprint.has_point(point):
+			return false
+	return true
+
+
 func room_at(point: Vector2) -> String:
 	for room: Dictionary in layout.get("rooms", []):
 		var r: Array = room["rect"]

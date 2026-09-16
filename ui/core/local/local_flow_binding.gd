@@ -149,6 +149,8 @@ func _install_hideout(screen: ZScreen) -> bool:
 	screen.add_child(view)
 	_hideout = view
 	if view.has_signal("menu_requested"): view.connect("menu_requested", _send.bind(&"pause"))
+	# The hideout is entered, not only inspected: put the operator in it.
+	if view.has_method("enable_walk"): view.call("enable_walk")
 	# The authored footer advertises build/craft/upgrade and calls the systems
 	# locked. Neither is true here, and the space is the only free width on the
 	# screen, so it carries the two real actions instead.
