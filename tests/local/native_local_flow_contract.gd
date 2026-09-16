@@ -10,6 +10,9 @@ var _operations: GodotProfileFileOperations
 var _namespace: String
 
 func _initialize() -> void:
+	# Script entrypoints do not inherit a native window size on headless hosts.
+	# Establish the approved logical canvas before any scene is instantiated.
+	root.size = EXACT_SIZE
 	run.call_deferred()
 
 func check(ok: bool, message: String) -> bool:
