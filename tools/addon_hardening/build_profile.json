@@ -1,0 +1,17 @@
+{
+  "enabled_classes": [
+    "Object",
+    "RefCounted",
+    "Resource",
+    "Node",
+    "ProjectSettings",
+    "ResourceLoader",
+    "MultiplayerAPI",
+    "MultiplayerPeer",
+    "Crypto",
+    "OS",
+    "Engine",
+    "ClassDB",
+    "EditorPlugin"
+  ]
+}

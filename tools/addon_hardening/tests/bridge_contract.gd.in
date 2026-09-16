@@ -1,0 +1,267 @@
+extends SceneTree
+## Real native bridges and ENet loopback branches. No fake native class, packet
+## decoder or weapon state. The fixture host owns its admission queue/tick.
+const PORT: int = 24873
+var checks: int = 0
+var failures: int = 0
+var scopes: Array[Node] = []
+var bridges: Array = []
+var apis: Array[SceneMultiplayer] = []
+var peers: Array[ENetMultiplayerPeer] = []
+var weapons: WeaponAuthority
+var queued: Array[Dictionary] = []
+var next_tick: int = 1
+var confirmations: int = 0
+var reversions: int = 0
+var snapshots: int = 0
+var deltas: int = 0
+var provider_calls: int = 0
+var fired: int = 0
+const OWN := "test.weapon.owned"
+const OTHER := "test.weapon.other"
+const SECRET := "test.weapon.secret"
+const AMMO := "zerkov.item.ammo.762x39.standard"
+func _initialize() -> void:
+ run.call_deferred()
+func check(value: bool, message: String) -> void:
+ checks += 1
+ if not value:
+  failures += 1
+  push_error("ADDON_HARDENING: " + message)
+func run() -> void:
+ create_timer(40).timeout.connect(func(): push_error("ADDON_HARDENING timeout"); quit(1))
+ if not ClassDB.class_exists("WeaponNetworkBridge") or not ClassDB.class_exists("GameplayAbilityNetworkBridge"):
+  push_error("ADDON_HARDENING missing native libraries"); quit(2); return
+ var gas := GameplayAbilityNetworkBridge.new()
+ check(gas.get_require_target_authorization(), "G1 target authorization defaults required")
+ check(gas.get_no_relevant_peers(), "G2 default audience is explicitly nobody")
+ gas.set_relevant_peers(PackedInt32Array([2]));check(not gas.get_no_relevant_peers(), "explicit grant allowed")
+ gas.set_relevant_peers(PackedInt32Array());check(gas.get_no_relevant_peers(), "empty allowlist revokes instead of broadcasting")
+ gas.free()
+ weapons = WeaponAuthority.new()
+ root.add_child(weapons)
+ check(ZerkovCombatContent.configure_authority(weapons).get("ok", false), "real sealed weapon content configures")
+ weapons.role = WeaponAuthority.ROLE_SERVER_AUTHORITY
+ for id in [OWN, OTHER, SECRET]:
+  check(weapons.create_weapon(id, "zerkov.weapon.akm", 1, 30, {"id": AMMO, "version": 1}).get("ok", false), "native instance created")
+ for index in range(3):
+  var scope := Node.new();scope.name="Net%d" % index;root.add_child(scope);scopes.append(scope)
+  var api := SceneMultiplayer.new();set_multiplayer(api,scope.get_path());apis.append(api)
+  var peer := ENetMultiplayerPeer.new()
+  check((peer.create_server(PORT,8) if index==0 else peer.create_client("127.0.0.1",PORT))==OK,"real ENet starts")
+  api.multiplayer_peer=peer;peers.append(peer)
+  var bridge := WeaponNetworkBridge.new();bridge.name="Bridge"
+  bridge.role=WeaponNetworkBridge.ROLE_SERVER if index==0 else WeaponNetworkBridge.ROLE_CLIENT
+  if index==0: bridge.weapon_authority_path=weapons.get_path()
+  else: bridge.set_client_catalog_fingerprint(weapons.content_fingerprint())
+  scope.add_child(bridge);bridges.append(bridge)
+  check(bridge.get_hardening_revision()==1,"candidate native revision loaded, not pinned old binary")
+  if index>0:
+   bridge.presentation_confirmed.connect(func(_id,_instance,_kind): confirmations+=1)
+   bridge.presentation_reverted.connect(func(_id,_instance,_kind,_status,_snapshot): reversions+=1)
+   bridge.snapshot_applied.connect(func(_id,_revision): snapshots+=1)
+   bridge.delta_applied.connect(func(_id,_revision): deltas+=1)
+ await frames(30)
+ var p1 := apis[1].get_unique_id();var p2 := apis[2].get_unique_id()
+ check(p1>1 and p2>1 and p1!=p2, "two distinct real remote senders")
+ var s = bridges[0];var c1=bridges[1];var c2=bridges[2]
+ check(not c1.request_fire_networked(fire_request(OWN)).sent,"no pre-session command")
+ s.begin_session(p1,101);s.begin_session(p2,102)
+ check(s.authorize_instance(p1,OWN,1) and s.authorize_instance(p2,OTHER,1),"host grants owned weapons")
+ await frames(45)
+ check(c1.is_session_ready() and c2.is_session_ready(),"compatible authenticated sessions complete native handshake")
+ check(s.peer_state(p1).ready and s.peer_state(p2).ready,"server records compatibility")
+ check(not c1.confirmed_snapshot(OWN).is_empty() and c1.confirmed_snapshot(SECRET).is_empty(),"only authorized snapshot disclosed")
+ check(s.peer_state(p1).acknowledged.has(OWN),"initial snapshot acknowledged including revision zero")
+ var acked: int = s.peer_state(p1).acknowledged.get(OWN,-1)
+ # Craft the existing canonical ack DTO inside the CURRENT token envelope.
+ var ack := PackedByteArray();ack.resize(6);ack.encode_u16(0,2);ack.encode_u32(2,1);write_string(ack,OWN);write_u64(ack,99999)
+ c1.rpc_id(1,"_rpc_acknowledgement_batch",wire(c1.connection_token(),ack))
+ c1.request_resync(SECRET)
+ await frames(10)
+ check(s.peer_state(p1).acknowledged.get(OWN,-1)==acked,"forged unsent/future ack cannot advance baseline")
+ check(c1.confirmed_snapshot(SECRET).is_empty(),"W3 known-name hidden resync yields no state")
+ var nohandler: Dictionary = c1.request_fire_networked(fire_request(OWN));check(nohandler.sent,"wire fire sent")
+ await frames(10)
+ check(weapons.snapshot(OWN).loaded_rounds==30 and queued.is_empty(),"W5 absent host handler cannot mutate weapons")
+ check(reversions>0,"missing host admission produces explicit rejection")
+ # Reset only this connection, retaining native authority: both clients now send c1.
+ s.begin_session(p1,110);s.authorize_instance(p1,OWN,1);await frames(15)
+ s.set_command_admission_handler(_admit)
+ var bad_protocol := raw_fire("wrong.protocol",1,OWN,0,0)
+ bad_protocol.encode_u16(0,999)
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),bad_protocol))
+ var wide_sequence := raw_fire("wide.sequence",1,OWN,0,0)
+ # sequence follows the u16 protocol and counted command ID.
+ wide_sequence.encode_u64(2+4+"wide.sequence".length(),-1)
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),wide_sequence))
+ await frames(6)
+ check(queued.is_empty() and provider_calls==0,"wrong DTO protocol and unrepresentable sequence rejected before game callback")
+ var client1 = c1.request_fire_networked(fire_request(OWN))
+ var client2 = c2.request_fire_networked(fire_request(OTHER))
+ check(client1.sent and client2.sent,"two clients emit requests")
+ check(client1.command_id=="c1" and client2.command_id=="c1", "identical client command names exercised across real peers")
+ await frames(10)
+ check(queued.size()==2,"only eligible commands reach game-owned queue")
+ if queued.size()==2:
+  check(queued[0].command_id!=queued[1].command_id,"W2 authority IDs differ across peers even with same client counter")
+  for command in queued:
+   check(not command.has("spread_seed") and not command.has("client_spread_seed"),"W2 client entropy is not handed to execution")
+   check(weapons.snapshot(command.instance_id).loaded_rounds==30,"native mechanics unchanged during RPC admission")
+  flush_game_queue()
+ await frames(12)
+ check(weapons.snapshot(OWN).loaded_rounds==29 and weapons.snapshot(OTHER).loaded_rounds==29,"trusted tick commits both independent shots")
+ check(confirmations==2,"only explicit post-execution results confirm prediction")
+ check(deltas>=2,"W4 acknowledged initial baseline advances via native deltas")
+ check(c1.confirmed_snapshot(OWN).loaded_rounds==29,"replica matches committed snapshot")
+ # Observer privilege and valid-but-unowned attachments must never mutate.
+ check(s.authorize_instance(p1,SECRET,0), "host permits observation only")
+ await frames(6)
+ var observed_before := weapons.snapshot(SECRET)
+ var calls_before := provider_calls
+ check(c1.request_fire_networked(fire_request(SECRET)).sent, "observer attack sent as hostile request")
+ await frames(6)
+ check(provider_calls==calls_before and weapons.snapshot(SECRET)==observed_before, "observer cannot reach command admission")
+ var inventory_before := weapons.snapshot(OWN)
+ check(c1.request_configure_attachments_networked({"instance_id":OWN,"expected_revision":inventory_before.revision,
+  "desired_loadout":[{"slot_id":"zerkov.slot.akm.optic","attachment_id":"zerkov.attachment.red_dot","attachment_version":1}]}).sent,
+  "catalog-valid attachment request reaches transport")
+ check(c1.request_begin_reload_networked({"instance_id":OWN,"expected_revision":inventory_before.revision,
+  "reservation_id":"test.reservation.unowned","reserved_rounds":1}).sent, "unowned reload reservation sent")
+ await frames(10)
+ check(provider_calls==calls_before+2 and queued.is_empty() and weapons.snapshot(OWN)==inventory_before,
+  "required host inventory admission rejects attachment and reload claims without native mutation")
+ s.revoke_instance(p1,SECRET);await frames(5)
+ # Forge entropy directly into a protocol-valid FireIntent; the host never receives it.
+ s.push_state(90)
+ var entropy_packet := raw_fire("malicious.1",9,OWN,weapons.snapshot(OWN).revision,999999)
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),entropy_packet))
+ await frames(8)
+ check(queued.size()==1 and not queued[0].has("spread_seed"),"raw chosen-entropy packet still cannot control execution sampling")
+ flush_game_queue();await frames(8)
+ # Exact duplicate packet is not re-enqueued or fired twice.
+ var before: int = weapons.snapshot(OWN).loaded_rounds
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),entropy_packet));await frames(6)
+ check(queued.is_empty() and weapons.snapshot(OWN).loaded_rounds==before,"duplicate packet cannot repeat canonical operation")
+ # Existing session with forged incompatible manifest loses readiness, no egress.
+ var old_token: PackedByteArray = c1.connection_token()
+ var incompatible := PackedByteArray();incompatible.resize(30);incompatible.fill(0);incompatible.encode_u16(0,2)
+ c1.rpc_id(1,"_rpc_compatibility_handshake",wire(old_token,incompatible));await frames(8)
+ check(not s.peer_state(p1).ready,"W1 malformed/incompatible manifest does not open compatibility")
+ c1.request_resync(OWN);await frames(3)
+ # A valid retry on the same session converges.
+ c1.send_compatibility_handshake();await frames(15)
+ check(s.peer_state(p1).ready,"valid retry restores exact compatibility")
+ # Revoke one grant; the client's old visible instance must disappear.
+ check(s.revoke_instance(p1,OWN),"grant revoked")
+ await frames(8)
+ check(c1.confirmed_snapshot(OWN).is_empty(),"revoked replica no longer readable")
+ c1.request_resync(OWN);await frames(5)
+ check(c1.confirmed_snapshot(OWN).is_empty(),"revoked resync cannot republish old state")
+ # Retained authority, new connection generation. All grants must be explicit.
+ s.begin_session(p1,103);await frames(15)
+ check(c1.connection_token()!=old_token and c1.confirmed_snapshot(OWN).is_empty(),"W4 fresh session clears replica and replaces token")
+ check(s.authorize_instance(p1,OWN,1),"new session reauthorized")
+ await frames(8)
+ var old_count := queued.size()
+ var invalidated_packet := PackedByteArray()
+ c1.rpc_id(1,"_rpc_fire_intent",wire(old_token,raw_fire("old.1",1,OWN,weapons.snapshot(OWN).revision,1)))
+ c1.rpc_id(1,"_rpc_acknowledgement_batch",wire(old_token,ack))
+ await frames(8)
+ check(queued.size()==old_count,"old-session command and ack rejected after replacement")
+ var newer: Dictionary = c1.request_fire_networked(fire_request(OWN));check(newer.sent,"new-session counter restarts safely")
+ await frames(8);check(queued.size()==1,"retained weapon accepts fresh session client sequence")
+ if queued.size()==1:
+  var cmd: Dictionary=queued[0]
+  invalidated_packet=raw_fire(String(cmd.client_command_id),int(cmd.client_sequence),OWN,int(cmd.expected_revision),0)
+  check(s.command_still_current(cmd.command_id),"queued context currently executable")
+  s.revoke_instance(p1,OWN)
+  check(not s.command_still_current(cmd.command_id),"revocation invalidates already admitted queued work")
+  check(not s.complete_command(cmd.command_id,true),"stale execution completion not published")
+  queued.clear()
+ await frames(8)
+ check(c1.confirmed_snapshot(OWN).is_empty(),"no stale receipt revives revoked replica")
+ # Regrant does not convert cancelled admission into cached execution success.
+ var confirmed_before := confirmations
+ s.authorize_instance(p1,OWN,1);await frames(6)
+ c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),invalidated_packet));await frames(6)
+ check(queued.is_empty() and confirmations==confirmed_before,"cancelled admission cannot replay success after regrant")
+ # A live grant replacement also invalidates work admitted under the old grant.
+ var replacement: Dictionary = c1.request_fire_networked(fire_request(OWN));await frames(6)
+ check(replacement.sent and queued.size()==1,"grant replacement fixture admits pending input")
+ if queued.size()==1:
+  var command: Dictionary=queued[0]
+  s.authorize_instance(p1,OWN,1)
+  check(not s.command_still_current(command.command_id),"replacing a grant cannot revive queued work")
+  var cancelled := raw_fire(String(command.client_command_id),int(command.client_sequence),OWN,int(command.expected_revision),0)
+  queued.clear()
+  c1.rpc_id(1,"_rpc_fire_intent",wire(c1.connection_token(),cancelled));await frames(6)
+  check(queued.is_empty() and confirmations==confirmed_before,"grant replacement retains a negative replay receipt")
+ # Wrong catalog must stay incompatible and unexposed even with a host grant.
+ s.begin_session(p2,104);c2.set_client_catalog_fingerprint(weapons.content_fingerprint()+1)
+ s.authorize_instance(p2,SECRET,0);await frames(35)
+ check(not c2.is_session_ready() and not s.peer_state(p2).ready,"different local content cannot complete handshake")
+ check(c2.confirmed_snapshot(SECRET).is_empty(),"catalog-mismatched client gets no first snapshot")
+ # A real transport disconnect must clear the replica, not only a host token replacement.
+ s.authorize_instance(p1,OWN,1);await frames(8)
+ check(not c1.confirmed_snapshot(OWN).is_empty(), "visible state before physical disconnect")
+ peers[0].disconnect_peer(p1)
+ await frames(25)
+ check(not c1.is_session_ready() and c1.connection_token().is_empty() and c1.confirmed_snapshot(OWN).is_empty(),
+  "physical server disconnect clears confirmed and pending client state")
+ peers[1].close()
+ var reconnected := ENetMultiplayerPeer.new()
+ check(reconnected.create_client("127.0.0.1",PORT)==OK,"reconnect real ENet transport")
+ peers[1]=reconnected;apis[1].multiplayer_peer=reconnected
+ await frames(30)
+ var replacement_peer: int=apis[1].get_unique_id()
+ s.begin_session(replacement_peer,120);s.authorize_instance(replacement_peer,OWN,1)
+ await frames(25)
+ check(c1.is_session_ready() and not c1.confirmed_snapshot(OWN).is_empty(), "replacement transport negotiates fresh authorized snapshot")
+ for i in range(3): peers[i].close()
+ await frames(5)
+ for scope in scopes: scope.queue_free()
+ weapons.queue_free();await frames(2)
+ print("ADDON_HARDENING_RESULT checks=",checks," failures=",failures," real_enet_peers=3 native=true")
+ quit(0 if failures==0 else 1)
+func frames(count: int) -> void:
+ for _i in range(count):
+  await process_frame
+  next_tick+=1
+  if not bridges.is_empty() and is_instance_valid(bridges[0]): bridges[0].push_state(next_tick)
+func _admit(command: Dictionary) -> Dictionary:
+ provider_calls+=1
+ # This fixture disallows ALL attachment/reload inventory claims by default.
+ # The real game must validate inventory and resolve resource holds at its tick.
+ if command.kind!="fire": return {"admitted":false}
+ queued.append(command.duplicate(true));return {"admitted":true}
+func flush_game_queue() -> void:
+ var s=bridges[0]
+ for c in queued:
+  check(s.command_still_current(c.command_id),"host revalidates context at execution")
+  next_tick+=10
+  var snapshot: Dictionary=weapons.snapshot(c.instance_id)
+  var sequence: int=int(snapshot.get("admitted_sequence_high_watermark",0))+1
+  var result: Dictionary=weapons.fire({"command_id":c.command_id,"sequence":sequence,"instance_id":c.instance_id,
+   "expected_revision":snapshot.revision,"tick":next_tick,"claimed_origin":{"x":0,"y":0},
+   "claimed_aim":{"x":1000000,"y":0},"spread_seed":17},
+   {"actor_live":true,"weapon_equipped":true,"weapon_usable":true,
+    "authoritative_origin":{"x":0,"y":0},"authoritative_aim":{"x":1000000,"y":0}})
+  check(result.get("accepted",false),"real WeaponAuthority commits trusted tick operation")
+  fired+=int(result.get("accepted",false))
+  check(s.complete_command(c.command_id,bool(result.get("accepted",false))),"explicit execution receipt resolves")
+ queued.clear();s.push_state(maxi(next_tick,100))
+func fire_request(instance: String) -> Dictionary:
+ return {"instance_id":instance,"expected_revision":weapons.snapshot(instance).revision,
+  "claimed_origin":{"x":0,"y":0},"claimed_aim":{"x":1000000,"y":0},"spread_seed":99999}
+func wire(token: PackedByteArray, body: PackedByteArray) -> PackedByteArray:
+ var out:=PackedByteArray([87,78,66,1]);out.append_array(token);out.append_array(body);return out
+func write_string(bytes: PackedByteArray, value: String) -> void:
+ var utf:=value.to_utf8_buffer();var n:=bytes.size();bytes.resize(n+4);bytes.encode_u32(n,utf.size());bytes.append_array(utf)
+func write_u64(bytes: PackedByteArray, value: int) -> void:
+ var n:=bytes.size();bytes.resize(n+8);bytes.encode_u64(n,value)
+func raw_fire(id: String, sequence: int, instance: String, revision: int, entropy: int) -> PackedByteArray:
+ var bytes:=PackedByteArray();bytes.resize(2);bytes.encode_u16(0,2)
+ write_string(bytes,id);write_u64(bytes,sequence);write_string(bytes,instance);write_u64(bytes,revision)
+ for value in [0,0,1000000,0,entropy]: write_u64(bytes,value)
+ return bytes

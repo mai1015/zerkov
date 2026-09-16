@@ -1,0 +1,143 @@
+name: Addon hardening candidates
+on:
+  pull_request:
+    paths:
+      - 'tools/addon_hardening/**'
+      - '.github/workflows/addon-hardening.yml'
+permissions:
+  contents: read
+concurrency:
+  group: addon-hardening-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x86_64
+            engine_asset: linux.x86_64
+            compiler_flags: ""
+          - os: macos-latest
+            platform: macos
+            arch: universal
+            engine_asset: macos.universal
+            compiler_flags: ""
+          - os: windows-latest
+            platform: windows
+            arch: x86_64
+            engine_asset: win64.exe
+            compiler_flags: "use_mingw=yes"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: godotengine/godot-cpp
+          ref: 5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731
+          path: .candidate-sdk
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          msystem: UCRT64
+          install: mingw-w64-ucrt-x86_64-gcc
+          path-type: inherit
+      - name: Select GNU Windows compiler for existing int128 arithmetic
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '"C:/msys64/ucrt64/bin" | Out-File -FilePath $env:GITHUB_PATH -Append'
+      - name: Exact source and SDK prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install scons==4.10.1
+          python tools/addon_hardening/test_staging.py
+          python tools/addon_hardening/test_verification.py
+          python - <<'PY'
+          import json, subprocess
+          expected=json.load(open('config/toolchain.lock.json'))['native_sdk']['godot_cpp_commit']
+          assert subprocess.check_output(['git','-C','.candidate-sdk','rev-parse','HEAD'],text=True).strip()==expected
+          PY
+          python tools/addon_hardening/stage.py --output "$RUNNER_TEMP/addon-candidate"
+          echo "GODOT_CPP=$GITHUB_WORKSPACE/.candidate-sdk" >> "$GITHUB_ENV"
+          echo "ADDON_CANDIDATE=$RUNNER_TEMP/addon-candidate" >> "$GITHUB_ENV"
+      - name: Install exact locked engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python -c 'import json;print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_${{ matrix.engine_asset }}.zip" -o "$RUNNER_TEMP/godot.zip"
+          python - <<'PY'
+          import zipfile, os, pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'native-engine'
+          with zipfile.ZipFile(pathlib.Path(os.environ['RUNNER_TEMP'])/'godot.zip') as z:z.extractall(root)
+          matches=[p for p in root.rglob('*') if p.is_file() and (p.name=='Godot' or p.name.endswith('linux.x86_64') or (p.name.endswith('.exe') and not p.name.endswith('_console.exe')))]
+          assert len(matches)==1,matches
+          matches[0].chmod(0o755)
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write('CANDIDATE_GODOT='+str(matches[0])+'\n')
+          PY
+      - name: Compiler and operating-system provenance
+        shell: bash
+        run: |
+          python - <<'PYINFO'
+          import json, os, pathlib, platform, subprocess
+          compiler='clang++' if platform.system()=='Darwin' else 'g++'
+          report={'os':platform.platform(),'python':platform.python_version(),
+            'compiler':subprocess.check_output([compiler,'--version'],text=True),
+            'scons':subprocess.check_output(['scons','--version'],text=True)}
+          (pathlib.Path(os.environ['ADDON_CANDIDATE'])/'toolchain.json').write_text(json.dumps(report,indent=2))
+          PYINFO
+      - name: Build and test debug candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          scons -f tools/addon_hardening/SConstruct platform=${{ matrix.platform }} arch=${{ matrix.arch }} target=template_debug ${{ matrix.compiler_flags }} build_profile="$GITHUB_WORKSPACE/tools/addon_hardening/build_profile.json" -j2 2>&1 | tee "$ADDON_CANDIDATE/debug-build.log"
+          python -u tools/addon_hardening/verify.py --root "$GITHUB_WORKSPACE" --candidate "$ADDON_CANDIDATE" --godot "$CANDIDATE_GODOT" --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --target template_debug 2>&1 | tee "$ADDON_CANDIDATE/debug-test.log"
+      - name: Build and test release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          scons -f tools/addon_hardening/SConstruct platform=${{ matrix.platform }} arch=${{ matrix.arch }} target=template_release ${{ matrix.compiler_flags }} build_profile="$GITHUB_WORKSPACE/tools/addon_hardening/build_profile.json" -j2 2>&1 | tee "$ADDON_CANDIDATE/release-build.log"
+          python -u tools/addon_hardening/verify.py --root "$GITHUB_WORKSPACE" --candidate "$ADDON_CANDIDATE" --godot "$CANDIDATE_GODOT" --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --target template_release 2>&1 | tee "$ADDON_CANDIDATE/release-test.log"
+      - name: Linux source-only SDK reproduction
+        if: always() && runner.os == 'Linux'
+        shell: bash
+        run: |
+          python - <<'PYSDK'
+          import zipfile, pathlib, os, subprocess, hashlib, json, SCons
+          root=pathlib.Path('.candidate-sdk')
+          output=pathlib.Path(os.environ['RUNNER_TEMP'])/'addon-candidate'/'sdk-source.zip'
+          names=subprocess.check_output(['git','-C',str(root),'ls-files','-z']).decode().split('\0')
+          hashes={}
+          with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as archive:
+              for name in names:
+                  path=root/name
+                  if name and path.is_file() and not path.is_symlink():
+                      data=path.read_bytes();archive.writestr('godot-cpp/'+name,data);hashes['godot-cpp/'+name]=hashlib.sha256(data).hexdigest()
+              package=pathlib.Path(SCons.__file__).parent
+              for path in package.rglob('*.py'):
+                  name='SCons/'+path.relative_to(package).as_posix()
+                  data=path.read_bytes();archive.writestr(name,data);hashes[name]=hashlib.sha256(data).hexdigest()
+              archive.writestr('REPRODUCTION_COMMIT',subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD']))
+              archive.writestr('REPRODUCTION_SHA256.json',json.dumps(hashes,sort_keys=True))
+          PYSDK
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: addon-candidate-${{ matrix.platform }}
+          path: |
+            ${{ runner.temp }}/addon-candidate/*.log
+            ${{ runner.temp }}/addon-candidate/*.json
+            ${{ runner.temp }}/addon-candidate/sdk-source.zip
+            ${{ runner.temp }}/addon-candidate/addons/*/bin/*
+          retention-days: 3
