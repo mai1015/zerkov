@@ -2,7 +2,7 @@ class_name LocalCampaign
 extends RefCounted
 ## Single local writer. Existing ProfileStore owns files, checksums, backup/CAS
 ## and interrupted-settlement recovery. No remote save or parallel save format.
-const V = RaidProgressionValues
+const V = preload("res://game/raid/progression/raid_progression_values.gd")
 var last_error: StringName = &""
 var store: ProfileStore
 var loaded: Dictionary = {}

@@ -2,8 +2,8 @@ class_name LocalCampaignContent
 extends RefCounted
 ## New-campaign content, not a missing/corrupt-save fallback. Called only after
 ## an explicit create request and a verified ProfileStore `profile_missing`.
-const C = ZerkovInventoryCatalog
-const V = RaidProgressionValues
+const C = preload("res://game/content/zerkov_inventory_catalog.gd")
+const V = preload("res://game/raid/progression/raid_progression_values.gd")
 const PROFILE_ID: String = "zerkov.profile.local"
 const VERSION: int = 1
 const RAID_LIMIT_TICKS: int = 54_000
