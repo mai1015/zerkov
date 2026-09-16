@@ -10,9 +10,6 @@ var _operations: GodotProfileFileOperations
 var _namespace: String
 
 func _initialize() -> void:
-	# Script entrypoints do not inherit a native window size on headless hosts.
-	# Establish the approved logical canvas before any scene is instantiated.
-	root.size = EXACT_SIZE
 	run.call_deferred()
 
 func check(ok: bool, message: String) -> bool:
@@ -51,6 +48,9 @@ func route(expected: String) -> bool:
 			"ready production screen without fixtures")
 
 func run() -> void:
+	# Headless display setup occurs after _initialize and resets Window.size.
+	# Establish the approved canvas here, before any scene mount.
+	root.size = EXACT_SIZE
 	create_timer(100.0).timeout.connect(func() -> void: push_error("LOCAL_FLOW_TIMEOUT"); quit(1))
 	var args := OS.get_cmdline_user_args()
 	if args.size() < 2 or args[0] not in ["run", "verify", "cleanup"] \
