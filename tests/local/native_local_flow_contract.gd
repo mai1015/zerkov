@@ -82,7 +82,11 @@ func run() -> void:
 	if args[0] == "verify":
 		var loaded := _store.load_profile()
 		check(args.size() == 3 and loaded.get("ok") == true and loaded.get("fingerprint") == args[2], "fresh process exact local envelope")
-		check(loaded.payload.project[RaidProgressionValues.STATE_KEY].active.is_empty(), "no live escrow after acknowledged outcomes")
+		# A newly created campaign has no raid progression record yet. Production
+		# LocalCampaign uses the same initial-state default before first deployment.
+		var state: Dictionary = loaded.get("payload", {}).get("project", {}).get(
+			RaidProgressionValues.STATE_KEY, RaidProgressionValues.initial_state())
+		check(RaidProgressionValues.valid_state(state) and state.active.is_empty(), "no live escrow after acknowledged outcomes")
 		_store.close()
 		print("LOCAL_FLOW_VERIFY checks=", checks, " failures=", failures)
 		quit(failures); return
