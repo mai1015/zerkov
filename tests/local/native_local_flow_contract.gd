@@ -51,7 +51,7 @@ func run() -> void:
 	# Headless display setup occurs after _initialize and resets Window.size.
 	# Establish the approved canvas here, before any scene mount.
 	root.size = EXACT_SIZE
-	create_timer(100.0).timeout.connect(func() -> void: push_error("LOCAL_FLOW_TIMEOUT"); quit(1))
+	create_timer(220.0).timeout.connect(func() -> void: push_error("LOCAL_FLOW_TIMEOUT"); quit(1))
 	var args := OS.get_cmdline_user_args()
 	if args.size() < 2 or args[0] not in ["run", "verify", "cleanup"] \
 		or not args[1].begins_with("localflow_") or args[1].length() != 42 or not args[1].substr(10).is_valid_hex_number():
@@ -104,8 +104,15 @@ func run() -> void:
 	check(not _game.advance() and _game._session.raid.last_processed_tick == prior_tick, "solo pause does not secretly advance raid")
 	if not await click("ActionsPanel/ResumeRow/Hit") or not route("hud"): await finish(); return
 	check(_game.advance(), "resume keeps the same live authority")
-	# This first root regression exercises explicit abandonment and redeployment.
-	# It does not claim extraction traversal or a human-controlled combat session.
+	var player_driver = load("res://tests/local/local_flow_player_driver.gd").new()
+	if not await player_driver.extract(_game, self, Callable(self, "check")): await finish(); return
+	if not route("summary_solo"): await finish(); return
+	var extract_generation: int = _store.load_profile().generation
+	if not await click("BackBunker") or not route("bunker"): await finish(); return
+	check(_store.load_profile().generation == extract_generation, "return after extract does not settle twice")
+	if not await click("StationDetails/UpgradeAction") or not route("hud"): await finish(); return
+	check(_game._session.hud_model.snapshot().has_weapon, "successful extraction retains the actual equipped weapon")
+	# Preserve the separate explicit-abandonment and missing-weapon redeploy path.
 	await key(KEY_ESCAPE)
 	if not await click("ActionsPanel/SaveQuitRow/Hit"): await finish(); return
 	var modal: Control = _game._ui.modal

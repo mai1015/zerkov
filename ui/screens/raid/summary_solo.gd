@@ -6,6 +6,13 @@ extends "res://ui/screens/raid/raid_screen.gd"
 ## keeps the insurance state and the three summary actions live while retaining
 ## raid.gd's compact summary layout and focus behavior.
 
+func _ready() -> void:
+	# Packed legacy StyleBox adapters have no serialized source. Install the
+	# existing authored styles before either real-data or preview binding draws.
+	_install_valid_styles()
+	super._ready()
+
+
 func build() -> void:
 	var layout_was_applied := _adaptive_applied
 	reset_adaptive_layout()
