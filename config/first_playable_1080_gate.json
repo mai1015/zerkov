@@ -55,7 +55,7 @@
 "tools/run_raid_progression_contracts.py":{"purpose":"exact headless native raid progression and separate-process settlement restart contracts","sha256":"708399956f5264f132449cb23b49c01abff10fea485a3036b5d22d5d6e636e51"},
 "tests/tooling/run_bunker_hideout_gate.py":{"purpose":"Exact-1080 graphical bunker capture gate","sha256":"f09a63daa84a6f6e28b3f4134f635cf6a5e6c95d125baa7be6ca398de1316713"},
 "tools/run_local_flow_contracts.py":{"purpose":"exact local root and isolated-file relaunch contracts","sha256":"6a37ecc5e859fa5321c70657b78904fe8e1c46757c9b42a9bd4a16a0a0ea7ecb"},
-"tools/run_equipment_contracts.py":{"purpose":"Native equipment and existing reconciliation/UI suites; isolated real profile and windowed recording","sha256":"63e382d4d1fdc197a8451e826dade8f165748e905343aec2b099b99797118f75"}},
+"tools/run_equipment_contracts.py":{"purpose":"Native equipment and existing reconciliation/UI suites; isolated real profile and native fullscreen recording","sha256":"b0f87a4b29eb1a59a27dfeaa6d68e8eb12bfe254ce93dbab7eda4b796524ecf1"}},
 "active_reviewed_support":{
 "game/presentation/exact_1080_capture_guard.gd":{"purpose":"export-safe physical window, viewport, texture and raw-image final-write guard","runner_inventory":false,"sha256":"88dce0333faefc3f3e67be8a52d2f42ab3838a29415b9f94e594beff83732d92"},
 "tests/visual/sawmill_yard/exact_output.gd":{"purpose":"non-entrypoint exact output and world guard","runner_inventory":true,"sha256":"981bf7fa981aab39f3216235f7bc7c644b3c693bc1a85c28eeef05cdfac8fd6b"},
