@@ -1,0 +1,40 @@
+name: Pre-multiplayer validation materialization
+
+on:
+  push:
+    branches:
+      - codex/pre-multiplayer-validation-materialize
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Package exact source and locked Linux editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          git archive --format=zip --output="$RUNNER_TEMP/zerkov-main-source.zip" HEAD
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot-linux.zip"
+          {
+            git rev-parse HEAD
+            shasum -a 256 "$RUNNER_TEMP/zerkov-main-source.zip" "$RUNNER_TEMP/godot-linux.zip"
+          } > "$RUNNER_TEMP/validation-bundle-sha256.txt"
+      - name: Upload local validation bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-multiplayer-validation-bundle
+          path: |
+            ${{ runner.temp }}/zerkov-main-source.zip
+            ${{ runner.temp }}/godot-linux.zip
+            ${{ runner.temp }}/validation-bundle-sha256.txt
+          retention-days: 1
