@@ -1,0 +1,53 @@
+name: Bunker workspaces integration
+on:
+  pull_request:
+    paths: ['game/**', 'ui/**', 'tests/**', 'tools/**', 'config/**', '.github/workflows/bunker-workspaces.yml']
+permissions:
+  contents: read
+concurrency:
+  group: bunker-workspaces-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  native-macos:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Install locked engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json;print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Runner and repository checks
+        run: |
+          python3 tests/tooling/test_bunker_flow_runner.py
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
+      - name: Native keyboard/mouse New and independent Continue
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/workspace-results"
+          git rev-parse HEAD > "$RUNNER_TEMP/workspace-results/commit.txt"
+          python3 -u tools/run_bunker_flow_contracts.py --godot "$ZERKOV_GODOT" --suite workspaces --output "$RUNNER_TEMP/workspace-results/headless" 2>&1 | tee "$RUNNER_TEMP/workspace-results/headless.log"
+      - name: Real graphical workspaces and guarded captures
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -u tools/run_bunker_flow_contracts.py --godot "$ZERKOV_GODOT" --suite workspaces --output "$RUNNER_TEMP/workspace-results/graphical" --graphical 2>&1 | tee "$RUNNER_TEMP/workspace-results/graphical.log"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: bunker-workspaces
+          path: ${{ runner.temp }}/workspace-results
+          retention-days: 7

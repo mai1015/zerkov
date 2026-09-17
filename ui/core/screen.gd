@@ -64,7 +64,7 @@ func _register_zerkov_ui_actions() -> void:
 	var route := app.current_route
 	if route not in [
 		"hud", "hud_coop", "inventory", "health", "stats", "maps", "tasks",
-		"bunker", "session", "settings", "controls"
+		"bunker", "session", "build_mode", "crafting", "settings", "controls"
 	]:
 		return
 	register_action(InputActions.UI_OPEN_INVENTORY, _on_open_inventory, {"priority": 40})
@@ -154,8 +154,8 @@ func _build_for_context() -> void:
 		build()
 		return
 	var local := app.local_game_ui()
-	if local != null and LocalFlowBinding.supports(app.current_route):
-		var binding := LocalFlowBinding.new()
+	if local != null and (LocalFlowBinding.supports(app.current_route) or LocalBunkerWorkspaceBinding.supports_workspace(app.current_route)):
+		var binding: LocalFlowBinding = LocalBunkerWorkspaceBinding.new() if LocalBunkerWorkspaceBinding.supports_workspace(app.current_route) else LocalFlowBinding.new()
 		add_child(binding)
 		if not binding.bind(self, local):
 			# A retained failed binding would swallow every later refresh_view()
@@ -286,6 +286,10 @@ func _apply_adaptive_layout() -> void:
 	if _adaptive_applied or not is_inside_tree():
 		return
 	var view: Vector2 = get_viewport_rect().size
+	if _local_binding is LocalBunkerWorkspaceBinding:
+		_local_binding.fit_workspace(view)
+		_layout_size = view
+		return
 	_layout_size = view
 	if _layout_snapshot == null: _layout_snapshot = ZLayoutSnapshot.new(self)
 	if view.x < 1920 or view.y < 1080:

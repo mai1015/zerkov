@@ -42,6 +42,10 @@ func run() -> void:
 	_game = load(scene_path).instantiate() as LocalGame
 	_game.configure_test_store(_store, false)
 	root.add_child(_game)
+	if not _capture_dir.is_empty():
+		# Use the shell's existing exact render-target mode, never fixture data.
+		_game._ui.set("_qa_size_suite", true)
+		_game._ui.call("_update_window_policy")
 	await settle()
 	if not route("title"): await finish(); return
 	await key(KEY_ENTER)
@@ -53,6 +57,13 @@ func run() -> void:
 	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
 	var initial := _store.load_profile()
 	if not check(initial.ok and (initial.generation == 1 if _run_mode == "new" else initial.fingerprint == saved.fingerprint), "entry never reseeds existing progress"): await finish(); return
+	if OS.get_environment("ZERKOV_BUNKER_WORKSPACES") == "1":
+		var driver = load("res://tests/local/bunker_workspaces_driver.gd").new()
+		if not await driver.run(self, initial): await finish(); return
+		print("BUNKER_WORKSPACES_COMPLETE native=true")
+		print("BUNKER_FLOW_FINGERPRINT ", initial.fingerprint)
+		await finish()
+		return
 	var owner_id: int = _game._home.get_instance_id()
 	if not hub("storage"): await finish(); return
 	await capture("02-bunker-storage.png")

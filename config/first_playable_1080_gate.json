@@ -137,7 +137,7 @@
     },
     "tests/local/native_bunker_flow_contract.gd": {
       "purpose": "full native campaign bunker flow with actual input and optional exact guarded captures",
-      "sha256": "3ed92acbc55b860b5b8a9b04045465e64218f0339683c2b334ec83930d41edfe"
+      "sha256": "eeb1c156134b8e1b3daf139de7e4d2f9a6fe20a52199d6f7a84b12ac43309a56"
     }
   },
   "active_command_entrypoints": {
@@ -215,7 +215,7 @@
     },
     "tools/run_bunker_flow_contracts.py": {
       "purpose": "full application native bunker new/continue input and screenshot driver in a temporary copy",
-      "sha256": "6a1ecf6e2400fcddfe88b5af45eebdf28cd03074f34cbe4d6d8c1319ba315087"
+      "sha256": "50a55b2fb6388dd73d9e7a41a0551be13380bc4cdbf3dc497032e17c89181c52"
     }
   },
   "active_reviewed_support": {
