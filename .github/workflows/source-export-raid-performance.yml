@@ -1,0 +1,28 @@
+name: Temporary raid performance source export
+on:
+  push:
+    branches: ['codex/source-export-raid-performance']
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Archive exact tracked checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive --format=tar HEAD | gzip -1 > "$RUNNER_TEMP/zerkov-source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: zerkov-source-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/zerkov-source.tar.gz
+            ${{ runner.temp }}/source-commit.txt
+          retention-days: 1
