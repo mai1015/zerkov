@@ -49,10 +49,12 @@ jobs:
               assert name=='.github/workflows/native-freight.yml' or not target.exists(),name
           for name,expected in [('config/first_playable_1080_gate.json','b3ff6243444e17c404a960eca1675fdbb255a1c7'),('tests/tooling/test_ui_first_playable_scope.py','a9d18b0415de4ee7e4494643798824c7cca00dcc')]:
               assert subprocess.check_output(['git','hash-object',name],text=True).strip()==expected,name
-          for name,text in packet['files'].items():
+          # GITHUB_TOKEN may publish ordinary source, not workflow changes.
+          # The final read-only workflow is installed separately through the
+          # authorized repository connector; never elevate this job's token.
+          files={n:t for n,t in packet['files'].items() if n!='.github/workflows/native-freight.yml'}
+          for name,text in files.items():
               target=root/name; target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(text.encode())
-          # Explicit pre/postimage-sealed corrections to new files only.
-          # Existing exact-output checker and physical guard remain unchanged.
           target=root/'tests/presentation/northline_native_contract.gd'
           text=target.read_text()
           assert hashlib.sha256(text.encode()).hexdigest()=='a864ca6bc68a432d38d02b2f541e1cbfd5c2082287a83ea134994dcb156095d6'
@@ -72,9 +74,9 @@ jobs:
           assert hashlib.sha256(text.encode()).hexdigest()=='730df25d90a24cdf70083d670d35857520cc73e0ef2992e3b94288295fabcf44'
           target.write_bytes(text.encode())
           subprocess.run(['python3','tools/register_native_freight.py'],check=True)
-          subprocess.run(['git','add','--',*packet['files'],'config/first_playable_1080_gate.json','tests/tooling/test_ui_first_playable_scope.py'],check=True)
+          subprocess.run(['git','add','--',*files,'config/first_playable_1080_gate.json','tests/tooling/test_ui_first_playable_scope.py'],check=True)
           subprocess.run(['git','rm','--',*[p.relative_to(root).as_posix() for p in chunks]],check=True)
-          print('NATIVE_FREIGHT_TEXT_PUBLICATION files=49 original_png_uploads=0')
+          print('NATIVE_FREIGHT_TEXT_PUBLICATION source_files=48 original_png_uploads=0 workflow_changes=0')
           PY
       - name: Verify the source candidate and preserved display policy
         run: |
@@ -82,7 +84,7 @@ jobs:
           python3 tests/tooling/test_ui_first_playable_scope.py
           python3 tools/check_first_playable_1080.py
           git diff --cached --check
-      - name: Retain ordinary native resources and final read-only workflow
+      - name: Retain ordinary native resources on the unchanged branch head
         env:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
@@ -91,7 +93,7 @@ jobs:
           actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
           test "$actual" = "$EXPECTED_HEAD"
           test ! -d tools/native_freight_stage
-          ! grep -q 'contents: write' .github/workflows/native-freight.yml
+          git diff --exit-code HEAD -- .github/workflows
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat(maps): retain native freight TileMapLayers and original-sheet resources'
