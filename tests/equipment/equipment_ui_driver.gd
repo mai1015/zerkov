@@ -34,13 +34,41 @@ func check(ok: bool, text: String) -> bool:
 func settle() -> void:
 	for _i in range(12): await process_frame
 	await create_timer(0.04).timeout
+	# A displayed frame is not a CommonUI commit. Native movie rendering and
+	# headless runs have different pacing; wait for the same input-ready state.
+	# Never retry input or force a route to make an assertion pass.
+	if game == null or not is_instance_valid(game) or game._closed: return
+	var deadline := Time.get_ticks_msec() + 5000
+	while Time.get_ticks_msec() < deadline:
+		if not game.last_error.is_empty(): break
+		if _input_ready(): return
+		await process_frame
+	check(false, "input did not become ready: " + _route_state())
+
+func _input_ready() -> bool:
+	if game._ui == null or game._ui.navigator == null or game._ui.navigator.has_work(): return false
+	var screen: Control = game._ui.screen
+	return is_instance_valid(screen) and screen.is_visible_in_tree() \
+		and screen.is_routing_active() and screen.accepts_input() \
+		and screen.app.local_epoch() == game._epoch
+
+func _route_state() -> String:
+	if game._ui == null or game._ui.navigator == null: return "UI not mounted"
+	return "route=%s mode=%s pending=%s error=%s" % [game._ui.current_route,
+		game._mode, game._ui.navigator.has_work(), String(game.last_error)]
 
 func key(code: Key) -> void:
+	await settle()
+	if failures > 0: return
+	var before := _route_state()
 	for down: bool in [true, false]:
 		var event := InputEventKey.new()
 		event.keycode = code; event.physical_keycode = code; event.pressed = down
-		root.push_input(event)
+		Input.parse_input_event(event)
+		Input.flush_buffered_events()
+		await process_frame
 	await settle()
+	print("EQUIPMENT_KEY ", code, " before=", before, " after=", _route_state())
 
 func linger(label: String) -> void:
 	print("EQUIPMENT_UI_STAGE ", label)
@@ -80,8 +108,8 @@ func item_slot(source: String, definition: String) -> Control:
 	return null
 
 func route(expected: String) -> bool:
-	return check(game._ui.current_route == expected and game.last_error.is_empty(),
-		"route " + expected + " / " + String(game.last_error))
+	return check(game._ui.current_route == expected and game.last_error.is_empty() and _input_ready(),
+		"expected " + expected + " / " + _route_state())
 
 func boot() -> bool:
 	game = load("res://game/bootstrap/local/local_game.tscn").instantiate() as LocalGame
