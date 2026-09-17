@@ -1,0 +1,48 @@
+--- a/tests/local/local_flow_player_driver.gd
++++ b/tests/local/local_flow_player_driver.gd
+@@ -76,6 +76,9 @@
+ 	_stop()
+ 	for _i in range(10):
+ 		if not await _tick(Vector2.ZERO): return false
++	# Bandaging is a real bound gameplay action. A bleed is damage, so waiting
++	# five seconds at the exit while bleeding must NOT bypass its interruption.
++	if not await _stabilize_bleeding(): return false
+ 	_key(KEY_E, true); _key(KEY_E, false)
+ 	await _tree.process_frame
+ 	if not await _tick(Vector2.ZERO): return false
+@@ -101,6 +104,35 @@
+ 	print("LOCAL_FLOW_EXTRACT ticks=", ticks, " fire_inputs=", fired, " searched=", searched,
+ 		" kills=", result.get("stats", {}).get("kills", 0), " outcome=", result.outcome)
+ 	return true
++
++func _stabilize_bleeding() -> bool:
++	for attempt in range(14):
++		var frame := _game._session.hud_model.confirmed_frame()
++		var bleeding: bool = false
++		for zone: Dictionary in frame.get("health", {}).get("body_parts", []):
++			bleeding = bleeding or bool(zone.get("heavy_bleed", false))
++		if not bleeding: return true
++		var before: int = _carried_bandages()
++		if not _assert(before > 0, "bleeding extraction run has a real carried bandage"): return false
++		print("LOCAL_FLOW_TREATMENT attempt=", attempt + 1, " tick=", ticks, " bandages=", before)
++		_key(KEY_Y, true); _key(KEY_Y, false)
++		for _i in range(4):
++			if not await _tick(Vector2.ZERO): return false
++		var after: int = _carried_bandages()
++		if not _assert(after == before or after == before - 1, "one heal gesture consumes at most one actual bandage"): return false
++		# Same-tick damage can invalidate the expected health revision. Retry via
++		# another physical key event with the newly published view; never edit GAS.
++		if after == before: continue
++		if not _assert(_game._session.hud_model.confirmed_frame().health.health_revision > frame.health.health_revision,
++				"consumed bandage publishes an authoritative health revision"): return false
++	return _assert(false, "bounded physical treatment stabilizes bleeding before extraction")
++
++func _carried_bandages() -> int:
++	var owner := _game._session.deployment.inventory
++	var count: int = 0
++	for item: Dictionary in owner.raid_authority().snapshot(owner.raid_player_inventory_id).get_items():
++		if StringName(item.item_definition_identifier) == ZerkovInventoryCatalog.ITEM_BANDAGE: count += int(item.quantity)
++	return count
+ 
+ func _walk_to(goal: Vector2) -> bool:
+ 	var session := _game._session
