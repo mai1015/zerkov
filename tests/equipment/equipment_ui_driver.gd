@@ -2,6 +2,7 @@ extends RefCounted
 ## Normal application, real input, real local files. The runner supplies only
 ## an isolated test namespace and manual raid pacing. Three fresh processes
 ## prove changed gear survives relaunch and is used by deployment.
+const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const EXACT_SIZE := Vector2i(1920, 1080)
 const PRIMARY: StringName = &"zerkov.slot.weapon_primary"
 const MELEE: StringName = &"zerkov.slot.weapon_melee"
