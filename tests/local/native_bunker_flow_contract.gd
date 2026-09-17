@@ -60,7 +60,7 @@ func run() -> void:
 	var view := hideout()
 	for entry: Array in [["LocalLoadout", ZerkovInputActions.UI_OPEN_INVENTORY],
 		["LocalDeploy", ZerkovInputActions.UI_OPEN_MAP], ["LocalTasks", ZerkovInputActions.UI_OPEN_TASKS]]:
-		var binding := _game._ui.input_service.effective_binding(entry[1], CommonUIBinding.SLOT_PRIMARY)
+		var binding: CommonUIBinding = _game._ui.input_service.effective_binding(entry[1], CommonUIBinding.SLOT_PRIMARY)
 		check(String(view.get_node(entry[0]).text).begins_with(CommonBindingText.describe(binding)), "hint comes from actual effective binding")
 	check(view.get_node("FacilityAction").text == "OPEN STASH / LOADOUT", "storage explains its real destination")
 	if not await click("BunkerHideoutView/FacilityAction") or not route("inventory"): await finish(); return
