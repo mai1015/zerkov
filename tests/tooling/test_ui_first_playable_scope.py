@@ -56,7 +56,7 @@ class FirstPlayable1080GateTests(unittest.TestCase):
         self.assertEqual(
             [], gate.classification_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
-        self.assertEqual(32, len(self.manifest["active_visual_entrypoints"]))
+        self.assertEqual(33, len(self.manifest["active_visual_entrypoints"]))
         self.assertEqual(61, len(self.manifest["active_headless_entrypoints"]))
         self.assertIn("tests/local/native_local_flow_contract.gd",
                       self.manifest["active_headless_entrypoints"])
@@ -432,7 +432,7 @@ func run():
         self.assertEqual(
             [], gate.capture_issues(self.manifest, PROJECT_ROOT, self.paths)
         )
-        self.assertEqual(15, len(self.manifest["sanctioned_capture_writers"]))
+        self.assertEqual(16, len(self.manifest["sanctioned_capture_writers"]))
 
     def test_sanctioned_writer_has_exactly_one_hashed_current_classification(self) -> None:
         omitted = copy.deepcopy(self.manifest)
