@@ -2,6 +2,8 @@
 """Real native equipment/UI and separate-process local-save contracts at 1080p."""
 from __future__ import annotations
 import argparse
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
@@ -13,15 +15,44 @@ import uuid
 
 ERRORS = re.compile(r"SCRIPT ERROR|(?:^|\n)\s*(?:ERROR:|Parse Error:)|ObjectDB instances leaked|resources still in use|_TIMEOUT")
 
+
 def execute(command: list[str], env: dict[str, str], marker: str | None = None, timeout: int = 180) -> str:
-    result = subprocess.run(command, env=env, text=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, timeout=timeout)
+    print("EQUIPMENT_COMMAND:", command, flush=True)
+    try:
+        result = subprocess.run(command, env=env, text=True, encoding="utf-8", errors="replace",
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        # TimeoutExpired.stdout can be bytes even with text=True. Preserve the
+        # compiler/runtime diagnostic before the outer handler reports timeout.
+        output = error.stdout or ""
+        if isinstance(output, bytes):
+            output = output.decode("utf-8", errors="replace")
+        print(output, end="", flush=True)
+        print(f"\nEQUIPMENT_COMMAND_TIMEOUT after {timeout}s: {command}", flush=True)
+        raise
     print(result.stdout, end="", flush=True)
     if result.returncode or ERRORS.search(result.stdout):
         raise RuntimeError(f"Native command/diagnostics failed: {result.returncode}: {command}")
     if marker and not re.search(rf"(?m)^{re.escape(marker)} checks=[1-9][0-9]* failures=0(?:\s|$)", result.stdout):
         raise RuntimeError(f"Missing zero-failure marker: {marker}")
     return result.stdout
+
+
+@contextmanager
+def cleanup_after(cleanup: Callable[[], object]) -> Iterator[None]:
+    """Always clean isolated saves without replacing an earlier stage failure."""
+    try:
+        yield
+    except BaseException:
+        try:
+            cleanup()
+        except Exception as error:
+            print("EQUIPMENT_CLEANUP_FAILED (original failure retained):", error, flush=True)
+        raise
+    else:
+        # A cleanup-only failure is still a failed validation run.
+        cleanup()
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -40,6 +71,14 @@ def main() -> int:
         env["XDG_DATA_HOME"] = str(Path(temp) / "user")
         base = [engine, "--headless", "--path", str(project), "--resolution", "1920x1080", "--audio-driver", "Dummy"]
         execute(base + ["--editor", "--import", "--quit"], env)
+        # Dynamic input drivers must compile before any profiles or movies are
+        # created. A failed preload can prevent the in-script watchdog starting.
+        for path in (
+            "tests/equipment/equipment_ui_flow.gd",
+            "tests/equipment/equipment_gesture_driver.gd",
+            "tests/equipment/equipment_deploy_driver.gd",
+        ):
+            execute(base + ["--check-only", "--script", "res://" + path], env, timeout=30)
         for path, marker in [
             ("tests/equipment/equipment_contract.gd", "EQUIPMENT_CONTRACT_RESULT"),
             ("tests/raid/equipped_item_reconciliation_contract.gd", "EQUIPPED_ITEM_RECONCILIATION_RESULT"),
@@ -49,7 +88,8 @@ def main() -> int:
             execute(base + ["--script", "res://" + path], env, marker)
         namespace = "equipflow_" + uuid.uuid4().hex
         saved: list[str] = []
-        try:
+        cleanup_command = base + ["--script", "res://tests/equipment/equipment_ui_flow.gd", "--", "cleanup", namespace]
+        with cleanup_after(lambda: execute(cleanup_command, env, "EQUIPMENT_UI_RESULT", 30)):
             for stage in ("create", "resume", "deploy"):
                 command = base.copy()
                 stage_env = {**env, "ZERKOV_EQUIPMENT_MOVIE": "0"}
@@ -65,8 +105,6 @@ def main() -> int:
                 if not match:
                     raise RuntimeError("Missing exact saved identity/fingerprint")
                 saved = list(match.groups())
-        finally:
-            execute(base + ["--script", "res://tests/equipment/equipment_ui_flow.gd", "--", "cleanup", namespace], env, "EQUIPMENT_UI_RESULT")
     print("EQUIPMENT_RUNNER_COMPLETE")
     return 0
 
