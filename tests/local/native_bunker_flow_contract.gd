@@ -7,6 +7,9 @@ var _capture_dir := ""
 var _run_mode := ""
 
 func run() -> void:
+	# The existing native capture contract uses borderless output to avoid OS
+	# title-bar clamping on a 1080-line display. This never rescales an image.
+	root.borderless = true
 	root.size = BUNKER_SIZE
 	await process_frame
 	if root.get_visible_rect().size != Vector2(BUNKER_SIZE):
@@ -160,7 +163,7 @@ func capture(filename: String) -> void:
 	var image := root.get_texture().get_image()
 	DirAccess.make_dir_recursive_absolute(_capture_dir)
 	if not Exact1080CaptureGuard.accepts(root, root, image):
-		check(false, "physical exact-1080 capture guard")
+		check(false, "physical exact-1080 capture guard: window=%s root=%s viewport=%s texture=%s image=%s" % [DisplayServer.window_get_size(root.get_window_id()), root.size, root.get_visible_rect().size, root.get_texture().get_size(), image.get_size()])
 		return
 	var result := image.save_png(_capture_dir.path_join(filename))
 	check(result == OK, "save actual application image")
