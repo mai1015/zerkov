@@ -1,4 +1,4 @@
-import hashlib, importlib.util, json, pathlib, stat, tempfile, unittest, zipfile
+import hashlib, importlib.util, json, pathlib, re, stat, tempfile, unittest, zipfile
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('source_installer',ROOT/'tools/install_northline_native_sources.py')
 p=importlib.util.module_from_spec(spec);spec.loader.exec_module(p)
@@ -55,5 +55,9 @@ class SourceContracts(unittest.TestCase):
         self.assertNotIn('script = ',scene)
         view=(ROOT/'game/presentation/northline_native/freight_review.gd').read_text()
         for prohibited in ('JSON.parse','_draw(','.set_cell(','.resize(','.quantize('):self.assertNotIn(prohibited,view)
-        self.assertEqual(15,len(list((ROOT/'game/world/northline_native/props').glob('*.tscn'))))
+        # The original freight slice retains its fifteen definitions. The full
+        # native zone adds more prototypes to the same shared directory.
+        referenced=set(re.findall(r'path="res://(game/world/northline_native/props/[^\"]+\.tscn)"',scene))
+        self.assertEqual(15,len(referenced))
+        for name in referenced:self.assertTrue((ROOT/name).is_file(),name)
 if __name__=='__main__':unittest.main()
