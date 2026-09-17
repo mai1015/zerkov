@@ -1,0 +1,52 @@
+name: Publish exact reviewed offline raid sources
+on:
+  pull_request:
+    paths: ['tools/native_raids_stage/**', '.github/workflows/publish-native-raids.yml']
+permissions:
+  contents: read
+jobs:
+  publish-reviewed-source:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/offline-native-raids'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Prepare the exact source serializer (not gameplay evidence)
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          echo "SERIALIZER_GODOT=$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Verify all preimages and output hashes before retaining normal sources
+        run: |
+          set -euo pipefail
+          echo '8ab37eb0bcd1e9413f5ae7b7ce889de23dc1312f9915bf6f8c5220b6248c2b6e  tools/native_raids_stage/publish.py' | sha256sum --check --strict
+          python3 tools/native_raids_stage/publish.py
+          test ! -e tools/native_raids_stage
+      - name: Run source and retained display-policy contracts
+        run: |
+          python3 tests/tooling/test_live_maps_runner.py
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
+          git diff --cached --check
+          git diff --exit-code HEAD -- addons assets project.godot .github/workflows
+      - name: Fast-forward the authorized branch only
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          branch=feat/offline-native-raids
+          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$actual" = "$EXPECTED_HEAD"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(raids): connect native Northline and Blackwater to offline deployment and settlement'
+          git push origin "HEAD:refs/heads/$branch"
