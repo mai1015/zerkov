@@ -38,7 +38,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/equipment"
           git rev-parse HEAD > "$RUNNER_TEMP/equipment/commit.txt"
           if [ "$EQUIPMENT_MODE" = footage ]; then
-            python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" --capture-dir "$RUNNER_TEMP/equipment/footage" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
+            swift tools/with_macos_capture_display.swift python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" --capture-dir "$RUNNER_TEMP/equipment/footage" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
           else
             python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
           fi
