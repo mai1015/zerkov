@@ -11,6 +11,8 @@ signal binding_invalidated(reason: StringName)
 const INTENT_KIND_TRANSFER: StringName = &"inventory_transfer"
 const INTENT_KIND_LOOT: StringName = &"inventory_loot"
 const INTENT_KIND_MOVE: StringName = &"inventory_move"
+const INTENT_KIND_EQUIP: StringName = &"inventory_equip"
+const INTENT_KIND_UNEQUIP: StringName = &"inventory_unequip"
 const INTENT_KIND_ROTATE: StringName = &"inventory_rotate"
 const INTENT_KIND_SPLIT: StringName = &"inventory_split"
 const INTENT_KIND_MERGE: StringName = &"inventory_merge"
@@ -19,6 +21,8 @@ const SUPPORTED_INTENT_KINDS: Array[StringName] = [
 	INTENT_KIND_TRANSFER,
 	INTENT_KIND_LOOT,
 	INTENT_KIND_MOVE,
+	INTENT_KIND_EQUIP,
+	INTENT_KIND_UNEQUIP,
 	INTENT_KIND_ROTATE,
 	INTENT_KIND_SPLIT,
 	INTENT_KIND_MERGE,
@@ -116,6 +120,8 @@ const _INTERNAL_HANDLER_FAILURES: Dictionary = {
 }
 
 var last_error: StringName = &""
+
+var _equipment_rules := InventoryEquipmentRules.new()
 
 var _configured: bool = false
 var _owner: RaidInventoryOwner
@@ -777,6 +783,29 @@ func _routed_fact_validation(
 		and not _inventory_contains_item(source_inventory_id, secondary_item_id):
 		denied["reason"] = &"secondary_item_not_owned_by_source"
 		return denied
+	# Slot syntax is not slot authority. Resolve every slot destination against
+	# this exact loadout's root equipment container and sealed catalog identity.
+	var location: Dictionary = payload.get("destination_location", {})
+	if location.get("kind") == "slot" or operation in [INTENT_KIND_EQUIP, INTENT_KIND_UNEQUIP]:
+		if source_inventory_id != _owner.raid_player_inventory_id or source_is_world:
+			denied.reason = &"equipment_inventory_not_owned"
+			return denied
+		var snapshot := _authority.snapshot(source_inventory_id)
+		var slots := _equipment_rules.slots(snapshot)
+		if slots.is_empty():
+			denied.reason = &"equipment_container_unavailable"
+			return denied
+		if location.get("kind") == "slot" and not _equipment_rules.declares(snapshot, location):
+			denied.reason = &"equipment_slot_unknown"
+			return denied
+		if operation == INTENT_KIND_UNEQUIP:
+			var equipped: bool = false
+			for item: Dictionary in snapshot.get_items():
+				if int(item.id) == int(shape.primary_item_id):
+					equipped = _equipment_rules.declares(snapshot, item.location)
+			if not equipped:
+				denied.reason = &"equipment_item_not_equipped"
+				return denied
 	if source_is_world:
 		denied["world_inventory_id"] = source_inventory_id
 	elif destination_is_world:
@@ -793,7 +822,7 @@ func _routed_shape(operation: StringName, payload: Dictionary) -> Dictionary:
 				"primary_item_id": int(payload["item_id"]),
 				"secondary_item_id": 0,
 			}
-		INTENT_KIND_MOVE, INTENT_KIND_ROTATE, INTENT_KIND_SPLIT:
+		INTENT_KIND_MOVE, INTENT_KIND_EQUIP, INTENT_KIND_UNEQUIP, INTENT_KIND_ROTATE, INTENT_KIND_SPLIT:
 			return {
 				"source_inventory_id": int(payload["inventory_id"]),
 				"destination_inventory_id": int(payload["inventory_id"]),
@@ -824,7 +853,7 @@ func _expected_revisions(
 			if destination_inventory_id != source_inventory_id:
 				revisions[destination_inventory_id] = int(
 					payload["expected_destination_revision"])
-		INTENT_KIND_MOVE, INTENT_KIND_ROTATE, INTENT_KIND_SPLIT, INTENT_KIND_MERGE:
+		INTENT_KIND_MOVE, INTENT_KIND_EQUIP, INTENT_KIND_UNEQUIP, INTENT_KIND_ROTATE, INTENT_KIND_SPLIT, INTENT_KIND_MERGE:
 			revisions[int(shape["source_inventory_id"])] = int(payload["expected_revision"])
 	return revisions
 
@@ -1006,13 +1035,17 @@ func _normalize_payload(kind: StringName, payload: Dictionary) -> Dictionary:
 			if loot_location.is_empty():
 				return {}
 			normalized["destination_location"] = loot_location
-		INTENT_KIND_MOVE:
+		INTENT_KIND_MOVE, INTENT_KIND_EQUIP, INTENT_KIND_UNEQUIP:
 			if not _positive_int_fields(normalized, ["inventory_id", "item_id"]) \
 				or not _nonnegative_int_fields(normalized, ["expected_revision"]):
 				return {}
 			var move_location := _normalize_location(
 				normalized.get("destination_location", null))
 			if move_location.is_empty():
+				return {}
+			if kind == INTENT_KIND_EQUIP and move_location.kind != "slot":
+				return {}
+			if kind == INTENT_KIND_UNEQUIP and move_location.kind == "slot":
 				return {}
 			normalized["destination_location"] = move_location
 		INTENT_KIND_ROTATE:
@@ -1049,7 +1082,7 @@ func _payload_keys_for_kind(kind: StringName) -> PackedStringArray:
 			return _TRANSFER_PAYLOAD_KEYS
 		INTENT_KIND_LOOT:
 			return _LOOT_PAYLOAD_KEYS
-		INTENT_KIND_MOVE:
+		INTENT_KIND_MOVE, INTENT_KIND_EQUIP, INTENT_KIND_UNEQUIP:
 			return _MOVE_PAYLOAD_KEYS
 		INTENT_KIND_ROTATE:
 			return _ROTATE_PAYLOAD_KEYS
@@ -1151,7 +1184,7 @@ func _normalize_location(value: Variant) -> Dictionary:
 			if typeof(slot_value) != TYPE_STRING and typeof(slot_value) != TYPE_STRING_NAME:
 				return {}
 			var slot_identifier := String(slot_value)
-			if not ZIdentityRules.is_valid_part(slot_identifier):
+			if slot_identifier.is_empty() or slot_identifier.to_utf8_buffer().size() > ZIdentityRules.MAX_IDENTIFIER_BYTES:
 				return {}
 			return {
 				"kind": "slot",
@@ -1268,6 +1301,15 @@ func _invoke_routed_native(
 				native_actor_id,
 				inventory_command_id
 			)
+		INTENT_KIND_EQUIP:
+			return _authority.equip_item(
+				int(payload.inventory_id), int(payload.item_id),
+				int(payload.destination_location.container), String(payload.destination_location.slot_identifier),
+				native_actor_id, inventory_command_id)
+		INTENT_KIND_UNEQUIP:
+			return _authority.unequip_item(
+				int(payload.inventory_id), int(payload.item_id),
+				(payload.destination_location as Dictionary).duplicate(true), native_actor_id, inventory_command_id)
 		INTENT_KIND_MOVE:
 			return _authority.move_item(
 				int(payload["inventory_id"]),
@@ -1427,7 +1469,7 @@ func _operation_outcome_valid(operation: StringName, native_result: Dictionary) 
 				and typeof(native_result.get("remaining_quantity", null)) == TYPE_INT \
 				and int(native_result["transferred_quantity"]) > 0 \
 				and int(native_result["remaining_quantity"]) == 0
-		INTENT_KIND_MOVE, INTENT_KIND_ROTATE, INTENT_KIND_MERGE:
+		INTENT_KIND_MOVE, INTENT_KIND_EQUIP, INTENT_KIND_UNEQUIP, INTENT_KIND_ROTATE, INTENT_KIND_MERGE:
 			return true
 	return false
 

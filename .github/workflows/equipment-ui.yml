@@ -1,46 +1,39 @@
 name: Equipment UI
 on:
   pull_request:
-    paths: ['game/**', 'ui/**', 'tests/**', 'tools/**', '.github/workflows/equipment-ui.yml']
+    paths: ['game/**', 'ui/**', 'tests/**', 'tools/**', 'config/**', '.github/workflows/equipment-ui.yml']
 permissions:
   contents: read
 concurrency:
   group: equipment-ui-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  reproduction:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  native-macos:
+    runs-on: macos-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
-      - name: Exact native Linux reproduction packet
+      - name: Install exact locked engine
         shell: bash
         run: |
-          python3 - <<'PY'
-          import hashlib, json, os, pathlib, subprocess, zipfile
-          allowed = {'.gd', '.uid', '.tscn', '.tres', '.json', '.py', '.md', '.gdextension', '.yml', '.yaml', '.png', '.webp', '.jpg', '.jpeg', '.svg', '.ttf', '.otf', '.so'}
-          files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
-          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'equipment-runtime.zip'
-          hashes = {}
-          total = 0
-          with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
-              for name in files:
-                  path = pathlib.Path(name)
-                  if not name or not path.is_file() or path.is_symlink(): continue
-                  if not (path.suffix in allowed or name == 'project.godot'): continue
-                  data = path.read_bytes()
-                  total += len(data)
-                  archive.writestr(name, data)
-                  hashes[name] = hashlib.sha256(data).hexdigest()
-              archive.writestr('REPRODUCTION_COMMIT', subprocess.check_output(['git', 'rev-parse', 'HEAD']))
-              archive.writestr('REPRODUCTION_SHA256.json', json.dumps(hashes, sort_keys=True))
-          print('EQUIPMENT_REPRODUCTION files=',len(hashes),'bytes=',total,'zip_bytes=',output.stat().st_size)
-          PY
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Native equipment contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/equipment"
+          git rev-parse HEAD > "$RUNNER_TEMP/equipment/commit.txt"
+          python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
         with:
-          name: equipment-runtime
-          path: ${{ runner.temp }}/equipment-runtime.zip
-          retention-days: 1
+          name: equipment-native
+          path: ${{ runner.temp }}/equipment
+          retention-days: 3

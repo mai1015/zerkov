@@ -1,5 +1,5 @@
 class_name LocalInventoryController
-extends InventoryPresentationController
+extends InventoryEquipmentController
 
 ## Root composition selects a real level container for the existing workspace.
 ## This changes presentation identity only. Every transfer still revalidates the
