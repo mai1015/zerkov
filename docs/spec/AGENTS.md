@@ -35,3 +35,15 @@
   expected verification evidence.
 - Model lane tags in `tasks.md` are recommendations, not permission to skip
   review or acceptance criteria.
+- `config/first_playable_1080_gate.json` and
+  `tests/tooling/test_ui_first_playable_scope.py` are a shared registry, not
+  per-change files. Every branch that adds an entrypoint or capture writer
+  edits both, so independent branches serialize: the first to land merges
+  cleanly and each one after it conflicts there, even when its own work does
+  not overlap. Rebase onto the merged manifest and resolve it as a structural
+  union of both inventories -- never by taking one side wholesale, which
+  silently unregisters the other branch's entrypoints. Plan the merge order of
+  concurrent changes around this file.
+- A gate entry is registration, not execution. Adding an entrypoint to the
+  manifest does not run it; confirm a workflow actually invokes the file before
+  treating it as coverage.

@@ -589,9 +589,20 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   deferred and MUST NOT block first-playable acceptance.
 - [ ] 8.13 `[PLAYTEST]` Complete mouse/keyboard and controller navigation passes
   without relying on the F1 review catalog.
+- [ ] 8.14 `[LUNA]` Repair `tests/bunker_smoke.gd` and give it a runner. Since
+  the campaign bunker began showing the production hideout instead of the
+  placeholder station layout, its first assertion clicks (150, 196) for a
+  station that is no longer drawn and fails. No workflow executes this file, so
+  `main` has been red here without any job reporting it, while task 12.2 names
+  the bunker regression as acceptance work and the gate manifest lists the
+  entrypoint as sanctioned. A registered entrypoint that nothing runs is not
+  coverage.
 
 Evidence: existing 28-route smoke remains green; CommonUI lifecycle/input
 tests; real-data screenshot matrix; zero production mock-state references.
+`bunker_smoke` currently reports `failures=1` at `main` `36e3636`, reproduced
+twice under pinned Godot 4.7.2, and 8.14 closes only when it is green from a
+job rather than from a local run.
 
 Implementation candidate evidence (8.11, 2026-09-11): production `Main` and
 `ZUIContext` expose no `state`/`fixtures`; the recursively enumerated `ui/` and
