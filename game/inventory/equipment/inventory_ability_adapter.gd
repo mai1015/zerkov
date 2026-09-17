@@ -198,7 +198,7 @@ func bind_owner(
 	_last_tick = initial_tick
 	lifecycle = Lifecycle.BOUND
 	_connect_lifecycle_signals(component_node)
-	if not raid_authority.register_phase_handler(
+	if not raid_authority.register_phase_handler_without_intents(
 			RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK,
 			handler_id,
 			Callable(self, "handle_raid_phase"),

@@ -10,6 +10,9 @@ var _interrupted: bool = false
 func can_start(tick: int) -> bool:
 	return tick > 0 and tick >= _last_tick and (_swing.is_empty() or tick >= int(_swing.ready_tick))
 
+func has_active_work(tick: int) -> bool:
+	return not _swing.is_empty() and tick < int(_swing.get("ready_tick", 0))
+
 func start(request_id: String, tick: int, definition: Dictionary, aim_raw: Vector2i) -> bool:
 	if not can_start(tick) or request_id.is_empty() or aim_raw == Vector2i.ZERO \
 		or absi(int(aim_raw.x)) > 1_000_000 or absi(int(aim_raw.y)) > 1_000_000 \

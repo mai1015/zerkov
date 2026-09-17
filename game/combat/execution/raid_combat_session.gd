@@ -17,6 +17,8 @@ var _publisher_registration: String = ""
 var _body_records: Dictionary = {}
 var _world_revision: int = 0
 var _world_snapshot_builds: int = 0
+var _world_snapshot_deltas: int = 0
+var _world_body_upserts: int = 0
 var _world_snapshot_refreshes: int = 0
 var _started: bool = false
 var _released: bool = false
@@ -118,7 +120,8 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 	hitboxes = BodyHitboxWorld2D.new()
 	var capability := hitboxes.bind_raid_authority(raid, raid.admission().actor_id, ZRaidIntent.Source.PLAYER, _generation)
 	if capability == null: return _fail(hitboxes.last_error)
-	if not raid.register_phase_handler(RaidAuthority.TickPhase.MOVEMENT, PUBLISHER,
+	if not raid.register_phase_handler_without_intents(
+		RaidAuthority.TickPhase.MOVEMENT, PUBLISHER,
 		Callable(self, "_publish_bodies"), _generation, 200, movements): return _fail(raid.last_error)
 	_publisher_registration = raid.phase_handler_registration_id(PUBLISHER, _generation)
 	if not hitboxes.authorize_phase_publisher(capability, PUBLISHER, _publisher_registration, Callable(self, "_publish_bodies")):
@@ -141,7 +144,7 @@ func _publish_bodies(raid: RaidAuthority, phase: int, tick: int, _intents: Array
 	if _released or raid != _raid or not raid.is_dispatching_phase_registration(PUBLISHER,
 		_publisher_registration, Callable(self, "_publish_bodies"), phase, tick, _generation):
 		return _fail(&"combat_world_publish_out_of_phase")
-	var changed := false
+	var changed_bodies: Array[Dictionary] = []
 	for row in _rows:
 		var movement := row.movement as ZPlayerLocomotion
 		var position := ZWorldUnits.godot_to_canonical(movement.position_px)
@@ -158,7 +161,7 @@ func _publish_bodies(raid: RaidAuthority, phase: int, tick: int, _intents: Array
 				or prior.get("origin_raw") != position.vector2i_value \
 				or int(prior.get("facing_quarter_turns", -1)) != facing \
 				or bool(prior.get("targetable", false)) != targetable:
-			_body_records[actor_key] = {
+			var next_record := {
 				"entity_id": actor_key,
 				"actor_source": row.source,
 				"profile_id": String(ZerkovBodyHitboxProfile.PROFILE_HUMANOID_V1),
@@ -168,9 +171,10 @@ func _publish_bodies(raid: RaidAuthority, phase: int, tick: int, _intents: Array
 				"collision_layer": 1,
 				"targetable": targetable,
 			}
-			changed = true
-	if changed or _world_revision == 0:
-		_world_revision += 1
+			_body_records[actor_key] = next_record
+			changed_bodies.append(next_record)
+	if _world_revision == 0:
+		_world_revision = 1
 		var bodies: Array[Dictionary] = []
 		var actor_keys := PackedStringArray(_body_records.keys())
 		actor_keys.sort()
@@ -181,6 +185,15 @@ func _publish_bodies(raid: RaidAuthority, phase: int, tick: int, _intents: Array
 			_publisher_registration, Callable(self, "_publish_bodies")):
 			return _fail(hitboxes.last_error)
 		_world_snapshot_builds += 1
+	elif not changed_bodies.is_empty():
+		_world_revision += 1
+		if not hitboxes.phase_publisher_apply_body_delta(
+			tick, _world_revision, changed_bodies, [],
+			raid.admission().actor_id, ZRaidIntent.Source.PLAYER, PUBLISHER,
+			_publisher_registration, Callable(self, "_publish_bodies")):
+			return _fail(hitboxes.last_error)
+		_world_snapshot_deltas += 1
+		_world_body_upserts += changed_bodies.size()
 	else:
 		if not hitboxes.phase_publisher_refresh_snapshot(tick, _world_revision,
 			raid.admission().actor_id, ZRaidIntent.Source.PLAYER, PUBLISHER,
@@ -194,6 +207,8 @@ func world_publication_work_counts() -> Dictionary:
 	var result := {
 		"world_revision": _world_revision,
 		"snapshot_builds": _world_snapshot_builds,
+		"snapshot_deltas": _world_snapshot_deltas,
+		"body_upserts": _world_body_upserts,
 		"tick_refreshes": _world_snapshot_refreshes,
 		"body_count": _body_records.size(),
 	}

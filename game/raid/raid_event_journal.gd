@@ -109,6 +109,16 @@ func records() -> Array[Dictionary]:
 	return result
 
 
+## Returns one canonical retained record without rebuilding the complete journal.
+## Invalid indices are non-authorizing and return an empty value.
+func record_at(index: int) -> Dictionary:
+	if index < 0 or index >= _events.size():
+		return {}
+	var record := (_events[index] as ZRaidEvent).canonical_record()
+	record.make_read_only()
+	return record
+
+
 func digest() -> String:
 	# Preserve the compact canonical digest for small journals, then switch to a
 	# framed streaming digest once aggregate collection/node limits are reached.

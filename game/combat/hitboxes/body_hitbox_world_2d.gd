@@ -2,8 +2,8 @@ class_name BodyHitboxWorld2D
 extends RefCounted
 ## Bounded deterministic owner for authoritative 2D body-hit geometry.
 ##
-## A movement/world owner publishes one complete integer snapshot per raid
-## tick. Firearm/melee adapters may ask this boundary for spatial facts, but
+## A movement/world owner publishes one complete initial integer snapshot, then
+## bounded per-body deltas or a tick-only refresh. Firearm/melee adapters may ask
 ## neither Weapon System nor Gameplay Abilities participates in hit selection.
 
 enum Lifecycle {
@@ -118,7 +118,18 @@ var _bodies_by_id: Dictionary = {}
 var _obstructions_by_id: Dictionary = {}
 var _body_history: Dictionary = {}
 var _obstruction_history: Dictionary = {}
+var _body_digest_fragments: Dictionary = {}
+var _obstruction_digest_fragments: Dictionary = {}
 var _query_ledger: Dictionary = {}
+var _full_snapshot_builds: int = 0
+var _delta_snapshot_builds: int = 0
+var _tick_refreshes: int = 0
+var _body_normalizations: int = 0
+var _obstruction_normalizations: int = 0
+var _body_fragment_builds: int = 0
+var _obstruction_fragment_builds: int = 0
+var _body_upserts: int = 0
+var _body_removals: int = 0
 var _phase_consumers: Dictionary = {}
 
 
@@ -511,6 +522,21 @@ func _snapshot_metadata_record() -> Dictionary:
 	})
 
 
+## Diagnostic-only counters proving that unchanged/static geometry is reused.
+func publication_work_counts() -> Dictionary:
+	return _read_only_dictionary({
+		"full_snapshot_builds": _full_snapshot_builds,
+		"delta_snapshot_builds": _delta_snapshot_builds,
+		"tick_refreshes": _tick_refreshes,
+		"body_normalizations": _body_normalizations,
+		"obstruction_normalizations": _obstruction_normalizations,
+		"body_fragment_builds": _body_fragment_builds,
+		"obstruction_fragment_builds": _obstruction_fragment_builds,
+		"body_upserts": _body_upserts,
+		"body_removals": _body_removals,
+	})
+
+
 func phase_consumer_raycast(
 	query_value: Variant,
 	handler_id: StringName,
@@ -573,6 +599,61 @@ func phase_publisher_publish_snapshot(
 		publisher_actor_value, publisher_source_value)
 
 
+## Applies only changed body records while preserving static obstruction geometry
+## and unchanged body hitboxes. The update is validated and committed atomically.
+func phase_publisher_apply_body_delta(
+	tick: int,
+	world_revision: int,
+	upserts_value: Variant,
+	removals_value: Variant,
+	publisher_actor_value: Variant,
+	publisher_source_value: Variant,
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable
+) -> bool:
+	last_error = &""
+	last_publication_duplicate = false
+	if not _guard_exact_phase_grant(
+		handler_id, registration_id, callback, tick,
+		RaidAuthority.TickPhase.MOVEMENT, &"publish"):
+		return false
+	if not _guard_publisher(publisher_actor_value, publisher_source_value):
+		return false
+	if not _authority_allows_publication():
+		return _reject_bool(&"authority_not_accepting_world_snapshot")
+	if tick < 0 or tick != _authority.clock.current_tick:
+		return _reject_bool(&"snapshot_tick_not_current")
+	if _snapshot_revision <= 0 or _snapshot_digest.is_empty() \
+			or _bodies_by_id.is_empty():
+		return _reject_bool(&"world_snapshot_missing")
+	if world_revision != _snapshot_revision + 1:
+		return _reject_bool(&"snapshot_revision_regressed_or_skipped")
+	if tick != _snapshot_tick + 1:
+		return _reject_bool(&"snapshot_tick_regressed_or_skipped")
+	if typeof(upserts_value) != TYPE_ARRAY or typeof(removals_value) != TYPE_ARRAY:
+		return _reject_bool(&"body_delta_collection_type_invalid")
+	var upserts := upserts_value as Array
+	var removals := removals_value as Array
+	if upserts.is_empty() and removals.is_empty():
+		return _reject_bool(&"body_delta_empty")
+	if upserts.size() > MAX_BODIES or removals.size() > MAX_BODIES:
+		return _reject_bool(&"body_delta_capacity_exceeded")
+	var build := _build_body_delta(upserts, removals)
+	if not bool(build.get("ok", false)):
+		return false
+	_bodies_by_id = build["bodies"] as Dictionary
+	_body_history = build["body_history"] as Dictionary
+	_body_digest_fragments = build["body_fragments"] as Dictionary
+	_snapshot_tick = tick
+	_snapshot_revision = world_revision
+	_snapshot_digest = String(build["digest"])
+	_delta_snapshot_builds += 1
+	_body_upserts += upserts.size()
+	_body_removals += removals.size()
+	return true
+
+
 ## Advances only the authoritative tick envelope when the exact production
 ## publisher proves that no body or obstruction record changed. Geometry,
 ## revision history and the canonical snapshot digest remain immutable; phase
@@ -609,6 +690,7 @@ func phase_publisher_refresh_snapshot(
 	if tick != _snapshot_tick + 1:
 		return _reject_bool(&"snapshot_tick_regressed_or_skipped")
 	_snapshot_tick = tick
+	_tick_refreshes += 1
 	last_publication_duplicate = true
 	return true
 
@@ -660,9 +742,12 @@ func _publish_snapshot_after_binding(
 	_obstructions_by_id = build["obstructions"] as Dictionary
 	_body_history = build["body_history"] as Dictionary
 	_obstruction_history = build["obstruction_history"] as Dictionary
+	_body_digest_fragments = build["body_fragments"] as Dictionary
+	_obstruction_digest_fragments = build["obstruction_fragments"] as Dictionary
 	_snapshot_tick = tick
 	_snapshot_revision = world_revision
 	_snapshot_digest = next_digest
+	_full_snapshot_builds += 1
 	return true
 
 
@@ -845,7 +930,15 @@ func _build_snapshot(bodies: Array, obstructions: Array) -> Dictionary:
 		"geometry_revision", MAX_OBSTRUCTION_HISTORY, &"obstruction")
 	if not bool(obstruction_history_result.get("ok", false)):
 		return {}
-	var digest := _digest_snapshot(next_bodies, next_obstructions)
+	var body_fragments := _build_snapshot_fragments(next_bodies, true)
+	var obstruction_fragments := _build_snapshot_fragments(next_obstructions, false)
+	if body_fragments.size() != next_bodies.size() \
+			or obstruction_fragments.size() != next_obstructions.size():
+		last_error = &"snapshot_digest_invalid"
+		return {}
+	var digest := _digest_snapshot_fragments(
+		body_fragments, obstruction_fragments,
+		next_bodies.size(), next_obstructions.size())
 	if digest.is_empty():
 		last_error = &"snapshot_digest_invalid"
 		return {}
@@ -855,11 +948,14 @@ func _build_snapshot(bodies: Array, obstructions: Array) -> Dictionary:
 		"obstructions": next_obstructions,
 		"body_history": body_history_result["history"],
 		"obstruction_history": obstruction_history_result["history"],
+		"body_fragments": body_fragments,
+		"obstruction_fragments": obstruction_fragments,
 		"digest": digest,
 	}
 
 
 func _normalize_body(value: Variant) -> Dictionary:
+	_body_normalizations += 1
 	if typeof(value) != TYPE_DICTIONARY:
 		last_error = &"body_record_type_invalid"
 		return {}
@@ -933,6 +1029,7 @@ func _normalize_body(value: Variant) -> Dictionary:
 
 
 func _normalize_obstruction(value: Variant) -> Dictionary:
+	_obstruction_normalizations += 1
 	if typeof(value) != TYPE_DICTIONARY:
 		last_error = &"obstruction_record_type_invalid"
 		return {}
@@ -1024,33 +1121,148 @@ func _next_revision_history(
 	return {"ok": true, "history": next_history}
 
 
-func _digest_snapshot(bodies: Dictionary, obstructions: Dictionary) -> String:
+func _build_body_delta(upserts: Array, removals: Array) -> Dictionary:
+	var next_bodies := _bodies_by_id.duplicate()
+	var next_history := _body_history.duplicate()
+	var next_fragments := _body_digest_fragments.duplicate()
+	var touched: Dictionary = {}
+	for removal_value in removals:
+		if not _is_text(removal_value):
+			last_error = &"body_delta_removal_type_invalid"
+			return {}
+		var entity := ZEntityId.parse(String(removal_value))
+		if entity == null:
+			last_error = &"body_delta_removal_id_invalid"
+			return {}
+		var entity_id := entity.canonical_key()
+		if touched.has(entity_id):
+			last_error = &"body_delta_entity_duplicate"
+			return {}
+		touched[entity_id] = true
+		if not next_bodies.has(entity_id) or not next_history.has(entity_id):
+			last_error = &"body_delta_removal_missing"
+			return {}
+		next_bodies.erase(entity_id)
+		next_fragments.erase(entity_id)
+		var removed_history := (next_history[entity_id] as Dictionary).duplicate(true)
+		removed_history["present"] = false
+		next_history[entity_id] = removed_history
+
+	for value in upserts:
+		var normalized := _normalize_body(value)
+		if normalized.is_empty():
+			return {}
+		var entity_id := String(normalized["entity_id"])
+		if touched.has(entity_id):
+			last_error = &"body_delta_entity_duplicate"
+			return {}
+		touched[entity_id] = true
+		var digest_record := normalized.duplicate(true)
+		digest_record.erase("hitboxes")
+		var record_digest := ZCanonicalValue.sha256(digest_record)
+		if record_digest.is_empty():
+			last_error = &"body_record_digest_invalid"
+			return {}
+		var revision := int(normalized["body_revision"])
+		if next_history.has(entity_id):
+			var prior := next_history[entity_id] as Dictionary
+			var floor_revision := int(prior["revision"])
+			if revision < floor_revision:
+				last_error = &"body_revision_regressed"
+				return {}
+			if revision == floor_revision:
+				if not bool(prior.get("present", false)):
+					last_error = &"body_stale_resurrection"
+				elif String(prior["digest"]) != record_digest:
+					last_error = &"body_equal_revision_divergence"
+				else:
+					last_error = &"body_delta_revision_not_advanced"
+				return {}
+		elif next_history.size() >= MAX_BODY_HISTORY:
+			last_error = &"body_history_capacity_exceeded"
+			return {}
+		next_bodies[entity_id] = normalized
+		next_history[entity_id] = {
+			"id": entity_id,
+			"revision": revision,
+			"digest": record_digest,
+			"present": true,
+		}
+		var fragment := _snapshot_record_fragment(digest_record, true)
+		if fragment.is_empty():
+			last_error = &"snapshot_digest_invalid"
+			return {}
+		next_fragments[entity_id] = fragment
+
+	if next_bodies.is_empty() or next_bodies.size() > MAX_BODIES:
+		last_error = &"body_capacity_exceeded"
+		return {}
+	var digest := _digest_snapshot_fragments(
+		next_fragments, _obstruction_digest_fragments,
+		next_bodies.size(), _obstructions_by_id.size())
+	if digest.is_empty():
+		last_error = &"snapshot_digest_invalid"
+		return {}
+	return {
+		"ok": true,
+		"bodies": next_bodies,
+		"body_history": next_history,
+		"body_fragments": next_fragments,
+		"digest": digest,
+	}
+
+
+func _build_snapshot_fragments(records: Dictionary, bodies: bool) -> Dictionary:
+	var result: Dictionary = {}
+	for record_id in records:
+		var digest_record := (records[record_id] as Dictionary).duplicate(true)
+		if bodies:
+			digest_record.erase("hitboxes")
+		var fragment := _snapshot_record_fragment(digest_record, bodies)
+		if fragment.is_empty():
+			return {}
+		result[record_id] = fragment
+	return result
+
+
+func _snapshot_record_fragment(record: Dictionary, body: bool) -> PackedByteArray:
+	var encoded := ZCanonicalValue.encode(record)
+	if encoded.is_empty():
+		return PackedByteArray()
+	if body:
+		_body_fragment_builds += 1
+	else:
+		_obstruction_fragment_builds += 1
+	return (("body:" if body else "obstruction:") + encoded).to_utf8_buffer()
+
+
+func _digest_snapshot_fragments(
+	body_fragments: Dictionary,
+	obstruction_fragments: Dictionary,
+	body_count: int,
+	obstruction_count: int
+) -> String:
 	var context := HashingContext.new()
 	if context.start(HashingContext.HASH_SHA256) != OK:
 		return ""
 	var header := ZCanonicalValue.encode({
 		"schema": SNAPSHOT_SCHEMA,
 		"profile_digest": ZerkovBodyHitboxProfile.declaration_digest(),
-		"body_count": bodies.size(),
-		"obstruction_count": obstructions.size(),
+		"body_count": body_count,
+		"obstruction_count": obstruction_count,
 	})
 	if header.is_empty() or context.update(header.to_utf8_buffer()) != OK:
 		return ""
-	var body_ids := PackedStringArray(bodies.keys())
+	var body_ids := PackedStringArray(body_fragments.keys())
 	body_ids.sort()
 	for entity_id in body_ids:
-		var record := (bodies[entity_id] as Dictionary).duplicate(true)
-		record.erase("hitboxes")
-		var encoded := ZCanonicalValue.encode(record)
-		if encoded.is_empty() \
-				or context.update(("body:" + encoded).to_utf8_buffer()) != OK:
+		if context.update(body_fragments[entity_id] as PackedByteArray) != OK:
 			return ""
-	var obstruction_ids := PackedStringArray(obstructions.keys())
+	var obstruction_ids := PackedStringArray(obstruction_fragments.keys())
 	obstruction_ids.sort()
 	for obstruction_id in obstruction_ids:
-		var encoded := ZCanonicalValue.encode(obstructions[obstruction_id])
-		if encoded.is_empty() \
-				or context.update(("obstruction:" + encoded).to_utf8_buffer()) != OK:
+		if context.update(
+			obstruction_fragments[obstruction_id] as PackedByteArray) != OK:
 			return ""
 	return context.finish().hex_encode()
 
@@ -1699,6 +1911,8 @@ func _clear_snapshot_state() -> void:
 	_obstructions_by_id.clear()
 	_body_history.clear()
 	_obstruction_history.clear()
+	_body_digest_fragments.clear()
+	_obstruction_digest_fragments.clear()
 	_query_ledger.clear()
 	_phase_consumers.clear()
 	last_publication_duplicate = false

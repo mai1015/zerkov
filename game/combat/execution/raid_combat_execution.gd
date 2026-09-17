@@ -32,6 +32,12 @@ var _feedback: Array[Dictionary] = []
 var _inside: bool = false
 var _released: bool = false
 var _tick: int = 0
+var _contact_phase_entries: int = 0
+var _contact_idle_skips: int = 0
+var _contact_actor_advances: int = 0
+var _due_phase_entries: int = 0
+var _due_idle_skips: int = 0
+var _reload_due_scans: int = 0
 
 func bind(raid: RaidAuthority, weapons: WeaponAuthority, fire: WeaponCombatAdapter,
 	health: HealthConsequenceAdapter, world: BodyHitboxWorld2D, capability: Variant,
@@ -57,7 +63,11 @@ func bind(raid: RaidAuthority, weapons: WeaponAuthority, fire: WeaponCombatAdapt
 		[RaidAuthority.TickPhase.PUBLISH_PROJECTIONS, PUBLISH, Callable(self, "_publish"), 0, PackedStringArray()],
 	]
 	for row: Array in rows:
-		if not raid.register_phase_handler(row[0], row[1], row[2], generation, row[3], row[4]):
+		var registered: bool = raid.register_phase_handler(
+			row[0], row[1], row[2], generation, row[3], row[4]) \
+			if row[1] == COMMANDS else raid.register_phase_handler_without_intents(
+				row[0], row[1], row[2], generation, row[3], row[4])
+		if not registered:
 			last_error = raid.last_error
 			_rollback_handlers()
 			return false
@@ -224,9 +234,16 @@ func _execute(actor: Dictionary, intent: ZRaidIntent, tick: int) -> bool:
 func _contacts(raid: RaidAuthority, phase: int, tick: int, _intents: Array[ZRaidIntent]) -> bool:
 	if not _current(raid, phase, tick, CONTACTS, Callable(self, "_contacts")):
 		return _fail(&"combat_contact_phase_invalid")
+	_contact_phase_entries += 1
+	if not _has_active_melee_work(tick):
+		_contact_idle_skips += 1
+		return true
 	_inside = true
 	for key: String in _sorted_actors():
 		var actor: Dictionary = _actors[key]
+		if not (actor.timeline as ZMeleeTimeline).has_active_work(tick):
+			continue
+		_contact_actor_advances += 1
 		var equipment := _melee_equipment(actor)
 		var health := _health.actor_snapshot(actor.id)
 		var usable: bool = health.get("alive", false) and not equipment.is_empty() \
@@ -299,11 +316,17 @@ func has_contact(event_id: String, digest: String) -> bool:
 func _due(raid: RaidAuthority, phase: int, tick: int, _intents: Array[ZRaidIntent]) -> bool:
 	if not _current(raid, phase, tick, DUE, Callable(self, "_due")):
 		return _fail(&"combat_due_phase_invalid")
+	_due_phase_entries += 1
+	if _pending_starts.is_empty() and _pending.is_empty() \
+			and not _has_pending_reload_work():
+		_due_idle_skips += 1
+		return true
 	_inside = true
 	for key: String in _sorted_actors():
 		var actor: Dictionary = _actors[key]
 		var reload := actor.reload as InventoryWeaponAdapter
-		if reload != null:
+		if reload != null and reload.pending_reload_count() > 0:
+			_reload_due_scans += 1
 			var outcomes := reload.advance_due_reloads(tick)
 			for result: Dictionary in outcomes:
 				if result.get("requires_recovery", false) or reload.lifecycle == InventoryWeaponAdapter.Lifecycle.RECOVERY_REQUIRED:
@@ -366,6 +389,35 @@ func _due(raid: RaidAuthority, phase: int, tick: int, _intents: Array[ZRaidInten
 				_pending.erase(request_id)
 	_inside = false
 	return true
+
+func work_counts() -> Dictionary:
+	return _frozen({
+		"contact_phase_entries": _contact_phase_entries,
+		"contact_idle_skips": _contact_idle_skips,
+		"contact_actor_advances": _contact_actor_advances,
+		"due_phase_entries": _due_phase_entries,
+		"due_idle_skips": _due_idle_skips,
+		"reload_due_scans": _reload_due_scans,
+		"pending_starts": _pending_starts.size(),
+		"pending_actions": _pending.size(),
+	})
+
+
+func _has_active_melee_work(tick: int) -> bool:
+	for actor_value in _actors.values():
+		var actor := actor_value as Dictionary
+		if (actor.timeline as ZMeleeTimeline).has_active_work(tick):
+			return true
+	return false
+
+
+func _has_pending_reload_work() -> bool:
+	for actor_value in _actors.values():
+		var reload := (actor_value as Dictionary).reload as InventoryWeaponAdapter
+		if reload != null and reload.pending_reload_count() > 0:
+			return true
+	return false
+
 
 func _publish(raid: RaidAuthority, phase: int, tick: int, _intents: Array[ZRaidIntent]) -> bool:
 	if not _current(raid, phase, tick, PUBLISH, Callable(self, "_publish")):
@@ -456,8 +508,8 @@ func _melee_equipment(actor: Dictionary) -> Dictionary:
 func _inventory_revision(actor: Dictionary) -> int:
 	var owner := actor.owner as RaidInventoryOwner
 	if owner == null or not owner.is_current_generation(int(actor.owner_generation)): return 0
-	var snapshot := owner.raid_authority().snapshot(owner.raid_player_inventory_id)
-	return snapshot.get_revision() if snapshot != null else 0
+	return maxi(0, owner.raid_authority().inventory_revision(
+		owner.raid_player_inventory_id))
 
 func _reserve_rounds(actor: Dictionary) -> int:
 	var reload := actor.reload as InventoryWeaponAdapter

@@ -11,10 +11,12 @@ class Target:
 	var registration: String = ""
 	var raw_denied: bool = false
 	var wrong_method_denied: bool = false
-	func phase(raid, phase_id: int, tick: int, _intents: Array[ZRaidIntent], cookie: int) -> bool:
+	var last_intent_count: int = -1
+	func phase(raid, phase_id: int, tick: int, intents: Array[ZRaidIntent], cookie: int) -> bool:
 		if cookie != 7 or not raid.is_dispatching_phase_registration(&"closed_dispatch_probe", registration,
 			Callable(self, "phase").bind(cookie), phase_id, tick, raid.generation()): return false
 		calls += 1
+		last_intent_count = intents.size()
 		wrong_method_denied = not raid.can_dispatch_phase_callback(Callable(self, "phase").bind(8))
 		if world != null:
 			var result := world.raycast({}, payload)
@@ -33,7 +35,7 @@ var _check: Callable
 
 func run(check_callback: Callable) -> bool:
 	_check = check_callback
-	for scenario: String in ["normal", "roster", "owner", "script", "revoked_bearer"]:
+	for scenario: String in ["normal", "no_intents", "roster", "owner", "script", "revoked_bearer"]:
 		if not _scenario(scenario): return false
 	print("CLOSED_DISPATCH_RESULT checks=", checks, " failures=", failures)
 	return failures == 0
@@ -50,8 +52,11 @@ func _scenario(scenario: String) -> bool:
 	ok = _assert(not raid.seal_production_dispatch(generation), "cannot seal arbitrary/unconfigured roster") and ok
 	ok = _assert(raid.require_named_phase_handlers(generation), "require named methods") and ok
 	var callback := Callable(target, "phase").bind(7)
-	ok = _assert(raid.register_phase_handler(RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
-		HANDLER, callback, generation), "register exact named method") and ok
+	var registered: bool = raid.register_phase_handler_without_intents(
+		RaidAuthority.TickPhase.WORLD_CONSEQUENCES, HANDLER, callback, generation) \
+		if scenario == "no_intents" else raid.register_phase_handler(
+			RaidAuthority.TickPhase.WORLD_CONSEQUENCES, HANDLER, callback, generation)
+	ok = _assert(registered, "register exact named method") and ok
 	target.registration = raid.phase_handler_registration_id(HANDLER, generation)
 	var world: BodyHitboxWorld2D
 	var bearer: BodyHitboxWorld2D.BindingCapability
@@ -70,6 +75,15 @@ func _scenario(scenario: String) -> bool:
 		&"late_handler", callback, generation), "cannot add handlers after seal") and ok
 	ok = _assert(not raid.can_dispatch_phase_callback(callback), "out-of-phase invocation denied") and ok
 	ok = _assert(raid.transition(RaidAuthority.Lifecycle.ACTIVE, generation), "activate") and ok
+	if scenario == "no_intents":
+		var admission_value := raid.admission()
+		var intent := ZRaidIntent.create(
+			ZRequestId.from_parts(PackedStringArray(["closed", "no_intents", "r1"])),
+			ZRaidIntent.Source.PLAYER, admission_value.session_id,
+			admission_value.actor_id, admission_value.authority_epoch, generation,
+			1, 1, &"probe_intent", {"value": 1})
+		ok = _assert(raid.enqueue_intent(intent, generation),
+			"intent admitted for no-intent handler") and ok
 	if scenario == "normal":
 		var unrelated: Array = []
 		for i in range(512): unrelated.append({"i": i, "text": "passive state"})
@@ -79,6 +93,14 @@ func _scenario(scenario: String) -> bool:
 		var after: Dictionary = raid.dispatch_work_counts()
 		ok = _assert(after.graph_scans == before.graph_scans, "idle/retained data causes zero new graph scans") and ok
 		ok = _assert(target.calls == 8 and target.wrong_method_denied, "exact body executes; substituted bound argument denied") and ok
+	elif scenario == "no_intents":
+		var before := raid.dispatch_work_counts()
+		ok = _assert(raid.advance_one(generation), "no-intent tick advances") and ok
+		var after := raid.dispatch_work_counts()
+		ok = _assert(target.calls == 1 and target.last_intent_count == 0,
+			"declared no-intent handler receives an empty isolated array") and ok
+		ok = _assert(int(after.intent_snapshot_builds) == int(before.intent_snapshot_builds),
+			"no-intent dispatch builds zero discarded intent snapshots") and ok
 	elif scenario == "roster":
 		raid._handler_ids[HANDLER].priority += 1
 		ok = _assert(not raid.advance_one(generation) and target.calls == 0, "changed roster rejected before body") and ok

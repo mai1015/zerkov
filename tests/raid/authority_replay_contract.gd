@@ -320,6 +320,12 @@ func _test_journal_bound(fixture: Dictionary) -> void:
 	check(not journal.append(ZRaidEvent.EventKind.FIRE, third_id, 3, actor, {})
 		and journal.last_error == &"journal_full", "journal fails closed at capacity")
 	check(journal.size() == 2, "journal capacity rejection preserves records")
+	var bounded_records := journal.records()
+	check(journal.record_at(0) == bounded_records[0]
+		and journal.record_at(1) == bounded_records[1],
+		"journal exposes one canonical record without rebuilding the collection")
+	check(journal.record_at(-1).is_empty() and journal.record_at(2).is_empty(),
+		"journal single-record reads reject invalid indices")
 	var oversized := RaidEventJournal.new()
 	check(not oversized.configure(raid, RaidEventJournal.DEFAULT_MAX_EVENTS + 1),
 		"journal configuration cannot exceed its declared hard bound")
