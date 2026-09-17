@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_20.png" id="1_juerb"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fxdny"]
+size = Vector2(48, 15)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_pbto7"]
+polygon = PackedVector2Array(-24, -15, 24, -15, 24, 0, -24, 0)
+
+[node name="Tank" type="Node2D" unique_id=1]
+metadata/source_asset = "tank"
+metadata/source_pixels_per_world_unit = 3
+
+[node name="ContactShadow" type="Polygon2D" parent="." unique_id=2]
+color = Color(0.035, 0.055, 0.055, 0.36)
+polygon = PackedVector2Array(-25.52, -4, 25.52, -4, 29.52, 3, -23.52, 3)
+
+[node name="SourceSprite" type="Sprite2D" parent="." unique_id=3]
+texture_filter = 1
+position = Vector2(-29, -31)
+scale = Vector2(0.33333334, 0.33333334)
+texture = ExtResource("1_juerb")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 387, 174, 93)
+region_filter_clip_enabled = true
+
+[node name="Footprint" type="StaticBody2D" parent="." unique_id=4]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=5]
+position = Vector2(0, -7.5)
+shape = SubResource("RectangleShape2D_fxdny")
+
+[node name="FootOccluder" type="LightOccluder2D" parent="." unique_id=6]
+occluder = SubResource("OccluderPolygon2D_pbto7")
+sdf_collision = false
+occluder_light_mask = 2

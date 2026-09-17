@@ -138,6 +138,14 @@
     "tests/local/native_bunker_flow_contract.gd": {
       "purpose": "full native campaign bunker flow with actual input and optional exact guarded captures",
       "sha256": "3ed92acbc55b860b5b8a9b04045465e64218f0339683c2b334ec83930d41edfe"
+    },
+    "tests/presentation/northline_native_zone_contract.gd": {
+      "purpose": "original-PNG nine-district native TileMapLayer map and guarded 1080 capture",
+      "sha256": "6a81592c3d36fc9c109b15624ea06c819ccebef592f3a997fc93a5bd0114cf63"
+    },
+    "tests/presentation/northline_native_contract.gd": {
+      "purpose": "original-PNG native TileMapLayer freight slice and guarded 1080 capture",
+      "sha256": "a675e5a7cdbd8f2842463df96db2a424b8011c3f9346b307a964be1e485fda81"
     }
   },
   "active_command_entrypoints": {
@@ -220,6 +228,14 @@
     "tools/run_health_catalog_contracts.py": {
       "purpose": "headless native health-catalog differential and preflight benchmark; no captures or FPS claims",
       "sha256": "b06727fd38fbb5a715c2a4109d797cf2911b7c26eea83f5bd7415cb527b4a98b"
+    },
+    "tests/tooling/run_northline_native_zone_gate.py": {
+      "purpose": "native 1080 full map, four collision routes and edit reopening",
+      "sha256": "67b8d47d255ed746a1e69e288a16d9993446c06966241c6c87a24492980a4383"
+    },
+    "tests/tooling/run_northline_native_gate.py": {
+      "purpose": "native 1080 freight scene and third-process edit reopening",
+      "sha256": "a33d2d91ab81b4cebf920c50fb15a03dfe5e9dd469617f2f19cc99ffa145e4a9"
     }
   },
   "active_reviewed_support": {
@@ -240,6 +256,8 @@
     }
   },
   "active_headless_entrypoints": [
+    "tools/migrate_northline_freight.gd",
+    "tools/migrate_northline_zone_native.gd",
     "tests/combat/health_catalog_performance_contract.gd",
     "tests/addons/combined_addons_smoke.gd",
     "tests/ai/ai_review_regression_contract.gd",
@@ -528,6 +546,20 @@
         "root.size = BUNKER_SIZE",
         "root.get_visible_rect().size != Vector2(BUNKER_SIZE)",
         "image := root.get_texture().get_image()"
+      ]
+    },
+    "tests/presentation/northline_native_zone_contract.gd": {
+      "physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)",
+      "guard_anchors": [
+        "root.size=EXACT",
+        "const EXACT := Vector2i(1920,1080)"
+      ]
+    },
+    "tests/presentation/northline_native_contract.gd": {
+      "physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)",
+      "guard_anchors": [
+        "root.size=EXACT",
+        "const EXACT := Vector2i(1920,1080)"
       ]
     }
   }

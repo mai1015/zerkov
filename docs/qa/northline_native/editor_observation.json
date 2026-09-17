@@ -1,0 +1,22 @@
+{
+  "editor_project": "isolated copy; canonical files untouched",
+  "input": "OS mouse/keyboard via X11, not editor callbacks",
+  "tile_change": "FreightFloor erase one tile: 448 -> 447",
+  "prop": "WorldProps/northline_zone_prop_0052",
+  "before": [
+    1024,
+    600
+  ],
+  "after": [
+    1031,
+    597
+  ],
+  "save": "Ctrl+S",
+  "fresh_process_checks": 4,
+  "failures": 0,
+  "graphical_editor_startup_diagnostics": [
+    "Required Vulkan instance extension VK_KHR_surface not found",
+    "initialize returned err"
+  ],
+  "clean_graphical_editor_gate": false
+}
