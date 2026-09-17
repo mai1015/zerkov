@@ -51,7 +51,8 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 	weapons = WeaponAuthority.new()
 	add_child(weapons)
 	if not ZerkovCombatContent.configure_authority(weapons).get("ok", false): return _fail(&"combat_catalog_failed")
-	health = HealthConsequenceAdapter.new()
+	var equipment_health := EquipmentHealthConsequenceAdapter.new()
+	health = equipment_health
 	if not health.bind_authority(raid, _generation): return _fail(health.last_error)
 	var contexts := PackedStringArray()
 	var movements := PackedStringArray()
@@ -123,6 +124,8 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 			if not equipment_port.configure(component) or not equipment_abilities.bind_owner(
 				owner, admission, identity, equipment_port, raid, owner.generation()):
 				return _fail(&"combat_equipment_abilities_bind_failed")
+			if not equipment_health.bind_equipment_source(row.actor_id, equipment_abilities):
+				return _fail(&"combat_equipment_health_scope_failed")
 	if local_context == null: return _fail(&"combat_local_inventory_required")
 	hitboxes = BodyHitboxWorld2D.new()
 	var capability := hitboxes.bind_raid_authority(raid, raid.admission().actor_id, ZRaidIntent.Source.PLAYER, _generation)

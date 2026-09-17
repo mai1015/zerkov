@@ -110,6 +110,8 @@ func run() -> void:
 	restored.free()
 	var extended = load("res://tests/equipment/equipment_extended_contract.gd").new()
 	extended.run(self)
+	var health_scope = load("res://tests/equipment/equipment_health_scope_contract.gd").new()
+	health_scope.run(self)
 	var old := equipment(PRIMARY)
 	owner.teardown(owner.generation())
 	check(not controller.equipment_view().available and controller.equipment_view().slots.is_empty(), "teardown clears equipment projection")

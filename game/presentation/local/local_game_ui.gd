@@ -12,9 +12,9 @@ var _released: bool = false
 var _bunker_room: String = "storage"
 var _frame_freezes: int = 0
 var _immutable_subtree_reuses: int = 0
-const COMMANDS: Array[StringName] = [&"create", &"continue", &"loadout", &"maps", &"tasks", &"deploy", &"resume", &"pause", &"interact", &"cancel", &"return_home", &"retry_save", &"quit", &"health", &"controls", &"abandon", &"close_profile"]
+const COMMANDS: Array[StringName] = [&"create", &"continue", &"loadout", &"maps", &"tasks", &"deploy", &"resume", &"pause", &"interact", &"cancel", &"return_home", &"retry_save", &"quit", &"health", &"controls", &"abandon", &"close_profile", &"crafting", &"build_mode", &"session"]
 const ROUTE_COMMANDS: Dictionary = {"bunker":&"return_home", "inventory":&"loadout", "health":&"health",
-	"maps":&"maps", "tasks":&"tasks", "hud":&"resume", "pause":&"pause", "settings":&"controls", "controls":&"controls"}
+	"maps":&"maps", "tasks":&"tasks", "hud":&"resume", "pause":&"pause", "settings":&"controls", "controls":&"controls", "crafting":&"crafting", "build_mode":&"build_mode", "session":&"session"}
 
 func publish(frame: Dictionary) -> bool:
 	if _released or typeof(frame.get("epoch")) != TYPE_INT or int(frame.epoch) < _epoch \

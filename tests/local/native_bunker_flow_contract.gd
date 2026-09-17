@@ -10,6 +10,7 @@ func run() -> void:
 	# The existing native capture contract uses borderless output to avoid OS
 	# title-bar clamping on a 1080-line display. This never rescales an image.
 	root.borderless = true
+	root.min_size = BUNKER_SIZE
 	root.size = BUNKER_SIZE
 	await process_frame
 	if root.get_visible_rect().size != Vector2(BUNKER_SIZE):
@@ -42,6 +43,12 @@ func run() -> void:
 	_game = load(scene_path).instantiate() as LocalGame
 	_game.configure_test_store(_store, false)
 	root.add_child(_game)
+	if not _capture_dir.is_empty():
+		# A real viewport render target permits readback without fixture data.
+		# Direct canvas-item output can report a zero-sized root texture.
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+		root.content_scale_size = BUNKER_SIZE
+		_game._ui.exact_capture_mode = true
 	await settle()
 	if not route("title"): await finish(); return
 	await key(KEY_ENTER)
@@ -53,6 +60,13 @@ func run() -> void:
 	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
 	var initial := _store.load_profile()
 	if not check(initial.ok and (initial.generation == 1 if _run_mode == "new" else initial.fingerprint == saved.fingerprint), "entry never reseeds existing progress"): await finish(); return
+	if OS.get_environment("ZERKOV_BUNKER_WORKSPACES") == "1":
+		var driver = load("res://tests/local/bunker_workspaces_driver.gd").new()
+		if not await driver.run(self, initial): await finish(); return
+		print("BUNKER_WORKSPACES_COMPLETE native=true")
+		print("BUNKER_FLOW_FINGERPRINT ", initial.fingerprint)
+		await finish()
+		return
 	var owner_id: int = _game._home.get_instance_id()
 	if not hub("storage"): await finish(); return
 	await capture("02-bunker-storage.png")

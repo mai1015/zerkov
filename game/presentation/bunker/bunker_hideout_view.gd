@@ -145,6 +145,14 @@ func _build_header() -> void:
 	_status = label("LOCAL SAVE  /  SOLO" if _campaign else "OFFLINE  /  VISUAL PREVIEW", Rect2(1552, 89, 340, 22), 12, ACCENT)
 	_status.name = "SessionStatus"
 	if _campaign:
+		for entry: Array in [["CraftingWorkspace", "WORKSHOP", &"crafting", 1070, 190],
+			["BuildWorkspace", "FACILITIES", &"build_mode", 1268, 210],
+			["SessionWorkspace", "LOCAL SESSION", &"session", 1486, 240]]:
+			var workspace := button(entry[1], Rect2(entry[3], 14, entry[4], 32))
+			workspace.name = entry[0]
+			workspace.disabled = true
+			workspace.pressed.connect(_request_action.bind(entry[2]))
+			_shortcuts[entry[2]] = workspace
 		_profile = label("", Rect2(1552, 120, 320, 20), 11, MUTED)
 		_profile.name = "LocalProfile"
 

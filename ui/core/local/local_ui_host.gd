@@ -12,3 +12,14 @@ func local_game_ui() -> LocalGameUI:
 func _refresh_unbound_production_screen() -> void:
 	# Local screen bindings update in place after one complete frame publication.
 	if _local_game_port == null: super._refresh_unbound_production_screen()
+
+## These home workspaces reuse the same presentation owner as Character.
+## The generic host's route policy stays unchanged; previews and non-home
+## origins never receive the campaign runtime through this extension.
+func character_runtime_for_route(route: String, origin: ZUIRouteIntent.Origin) -> CharacterUIRuntime:
+	if route in ["crafting", "build_mode", "session"]:
+		var port := local_game_ui()
+		if origin != ZUIRouteIntent.Origin.PRODUCTION or port == null \
+			or port.snapshot().get("mode") != "home": return null
+		return _character_runtime_override if is_instance_valid(_character_runtime_override) else null
+	return super.character_runtime_for_route(route, origin)
