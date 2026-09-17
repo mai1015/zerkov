@@ -38,7 +38,8 @@ jobs:
           mkdir -p "$RUNNER_TEMP/bunker-results"
           git rev-parse HEAD > "$RUNNER_TEMP/bunker-results/commit.txt"
           python3 -u tools/run_bunker_flow_contracts.py --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/bunker-results/headless" 2>&1 | tee "$RUNNER_TEMP/bunker-results/headless.log"
-      - name: Native graphical flow and screenshots
+      - name: Optional exact graphical flow (physical host qualification, not merge gate)
+        continue-on-error: true
         env:
           SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
