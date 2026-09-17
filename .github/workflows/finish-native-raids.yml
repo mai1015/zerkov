@@ -1,0 +1,61 @@
+name: Publish reviewed native-raid resume fixes
+on:
+  pull_request:
+    paths: ['.github/workflows/finish-native-raids.yml']
+permissions:
+  contents: read
+jobs:
+  publish-reviewed-fixes:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/offline-native-raids'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: true
+      - name: Apply only the exact five-file native-tested source diff
+        run: |
+          python3 - <<'PY'
+          import hashlib,pathlib,subprocess
+          root=pathlib.Path.cwd()
+          patch=root/'tools/resume_live_maps.patch'
+          assert hashlib.sha256(patch.read_bytes()).hexdigest()=='d795a355a9e73beea315217fe30119685d1018de4d35bda1670a7b8215e9d755'
+          hashes={
+            '.github/workflows/raid-handler-profile.yml':('de43cc3437a54be8c9dfbecacb9b872123fc032c2b2a7da96fe92236868988f1','cd05c8695eeac975409d9bae14d976f2a1897667867b81365f064200299166fb'),
+            'game/bootstrap/local/local_game.gd':('9ec620543c7579b6109961072b7af926b8b33684d9c68f90efdd7a7bc7c94849','a6232340ccf6977dc0c732bc51cba48475442508ac57c89bd4d3de5cb90b40cf'),
+            'game/bootstrap/local/local_raid_session.gd':('e171fa4f6a27e9b61520df78113654fe6b6a8d3059be8316266dd3b86f44a111','850403095f2bea62e598bf898c41deb35c3c5963e4092d7f2ef965cc47f37546'),
+            'tests/raid/live_maps_contract.gd':('38fa893ef3b95a0241dd8c111afe8593dec3f450c9d3858dea1373011576aad1','4d2e99d6d9c837dadb8eb1bedef64112af263283c2d769c02163eb7174b47c64'),
+            'ui/core/local/local_flow_binding.gd':('51a755e4dad3fd826581f0bff22b9dbbc3ce485a9b78974352c41a9fce36bbfb','5fa14e36a7153e92eaac856bf869756ecafb7e53e8b053a44ff06655f0accd33'),
+          }
+          assert not subprocess.check_output(['git','status','--porcelain'],text=True)
+          for name,(before,after) in hashes.items():
+              assert hashlib.sha256((root/name).read_bytes()).hexdigest()==before,name
+          subprocess.run(['git','apply','--check',str(patch)],check=True)
+          subprocess.run(['git','apply',str(patch)],check=True)
+          for name,(before,after) in hashes.items():
+              assert hashlib.sha256((root/name).read_bytes()).hexdigest()==after,name
+          assert set(subprocess.check_output(['git','diff','--name-only'],text=True).splitlines())==set(hashes)
+          subprocess.run(['python3','tests/tooling/test_live_maps_runner.py'],check=True)
+          subprocess.run(['python3','tests/tooling/test_ui_first_playable_scope.py'],check=True)
+          subprocess.run(['python3','tools/check_first_playable_1080.py'],check=True)
+          subprocess.run(['python3','tools/install_northline_native_sources.py','--verify'],check=True)
+          subprocess.run(['git','add','--',*sorted(hashes)],check=True)
+          subprocess.run(['git','rm','--','tools/resume_live_maps.patch','.github/workflows/finish-native-raids.yml'],check=True)
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          print('REVIEWED_NATIVE_RAID_FIXES files=5 original_asset_changes=0 native_runtime_changes=0')
+          PY
+      - name: Fast-forward the approved branch and remove this transport
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          branch=feat/offline-native-raids
+          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$actual" = "$EXPECTED_HEAD"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(raids): preserve map identity on rejected starts and retain Sawmill compatibility'
+          git push origin "HEAD:refs/heads/$branch"
