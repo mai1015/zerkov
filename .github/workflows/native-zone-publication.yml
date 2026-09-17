@@ -1,0 +1,117 @@
+name: One-time verified native map resource publication
+on:
+  pull_request:
+    paths: ['.github/workflows/native-zone-publication.yml']
+permissions:
+  contents: read
+jobs:
+  publish-exact-resources:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/northline-native-tilemap'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: true
+      - name: Fetch checksum-pinned serializer (not rendering evidence)
+        run: |
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Serialize and compare to actual-original-art local resource hashes
+        run: |
+          python3 - <<'PY'
+          import hashlib,itertools,json,os,pathlib,re,shutil,subprocess,tempfile
+          root=pathlib.Path.cwd()
+          expected=json.loads((root/'docs/qa/northline_native/full_zone_resource_hashes.json').read_text())
+          assert len(expected)==40
+          for name,sha in expected.items():
+              p=pathlib.PurePosixPath(name)
+              assert not p.is_absolute() and '..' not in p.parts
+              assert name.startswith(('game/world/northline_native/props/','game/world/northline_native/zone/'))
+              assert p.suffix in {'.tscn','.tres'} and re.fullmatch('[0-9a-f]{64}',sha)
+              assert not (root/name).exists() and not (root/name).is_symlink()
+          inputs={
+            'tools/migrate_northline_zone_native.gd':'4ac1f92d18668a75d0db8bc7325f27680da1264c8892470de344607dda04b407',
+            'tools/migrate_northline_freight.gd':'f957055f33a5b484facc5948c653b7b737b18f33cae03db06fd7f3aa56bb0949',
+            'assets/world/map_studies/atlas.json':'e0a74888be282c2884709bae9f67694429a45f20920e07617815a5ede492b85a',
+            'game/presentation/northline_zone/zone.json':'53a3960f6d4b8df6129b36c0feb3c7e08ce745bee44f563ba6d93799eac6cba1',
+            'assets/world/northline_native/source_manifest.json':'9db3023b48092df6722a11c97ba45a20a5776783c6fa6051fcb3c748b26321ff',
+          }
+          engine=pathlib.Path(os.environ['RUNNER_TEMP'])/'godot/Godot_v4.7.2-stable_linux.x86_64'
+          env={**os.environ,'GODOT_SILENCE_ROOT_WARNING':'1'}
+          assert subprocess.check_output([str(engine),'--version'],text=True,env=env).strip()=='4.7.2.stable.official.ed1daf0bf'
+          with tempfile.TemporaryDirectory(prefix='serialize-native-metadata-') as tmp:
+              workspace=pathlib.Path(tmp)
+              for name,sha in inputs.items():
+                  raw=(root/name).read_bytes();assert hashlib.sha256(raw).hexdigest()==sha,name
+                  target=workspace/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(raw)
+              # Reuse the fifteen previously committed native prop prototypes.
+              props=root/'game/world/northline_native/props'
+              assert len(list(props.glob('*.tscn')))==15
+              shutil.copytree(props,workspace/'game/world/northline_native/props')
+              (workspace/'project.godot').write_text('config_version=5\n[application]\nconfig/name="Metadata serialization only - no rendering"\n[display]\nwindow/size/viewport_width=1920\nwindow/size/viewport_height=1080\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
+              # Dimensions-only cache exists solely in this disposable authoring process.
+              # No image or placeholder resource is saved or used as native test evidence.
+              source=workspace/'tools/migrate_northline_zone_native.gd';text=source.read_text()
+              old='require(FileAccess.file_exists("res://"+str(row.path)),"original PNG required")'
+              assert text.count(old)==1
+              source.write_text(text.replace(old,'require(sheets.has(int(row.source_index)),"source dimensions registered")'))
+              (workspace/'serialize_only.gd').write_text('extends "res://tools/migrate_northline_zone_native.gd"\nfunc _initialize() -> void:\n    var declared: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/world/northline_native/source_manifest.json"))\n    for row: Dictionary in declared.sources:\n        var texture := PlaceholderTexture2D.new()\n        texture.size = Vector2(768,768)\n        texture.take_over_path("res://"+str(row.path))\n        sheets[int(row.source_index)] = texture\n    call_deferred("run")\n')
+              result=subprocess.run([str(engine),'--headless','--path',str(workspace),'--resolution','1920x1080','--audio-driver','Dummy','--script','res://serialize_only.gd'],env=env,text=True,capture_output=True,timeout=120)
+              print(result.stdout);print(result.stderr)
+              assert result.returncode==0 and 'failures=0' in result.stdout
+              assert not re.search(r'SCRIPT ERROR|ERROR:|Parse Error',result.stdout+result.stderr)
+              plan={}
+              for name,sha in expected.items():
+                  data=(workspace/name).read_text()
+                  counter=itertools.count(1)
+                  data=re.sub(r' unique_id=\d+',lambda _: ' unique_id='+str(next(counter)),data)
+                  assert 'PlaceholderTexture' not in data and 'serialize_only' not in data,name
+                  raw=data.encode();assert hashlib.sha256(raw).hexdigest()==sha,name
+                  plan[name]=raw
+              # Publish only after every native resource matches original-art output.
+              for name,raw in plan.items():
+                  target=root/name;target.parent.mkdir(parents=True,exist_ok=True)
+                  with target.open('xb') as stream:stream.write(raw)
+          # Final reviewed backdrop prevents the default gray clear around the map.
+          path=root/'game/presentation/northline_native/zone_review.tscn';text=path.read_text()
+          anchor='[node name="HUD" type="CanvasLayer" parent="."]'
+          assert text.count(anchor)==1 and 'name="Backdrop"' not in text
+          background='[node name="Backdrop" type="CanvasLayer" parent="."]\nlayer = -10\n\n[node name="Field" type="ColorRect" parent="Backdrop"]\noffset_right = 1920.0\noffset_bottom = 1080.0\nmouse_filter = 2\ncolor = Color(0.0745, 0.1176, 0.0941, 1)\n\n'
+          text=text.replace(anchor,background+anchor)
+          assert hashlib.sha256(text.encode()).hexdigest()=='ef438d2491986b9fcec9f8f4b31e018ad07ae543a91374a948ff27532e962dd3'
+          path.write_text(text)
+          for name,sha in [('config/first_playable_1080_gate.json','0bb77898ab0cf87041512c298732026ef48359090565a0ca73d9ad56352b9610'),('tests/tooling/test_ui_first_playable_scope.py','0d40065493e15d6799c46f59e70637ac8b8b408eb04194b6d06ec8263efbd05f')]:
+              assert hashlib.sha256((root/name).read_bytes()).hexdigest()==sha,name
+          subprocess.run(['python3','tools/register_native_zone.py'],check=True)
+          changed=set(subprocess.check_output(['git','ls-files','--modified','--others','--exclude-standard'],text=True).splitlines())
+          allowed=set(expected)|{'game/presentation/northline_native/zone_review.tscn','config/first_playable_1080_gate.json','tests/tooling/test_ui_first_playable_scope.py'}
+          assert changed==allowed,(changed-allowed,allowed-changed)
+          subprocess.run(['git','add','--',*sorted(allowed)],check=True)
+          print('NATIVE_METADATA_PUBLICATION files=40 exact_original_art_resource_hashes=true rendered=false original_png_uploads=0')
+          PY
+      - name: Source contracts, not original-art rendering
+        run: |
+          python3 -m unittest discover -s tests/tooling -p test_northline_native_zone.py -v
+          python3 -m unittest discover -s tests/tooling -p test_northline_native_sources.py -v
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
+          git diff --cached --check
+      - name: Fast-forward the same authorized branch only
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          branch=feat/northline-native-tilemap
+          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$actual" = "$EXPECTED_HEAD"
+          git diff --exit-code HEAD -- .github/workflows assets project.godot
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(maps): save the nine-district native TileMap world and verified resource references'
+          git push origin "HEAD:refs/heads/$branch"
