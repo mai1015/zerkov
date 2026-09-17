@@ -127,6 +127,7 @@ func check(condition: bool, message: String) -> void:
 
 func run() -> void:
 	_test_hit_replay_and_reentry()
+	_test_unchanged_world_tick_refresh()
 	_test_miss_and_occlusion()
 	_test_binding_and_lifecycle_guards()
 	_test_exact_registration_and_unresolved_obligation_guards()
@@ -213,6 +214,24 @@ func _test_hit_replay_and_reentry() -> void:
 		and _publication_counts(queued_duplicates) == Vector2i(1, 1),
 		"queued non-replay duplicate and early replay resolve exactly once")
 	_cleanup_fixture(queued_duplicates)
+
+
+func _test_unchanged_world_tick_refresh() -> void:
+	var fixture := _new_fixture("unchanged_refresh", &"hit")
+	(_fixtures["unchanged_refresh"] as Dictionary)["refresh_world"] = true
+	var authority := fixture["authority"] as RaidAuthority
+	var generation := int(fixture["generation"])
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, generation)
+		and authority.advance_one(generation),
+		"unchanged world advances through the bounded tick refresh path")
+	var result := (fixture["adapter"] as WeaponCombatAdapter).last_result()
+	check(bool(result.get("accepted", false))
+		and bool(result.get("hit", false))
+		and int(result.get("tick", -1)) == 1
+		and int(result.get("world_revision", -1)) == 1,
+		"tick refresh preserves immutable geometry revision for current queries")
+	check((fixture["world"] as BodyHitboxWorld2D).last_publication_duplicate,
+		"unchanged publication records a metadata-only duplicate refresh")
 
 
 func _test_miss_and_occlusion() -> void:
@@ -880,8 +899,15 @@ func _publish_world_phase(
 	_intents: Array[ZRaidIntent],
 	label: String
 ) -> bool:
-	return _publish_world_snapshot(
-		_fixtures[label] as Dictionary, tick, tick + 1, true)
+	var fixture := _fixtures[label] as Dictionary
+	if bool(fixture.get("refresh_world", false)):
+		var admission := fixture["admission"] as ZSessionAdmission
+		var publisher_callback := Callable(self, "_publish_world_phase").bind(label)
+		return (fixture["world"] as BodyHitboxWorld2D).phase_publisher_refresh_snapshot(
+			tick, 1, admission.actor_id, ZRaidIntent.Source.PLAYER,
+			StringName(fixture["publisher_id"]),
+			String(fixture["publisher_registration"]), publisher_callback)
+	return _publish_world_snapshot(fixture, tick, tick + 1, true)
 
 
 func _replacement_world_phase(

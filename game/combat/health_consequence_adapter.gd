@@ -29,6 +29,18 @@ const MAX_AUTHORITY_TICK: int = 9_007_199_254_740_000
 const MAX_COMMAND_SEQUENCE: int = 9_007_199_254_740_000
 const MEDICAL_RESERVATION_TTL_TICKS: int = 600
 
+# GameplayAbilityComponent is the authoritative runtime. These signals cover
+# every public mutation family that can change the health projection or the
+# owned grants used to produce it. Callbacks only mark bounded dirty state;
+# validation and canonical publication stay inside the authoritative phase.
+const COMPONENT_STATE_SIGNALS: Array[StringName] = [
+	&"ability_granted", &"ability_revoked", &"activation_requested",
+	&"activation_phase_changed", &"activation_committed", &"activation_ended",
+	&"activation_cancelled", &"activation_failed", &"ability_snapshot_restored",
+	&"ability_task_event", &"attribute_changed", &"tag_changed",
+	&"effect_lifecycle_changed", &"desync_rebuild_required",
+]
+
 const WEAPON_CONSEQUENCE_SCHEMA: String = "zerkov.combat.weapon_consequence.v1"
 const DAMAGE_OUTCOME_SCHEMA: String = "zerkov.combat.health_damage.v1"
 const INJURY_EVENT_SCHEMA: String = "zerkov.combat.health_injury_event.v1"
@@ -85,6 +97,12 @@ var _recovery: Dictionary = {}
 var _phase_active: bool = false
 var _mutation_active: bool = false
 var _public_signal_active: bool = false
+var _dirty_actors: Dictionary = {}
+var _unexpected_component_mutations: Dictionary = {}
+var _snapshot_cache: Dictionary = {}
+var _snapshot_build_count: int = 0
+var _full_audit_count: int = 0
+var _runtime_guard_count: int = 0
 var _melee_executor_ref: WeakRef
 var _melee_registration: String = ""
 var _melee_costs: Dictionary = {}
@@ -191,6 +209,12 @@ func commit_melee_start(executor: RefCounted, actor_id: ZEntityId, request_id: Z
 		return _read_only_copy(previous.receipt)
 	var actor: Dictionary = _actors[key]
 	if bool(actor.dead): return _rejection(&"health_actor_dead")
+	var audit := _audit_actor_state(actor, tick)
+	if not bool(audit.get("ok", false)):
+		_latch_recovery(StringName(audit.get(
+			"reason", &"health_actor_state_diverged")), {
+				"actor_id": key, "audit": audit})
+		return _rejection(last_error, {"requires_recovery": true})
 	var amount := int(definition.cost_micros)
 	var component := actor.component as GameplayAbilityComponent
 	var before_stamina := _fixed_micros(component.get_attribute_current(String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)))
@@ -244,6 +268,18 @@ func bleed_schedule_count() -> int:
 
 func recovery_details() -> Dictionary:
 	return _read_only_copy(_recovery)
+
+
+## Read-only bounded evidence for regression/performance tests. Counts are
+## diagnostic only and never participate in gameplay decisions.
+func work_counts() -> Dictionary:
+	return _read_only_copy({
+		"snapshot_builds": _snapshot_build_count,
+		"full_actor_audits": _full_audit_count,
+		"runtime_guards": _runtime_guard_count,
+		"dirty_actor_count": _dirty_actors.size(),
+		"unexpected_mutation_count": _unexpected_component_mutations.size(),
+	})
 
 
 ## Registration owns the component's health runtime for this raid generation.
@@ -361,11 +397,15 @@ func register_actor(
 		"medical_port_token": "",
 		"reload_adapter": null,
 		"state_digest": "",
+		"component_state_callbacks": {},
 	}
 	record["state_digest"] = _health_state_digest(record)
 	if String(record["state_digest"]).length() != 64:
 		return _rollback_registration(
 			component, before, &"health_actor_state_digest_failed", {})
+	if not _connect_component_state_callbacks(record):
+		return _rollback_registration(
+			component, before, last_error, {"actor_id": actor_key})
 	var callback := Callable(self, "_on_component_tree_exiting").bind(
 		actor_key, actor_registration_generation)
 	record["tree_exiting_callback"] = callback
@@ -485,10 +525,11 @@ func damage_result(operation_id: String) -> Dictionary:
 func actor_snapshot(actor_id: ZEntityId) -> Dictionary:
 	if actor_id == null:
 		return _read_only_copy({})
-	var record := _actors.get(actor_id.canonical_key(), {}) as Dictionary
+	var actor_key := actor_id.canonical_key()
+	var record := _actors.get(actor_key, {}) as Dictionary
 	if record.is_empty():
 		return _read_only_copy({})
-	return _read_only_copy(_actor_snapshot_from_record(record))
+	return _cached_actor_snapshot(actor_key, record)
 
 
 func actor_snapshots() -> Array[Dictionary]:
@@ -496,8 +537,8 @@ func actor_snapshots() -> Array[Dictionary]:
 	var actor_ids := PackedStringArray(_actors.keys())
 	actor_ids.sort()
 	for actor_key in actor_ids:
-		result.append(_read_only_copy(
-			_actor_snapshot_from_record(_actors[actor_key] as Dictionary)))
+		result.append(_cached_actor_snapshot(
+			actor_key, _actors[actor_key] as Dictionary))
 	result.make_read_only()
 	return result
 
@@ -642,17 +683,24 @@ func _advance_phase(tick: int) -> bool:
 	if not _phase_cancelled_bleeds.is_empty():
 		return _latch_recovery(&"health_bleed_cancellation_state_stale", {
 			"tick": tick, "cancellations": _phase_cancelled_bleeds})
+	if not _unexpected_component_mutations.is_empty():
+		return _latch_recovery(&"health_component_mutated_outside_authority", {
+			"tick": tick,
+			"mutations": _unexpected_component_mutations.duplicate(true),
+		})
 	for key: String in _melee_costs.keys():
 		if tick - int(_melee_costs[key].tick) > 120: _melee_costs.erase(key)
 	var actor_ids := PackedStringArray(_actors.keys())
 	actor_ids.sort()
+	var starting_revisions: Dictionary = {}
 	for actor_key in actor_ids:
 		var actor := _actors[actor_key] as Dictionary
-		var audit := _audit_actor_state(actor, tick)
-		if not bool(audit.get("ok", false)):
-			return _latch_recovery(StringName(audit.get(
-				"reason", &"health_actor_state_diverged")), {
-					"actor_id": actor_key, "audit": audit})
+		var runtime_guard := _audit_actor_runtime(actor, _last_tick)
+		if not bool(runtime_guard.get("ok", false)):
+			return _latch_recovery(StringName(runtime_guard.get(
+				"reason", &"health_component_invalid")), {
+					"actor_id": actor_key, "audit": runtime_guard})
+		starting_revisions[actor_key] = int(actor.get("health_revision", 0))
 
 	var collected := _collect_weapon_hits(tick)
 	if not bool(collected.get("ok", false)):
@@ -699,12 +747,36 @@ func _advance_phase(tick: int) -> bool:
 		if not bool((advanced.get("status", {}) as Dictionary).get("ok", false)):
 			return _latch_recovery(&"health_component_advance_failed", {
 				"actor_id": actor_key, "result": advanced})
-		record["state_digest"] = _health_state_digest(record)
-		if String(record["state_digest"]).length() != 64:
+
+	# Native signals mark only actors whose authoritative runtime actually
+	# changed. Idle actors therefore skip catalog traversal, grant scans, hash
+	# reconstruction and snapshot rebuilding entirely.
+	var dirty_ids := PackedStringArray(_dirty_actors.keys())
+	dirty_ids.sort()
+	for actor_key in dirty_ids:
+		if not _actors.has(actor_key):
+			continue
+		var record := _actors[actor_key] as Dictionary
+		var digest := _health_state_digest(record)
+		if digest.length() != 64:
 			return _latch_recovery(&"health_state_digest_failed", {"actor_id": actor_key})
-		_actors[actor_key] = record
+		if digest != String(record.get("state_digest", "")):
+			# Explicit damage/treatment/melee paths advance their own revision.
+			# A native due-work change without one receives exactly one revision for
+			# this authoritative phase.
+			if int(record.get("health_revision", 0)) \
+					== int(starting_revisions.get(actor_key, -1)):
+				record["health_revision"] = int(record.get("health_revision", 0)) + 1
+			record["state_digest"] = digest
+			_actors[actor_key] = record
+		var audit := _audit_actor_state(record, tick)
+		if not bool(audit.get("ok", false)):
+			return _latch_recovery(StringName(audit.get(
+				"reason", &"health_actor_state_diverged")), {
+					"actor_id": actor_key, "audit": audit})
 	_journal_cursor = int(collected.get("cursor", _journal_cursor))
 	_last_tick = tick
+	_dirty_actors.clear()
 	_phase_cancelled_bleeds.clear()
 	return true
 
@@ -1129,6 +1201,11 @@ func _process_treatment(request_id: String, tick: int) -> bool:
 	if int(request["expected_health_revision"]) != int(actor["health_revision"]):
 		_finalize_treatment(request_id, false, &"health_revision_stale", {})
 		return true
+	var audit := _audit_actor_state(actor, tick)
+	if not bool(audit.get("ok", false)):
+		return _latch_recovery(StringName(audit.get(
+			"reason", &"health_actor_state_diverged")), {
+				"actor_id": actor_key, "audit": audit})
 	var component := actor.get("component") as GameplayAbilityComponent
 	var zone := StringName(request["body_zone"])
 	var treatment := StringName(request["treatment"])
@@ -1493,7 +1570,26 @@ func _preflight_phase_budget(
 	return {"ok": true}
 
 
+func _audit_actor_runtime(actor: Dictionary, expected_tick: int) -> Dictionary:
+	_runtime_guard_count += 1
+	var component := actor.get("component") as GameplayAbilityComponent
+	if component == null or not is_instance_valid(component) \
+			or component.get_instance_id() != int(actor.get("component_instance_id", 0)) \
+			or component.entity_id != int(actor.get("native_entity_id", 0)) \
+			or not component.is_configured() or component.is_torn_down() \
+			or not component.is_owner_valid() \
+			or component.get_content_manifest_fingerprint() \
+				!= int(actor.get("catalog_fingerprint", 0)) \
+			or component.get_current_tick() != expected_tick:
+		return {"ok": false, "reason": &"health_component_runtime_invalid",
+			"expected_tick": expected_tick,
+			"observed_tick": component.get_current_tick() \
+				if component != null and is_instance_valid(component) else -1}
+	return {"ok": true}
+
+
 func _audit_actor_state(actor: Dictionary, tick: int) -> Dictionary:
+	_full_audit_count += 1
 	var component := actor.get("component") as GameplayAbilityComponent
 	if component == null or not is_instance_valid(component) \
 			or component.get_instance_id() != int(actor["component_instance_id"]) \
@@ -1613,6 +1709,24 @@ func _actor_snapshot_from_record(actor: Dictionary) -> Dictionary:
 		"body_parts": body_parts,
 		"state_digest": String(actor["state_digest"]),
 	}
+
+
+func _cached_actor_snapshot(actor_key: String, actor: Dictionary) -> Dictionary:
+	var digest := String(actor.get("state_digest", ""))
+	var revision := int(actor.get("health_revision", -1))
+	var cached := _snapshot_cache.get(actor_key, {}) as Dictionary
+	if not cached.is_empty() \
+			and String(cached.get("state_digest", "")) == digest \
+			and int(cached.get("health_revision", -2)) == revision:
+		return cached.get("snapshot", {}) as Dictionary
+	var snapshot := _read_only_copy(_actor_snapshot_from_record(actor))
+	_snapshot_build_count += 1
+	_snapshot_cache[actor_key] = {
+		"state_digest": digest,
+		"health_revision": revision,
+		"snapshot": snapshot,
+	}
+	return snapshot
 
 
 func _validate_treatment_request(request: Dictionary) -> Dictionary:
@@ -2238,6 +2352,70 @@ func _binding_is_current() -> bool:
 			_raid_generation)
 
 
+func _connect_component_state_callbacks(actor: Dictionary) -> bool:
+	var component := actor.get("component") as GameplayAbilityComponent
+	var actor_key := String(actor.get("actor_id", ""))
+	var registration_generation := int(actor.get(
+		"actor_registration_generation", 0))
+	if component == null or not is_instance_valid(component) \
+			or actor_key.is_empty() or registration_generation <= 0:
+		last_error = &"health_component_signal_context_invalid"
+		return false
+	var callbacks: Dictionary = {}
+	for signal_name in COMPONENT_STATE_SIGNALS:
+		if not component.has_signal(signal_name):
+			_disconnect_component_state_callbacks(component, callbacks)
+			last_error = &"health_component_signal_missing"
+			return false
+		var callback := Callable(self, "_on_component_state_changed").bind(
+			actor_key, registration_generation, signal_name)
+		var error := component.connect(signal_name, callback)
+		if error != OK:
+			_disconnect_component_state_callbacks(component, callbacks)
+			last_error = &"health_component_signal_connect_failed"
+			return false
+		callbacks[String(signal_name)] = callback
+	actor["component_state_callbacks"] = callbacks
+	return true
+
+
+func _disconnect_component_state_callbacks(
+	component: GameplayAbilityComponent,
+	callbacks: Dictionary
+) -> void:
+	if component == null or not is_instance_valid(component):
+		return
+	for signal_key in callbacks:
+		var signal_name := StringName(signal_key)
+		var callback := callbacks[signal_key] as Callable
+		if callback.is_valid() and component.is_connected(signal_name, callback):
+			component.disconnect(signal_name, callback)
+
+
+func _on_component_state_changed(
+	_event: Dictionary,
+	actor_key: String,
+	actor_registration_generation: int,
+	signal_name: StringName
+) -> void:
+	if lifecycle != Lifecycle.BOUND or not _actors.has(actor_key):
+		return
+	var actor := _actors[actor_key] as Dictionary
+	if int(actor.get("actor_registration_generation", 0)) \
+			!= actor_registration_generation:
+		return
+	_dirty_actors[actor_key] = true
+	if _phase_active or _mutation_active:
+		return
+	var component := actor.get("component") as GameplayAbilityComponent
+	_unexpected_component_mutations[actor_key] = {
+		"signal": signal_name,
+		"component_tick": component.get_current_tick() \
+			if component != null and is_instance_valid(component) else -1,
+		"actor_registration_generation": actor_registration_generation,
+	}
+
+
 func _on_component_tree_exiting(
 	actor_key: String,
 	actor_registration_generation: int
@@ -2260,6 +2438,8 @@ func _on_component_tree_exiting(
 
 func _disconnect_actor_callback(actor: Dictionary) -> void:
 	var component := actor.get("component") as GameplayAbilityComponent
+	_disconnect_component_state_callbacks(
+		component, actor.get("component_state_callbacks", {}) as Dictionary)
 	var callback := actor.get("tree_exiting_callback", Callable()) as Callable
 	if component != null and is_instance_valid(component) \
 			and callback.is_valid() and component.tree_exiting.is_connected(callback):
@@ -2316,6 +2496,9 @@ func _reset_binding_refs() -> void:
 	_journal_cursor = 0
 	_phase_active = false
 	_public_signal_active = false
+	_dirty_actors.clear()
+	_unexpected_component_mutations.clear()
+	_snapshot_cache.clear()
 
 
 func _has_exact_keys(value: Dictionary, expected: PackedStringArray) -> bool:

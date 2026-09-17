@@ -135,8 +135,24 @@ func run() -> void:
 		check(committed.ok and committed.payload.project[RaidProgressionValues.STATE_KEY].active.is_empty(), "targeted death committed locally")
 		print("LOCAL_FLOW_FINGERPRINT ", committed.fingerprint)
 		await finish(); return
+	var presentation_before := _game.presentation_work_counts()
+	var health_work_before := _game._session.combat.health.work_counts()
 	for _i in range(70):
 		if not check(_game.advance(), "all native phases and after-tick closeout"): await finish(); return
+	var presentation_after := _game.presentation_work_counts()
+	var health_work_after := _game._session.combat.health.work_counts()
+	check(int(presentation_after.raid_view_builds) == int(presentation_before.raid_view_builds) + 70
+		and int(presentation_after.bunker_view_builds) == int(presentation_before.bunker_view_builds)
+		and int(presentation_after.task_view_builds) == int(presentation_before.task_view_builds)
+		and int(presentation_after.map_view_builds) == int(presentation_before.map_view_builds)
+		and int(presentation_after.summary_view_builds) == int(presentation_before.summary_view_builds),
+		"idle raid rebuilds only the clock-bearing raid view")
+	check(int(presentation_after.health_view_builds) == int(presentation_before.health_view_builds),
+		"unchanged player health does not rebuild or republish HealthView")
+	check(int(health_work_after.full_actor_audits) == int(health_work_before.full_actor_audits)
+		and int(health_work_after.snapshot_builds) == int(health_work_before.snapshot_builds)
+		and int(health_work_after.runtime_guards) == int(health_work_before.runtime_guards) + 210,
+		"three idle actors use bounded guards without full audits or snapshot rebuilds")
 	var timer: String = (_game._ui.screen.get_node("TimerGroup/Timer") as Label).text
 	check(timer != "—" and timer != "15:00", "HUD clock derives from completed canonical ticks")
 	var prior_tick: int = _game._session.raid.last_processed_tick

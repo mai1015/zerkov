@@ -1,0 +1,127 @@
+name: Native Linux addons
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'addons/*/native/**'
+      - 'addons/*/*.gdextension'
+      - 'config/toolchain.lock.json'
+      - 'tools/native_addons/**'
+      - '.github/workflows/native-linux-addons.yml'
+  push:
+    paths:
+      - 'addons/*/native/**'
+      - 'addons/*/*.gdextension'
+      - 'config/toolchain.lock.json'
+      - 'tools/native_addons/**'
+      - '.github/workflows/native-linux-addons.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-linux-addons-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-linux-x86-64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: actions/checkout@v4
+        with:
+          repository: godotengine/godot-cpp
+          ref: 5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731
+          path: .native-sdk
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify pinned SDK and install build tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install scons==4.10.1
+          python - <<'PY'
+          import json, subprocess
+          lock = json.load(open('config/toolchain.lock.json'))
+          expected = lock['native_sdk']['godot_cpp_commit']
+          actual = subprocess.check_output(['git', '-C', '.native-sdk', 'rev-parse', 'HEAD'], text=True).strip()
+          assert actual == expected, (expected, actual)
+          PY
+          echo "GODOT_CPP=$GITHUB_WORKSPACE/.native-sdk" >> "$GITHUB_ENV"
+
+      - name: Build debug Linux GDExtensions
+        shell: bash
+        run: |
+          set -euo pipefail
+          scons -f tools/native_addons/SConstruct \
+            platform=linux arch=x86_64 target=template_debug -j2
+
+      - name: Build release Linux GDExtensions
+        shell: bash
+        run: |
+          set -euo pipefail
+          scons -f tools/native_addons/SConstruct \
+            platform=linux arch=x86_64 target=template_release -j2
+
+      - name: Install exact locked Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_linux.x86_64.zip" \
+            -o "$RUNNER_TEMP/godot.zip"
+          python - <<'PY'
+          import os, pathlib, zipfile
+          archive = pathlib.Path(os.environ['RUNNER_TEMP']) / 'godot.zip'
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'godot'
+          with zipfile.ZipFile(archive) as bundle:
+              bundle.extractall(root)
+          matches = [p for p in root.rglob('*linux.x86_64') if p.is_file()]
+          assert len(matches) == 1, matches
+          matches[0].chmod(0o755)
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write('ZERKOV_GODOT=' + str(matches[0]) + '\n')
+          PY
+
+      - name: Verify and package Linux artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/native-linux"
+          python tools/native_addons/verify_linux_artifacts.py \
+            --root "$GITHUB_WORKSPACE" \
+            --godot "$ZERKOV_GODOT" \
+            --manifest "$RUNNER_TEMP/native-linux/manifest.json" \
+            --archive "$RUNNER_TEMP/native-linux/zerkov-linux-gdextensions.zip"
+
+      - name: Smoke-load all six extensions with locked Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" \
+            --audio-driver Dummy --editor --quit
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zerkov-linux-gdextensions-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/native-linux/manifest.json
+            ${{ runner.temp }}/native-linux/zerkov-linux-gdextensions.zip
+            addons/*/bin/*.linux.template_debug.x86_64.so
+            addons/*/bin/*.linux.template_release.x86_64.so
+          if-no-files-found: error
+          retention-days: 7

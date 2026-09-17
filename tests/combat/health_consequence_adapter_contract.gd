@@ -302,6 +302,7 @@ func check(condition: bool, message: String) -> void:
 
 func run() -> void:
 	_test_policy_and_injury_order()
+	_test_change_driven_idle_health()
 	_test_damage_bleed_and_death_order()
 	_test_atomic_treatment_and_rollback()
 	_test_real_inventory_medical_transactions()
@@ -351,6 +352,61 @@ func _test_policy_and_injury_order() -> void:
 	check(trait_ids.has(String(ZerkovInventoryCatalog.TRAIT_MEDICAL_BANDAGE))
 		and trait_ids.has(String(ZerkovInventoryCatalog.TRAIT_MEDICAL_SPLINT)),
 		"bandage and splint carry unique sealed transaction traits")
+
+
+func _test_change_driven_idle_health() -> void:
+	var fixture := _new_fixture("change_driven_idle")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var component := fixture["component"] as GameplayAbilityComponent
+	var target := fixture["target"] as ZEntityId
+	var generation := int(fixture["generation"])
+
+	var initial_snapshot := adapter.actor_snapshot(target)
+	var initial_counts := adapter.work_counts()
+	check(not initial_snapshot.is_empty()
+		and int(initial_counts.get("snapshot_builds", -1)) == 1,
+		"first health read builds one immutable projection")
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, generation),
+		"change-driven fixture becomes active")
+	for _index in range(8):
+		check(authority.advance_one(generation),
+			"idle health tick advances without polling the full actor graph")
+		var repeated := adapter.actor_snapshot(target)
+		check(int(repeated.get("health_revision", -1))
+			== int(initial_snapshot.get("health_revision", -2))
+			and String(repeated.get("state_digest", ""))
+			== String(initial_snapshot.get("state_digest", "missing")),
+			"idle tick reuses unchanged health state")
+	var idle_counts := adapter.work_counts()
+	check(int(idle_counts.get("snapshot_builds", -1))
+		== int(initial_counts.get("snapshot_builds", -2))
+		and int(idle_counts.get("full_actor_audits", -1))
+		== int(initial_counts.get("full_actor_audits", -2))
+		and int(idle_counts.get("runtime_guards", -1))
+		== int(initial_counts.get("runtime_guards", -2)) + 8,
+		"idle actors pay only one bounded runtime guard per authority tick")
+
+	var stamina_spec := 0
+	for spec in component.granted_specs():
+		var grant := component.get_grant(spec)
+		if not bool(grant.get("revoked", true)) \
+				and StringName(grant.get("ability_identifier", &"")) \
+				== ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND:
+			stamina_spec = int(spec)
+			break
+	check(stamina_spec > 0,
+		"change-driven fixture exposes the owned stamina grant")
+	var unauthorized := ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, stamina_spec, ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND,
+		1_000_000, component.get_current_tick(), 9_000_001)
+	check(bool(unauthorized.get("accepted", false))
+		and int(unauthorized.get("applied_amount_micros", 0)) == 1_000_000,
+		"test mutation reaches the native runtime outside adapter authority")
+	check(not authority.advance_one(generation)
+		and adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.RECOVERY_REQUIRED
+		and adapter.last_error == &"health_component_mutated_outside_authority",
+		"signal-driven tracking fails closed on out-of-band component mutation")
 
 
 func _test_damage_bleed_and_death_order() -> void:
