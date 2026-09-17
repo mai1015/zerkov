@@ -37,12 +37,27 @@ class PhaseHandlerRelay:
 
 	var callback_identity: String = ""
 	var bridge_connection_identity: String = ""
+	var _named_descriptor: Dictionary = {}
 
 	func configure(callback: Callable, identity: String) -> bool:
 		if not callback.is_valid() or identity.is_empty() \
 				or not callback_identity.is_empty():
 			return false
 		callback_identity = identity
+		# Describes the installed method, not the graph reachable through its owner.
+		# Mutable collection/object arguments are deliberately ineligible for a
+		# closed production roster. Generic relays retain their full scan.
+		if callback.get_method() != &"<anonymous lambda>":
+			var arguments := callback.get_bound_arguments()
+			var eligible := arguments.size() <= 8
+			for argument in arguments:
+				eligible = eligible and typeof(argument) in [TYPE_NIL, TYPE_BOOL, TYPE_INT, TYPE_FLOAT, TYPE_STRING, TYPE_STRING_NAME]
+			if eligible:
+				arguments.make_read_only()
+				_named_descriptor = {"owner": weakref(callback.get_object()),
+					"script": callback.get_object().get_script(),
+					"method": callback.get_method(), "arguments": arguments}
+				_named_descriptor.make_read_only()
 		var bridge := func(
 			authority: RaidAuthority,
 			phase: TickPhase,
@@ -50,7 +65,7 @@ class PhaseHandlerRelay:
 			intents: Array[ZRaidIntent],
 			result_box: Array
 		) -> void:
-			if not authority.phase_handler_callback_is_safe(callback):
+			if not authority.can_dispatch_phase_callback(callback):
 				result_box.append(false)
 				return
 			result_box.append(callback.call(authority, phase, tick, intents))
@@ -63,6 +78,9 @@ class PhaseHandlerRelay:
 		bridge_connection_identity = _connection_identity(
 			connected_callable)
 		return not bridge_connection_identity.is_empty()
+
+	func named_descriptor() -> Dictionary:
+		return _named_descriptor
 
 	func invoke(
 		authority: RaidAuthority,
@@ -177,6 +195,10 @@ var _processing_handler_registration_id: String = ""
 var _processing_handler_callback_identity: String = ""
 var _tick_handler_roster_commitment: String = ""
 var _named_phase_handlers_only: bool = false
+# Write-once lexical policy: fixed method identities, not cached safety verdicts.
+var _closed_phase_policy: Callable = Callable():
+	set(value):
+		if not _closed_phase_policy.is_valid(): _closed_phase_policy = value
 var _phase_handlers: Dictionary = {}
 var _handler_ids: Dictionary = {}
 var _issued_handler_registration_ids: Dictionary = {}
@@ -436,7 +458,7 @@ func register_phase_handler(
 	last_error = &""
 	if not _is_current_generation(expected_generation):
 		return _reject(&"stale_generation")
-	if lifecycle != Lifecycle.PREPARING:
+	if lifecycle != Lifecycle.PREPARING or _closed_phase_policy.is_valid():
 		return _reject(&"handler_registration_closed")
 	if int(phase) < 0 or int(phase) >= PHASE_NAMES.size():
 		return _reject(&"phase_invalid")
@@ -508,7 +530,7 @@ func require_named_phase_handlers(expected_generation: int) -> bool:
 	last_error = &""
 	if not _is_current_generation(expected_generation):
 		return _reject(&"stale_generation")
-	if lifecycle != Lifecycle.PREPARING:
+	if lifecycle != Lifecycle.PREPARING or _closed_phase_policy.is_valid():
 		return _reject(&"handler_registration_closed")
 	for registration_value in _handler_ids.values():
 		var registration := registration_value as Dictionary
@@ -524,6 +546,80 @@ func require_named_phase_handlers(expected_generation: int) -> bool:
 	return true
 
 
+## Production composition explicitly freezes its complete named roster after
+## installing all phase grants. Generic/diagnostic authorities retain graph
+## inspection. This changes the production trust contract: arbitrary executable
+## scripts are not sandboxed; canonical mutation ports still authenticate their
+## phase, registration, ownership and generation on every call.
+func seal_production_dispatch(expected_generation: int) -> bool:
+	last_error = &""
+	if not _is_current_generation(expected_generation) or _is_advancing \
+			or lifecycle != Lifecycle.PREPARING or _closed_phase_policy.is_valid() \
+			or not _named_phase_handlers_only or _handler_ids.is_empty():
+		return _reject(&"production_dispatch_seal_invalid")
+	var descriptors: Dictionary = {}
+	for id in _handler_ids:
+		var entry: Dictionary = _handler_ids[id]
+		var relay := entry.get("relay") as PhaseHandlerRelay
+		if relay == null or bool(entry.get("anonymous", true)):
+			return _reject(&"production_dispatch_requires_named_methods")
+		var descriptor := relay.named_descriptor().duplicate()
+		if descriptor.is_empty():
+			return _reject(&"production_dispatch_arguments_invalid")
+		var owner: Object = descriptor.owner.get_ref()
+		if owner == null or not is_instance_valid(owner):
+			return _reject(&"production_dispatch_owner_invalid")
+		var callback := Callable(owner, descriptor.method).bindv(descriptor.arguments)
+		if _phase_callback_identity(callback) != entry.callback_identity \
+				or not phase_handler_callback_is_safe(callback):
+			return _reject(&"production_dispatch_binding_invalid")
+		descriptor["registration_id"] = entry.registration_id
+		descriptor["phase"] = entry.phase
+		descriptor.make_read_only()
+		descriptors[id] = descriptor
+	var commitment := _phase_handler_roster_commitment()
+	if commitment.is_empty(): return _reject(&"production_dispatch_roster_invalid")
+	descriptors.make_read_only()
+	# Static validation avoids retaining the authority in its own closure.
+	_closed_phase_policy = func(callback: Callable, id: StringName, registration: String,
+		phase: int, generation: int, current_commitment: String) -> bool:
+		return generation == expected_generation and current_commitment == commitment \
+			and descriptors.has(id) and RaidAuthority._closed_method_matches(
+				callback, descriptors[id], registration, phase)
+	return true
+
+
+func has_closed_production_dispatch() -> bool:
+	return _closed_phase_policy.is_valid()
+
+
+## Called only by the relay during an authenticated dispatch. Unlike the
+## diagnostic graph scanner, this proves a fixed invocation's identity. Changes
+## to unrelated retained data do not require another whole-object-graph scan.
+func can_dispatch_phase_callback(callback: Callable) -> bool:
+	if not _closed_phase_policy.is_valid():
+		return phase_handler_callback_is_safe(callback)
+	if not _callable_has_exact_script(_closed_phase_policy, get_script()) \
+			or not _is_advancing or _processing_tick <= 0 \
+			or clock == null or clock.current_tick != _processing_tick \
+			or lifecycle not in [Lifecycle.ACTIVE, Lifecycle.EXTRACTING]:
+		return false
+	return _closed_phase_policy.call(callback, _processing_handler_id,
+		_processing_handler_registration_id, _processing_phase, _generation,
+		_tick_handler_roster_commitment)
+
+
+static func _closed_method_matches(callback: Callable, descriptor: Dictionary,
+	registration: String, phase: int) -> bool:
+	var owner: Object = descriptor.owner.get_ref()
+	return owner != null and is_instance_valid(owner) \
+		and (not owner is Node or not owner.is_queued_for_deletion()) \
+		and owner.get_script() == descriptor.script and callback.is_valid() \
+		and callback.get_object() == owner and callback.get_method() == descriptor.method \
+		and callback.get_bound_arguments() == descriptor.arguments \
+		and registration == descriptor.registration_id and phase == descriptor.phase
+
+
 ## Claims the sole game-owned Vision slot. The authority derives the callback
 ## from the concrete configured owner; callers cannot supply an identity or
 ## Callable. The owner's provisional binding is checked before anything is
@@ -537,7 +633,7 @@ func register_vision_world_owner(
 	last_error = &""
 	if not _is_current_generation(expected_generation):
 		return _reject(&"stale_generation")
-	if lifecycle != Lifecycle.PREPARING:
+	if lifecycle != Lifecycle.PREPARING or _closed_phase_policy.is_valid():
 		return _reject(&"handler_registration_closed")
 	if owner == null or not is_instance_valid(owner):
 		return _reject(&"vision_owner_invalid")
@@ -1871,8 +1967,13 @@ func _phase_handler_roster_commitment() -> String:
 
 
 var _callback_capture_scanner: RefCounted
+var _callback_graph_scans: int = 0
+
+func dispatch_work_counts() -> Dictionary:
+	return {"graph_scans": _callback_graph_scans}
 
 func phase_handler_callback_is_safe(callback: Callable) -> bool:
+	_callback_graph_scans += 1
 	# Keep the lifecycle on this exact script; subclassing changes the lexical
 	# attestation identity expected by the native Vision owner during release.
 	# The helper caches only fixed ClassDB schemas, never a safety decision.

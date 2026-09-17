@@ -14,6 +14,10 @@ class BunkerHideoutTests(unittest.TestCase):
         cls.layout = json.loads((DATA / 'bunker_layout.json').read_text())
         cls.atlas = Image.open(ROOT / 'assets/world/bunker/bunker_atlas.webp')
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.atlas.close()
+
     def test_atlas_integrity(self):
         self.assertEqual(self.kit['atlas_sha256'], hashlib.sha256((ROOT / 'assets/world/bunker/bunker_atlas.webp').read_bytes()).hexdigest())
         self.assertEqual((512, 256), self.atlas.size)

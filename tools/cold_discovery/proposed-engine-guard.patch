@@ -1,0 +1,15 @@
+diff --git a/editor/doc/editor_help.cpp b/editor/doc/editor_help.cpp
+--- a/editor/doc/editor_help.cpp
++++ b/editor/doc/editor_help.cpp
+@@ -2852,4 +2852,11 @@
+ void EditorHelp::_gen_extensions_docs() {
++	// cleanup_doc() waits for the documentation worker, but a static deferred
++	// callback queued by that worker can still execute during shutdown.
++	// Waiting for the worker is not the same as draining its deferred work.
++	if (doc == nullptr) {
++		return;
++	}
++
+ 	doc->generate((DocTools::GENERATE_FLAG_SKIP_BASIC_TYPES | DocTools::GENERATE_FLAG_EXTENSION_CLASSES_ONLY));
+ 
+ 	// Append extra doc data, as it gets overridden by the generation step.

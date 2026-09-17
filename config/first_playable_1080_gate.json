@@ -216,6 +216,10 @@
     "tools/run_bunker_flow_contracts.py": {
       "purpose": "full application native bunker new/continue input and screenshot driver in a temporary copy",
       "sha256": "6a1ecf6e2400fcddfe88b5af45eebdf28cd03074f34cbe4d6d8c1319ba315087"
+    },
+    "tools/run_health_catalog_contracts.py": {
+      "purpose": "headless native health-catalog differential and preflight benchmark; no captures or FPS claims",
+      "sha256": "b06727fd38fbb5a715c2a4109d797cf2911b7c26eea83f5bd7415cb527b4a98b"
     }
   },
   "active_reviewed_support": {
@@ -236,6 +240,7 @@
     }
   },
   "active_headless_entrypoints": [
+    "tests/combat/health_catalog_performance_contract.gd",
     "tests/addons/combined_addons_smoke.gd",
     "tests/ai/ai_review_regression_contract.gd",
     "tests/ai/ai_workstream_contract.gd",

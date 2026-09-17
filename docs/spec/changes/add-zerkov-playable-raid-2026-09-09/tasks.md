@@ -1,6 +1,6 @@
 ---
 created_at: 2026-09-09T23:45:13Z
-updated_at: 2026-09-11T02:14:29Z
+updated_at: 2026-09-17T06:21:01Z
 completed_at:
 ---
 
@@ -445,7 +445,7 @@ failure after mutation. No UI layout was changed. See
   rules without trusting presentation animation events as authority.
 - [x] 5.9 `[LUNA]` Drive HUD ammo, reload, health, status and correction states
   only from confirmed/reversible presentation events.
-- [ ] 5.10 `[SOL]` Add deterministic cadence, out-of-ammo, stale-revision,
+- [x] 5.10 `[SOL]` Add deterministic cadence, out-of-ammo, stale-revision,
   reload-race, duplicate-shot and death-during-action regressions.
 - [ ] 5.11 `[ASTRA]` Establish measurable combat-readability targets for aim,
   muzzle flash, tracer/impact, hit reaction, hit pause, camera impulse, damage
@@ -457,6 +457,19 @@ failure after mutation. No UI layout was changed. See
 
 Evidence: combat authority suite; captured shot/reload/injury sequences; no
 duplicate consequences; documented tuning values; playtest notes.
+
+Completed task evidence (5.10, 2026-09-17): the promoted native combat
+composition covers empty-magazine rejection, deterministic fire cadence,
+weapon/equipment/inventory revision rejection, reload cancellation and
+reservation races, duplicate fire/melee request admission, and four lethal
+same-tick action races (queued melee, wind-up, active contact and reload due).
+The accepted native runs reported `NATIVE_COMBAT_EXECUTION_RESULT checks=439
+failures=0` and `NATIVE_COMBAT_DEATH_RESULT checks=1283 failures=0`; later
+ticks proved no delayed corpse damage, duplicate death event, late reload
+commit or duplicate ammunition refund. Source-isolated replay remains
+bit-for-bit stable across two 240-tick runs (`3595/0` each) and combat HUD
+value checks pass `34/0`. This closes deterministic regression coverage only;
+combat readability, feel tuning and blind play remain tasks 5.11-5.13.
 
 Completed task evidence (5.2, 2026-09-10): the accepted integration commit
 `8ab280f24a519923bd5e09321fd631990693ad2d` creates authoritative AKM instances
@@ -530,7 +543,7 @@ recorded Scav and mutant encounters.
   invalid for the current phase or authority generation.
 - [x] 7.2 `[SOL]` Create the raid loadout from an immutable profile generation
   and record the unique raid/settlement identity before deployment.
-- [ ] 7.3 `[LUNA]` Implement the authoritative raid timer and derived HUD clock.
+- [x] 7.3 `[LUNA]` Implement the authoritative raid timer and derived HUD clock.
 - [x] 7.4 `[SOL]` Run a Level Task integration spike for one raid-scoped graph;
   document missing APIs and disable persistent resume if snapshot/restore is
   not yet ready.
@@ -556,6 +569,16 @@ recorded Scav and mutant encounters.
 Evidence: task graph fixture; extract/death settlement golden files; crash
 recovery matrix; restart smoke; summary-to-audit consistency test.
 
+Completed task evidence (7.3, 2026-09-17): `RaidClock` remains the manually
+advanced canonical 60 Hz source and `RaidProgression.after_tick()` publishes
+its closed snapshot before presentation. The production local flow renders
+`clock_text` from that snapshot, verifies that it changes only after completed
+canonical ticks, pauses it in the approved solo Map/menu policy and drives the
+Road Gate five-second countdown from authority state. The dedicated native
+clock scenario passed `293/0`; the complete flow also asserts the derived HUD
+clock while exercising extraction interruption and settlement. No frame-delta
+or authored UI timer is accepted as raid authority.
+
 ## 8. UI, input and presentation integration
 
 - [x] 8.1 `[SOL]` Make the shared Zerkov screen base participate in
@@ -566,15 +589,15 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
   metadata and rebinding persistence for gameplay and UI contexts.
 - [x] 8.4 `[SOL]` Define typed/read-only `RaidView`, `InventoryView`,
   `HealthView`, `TaskView`, `MapView`, `BunkerView` and `SummaryView` contracts.
-- [ ] 8.5 `[LUNA]` Bind the HUD to real raid, weapon, health, task and extraction
+- [x] 8.5 `[LUNA]` Bind the HUD to real raid, weapon, health, task and extraction
   projections with reversible prediction/correction states.
 - [x] 8.6 `[SOL]` After inventory tasks 4.11, 4.12 and 4.12a are accepted, bind
   the existing designed inventory and health screens to real snapshots while
   preserving drag state, selection, focus and scroll positions at 1920x1080.
   Do not create a replacement inventory interface; smaller layouts are deferred.
-- [ ] 8.7 `[LUNA]` Bind Tasks and Maps to the Sawmill task/level projections;
+- [x] 8.7 `[LUNA]` Bind Tasks and Maps to the Sawmill task/level projections;
   feature-gate unavailable zones and persistent task functions.
-- [ ] 8.8 `[LUNA]` Bind deployment and summary screens to real raid lifecycle and
+- [x] 8.8 `[LUNA]` Bind deployment and summary screens to real raid lifecycle and
   settlement receipts.
 - [x] 8.9 `[LUNA]` Mark bunker, crafting, friends, insurance and marketplace
   actions as explicit prototype/locked features until their services exist.
@@ -592,6 +615,20 @@ recovery matrix; restart smoke; summary-to-audit consistency test.
 
 Evidence: existing 28-route smoke remains green; CommonUI lifecycle/input
 tests; real-data screenshot matrix; zero production mock-state references.
+
+Completed task evidence (8.5, 8.7 and 8.8, 2026-09-17): the F5 product root
+publishes real `RaidView`, `HealthView`, `TaskView`, `MapView` and
+`SummaryView` generations through `LocalGameViews`; `LocalFlowBinding` mutates
+the existing authored controls only. HUD ammo/reload/health/correction data
+comes from `ZCombatHudModel`, while raid time, Supply Run progress and Road
+Gate extraction come from the post-tick progression projection. The native
+full-flow scenario physically opens Tasks and Maps, proves Map pauses only the
+approved solo clock, renders the committed kill/profile/loot/task summary,
+retries one failed local settlement with the same identity and rejects commands
+from the retired pending-summary context. Current-main native scenarios pass
+full `4063/0`, death `585/0`, clock `293/0` and launch `54/0`. Unavailable
+zones and persistent/online functions remain explicitly gated. Visual review,
+controller navigation and the section-12 acceptance matrix remain open.
 
 Implementation candidate evidence (8.11, 2026-09-11): production `Main` and
 `ZUIContext` expose no `state`/`fixtures`; the recursively enumerated `ui/` and
