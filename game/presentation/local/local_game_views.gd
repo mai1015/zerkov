@@ -31,7 +31,7 @@ static func build_incremental(
 	for index in DOMAIN_COUNT:
 		var previous: ZReadOnlyView = previous_views[index] \
 			if index < previous_views.size() else null
-		var reusable := previous != null and previous.is_initialized() \
+		var reusable: bool = previous != null and previous.is_initialized() \
 			and previous.generation() == int(frame.get("epoch", 0)) \
 			and index < previous_dependencies.size() \
 			and previous_dependencies[index] == dependencies[index]
