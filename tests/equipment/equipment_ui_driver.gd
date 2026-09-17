@@ -44,6 +44,8 @@ func key(code: Key) -> void:
 func linger(label: String) -> void:
 	print("EQUIPMENT_UI_STAGE ", label)
 	if filming:
+		await RenderingServer.frame_post_draw
+		check(Exact1080CaptureGuard.accepts(root, root, root.get_texture().get_image()), "native 1080p stage: " + label)
 		for _i in range(30): await process_frame
 
 func click(control: Control) -> bool:
@@ -55,8 +57,7 @@ func click(control: Control) -> bool:
 	if cursor != null: cursor.position = point
 	for down: bool in [true, false]:
 		var event := InputEventMouseButton.new()
-		event.position = point; event.global_position = point
-		event.button_index = MOUSE_BUTTON_LEFT; event.pressed = down
+		event.position = point; event.button_index = MOUSE_BUTTON_LEFT; event.pressed = down
 		root.push_input(event)
 	await settle()
 	return failures == 0
@@ -129,6 +130,15 @@ func run(scene_tree: SceneTree) -> void:
 		await finish(); return
 	check(root.size == EXACT_SIZE and root.get_visible_rect().size == Vector2(EXACT_SIZE), "exact 1920x1080 canvas")
 	if filming:
+		# Cocoa applies the physical window resize asynchronously. Do not start
+		# input or accept footage until the native window agrees with the canvas.
+		root.borderless = true
+		root.position = Vector2i.ZERO
+		root.size = EXACT_SIZE
+		for _i in range(30):
+			await process_frame
+			if DisplayServer.window_get_size(root.get_window_id()) == EXACT_SIZE: break
+		print("EQUIPMENT_RENDER_SURFACE logical=", root.size, " physical=", DisplayServer.window_get_size(root.get_window_id()), " screen=", DisplayServer.screen_get_size(), " viewport=", root.get_visible_rect().size)
 		if not check(DisplayServer.get_name() != "headless" and DisplayServer.window_get_size() == EXACT_SIZE, "recording uses real exact-sized render window"):
 			await finish(); return
 		var overlay := CanvasLayer.new(); overlay.layer = 100; root.add_child(overlay)
@@ -152,6 +162,8 @@ func run(scene_tree: SceneTree) -> void:
 		if not await click(named("InventoryContent/CharacterColumn/SlingSlot")): await finish(); return
 		check(gear(PRIMARY).item_id == weapon_id, "select and activate re-equips same item")
 		await linger("Re-equipped from the actual loadout")
+		var gestures = load("res://tests/equipment/equipment_gesture_driver.gd").new()
+		if not await gestures.run(self): await finish(); return
 		if not await click(named("InventoryContent/CharacterColumn/SlingSlot")): await finish(); return
 		check(gear(PRIMARY).is_empty(), "save a deliberately changed empty primary")
 	elif args[0] == "resume":
@@ -179,6 +191,8 @@ func run(scene_tree: SceneTree) -> void:
 		await key(KEY_I)
 		check(route("inventory") and gear(PRIMARY).item_id == weapon_id, "same equipment in deployed UI")
 		await linger("Raid receives the same saved primary")
+		var deployed = load("res://tests/equipment/equipment_deploy_driver.gd").new()
+		if not await deployed.run(self, weapon_id): await finish(); return
 	if args[0] != "deploy":
 		await key(KEY_ESCAPE)
 		check(route("bunker"), "normal workspace exit saves loadout")

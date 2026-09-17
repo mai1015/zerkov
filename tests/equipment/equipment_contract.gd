@@ -108,6 +108,8 @@ func run() -> void:
 	check(restored.apply_persistence_record(saved).ok, "canonical equipment record restores")
 	check(restored.snapshot(owner.raid_player_inventory_id).canonical_bytes() == canonical(), "persistence exact bytes")
 	restored.free()
+	var extended = load("res://tests/equipment/equipment_extended_contract.gd").new()
+	extended.run(self)
 	var old := equipment(PRIMARY)
 	owner.teardown(owner.generation())
 	check(not controller.equipment_view().available and controller.equipment_view().slots.is_empty(), "teardown clears equipment projection")
