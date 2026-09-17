@@ -105,6 +105,41 @@ static var _bounded_application_in_flight: Dictionary = {}
 static var _bounded_queued_reservations: Dictionary = {}
 
 
+# Eager initialization occurs once when this script loads, before admission.
+# Retain only scalar identifiers/manifest fields, never a mutable Resource graph
+# or a verdict about any actual component. Reflection cannot replace the record.
+static var _expected_catalog_metadata: Dictionary = {}:
+	set(value):
+		if _expected_catalog_metadata.is_empty():
+			_expected_catalog_metadata = value
+
+
+static func _static_init() -> void:
+	_expected_catalog_metadata = _build_expected_catalog_metadata()
+
+
+static func _build_expected_catalog_metadata() -> Dictionary:
+	var expected := build_definition_catalog()
+	var validator := GameplayDefinitionValidator.new()
+	var findings: Array = validator.validate_catalog(expected)
+	var metadata := {
+		"ok": GameplayDefinitionValidator.is_ok(findings)
+			and validator.get_last_manifest_ok(),
+		"fingerprint": validator.get_last_manifest_fingerprint(),
+		"entry_count": validator.get_last_manifest_entry_count(),
+		"tick_rate": validator.get_last_manifest_tick_rate(),
+	}
+	for category: StringName in [&"tag", &"attribute", &"effect", &"ability"]:
+		var identifiers: Array[StringName] = []
+		var definitions: Array = expected.call("get_%s_definitions" % category)
+		for definition: Resource in definitions:
+			identifiers.append(StringName(definition.call("get_identifier")))
+		identifiers.make_read_only()
+		metadata[category] = identifiers
+	metadata.make_read_only()
+	return metadata
+
+
 static func build_definition_catalog() -> GameplayDefinitionCatalog:
 	var catalog := GameplayDefinitionCatalog.new()
 	catalog.tag_definitions = _tag_definitions()
@@ -1239,6 +1274,8 @@ static func _validate_catalog_subset(component: GameplayAbilityComponent) -> Dic
 	var actual_catalog := component.get_definition_catalog()
 	if actual_catalog == null:
 		return {"ok": false, "reason": &"health_catalog_missing"}
+	# This full LIVE audit is deliberately retained. In particular a successful
+	# previous check does not admit later nested-resource or array mutations.
 	var full_validator := GameplayDefinitionValidator.new()
 	var full_findings: Array = full_validator.validate_catalog(actual_catalog)
 	if not GameplayDefinitionValidator.is_ok(full_findings) \
@@ -1246,41 +1283,35 @@ static func _validate_catalog_subset(component: GameplayAbilityComponent) -> Dic
 			or full_validator.get_last_manifest_fingerprint() \
 				!= component.get_content_manifest_fingerprint():
 		return {"ok": false, "reason": &"health_catalog_changed_after_configure"}
-	var expected_catalog := build_definition_catalog()
 	var subset := GameplayDefinitionCatalog.new()
 	var subset_tags: Array[GameplayTagDefinition] = []
 	var subset_attributes: Array[GameplayAttributeDefinition] = []
 	var subset_effects: Array[GameplayEffectDefinition] = []
 	var subset_abilities: Array[GameplayAbilityDefinition] = []
-	for expected_value in expected_catalog.get_tag_definitions():
-		var expected := expected_value as GameplayTagDefinition
-		var actual := _find_definition(
-			actual_catalog.get_tag_definitions(), expected.identifier) \
-			as GameplayTagDefinition
+	# Fetch each current native collection ONCE and build a duplicate-aware
+	# index. Keep category and expected-identifier order, including rejection
+	# precedence. Indexes are invocation-local and cannot become stale.
+	var tags := _index_definitions(actual_catalog.get_tag_definitions())
+	for identifier: StringName in _expected_catalog_metadata[&"tag"]:
+		var actual := tags.get(identifier) as GameplayTagDefinition
 		if actual == null:
 			return {"ok": false, "reason": &"health_tag_definition_missing"}
 		subset_tags.append(actual)
-	for expected_value in expected_catalog.get_attribute_definitions():
-		var expected := expected_value as GameplayAttributeDefinition
-		var actual := _find_definition(
-			actual_catalog.get_attribute_definitions(), expected.identifier) \
-			as GameplayAttributeDefinition
+	var attributes := _index_definitions(actual_catalog.get_attribute_definitions())
+	for identifier: StringName in _expected_catalog_metadata[&"attribute"]:
+		var actual := attributes.get(identifier) as GameplayAttributeDefinition
 		if actual == null:
 			return {"ok": false, "reason": &"health_attribute_definition_missing"}
 		subset_attributes.append(actual)
-	for expected_value in expected_catalog.get_effect_definitions():
-		var expected := expected_value as GameplayEffectDefinition
-		var actual := _find_definition(
-			actual_catalog.get_effect_definitions(), expected.identifier) \
-			as GameplayEffectDefinition
+	var effects := _index_definitions(actual_catalog.get_effect_definitions())
+	for identifier: StringName in _expected_catalog_metadata[&"effect"]:
+		var actual := effects.get(identifier) as GameplayEffectDefinition
 		if actual == null:
 			return {"ok": false, "reason": &"health_effect_definition_missing"}
 		subset_effects.append(actual)
-	for expected_value in expected_catalog.get_ability_definitions():
-		var expected := expected_value as GameplayAbilityDefinition
-		var actual := _find_definition(
-			actual_catalog.get_ability_definitions(), expected.identifier) \
-			as GameplayAbilityDefinition
+	var abilities := _index_definitions(actual_catalog.get_ability_definitions())
+	for identifier: StringName in _expected_catalog_metadata[&"ability"]:
+		var actual := abilities.get(identifier) as GameplayAbilityDefinition
 		if actual == null:
 			return {"ok": false, "reason": &"health_ability_definition_missing"}
 		subset_abilities.append(actual)
@@ -1288,27 +1319,35 @@ static func _validate_catalog_subset(component: GameplayAbilityComponent) -> Dic
 	subset.attribute_definitions = subset_attributes
 	subset.effect_definitions = subset_effects
 	subset.ability_definitions = subset_abilities
-	var expected_validator := GameplayDefinitionValidator.new()
-	var expected_findings: Array = expected_validator.validate_catalog(expected_catalog)
 	var actual_validator := GameplayDefinitionValidator.new()
 	var actual_findings: Array = actual_validator.validate_catalog(subset)
-	if not GameplayDefinitionValidator.is_ok(expected_findings) \
-			or not expected_validator.get_last_manifest_ok():
+	if not bool(_expected_catalog_metadata["ok"]):
 		return {"ok": false, "reason": &"health_expected_catalog_invalid"}
 	if not GameplayDefinitionValidator.is_ok(actual_findings) \
 			or not actual_validator.get_last_manifest_ok():
 		return {"ok": false, "reason": &"health_catalog_subset_invalid"}
 	if actual_validator.get_last_manifest_fingerprint() \
-			!= expected_validator.get_last_manifest_fingerprint() \
+			!= _expected_catalog_metadata["fingerprint"] \
 			or actual_validator.get_last_manifest_entry_count() \
-				!= expected_validator.get_last_manifest_entry_count() \
+				!= _expected_catalog_metadata["entry_count"] \
 			or actual_validator.get_last_manifest_tick_rate() \
-				!= expected_validator.get_last_manifest_tick_rate():
+				!= _expected_catalog_metadata["tick_rate"]:
 		return {"ok": false, "reason": &"health_catalog_semantics_mismatch"}
 	return {
 		"ok": true,
 		"content_manifest_fingerprint": actual_validator.get_last_manifest_fingerprint(),
 	}
+
+
+static func _index_definitions(definitions: Array) -> Dictionary:
+	var index: Dictionary = {}
+	for value in definitions:
+		if not value is Resource or not value.has_method("get_identifier"):
+			continue
+		var identifier := StringName(value.call("get_identifier"))
+		# has(), not get(): a third duplicate must not replace the null sentinel.
+		index[identifier] = null if index.has(identifier) else value
+	return index
 
 
 static func _find_definition(definitions: Array, identifier: StringName) -> Resource:
@@ -1362,7 +1401,7 @@ static func _execution_uses_spec(
 ## Public, state-neutral probe for the native NotificationQueue admission used
 ## by mutating component calls. Ability-task handle zero is permanently
 ## invalid, so outside notification dispatch this is an immediate read-like
-## UNKNOWN_ABILITY_TASK result. During dispatch, the native component checks
+## UNKNOWN_ABILITY_TASK result. During the native component checks
 ## its queue first and faithfully exposes whether the harmless deferred cancel
 ## fit. The already-admitted current tick keeps both wrapper and core clocks
 ## unchanged in every branch.
