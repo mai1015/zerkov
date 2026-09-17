@@ -138,7 +138,7 @@
     },
     "tests/local/native_bunker_flow_contract.gd": {
       "purpose": "full native campaign bunker flow with actual input and optional exact guarded captures",
-      "sha256": "73ddbe6f31ea2ff4d2a509ef7e1b818ecd9b8f63b7866fd91fa958f85952a6a7"
+      "sha256": "fd7781c4c5f0bcd9b439cb3a67e904fa468056d10d72db76c5b15802c27c5988"
     },
     "tests/presentation/northline_native_zone_contract.gd": {
       "purpose": "original-PNG nine-district native TileMapLayer map and guarded 1080 capture",
@@ -225,7 +225,7 @@
     },
     "tools/run_bunker_flow_contracts.py": {
       "purpose": "full application native bunker new/continue input and screenshot driver in a temporary copy",
-      "sha256": "50a55b2fb6388dd73d9e7a41a0551be13380bc4cdbf3dc497032e17c89181c52"
+      "sha256": "edef3c73b97c7e963813ff0b6d882e2824abec427ddd7c6d91cc19858c9450ba"
     },
     "tools/run_health_catalog_contracts.py": {
       "purpose": "headless native health-catalog differential and preflight benchmark; no captures or FPS claims",

@@ -13,6 +13,7 @@ func run() -> void:
 	_test_convex()
 	_test_swept_navigation()
 	_test_capacity()
+	_test_session_start_admission()
 	_test_map_preflight()
 	_test_pinned_persistence()
 	print("LIVE_MAP_CONTRACT_RESULT checks=",checks," failures=",failures)
@@ -85,6 +86,22 @@ func _test_capacity() -> void:
 	var before:=world.geometry_digest()
 	check(not world.add_static_collider_px("overflow",Rect2(2000,2000,8,8),1) and world.last_error==&"collider_limit","capacity+1 rejected")
 	check(world.geometry_digest()==before,"overflow leaves geometry unchanged")
+
+func _test_session_start_admission() -> void:
+	var session:=LocalRaidSession.new()
+	# Off-tree admission must fail before even looking at map content.
+	check(not session.start(null,"unused",0,0,"northline"),"off-tree start rejected")
+	check(session.map_id=="sawmill" and session.native_map==null and not session._started,"off-tree rejection retains prior map state")
+	root.add_child(session)
+	check(not session.start(null,"unused",0,0,"not_a_map"),"unknown map rejected before deployment")
+	check(session.map_id=="sawmill" and session.native_map==null and session.deployment==null,"invalid selection does not create escrow")
+	# Isolated lifecycle guard; the input-flow suite separately runs real sessions.
+	var pinned:=NativeRaidMap.new()
+	session.map_id="northline";session.native_map=pinned;session._started=true
+	check(not session.start(null,"unused",0,0,"blackwater"),"second start rejected before map preflight")
+	check(session.last_error==&"local_raid_already_started" and session.map_id=="northline" and session.native_map==pinned and session.deployment==null,"second start cannot replace session map or geometry")
+	check(session.camera==null,"rejected starts allocate no orphan camera")
+	session.free()
 
 func _test_map_preflight() -> void:
 	check(NativeRaidMap.open("../northline")==null,"map catalog rejects arbitrary path")

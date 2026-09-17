@@ -1662,6 +1662,8 @@ func _health_state_digest(actor: Dictionary) -> String:
 		"movement_scale_micros": _fixed_micros(component.get_attribute_current(
 			String(ZerkovHealthAbilityContent.ATTRIBUTE_MOVEMENT_SPEED_SCALE))),
 		"stamina_micros": _fixed_micros(component.get_attribute_current(String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA))),
+		"hydration_micros": _fixed_micros(component.get_attribute_current(
+			String(ZerkovHealthAbilityContent.ATTRIBUTE_HYDRATION))),
 		"zones": zones,
 	})
 

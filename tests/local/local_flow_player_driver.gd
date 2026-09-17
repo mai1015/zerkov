@@ -35,9 +35,23 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 		_key(KEY_E, true); _key(KEY_E, false)
 		await _tree.process_frame
 		var completed: bool = false
-		for _i in range(120):
+		var attempts: int = 1
+		for _i in range(360):
 			if not await _tick(Vector2.ZERO): return false
 			if _game._session.progression.was_crate_searched(id): completed = true; break
+			# Damage legitimately cancels a search. Respond like a player to the
+			# published idle state; never ignore damage, force discovery, or press
+			# Interact again while the prior search is still active.
+			if _game._session.progression.snapshot().get("searching", "").is_empty():
+				if not _assert(attempts < 3 and _game._session.nearest_target() == id, "bounded search retry remains in reach"): return false
+				attempts += 1
+				print("LOCAL_FLOW_SEARCH_RETRY crate=", id, " attempt=", attempts, " tick=", ticks)
+				_key(KEY_E, true); _key(KEY_E, false)
+				await _tree.process_frame
+		if not completed:
+			print("LOCAL_FLOW_SEARCH_STALLED target=", id, " current=", _game._session.nearest_target(),
+				" frame=", _game._session.progression.snapshot(), " stats=", _game._session.progression._stats,
+				" ammo=", _game._session.hud_model.snapshot(), " fired=", fired, " notice=", _game._notice)
 		if not _assert(completed, "timed native search completes " + id): return false
 		searched += 1
 		print("LOCAL_FLOW_SEARCH tick=", ticks, " crate=", id)
@@ -62,6 +76,9 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	_stop()
 	for _i in range(10):
 		if not await _tick(Vector2.ZERO): return false
+	# Bandaging is a real bound gameplay action. A bleed is damage, so waiting
+	# five seconds at the exit while bleeding must NOT bypass its interruption.
+	if not await _stabilize_bleeding(): return false
 	_key(KEY_E, true); _key(KEY_E, false)
 	await _tree.process_frame
 	if not await _tick(Vector2.ZERO): return false
@@ -80,10 +97,42 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 		if StringName(row.definition) == ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE and row.quantity == 1: retained = true
 	if not _assert(retained and transferred and searched == 3, "one UI-transferred supply retained"): return false
 	if not _assert(_game._ui.screen.get_node("MetricKills/Value").text == str(result.stats.kills), "summary renders actual kill count"): return false
-	if not _assert(_game._ui.screen.get_node("MetricXP/Value").text == str(result.profile_generation), "summary renders committed profile generation"): return false
+	if not _assert(_game._campaign.store.load_profile().generation == result.profile_generation, "debrief receipt matches the committed file generation"): return false
+	var lost_count: int = 0
+	for row: Dictionary in result.get("lost", []): lost_count += int(row.quantity)
+	if not _assert(_game._ui.screen.get_node("MetricXP/Title").text == "ITEMS LOST" and _game._ui.screen.get_node("MetricXP/Value").text == str(lost_count), "debrief renders actual losses instead of a profile debug counter"): return false
 	print("LOCAL_FLOW_EXTRACT ticks=", ticks, " fire_inputs=", fired, " searched=", searched,
 		" kills=", result.get("stats", {}).get("kills", 0), " outcome=", result.outcome)
 	return true
+
+func _stabilize_bleeding() -> bool:
+	for attempt in range(14):
+		var frame := _game._session.hud_model.confirmed_frame()
+		var bleeding: bool = false
+		for zone: Dictionary in frame.get("health", {}).get("body_parts", []):
+			bleeding = bleeding or bool(zone.get("heavy_bleed", false))
+		if not bleeding: return true
+		var before: int = _carried_bandages()
+		if not _assert(before > 0, "bleeding extraction run has a real carried bandage"): return false
+		print("LOCAL_FLOW_TREATMENT attempt=", attempt + 1, " tick=", ticks, " bandages=", before)
+		_key(KEY_Y, true); _key(KEY_Y, false)
+		for _i in range(4):
+			if not await _tick(Vector2.ZERO): return false
+		var after: int = _carried_bandages()
+		if not _assert(after == before or after == before - 1, "one heal gesture consumes at most one actual bandage"): return false
+		# Same-tick damage can invalidate the expected health revision. Retry via
+		# another physical key event with the newly published view; never edit GAS.
+		if after == before: continue
+		if not _assert(_game._session.hud_model.confirmed_frame().health.health_revision > frame.health.health_revision,
+				"consumed bandage publishes an authoritative health revision"): return false
+	return _assert(false, "bounded physical treatment stabilizes bleeding before extraction")
+
+func _carried_bandages() -> int:
+	var owner := _game._session.deployment.inventory
+	var count: int = 0
+	for item: Dictionary in owner.raid_authority().snapshot(owner.raid_player_inventory_id).get_items():
+		if StringName(item.item_definition_identifier) == ZerkovInventoryCatalog.ITEM_BANDAGE: count += int(item.quantity)
+	return count
 
 func _walk_to(goal: Vector2) -> bool:
 	var session := _game._session

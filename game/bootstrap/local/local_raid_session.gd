@@ -19,7 +19,7 @@ var player_input: RaidGameplayInput
 var player_router: ZCombatActionRouter
 var hud_model: ZCombatHudModel
 var ai: RaidAIRuntime
-var camera := ZWorldCamera2D.new()
+var camera: ZWorldCamera2D
 var crate_ids: Dictionary = {}
 var rows: Dictionary = {}
 var _routers: Dictionary = {}
@@ -38,13 +38,17 @@ var _closing: bool = false
 var _world_scene: Node2D
 
 func start(store: ProfileStore, request_id: String, profile_generation: int, seed: int, selected_map: String = "sawmill", preflight: NativeRaidMap = null) -> bool:
-	if not SupplyRunGraph.is_map(selected_map): return _fail(&"local_map_unknown")
-	map_id=selected_map
-	if map_id != "sawmill":
-		native_map=preflight if preflight!=null else NativeRaidMap.open(map_id)
-		if native_map==null or native_map.id()!=map_id or not RaidProgressionValues.valid_map_descriptor(native_map.descriptor()):
-			return _fail(NativeRaidMap.last_error if native_map==null else &"local_map_preflight_invalid")
+	# Admission precedes preflight and assignment. A duplicate start must never
+	# switch an active session's map identity or replace its detached geometry.
 	if _started or not is_inside_tree(): return _fail(&"local_raid_already_started")
+	if not SupplyRunGraph.is_map(selected_map): return _fail(&"local_map_unknown")
+	var candidate: NativeRaidMap = null
+	if selected_map != "sawmill":
+		candidate=preflight if preflight!=null else NativeRaidMap.open(selected_map)
+		if candidate==null or candidate.id()!=selected_map or not RaidProgressionValues.valid_map_descriptor(candidate.descriptor()):
+			return _fail(NativeRaidMap.last_error if candidate==null else &"local_map_preflight_invalid")
+	map_id=selected_map
+	native_map=candidate
 	_started = true
 	deployment = RaidDeployment.new()
 	if not deployment.begin(self, store, request_id, profile_generation, seed, native_map.descriptor() if native_map!=null else {}): return _fail(deployment.last_error)
@@ -274,6 +278,8 @@ func _obstructions() -> Array[Dictionary]:
 func _build_visuals() -> bool:
 	_world_scene = native_map.instantiate_visuals() if native_map!=null else load("res://game/world/sawmill/sawmill_yard.tscn").instantiate() as Node2D
 	add_child(_world_scene)
+	# Allocate with its scene-tree owner, not during rejected/unused sessions.
+	camera = ZWorldCamera2D.new()
 	add_child(camera)
 	camera.configure(world_bounds(), player_movement.position_px)
 	if native_map!=null:

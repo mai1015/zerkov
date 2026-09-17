@@ -223,7 +223,7 @@ func _hud(frame: Dictionary) -> void:
 
 func _maps(frame: Dictionary) -> void:
 	var map := _screen.app.map_view()
-	if map != null and _map != null: _map.present(map,frame.get("map_geometry",[]),frame.get("map_id","sawmill")!="sawmill")
+	if map != null and _map != null: _map.present(map,frame.get("map_geometry",[]),frame.get("map_id","sawmill")!="sawmill",frame.get("map_extent",Vector2.ZERO))
 	_text("ZonesNote", "3 SOLO MAPS")
 	var ids:Array[String]=["sawmill","northline","blackwater"]
 	for index in range(3):
@@ -270,7 +270,9 @@ func _maps(frame: Dictionary) -> void:
 		_text("SquadStatus%d" % index, "SOLO" if index == 0 else "")
 	_text("LoadoutValue", "REVIEW EQUIPMENT IN STASH / LOADOUT")
 	_text("UninsuredValue", "INSURANCE UNAVAILABLE")
-	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else "DEPLOY SOLO · "+String(frame.get("map_title","Sawmill Yard")).to_upper(), frame.mode in ["home", "raid"] and frame.error.is_empty() and String(frame.get("map_error","")).is_empty())
+	# Retain the established Sawmill action while making new maps explicit.
+	var deploy_text := "DEPLOY SOLO TO SAWMILL" if frame.get("map_id","sawmill") == "sawmill" else "DEPLOY SOLO · "+String(frame.get("map_title","")).to_upper()
+	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else deploy_text, frame.mode in ["home", "raid"] and frame.error.is_empty() and String(frame.get("map_error","")).is_empty())
 	_focus("Deploy")
 
 func _tasks(frame: Dictionary) -> void:
