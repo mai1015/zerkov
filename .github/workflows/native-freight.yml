@@ -41,7 +41,7 @@ jobs:
               p=pathlib.PurePosixPath(name)
               assert not p.is_absolute() and '..' not in p.parts and '\\' not in name
               assert name in single or name.startswith(prefixes),name
-              assert p.suffix in {'.md','.json','.gd','.tscn','.tres','.py','.yml','.import'},name
+              assert p.suffix in {'.md','.json','.gd','.tscn','.tres','.py','.yml','.import','.uid'},name
               assert isinstance(text,str)
               assert hashlib.sha256(text.encode()).hexdigest()==packet['sha256'][name],name
               target=root/name
