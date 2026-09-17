@@ -1,0 +1,48 @@
+name: Live map source verification
+on:
+  pull_request:
+    paths: ['.github/workflows/live-map-source.yml']
+permissions:
+  contents: read
+jobs:
+  native-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: godotengine/godot-cpp
+          ref: 5ffd70e34d0ab87009a9f0ffa3361bc8f4b09731
+          path: .native-sdk
+          persist-credentials: false
+      - name: Verify and retain full original native sources, no changes or builds
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,subprocess,zipfile
+          root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'live-map-source';out.mkdir()
+          sdk=root/'.native-sdk'
+          expected=json.loads((root/'config/toolchain.lock.json').read_text())['native_sdk']['godot_cpp_commit']
+          assert subprocess.check_output(['git','-C',str(sdk),'rev-parse','HEAD'],text=True).strip()==expected
+          records={}
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for base,prefix in [(root,'repo/'),(sdk,'godot-cpp/')]:
+                  names=subprocess.check_output(['git','-C',str(base),'ls-files','-z']).decode().split('\0')
+                  for name in names:
+                      p=base/name
+                      if not name or not p.is_file() or p.is_symlink():continue
+                      if p.suffix.lower() in {'.ttf','.otf','.woff','.woff2','.dll','.dylib','.so','.exe'}:continue
+                      data=p.read_bytes();key=prefix+name
+                      z.writestr(key,data)
+                      records[key]={'sha256':hashlib.sha256(data).hexdigest(),'git_blob':hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()}
+          (out/'manifest.json').write_text(json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'sdk':expected,'files':records},indent=2)+'\n')
+          print('LIVE_MAP_SOURCE_SEAL files=%d native_changes=0 fonts=0'%len(records))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: live-map-native-source
+          path: ${{ runner.temp }}/live-map-source
+          retention-days: 7
