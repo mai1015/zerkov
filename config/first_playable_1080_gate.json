@@ -5,6 +5,7 @@
   "external_exact_size_symbols": ["Output.EXACT_SIZE"],
   "project_config": {"window/size/viewport_width":1920,"window/size/viewport_height":1080,"window/size/window_width_override":1920,"window/size/window_height_override":1080},
   "active_visual_entrypoints": {
+    "tests/local/native_bunker_flow_contract.gd":{"purpose":"full native campaign bunker flow with actual input and optional exact guarded captures","sha256":"3ed92acbc55b860b5b8a9b04045465e64218f0339683c2b334ec83930d41edfe"},
     "tests/equipment/equipment_ui_flow.gd":{"purpose":"Real local equipment input, separate-process saves and optional native movie at exact 1080p","sha256":"8fff6287879cff05f39925b4ef884e4862c5b917f228e2400ebcfdaf7d210532"},
     "tests/presentation/northline_native_zone_contract.gd": {"purpose": "original-PNG nine-district native TileMapLayer map and guarded 1080 capture", "sha256": "6a81592c3d36fc9c109b15624ea06c819ccebef592f3a997fc93a5bd0114cf63"},
     "tests/presentation/northline_native_contract.gd": {"purpose": "original-PNG native TileMapLayer freight slice and guarded 1080 capture", "sha256": "a675e5a7cdbd8f2842463df96db2a424b8011c3f9346b307a964be1e485fda81"},
@@ -40,6 +41,7 @@
     "tests/ai/ai_debug_render_contract.gd":{"purpose":"synthetic AI diagnostics with approved 640x360 nearest 3x world; not native gameplay acceptance","sha256":"d755dee2ff26a69721e115867752373e3d677d7cb2e386fdf64225f530d31475"}
   },
   "active_command_entrypoints": {
+    "tools/run_bunker_flow_contracts.py":{"purpose":"full application native bunker new/continue input and screenshot driver in a temporary copy","sha256":"6a1ecf6e2400fcddfe88b5af45eebdf28cd03074f34cbe4d6d8c1319ba315087"},
     "tools/run_equipment_contracts.py":{"purpose":"Native equipment and existing reconciliation/UI suites; isolated real profile and native fullscreen recording","sha256":"4b0bf01c63182ff1b108aa614a42b5d430bba60554558917f02f6646a3a0fd14"},
     "tools/run_health_catalog_contracts.py":{"purpose":"headless native health-catalog differential and preflight benchmark; no captures or FPS claims","sha256":"b06727fd38fbb5a715c2a4109d797cf2911b7c26eea83f5bd7415cb527b4a98b"},
     "tests/tooling/run_northline_native_zone_gate.py": {"purpose": "native 1080 full map, four collision routes and edit reopening", "sha256": "67b8d47d255ed746a1e69e288a16d9993446c06966241c6c87a24492980a4383"},
@@ -197,6 +199,7 @@
     "guard_anchors":["const EXACT_SIZE := Vector2i(1920, 1080)","DisplayServer.get_name() == \"headless\"","DisplayServer.window_get_size(root_window.get_window_id()) == EXACT_SIZE","root_window.size == EXACT_SIZE","root_window.get_visible_rect().size == Vector2(EXACT_SIZE)","root_texture.get_size() == Vector2(EXACT_SIZE)","capture_viewport.get_visible_rect().size == Vector2(EXACT_SIZE)","capture_texture.get_size() == Vector2(EXACT_SIZE)","raw_image.get_size() == EXACT_SIZE"]
   },
   "sanctioned_capture_writers": {
+    "tests/local/native_bunker_flow_contract.gd":{"physical_guard_call":"Exact1080CaptureGuard.accepts(root, root, image)","guard_anchors":["root.size = BUNKER_SIZE","root.get_visible_rect().size != Vector2(BUNKER_SIZE)","image := root.get_texture().get_image()"]},
     "tests/presentation/northline_native_zone_contract.gd": {"physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)", "guard_anchors": ["root.size=EXACT", "const EXACT := Vector2i(1920,1080)"]},
     "tests/presentation/northline_native_contract.gd": {"physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)", "guard_anchors": ["root.size=EXACT", "const EXACT := Vector2i(1920,1080)"]},
     "tests/presentation/feature_gates_8_9_contract.gd":{"physical_guard_call":"Exact1080CaptureGuard.accepts(root, production_render_target, image)","guard_anchors":["root.size = FIRST_PLAYABLE_SIZE","root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)","image.get_size() == FIRST_PLAYABLE_SIZE"]},

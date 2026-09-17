@@ -15,3 +15,12 @@ func build() -> void:
 		add_child(view)
 		view.menu_requested.connect(_on_menu)
 	view.visible = true
+
+## The production map has its own fit policy; generic bunker reflow must not
+## restore the retired NavigationChrome/station hierarchy over it.
+func _apply_adaptive_layout() -> void:
+	if _local_binding != null and _local_binding.layout_home(get_viewport_rect().size):
+		_adaptive_queued = false
+		_adaptive_applied = true
+		return
+	super._apply_adaptive_layout()

@@ -182,7 +182,10 @@ func run(scene_tree: SceneTree) -> void:
 	else:
 		check(gear(PRIMARY).item_id == weapon_id, "second relaunch keeps equipped identity")
 		await key(KEY_ESCAPE)
-		if not route("bunker") or not await click(named("BunkerHideoutView/LocalDeploy")) or not route("hud"): await finish(); return
+		if not route("bunker") or not await click(named("BunkerHideoutView/LocalDeploy")) or not route("maps"): await finish(); return
+		if not check(game._session == null and game._mode == "home", "briefing preserves the saved loadout before deployment"): await finish(); return
+		await linger("Raid briefing: review the saved loadout")
+		if not await click(named("Deploy")) or not route("hud"): await finish(); return
 		var owner := game._session.deployment.inventory
 		var equipped: bool = false
 		for item: Dictionary in owner.raid_authority().snapshot(owner.raid_player_inventory_id).get_items():
