@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Measure the real local raid: relay safety scan versus actual callback body.
+"""Measure the real local raid with a source-exact PR-base comparison.
 
-Instrumentation is applied only to a temporary project copy at the ORIGINAL
+Instrumentation is applied only to temporary project copies at the ORIGINAL
 script paths, preserving lexical authority identity. No guard is skipped, no
 mutable verdict is cached, and no production clock/save settings are changed.
-An uninstrumented control must produce the same stage-end authority digests.
+When a baseline revision is supplied, every changed production file below
+``game/`` is reconstructed from that revision; candidate tests and the probe are
+retained so both sides execute the same workload and authority-digest checks.
 This measures CPU tick cost, not windowed FPS or complete encounter acceptance.
 """
 from __future__ import annotations
@@ -101,6 +103,66 @@ def replace_once(text: str, old: str, new: str) -> str:
     return text.replace(old, new, 1)
 
 
+
+def production_baseline_overlay(
+    source: Path,
+    revision: str,
+) -> tuple[dict[str, bytes], set[str]]:
+    """Return the exact ``game/`` file overlay required to reconstruct revision.
+
+    The candidate checkout supplies tests, tooling, addons and unchanged assets.
+    Modified/deleted production files are restored from the baseline; files added
+    only by the candidate are removed. This keeps cross-file API changes coherent
+    instead of reverting a historical hand-picked subset.
+    """
+    raw = subprocess.check_output(
+        ["git", "diff", "--name-status", "--find-renames", revision, "HEAD", "--", "game"],
+        cwd=source,
+        text=True,
+    )
+    files: dict[str, bytes] = {}
+    removals: set[str] = set()
+    for line in raw.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        status = parts[0][0]
+        if status in {"M", "D"}:
+            path = parts[1]
+            files[path] = subprocess.check_output(
+                ["git", "show", f"{revision}:{path}"], cwd=source)
+        elif status == "A":
+            removals.add(parts[1])
+        elif status == "R":
+            old_path, new_path = parts[1], parts[2]
+            files[old_path] = subprocess.check_output(
+                ["git", "show", f"{revision}:{old_path}"], cwd=source)
+            removals.add(new_path)
+        elif status == "C":
+            # A copied candidate path did not exist at the baseline revision.
+            removals.add(parts[2])
+        else:
+            raise ValueError(f"Unsupported baseline diff status: {line}")
+    return files, removals
+
+
+def apply_baseline_overlay(
+    project: Path,
+    files: dict[str, bytes],
+    removals: set[str],
+) -> None:
+    for name in sorted(removals):
+        path = project / name
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists():
+            path.unlink()
+    for name, data in files.items():
+        path = project / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+
+
 def instrument(project: Path, enabled: bool) -> None:
     (project / PROBE_PATH).write_text(PROBE, encoding="utf-8")
     entry = project / "tests/local/native_local_flow_contract.gd"
@@ -161,20 +223,41 @@ def main() -> int:
     env = {**os.environ, "GODOT_SILENCE_ROOT_WARNING":"1", "ZERKOV_TEST_SCENARIO":"handler_profile"}
     if execute([engine, "--version"], env).strip() != required:
         raise ValueError("Godot must match the lock")
-    checksums = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
-                 for p in [source / "game/raid/raid_authority.gd", source / "game/combat/health_consequence_adapter.gd",
-                           source / "game/raid/raid_callback_capture_scanner.gd", source / "game/bootstrap/local/local_game.gd",
-                           source / "game/combat/content/zerkov_health_ability_content.gd"]}
-    print("RAID_PROFILE_SOURCE " + json.dumps(checksums), flush=True)
+    identity_paths = {
+        "game/raid/raid_authority.gd",
+        "game/combat/health_consequence_adapter.gd",
+        "game/raid/raid_callback_capture_scanner.gd",
+        "game/bootstrap/local/local_game.gd",
+        "game/combat/content/zerkov_health_ability_content.gd",
+    }
     traces = []
-    modes = ["baseline", "control", "control", "baseline", "instrumented"] if args.baseline_ref else ["control", "instrumented"]
-    optimized = ("game/raid/raid_callback_capture_scanner.gd", "game/combat/content/zerkov_health_ability_content.gd",
-                 "game/raid/raid_authority.gd", "game/bootstrap/local/local_raid_session.gd")
-    baseline = {}
+    modes = ["baseline", "control", "control", "baseline", "instrumented"] \
+        if args.baseline_ref else ["control", "instrumented"]
+    baseline_files: dict[str, bytes] = {}
+    baseline_removals: set[str] = set()
+    revision = ""
     if args.baseline_ref:
-        revision = subprocess.check_output(["git", "rev-parse", "--verify", args.baseline_ref + "^{commit}"], cwd=source, text=True).strip()
-        baseline = {name: subprocess.check_output(["git", "show", revision + ":" + name], cwd=source) for name in optimized}
-        print("RAID_PROFILE_BASELINE " + json.dumps({"revision":revision, "files":{name:hashlib.sha256(data).hexdigest() for name,data in baseline.items()}}), flush=True)
+        revision = subprocess.check_output(
+            ["git", "rev-parse", "--verify", args.baseline_ref + "^{commit}"],
+            cwd=source,
+            text=True,
+        ).strip()
+        baseline_files, baseline_removals = production_baseline_overlay(source, revision)
+        identity_paths.update(name for name in baseline_files if (source / name).is_file())
+        identity_paths.update(name for name in baseline_removals if (source / name).is_file())
+        print("RAID_PROFILE_BASELINE " + json.dumps({
+            "revision": revision,
+            "files": {
+                name: hashlib.sha256(data).hexdigest()
+                for name, data in sorted(baseline_files.items())
+            },
+            "candidate_only_removed": sorted(baseline_removals),
+        }), flush=True)
+    checksums = {
+        name: hashlib.sha256((source / name).read_bytes()).hexdigest()
+        for name in sorted(identity_paths)
+    }
+    print("RAID_PROFILE_SOURCE " + json.dumps(checksums), flush=True)
     for mode in modes:
         enabled = mode == "instrumented"
         print("RAID_PROFILE_MODE " + mode, flush=True)
@@ -182,7 +265,7 @@ def main() -> int:
             project = Path(temp) / "project"
             shutil.copytree(source, project, ignore=shutil.ignore_patterns(".git", ".godot", ".codegraph", "__pycache__"))
             if mode == "baseline":
-                for name, data in baseline.items(): (project / name).write_bytes(data)
+                apply_baseline_overlay(project, baseline_files, baseline_removals)
             instrument(project, enabled)
             env["XDG_DATA_HOME"] = str(Path(temp) / "userdata")
             base = [engine, "--headless", "--path", str(project), "--resolution", "1920x1080", "--audio-driver", "Dummy"]
