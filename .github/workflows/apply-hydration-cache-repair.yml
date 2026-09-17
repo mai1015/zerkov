@@ -1,0 +1,113 @@
+name: Apply hydration cache repair
+
+on:
+  push:
+    branches:
+      - codex/fix-hydration-snapshot-cache-transport
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'chore: apply hydration cache repair'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out transport branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply exact reviewed patch to target branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'ce22bf429f11806faa8eab3fcc9e2c5c909226eb5dc24f66dabd9ebe71017265  .handoff/hydration-cache.patch' | sha256sum --check
+          cp .handoff/hydration-cache.patch /tmp/hydration-cache.patch
+          git fetch origin codex/fix-hydration-snapshot-cache
+          git switch --force-create codex/fix-hydration-snapshot-cache origin/codex/fix-hydration-snapshot-cache
+          test "$(git rev-parse HEAD)" = '82ecaa960d9b2a09033782a78e9069911ecda32f'
+          git apply --check --index /tmp/hydration-cache.patch
+          git apply --index /tmp/hydration-cache.patch
+          git diff --check --cached
+
+      - name: Run repository gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet pytest pillow
+          python3 -m pytest -q tests/tooling
+          python3 -m compileall -q tools tests/tooling
+          python3 tools/check_first_playable_1080.py
+
+      - name: Install exact locked Linux runtime and add-ons
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip \
+            -o "$RUNNER_TEMP/godot.zip"
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  '"$RUNNER_TEMP"'/godot.zip' | sha256sum --check
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          GODOT=$(find "$RUNNER_TEMP/godot" -type f -name '*linux.x86_64' -print -quit)
+          test -n "$GODOT"
+          chmod +x "$GODOT"
+          test "$($GODOT --version)" = '4.7.2.stable.official.ed1daf0bf'
+          echo "ZERKOV_GODOT=$GODOT" >> "$GITHUB_ENV"
+
+          curl --fail --location --retry 3 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            https://api.github.com/repos/mai1015/zerkov/actions/artifacts/10513816133/zip \
+            -o "$RUNNER_TEMP/linux-addons.zip"
+          echo 'e3f69462d2685c51fb31cac565da2a693ff92d7ca1faf6325d8f2f9e23bfb8cf  '"$RUNNER_TEMP"'/linux-addons.zip' | sha256sum --check
+          unzip -q "$RUNNER_TEMP/linux-addons.zip" -d "$RUNNER_TEMP/linux-addons"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, shutil
+          source = Path(os.environ['RUNNER_TEMP']) / 'linux-addons' / 'zerkov' / 'zerkov'
+          target = Path(os.environ['GITHUB_WORKSPACE'])
+          files = list(source.glob('addons/*/bin/*.linux.*.x86_64.so'))
+          assert len(files) == 12, files
+          for path in files:
+              output = target / path.relative_to(source)
+              output.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copy2(path, output)
+          PY
+
+      - name: Run focused native regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GODOT_SILENCE_ROOT_WARNING=1
+          "$ZERKOV_GODOT" --headless --resolution 1920x1080 --path "$GITHUB_WORKSPACE" \
+            --audio-driver Dummy --editor --import --quit
+          "$ZERKOV_GODOT" --headless --resolution 1920x1080 --path "$GITHUB_WORKSPACE" \
+            --audio-driver Dummy --script res://tests/combat/health_consequence_adapter_contract.gd \
+            | tee "$RUNNER_TEMP/health-consequence.log"
+          grep -E '^HEALTH_CONSEQUENCE_ADAPTER_RESULT checks=511 failures=0 ' "$RUNNER_TEMP/health-consequence.log"
+          "$ZERKOV_GODOT" --headless --resolution 1920x1080 --path "$GITHUB_WORKSPACE" \
+            --audio-driver Dummy --script res://tests/combat/health_ability_content_contract.gd \
+            | tee "$RUNNER_TEMP/health-content.log"
+          grep -E '^HEALTH_ABILITY_CONTENT_RESULT checks=392 failures=0 ' "$RUNNER_TEMP/health-content.log"
+          "$ZERKOV_GODOT" --headless --resolution 1920x1080 --path "$GITHUB_WORKSPACE" \
+            --audio-driver Dummy --script res://tests/combat/native_combat_execution_contract.gd \
+            | tee "$RUNNER_TEMP/combat-execution.log"
+          grep -E '^NATIVE_COMBAT_EXECUTION_RESULT checks=439 failures=0$' "$RUNNER_TEMP/combat-execution.log"
+
+      - name: Commit and push target branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'mai1015'
+          git config user.email '5039212+mai1015@users.noreply.github.com'
+          git add game/combat/health_consequence_adapter.gd \
+            tests/combat/health_consequence_adapter_contract.gd
+          git diff --cached --check
+          git commit -m 'fix(health): include hydration in snapshot cache identity'
+          git push origin HEAD:codex/fix-hydration-snapshot-cache
