@@ -24,6 +24,7 @@ func run() -> void:
 		"logical_processors":OS.get_processor_count(), "display":DisplayServer.get_name()}))
 	_metadata_contract()
 	_index_contract()
+	_compiled_runtime_isolation_contract()
 	for combined: bool in [false, true]:
 		var catalog := _catalog(combined)
 		var component := _component(catalog)
@@ -139,6 +140,58 @@ func _index_contract() -> void:
 				check(index.get(id) == Reference._find_definition(values, id),
 					"duplicate-aware index matches linear lookup " + String(category))
 			check(index.get(&"absent") == null, "absent index lookup stays missing")
+
+func _compiled_runtime_isolation_contract() -> void:
+	var catalog := _catalog(false)
+	var component := _component(catalog)
+	var initialized := ZerkovHealthAbilityContent.initialize_component(component, 0)
+	check(bool(initialized.get("accepted", false)),
+		"compiled-runtime fixture initializes native health state")
+	var granted := component.grant_ability(
+		String(ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND), 1, 91_001, 0)
+	var spec := int(granted.get("spec", 0))
+	check(bool((granted.get("status", {}) as Dictionary).get("ok", false))
+		and not bool(granted.get("queued", false)) and spec > 0,
+		"compiled-runtime fixture grants stamina spend")
+
+	var effect := Reference._find_definition(catalog.get_effect_definitions(),
+		ZerkovHealthAbilityContent.EFFECT_STAMINA_SPEND) as GameplayEffectDefinition
+	var modifier := effect.modifiers[0] as GameplayModifierDeclaration
+	var magnitude := modifier.magnitude
+	var authored_coefficient: float = magnitude.coefficient
+	var before := _micros(component.get_attribute_current(
+		String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)))
+	# Mutate the retained authoring Resource after configure. The active native
+	# descriptor must stay sealed even though live catalog validation correctly
+	# reports that the authoring graph no longer matches its manifest.
+	magnitude.coefficient = authored_coefficient * 2.0
+	var validation := ZerkovHealthAbilityContent._validate_catalog_subset(component)
+	check(not bool(validation.get("ok", true))
+		and validation.get("reason", &"") == &"health_catalog_changed_after_configure",
+		"post-configure authoring mutation is visible to diagnostic validation")
+	var activation := component.request_activation({
+		"spec": spec,
+		"command_sequence": 1,
+		"set_by_caller": [{
+			"field": String(ZerkovHealthAbilityContent.SET_BY_CALLER_AMOUNT),
+			"value": 1.0,
+		}],
+	}, 0)
+	var after := _micros(component.get_attribute_current(
+		String(ZerkovHealthAbilityContent.ATTRIBUTE_STAMINA)))
+	check(bool((activation.get("status", {}) as Dictionary).get("ok", false))
+		and not bool(activation.get("queued", false))
+		and after == before - 1_000_000,
+		"sealed native descriptor ignores later authoring magnitude mutation")
+	magnitude.coefficient = authored_coefficient
+	check(bool(ZerkovHealthAbilityContent._validate_catalog_subset(component).get(
+		"ok", false)), "restored authoring graph matches the active manifest")
+	_free(component)
+
+
+func _micros(value: float) -> int:
+	return roundi(value * float(ZerkovHealthAbilityContent.FIXED_SCALE))
+
 
 func _catalog(combined: bool) -> GameplayDefinitionCatalog:
 	return ZerkovGameplayAbilityContent.build_definition_catalog() if combined \

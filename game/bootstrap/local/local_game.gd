@@ -31,6 +31,17 @@ var _last_route: String = "title"
 var _quit_pending: bool = false
 var _map_layout: ZSawmillYardLayout
 var _save_location: String = ""
+var _view_cache: Array[ZReadOnlyView] = []
+var _view_dependencies: Array = []
+var _view_build_counts := PackedInt64Array([0, 0, 0, 0, 0])
+var _static_map_markers: Array = []
+var _map_markers: Array = []
+var _map_marker_actor: String = ""
+var _map_marker_position := Vector2(1.0e30, 1.0e30)
+var _health_projection_actor: String = ""
+var _health_projection_revision: int = -1
+var _health_projection_digest: String = ""
+var _health_projection_builds: int = 0
 
 ## Test storage overrides are only accepted before mounting. Normal launch
 ## always uses the fixed local profile path and the production file adapter.
@@ -110,9 +121,8 @@ func advance() -> bool:
 	var receipt := _input_binding.flush_movement(_session.raid.last_processed_tick + 1)
 	if not receipt.is_empty() and receipt.get("admitted") != true: return _error(&"local_movement_admission_failed")
 	if not _session.advance(): return _error(_session.last_error)
-	var health := LocalHealthProjection.from_combat(_session.raid.admission(),
-		_session.combat.execution.frame_for(_session.raid.admission().actor_id.canonical_key()).health)
-	if health == null or not _character.publish_health_view(health): return _error(&"local_health_projection_failed")
+	if not _publish_changed_health():
+		return _error(&"local_health_projection_failed")
 	if _session.raid.lifecycle == RaidAuthority.Lifecycle.SETTLING:
 		_mode = "settling"
 		_notice = "Saving the authoritative raid result locally…"
@@ -216,9 +226,15 @@ func _start_raid() -> void:
 	policy.configure(_session)
 	_character_binding = LocalCharacterBinding.new()
 	add_child(_character_binding)
-	var health := LocalHealthProjection.from_combat(_session.raid.admission(), _session.combat.health.actor_snapshot(_session.raid.admission().actor_id))
-	if not _character_binding.bind(_character, _session.deployment.inventory, _session.raid.admission(), health, policy):
+	var health_snapshot := _session.combat.health.actor_snapshot(
+		_session.raid.admission().actor_id)
+	var health := LocalHealthProjection.from_combat(
+		_session.raid.admission(), health_snapshot)
+	if not _character_binding.bind(_character, _session.deployment.inventory,
+			_session.raid.admission(), health, policy):
 		_busy = false; _error(_character_binding.last_error); return
+	_remember_health_projection(health_snapshot)
+	_health_projection_builds += 1
 	_mode = "raid"; _world_image.show(); _busy = false; last_error = &""
 	_notice = "WASD move · mouse aim · LMB fire · R reload · V melee · E search/open/extract · Tab inventory · M map · Esc pause"
 	_publish()
@@ -306,16 +322,13 @@ func _publish() -> void:
 			frame.combat = _session.hud_model.snapshot()
 			frame.actor_id = _session.raid.admission().actor_id.canonical_key()
 			frame.weapon_id = String(_session.hud_model.confirmed_frame().get("weapon", {}).get("instance_id", ""))
-	if _map_layout == null:
-		_map_layout = load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
-	var layout := _map_layout
-	if layout != null:
-		for id: String in SupplyRunGraph.CRATES + [SupplyRunGraph.ROAD_GATE]:
-			frame.map_markers.append({"id":id,"label":LocalGameViews.display_item(id),"kind":"exit" if id == SupplyRunGraph.ROAD_GATE else "crate",
-				"position":layout.cell_center(layout.anchor(id).cell) / layout.world_bounds().size})
-		if _session != null and _session.player_movement != null:
-			frame.map_markers.append({"id":frame.get("actor_id", "zerkov.entity.local.player"),"label":"You","kind":"player", "position":_session.player_movement.position_px / layout.world_bounds().size})
-	var views := LocalGameViews.build(frame)
+	frame.map_markers = _map_markers_for_frame(String(frame.get(
+		"actor_id", "zerkov.entity.local.player")), _last_route == "maps")
+	var projection := LocalGameViews.build_incremental(
+		frame, _view_cache, _view_dependencies)
+	var views := projection.get("views", []) as Array[ZReadOnlyView]
+	for index in projection.get("rebuilt", PackedInt32Array()) as PackedInt32Array:
+		_view_build_counts[index] += 1
 	for view: ZReadOnlyView in views:
 		if view == null:
 			last_error = &"local_typed_view_invalid"
@@ -324,8 +337,95 @@ func _publish() -> void:
 	var ok: bool = _provider.replace_views(_epoch, views[0], views[1], views[2], views[3], views[4]) if _epoch > _provider.generation() \
 		else _provider.publish_views(_epoch, views[0], views[1], views[2], views[3], views[4])
 	if not ok: last_error = _provider.last_error; push_error(last_error); return
+	_view_cache = views
+	_view_dependencies = projection.get("dependencies", []) as Array
 	_ui_port.publish(frame)
 	published.emit(_ui_port.snapshot())
+
+func presentation_work_counts() -> Dictionary:
+	return RaidProgressionValues.freeze({
+		"bunker_view_builds": _view_build_counts[LocalGameViews.DOMAIN_BUNKER],
+		"raid_view_builds": _view_build_counts[LocalGameViews.DOMAIN_RAID],
+		"task_view_builds": _view_build_counts[LocalGameViews.DOMAIN_TASKS],
+		"map_view_builds": _view_build_counts[LocalGameViews.DOMAIN_MAP],
+		"summary_view_builds": _view_build_counts[LocalGameViews.DOMAIN_SUMMARY],
+		"health_view_builds": _health_projection_builds,
+	})
+
+
+func _publish_changed_health() -> bool:
+	var admission := _session.raid.admission()
+	var snapshot := _session.combat.health.actor_snapshot(admission.actor_id)
+	if snapshot.is_empty():
+		return false
+	var actor_key := String(snapshot.get("actor_id", ""))
+	var revision := int(snapshot.get("health_revision", -1))
+	var digest := String(snapshot.get("state_digest", ""))
+	if actor_key == _health_projection_actor \
+			and revision == _health_projection_revision \
+			and digest == _health_projection_digest:
+		return true
+	var health := LocalHealthProjection.from_combat(admission, snapshot)
+	if health == null or not _character.publish_health_view(health):
+		return false
+	_remember_health_projection(snapshot)
+	_health_projection_builds += 1
+	return true
+
+
+func _remember_health_projection(snapshot: Dictionary) -> void:
+	_health_projection_actor = String(snapshot.get("actor_id", ""))
+	_health_projection_revision = int(snapshot.get("health_revision", -1))
+	_health_projection_digest = String(snapshot.get("state_digest", ""))
+
+
+func _map_markers_for_frame(actor_key: String, refresh_player: bool) -> Array:
+	if _map_layout == null:
+		_map_layout = load(
+			"res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
+	var layout := _map_layout
+	if layout == null:
+		return []
+	if _static_map_markers.is_empty():
+		for id: String in SupplyRunGraph.CRATES + [SupplyRunGraph.ROAD_GATE]:
+			_static_map_markers.append(RaidProgressionValues.freeze({
+				"id": id,
+				"label": LocalGameViews.display_item(id),
+				"kind": "exit" if id == SupplyRunGraph.ROAD_GATE else "crate",
+				"position": layout.cell_center(layout.anchor(id).cell) \
+					/ layout.world_bounds().size,
+			}))
+		_static_map_markers.make_read_only()
+	# The map route pauses the solo authority clock. Preserve its last immutable
+	# projection while hidden instead of rebuilding a screen nobody can see on
+	# every movement tick; opening the map refreshes the player marker first.
+	if not refresh_player and not _map_markers.is_empty():
+		return _map_markers
+	var player_position := Vector2(1.0e30, 1.0e30)
+	var player_actor := ""
+	if _session != null and _session.player_movement != null:
+		player_actor = actor_key
+		player_position = _session.player_movement.position_px \
+			/ layout.world_bounds().size
+	if not _map_markers.is_empty() and player_actor == _map_marker_actor \
+			and player_position == _map_marker_position:
+		return _map_markers
+	var markers: Array = []
+	for marker in _static_map_markers:
+		markers.append(marker)
+	if not player_actor.is_empty():
+		markers.append(RaidProgressionValues.freeze({
+			"id": player_actor,
+			"label": "You",
+			"kind": "player",
+			"position": player_position,
+		}))
+	markers.make_read_only()
+	_map_markers = markers
+	_map_marker_actor = player_actor
+	_map_marker_position = player_position
+	return _map_markers
+
 
 func _navigate(route: String, record: bool = true) -> void:
 	if _ui != null and not _ui.request_route(route, record): _error(&"local_route_rejected")
@@ -333,6 +433,9 @@ func _navigate(route: String, record: bool = true) -> void:
 func _release_character() -> void:
 	if _character_binding != null:
 		_character_binding.release(); _character_binding.queue_free(); _character_binding = null
+	_health_projection_actor = ""
+	_health_projection_revision = -1
+	_health_projection_digest = ""
 
 func _release_input() -> void:
 	if _interaction_handle != null: _interaction_handle.call("release"); _interaction_handle = null

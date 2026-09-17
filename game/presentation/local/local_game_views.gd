@@ -5,42 +5,170 @@ extends RefCounted
 const MAP: StringName = &"zerkov.level.sawmill_yard"
 const TASK_CONTENT: StringName = &"zerkov.task.supply_run"
 const MISSING = ZReadOnlyView.SyncState.UNBOUND
+const DOMAIN_BUNKER: int = 0
+const DOMAIN_RAID: int = 1
+const DOMAIN_TASKS: int = 2
+const DOMAIN_MAP: int = 3
+const DOMAIN_SUMMARY: int = 4
+const DOMAIN_COUNT: int = 5
+
 
 static func build(frame: Dictionary) -> Array[ZReadOnlyView]:
-	var epoch: int = frame.epoch
-	var revision: int = frame.serial
-	var tick: int = frame.get("tick", 0)
-	var bunker: BunkerView = BunkerView.unavailable(MISSING, &"local_profile_missing", epoch, revision, tick)
-	if frame.get("has_profile", false):
-		bunker = BunkerView.create(epoch, revision, tick, "Local operator", 1, 1, 0, 0, 0,
-			frame.mode == "home", &"raid_in_progress" if frame.mode != "home" else &"", &"", [])
-	var raid: RaidView = RaidView.unavailable(MISSING, &"local_raid_not_active", epoch, revision, tick)
-	var progression: Dictionary = frame.get("progression", {})
-	var combat: Dictionary = frame.get("combat", {})
+	return build_incremental(frame).get("views", []) as Array[ZReadOnlyView]
+
+
+## Reuses exact immutable domain views when their complete semantic inputs did
+## not change. A reused view deliberately keeps the source tick at which that
+## domain last changed; the live raid view still advances every authority tick.
+static func build_incremental(
+	frame: Dictionary,
+	previous_views: Array[ZReadOnlyView] = [],
+	previous_dependencies: Array = []
+) -> Dictionary:
+	var dependencies := _domain_dependencies(frame)
+	var views: Array[ZReadOnlyView] = []
+	var rebuilt := PackedInt32Array()
+	for index in DOMAIN_COUNT:
+		var previous: ZReadOnlyView = previous_views[index] \
+			if index < previous_views.size() else null
+		var reusable := previous != null and previous.is_initialized() \
+			and previous.generation() == int(frame.get("epoch", 0)) \
+			and index < previous_dependencies.size() \
+			and previous_dependencies[index] == dependencies[index]
+		if reusable:
+			views.append(previous)
+		else:
+			views.append(_build_domain(index, frame))
+			rebuilt.append(index)
+	views.make_read_only()
+	dependencies.make_read_only()
+	return {
+		"views": views,
+		"dependencies": dependencies,
+		"rebuilt": rebuilt,
+	}
+
+
+static func _domain_dependencies(frame: Dictionary) -> Array:
+	var epoch := int(frame.get("epoch", 0))
+	var mode := String(frame.get("mode", ""))
+	var progression := frame.get("progression", {}) as Dictionary
+	var combat := frame.get("combat", {}) as Dictionary
+	var task_value: Dictionary = progression.get(
+		"task", frame.get("summary", {}).get("task", {}))
+	var task_raid := String(progression.get(
+		"raid_id", frame.get("summary", {}).get("raid_id", "")))
+	var searched_mask := 0
+	var searched := frame.get("searched_ids", []) as Array
+	for index in range(SupplyRunGraph.CRATES.size()):
+		if searched.has(SupplyRunGraph.CRATES[index]):
+			searched_mask |= 1 << index
+	var raid_dependency: Array = [epoch, false]
 	if not progression.is_empty() and not combat.is_empty():
-		var clock: Dictionary = progression.clock
-		var weapon: RaidView.WeaponState
-		if combat.get("has_weapon", false):
-			weapon = RaidView.WeaponState.create(ZWeaponId.parse(String(frame.weapon_id)), ZerkovInventoryCatalog.ITEM_AKM,
-				"AKM", RaidView.WeaponStatus.RELOADING if combat.reloading else RaidView.WeaponStatus.READY,
-				combat.ammo, 30, combat.reserve, &"semi", int(combat.reload_progress * 1000))
-		var extraction_status := RaidView.ExtractionStatus.LOCKED
-		if clock.get("outcome") == "extracted": extraction_status = RaidView.ExtractionStatus.COMPLETED
-		elif clock.counting: extraction_status = RaidView.ExtractionStatus.COUNTING_DOWN
-		elif int(progression.task.get("searched_crates", 0)) == 3 and progression.task.get("holds_objective", false): extraction_status = RaidView.ExtractionStatus.AVAILABLE
-		var extracts: Array[RaidView.Extraction] = [RaidView.Extraction.create(StringName(SupplyRunGraph.ROAD_GATE), "Road Gate",
-			extraction_status, int(frame.get("exit_distance", 0)),
-			LocalCampaignContent.EXTRACTION_TICKS - int(clock.countdown_remaining) if clock.counting else 0,
-			LocalCampaignContent.EXTRACTION_TICKS, &"supply_run_required" if extraction_status == RaidView.ExtractionStatus.LOCKED else &"")]
-		raid = RaidView.create(epoch, revision, tick, ZRaidId.parse(progression.raid_id), ZEntityId.parse(frame.actor_id),
-			int(frame.get("lifecycle", RaidView.Lifecycle.ACTIVE)),
-			MAP, "Sawmill Yard", mini(tick, LocalCampaignContent.RAID_LIMIT_TICKS), LocalCampaignContent.RAID_LIMIT_TICKS, weapon, extracts, [])
-	var task_value: Dictionary = progression.get("task", frame.get("summary", {}).get("task", {}))
-	var task_raid := String(progression.get("raid_id", frame.get("summary", {}).get("raid_id", "")))
-	var tasks := _tasks(epoch, revision, tick, task_value, frame.get("searched_ids", []), frame.mode, task_raid)
-	var map := _map(epoch, revision, tick, frame.get("map_markers", []))
-	var summary := _summary(epoch, revision, tick, frame.get("summary", {}))
-	return [bunker, raid, tasks, map, summary]
+		var clock := progression.get("clock", {}) as Dictionary
+		var task := progression.get("task", {}) as Dictionary
+		raid_dependency = [epoch, true, int(frame.get("tick", 0)),
+			String(progression.get("raid_id", "")), int(frame.get("lifecycle", 0)),
+			int(frame.get("exit_distance", 0)), String(clock.get("outcome", "")),
+			bool(clock.get("counting", false)), int(clock.get("countdown_remaining", 0)),
+			int(task.get("searched_crates", 0)), bool(task.get("holds_objective", false)),
+			bool(combat.get("has_weapon", false)), bool(combat.get("reloading", false)),
+			int(combat.get("ammo", 0)), int(combat.get("reserve", 0)),
+			float(combat.get("reload_progress", 0.0)), String(frame.get("actor_id", "")),
+			String(frame.get("weapon_id", ""))]
+	return [
+		RaidProgressionValues.freeze([epoch, bool(frame.get("has_profile", false)), mode]),
+		RaidProgressionValues.freeze(raid_dependency),
+		RaidProgressionValues.freeze([epoch, mode, task_raid, searched_mask,
+			bool(task_value.get("completion_token", false))]),
+		RaidProgressionValues.freeze([epoch, frame.get("map_markers", [])]),
+		RaidProgressionValues.freeze([epoch, frame.get("summary", {})]),
+	]
+
+
+static func _build_domain(index: int, frame: Dictionary) -> ZReadOnlyView:
+	var epoch := int(frame.get("epoch", 0))
+	var revision := int(frame.get("serial", 0))
+	var tick := int(frame.get("tick", 0))
+	match index:
+		DOMAIN_BUNKER:
+			return _bunker(epoch, revision, tick, frame)
+		DOMAIN_RAID:
+			return _raid(epoch, revision, tick, frame)
+		DOMAIN_TASKS:
+			var progression := frame.get("progression", {}) as Dictionary
+			var task_value: Dictionary = progression.get(
+				"task", frame.get("summary", {}).get("task", {}))
+			var task_raid := String(progression.get(
+				"raid_id", frame.get("summary", {}).get("raid_id", "")))
+			return _tasks(epoch, revision, tick, task_value,
+				frame.get("searched_ids", []), String(frame.get("mode", "")), task_raid)
+		DOMAIN_MAP:
+			return _map(epoch, revision, tick, frame.get("map_markers", []))
+		DOMAIN_SUMMARY:
+			return _summary(epoch, revision, tick, frame.get("summary", {}))
+	return null
+
+
+static func _bunker(
+	epoch: int,
+	revision: int,
+	tick: int,
+	frame: Dictionary
+) -> BunkerView:
+	if not bool(frame.get("has_profile", false)):
+		return BunkerView.unavailable(
+			MISSING, &"local_profile_missing", epoch, revision, tick)
+	var mode := String(frame.get("mode", ""))
+	return BunkerView.create(epoch, revision, tick, "Local operator", 1, 1, 0, 0, 0,
+		mode == "home", &"raid_in_progress" if mode != "home" else &"", &"", [])
+
+
+static func _raid(
+	epoch: int,
+	revision: int,
+	tick: int,
+	frame: Dictionary
+) -> RaidView:
+	var progression := frame.get("progression", {}) as Dictionary
+	var combat := frame.get("combat", {}) as Dictionary
+	if progression.is_empty() or combat.is_empty():
+		return RaidView.unavailable(
+			MISSING, &"local_raid_not_active", epoch, revision, tick)
+	var clock := progression.get("clock", {}) as Dictionary
+	var weapon: RaidView.WeaponState
+	if bool(combat.get("has_weapon", false)):
+		weapon = RaidView.WeaponState.create(
+			ZWeaponId.parse(String(frame.get("weapon_id", ""))),
+			ZerkovInventoryCatalog.ITEM_AKM, "AKM",
+			RaidView.WeaponStatus.RELOADING if bool(combat.get("reloading", false)) \
+				else RaidView.WeaponStatus.READY,
+			int(combat.get("ammo", 0)), 30, int(combat.get("reserve", 0)), &"semi",
+			int(float(combat.get("reload_progress", 0.0)) * 1000.0))
+	var extraction_status := RaidView.ExtractionStatus.LOCKED
+	if String(clock.get("outcome", "")) == "extracted":
+		extraction_status = RaidView.ExtractionStatus.COMPLETED
+	elif bool(clock.get("counting", false)):
+		extraction_status = RaidView.ExtractionStatus.COUNTING_DOWN
+	elif int((progression.get("task", {}) as Dictionary).get("searched_crates", 0)) == 3 \
+			and bool((progression.get("task", {}) as Dictionary).get(
+				"holds_objective", false)):
+		extraction_status = RaidView.ExtractionStatus.AVAILABLE
+	var extracts: Array[RaidView.Extraction] = [RaidView.Extraction.create(
+		StringName(SupplyRunGraph.ROAD_GATE), "Road Gate", extraction_status,
+		int(frame.get("exit_distance", 0)),
+		LocalCampaignContent.EXTRACTION_TICKS - int(clock.get("countdown_remaining", 0)) \
+			if bool(clock.get("counting", false)) else 0,
+		LocalCampaignContent.EXTRACTION_TICKS,
+		&"supply_run_required" if extraction_status == RaidView.ExtractionStatus.LOCKED \
+			else &"")]
+	return RaidView.create(epoch, revision, tick,
+		ZRaidId.parse(String(progression.get("raid_id", ""))),
+		ZEntityId.parse(String(frame.get("actor_id", ""))),
+		int(frame.get("lifecycle", RaidView.Lifecycle.ACTIVE)), MAP, "Sawmill Yard",
+		mini(tick, LocalCampaignContent.RAID_LIMIT_TICKS),
+		LocalCampaignContent.RAID_LIMIT_TICKS, weapon, extracts, [])
+
 
 static func task_identity(raid_key: String = "") -> ZTaskId:
 	# The native graph definition ID is content, not a canonical instance ID.
