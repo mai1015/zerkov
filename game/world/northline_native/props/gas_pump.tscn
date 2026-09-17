@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_62.png" id="1_ru14h"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_w20xj"]
+size = Vector2(11, 9)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_ahbrc"]
+polygon = PackedVector2Array(-5.5, -9, 5.5, -9, 5.5, 0, -5.5, 0)
+
+[node name="GasPump" type="Node2D" unique_id=1]
+metadata/source_asset = "gas_pump"
+metadata/source_pixels_per_world_unit = 3
+
+[node name="ContactShadow" type="Polygon2D" parent="." unique_id=2]
+color = Color(0.035, 0.055, 0.055, 0.36)
+polygon = PackedVector2Array(-6.6, -4, 6.6, -4, 10.6, 3, -4.6, 3)
+
+[node name="SourceSprite" type="Sprite2D" parent="." unique_id=3]
+texture_filter = 1
+position = Vector2(-7, -31)
+scale = Vector2(0.33333334, 0.33333334)
+texture = ExtResource("1_ru14h")
+centered = false
+region_enabled = true
+region_rect = Rect2(675, 291, 45, 93)
+region_filter_clip_enabled = true
+
+[node name="Footprint" type="StaticBody2D" parent="." unique_id=4]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=5]
+position = Vector2(0, -4.5)
+shape = SubResource("RectangleShape2D_w20xj")
+
+[node name="FootOccluder" type="LightOccluder2D" parent="." unique_id=6]
+occluder = SubResource("OccluderPolygon2D_ahbrc")
+sdf_collision = false
+occluder_light_mask = 2

@@ -27,6 +27,15 @@ position = Vector2(1288, 638)
 zoom = Vector2(3, 3)
 position_smoothing_enabled = false
 
+[node name="Backdrop" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="Field" type="ColorRect" parent="Backdrop"]
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+color = Color(0.0745, 0.1176, 0.0941, 1)
+
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10
 
