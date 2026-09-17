@@ -10,6 +10,8 @@ var _serial: int = 0
 var _dispatching: bool = false
 var _released: bool = false
 var _bunker_room: String = "storage"
+var _frame_freezes: int = 0
+var _immutable_subtree_reuses: int = 0
 const COMMANDS: Array[StringName] = [&"create", &"continue", &"loadout", &"maps", &"tasks", &"deploy", &"resume", &"pause", &"interact", &"cancel", &"return_home", &"retry_save", &"quit", &"health", &"controls", &"abandon", &"close_profile", &"crafting", &"build_mode", &"session"]
 const ROUTE_COMMANDS: Dictionary = {"bunker":&"return_home", "inventory":&"loadout", "health":&"health",
 	"maps":&"maps", "tasks":&"tasks", "hud":&"resume", "pause":&"pause", "settings":&"controls", "controls":&"controls", "crafting":&"crafting", "build_mode":&"build_mode", "session":&"session"}
@@ -22,9 +24,41 @@ func publish(frame: Dictionary) -> bool:
 	if int(frame.epoch) != _epoch: _bunker_room = "storage"
 	_epoch = frame.epoch
 	_serial = frame.serial
-	_frame = RaidProgressionValues.freeze(frame)
+	_frame = _freeze_frame_value(frame) as Dictionary
+	_frame_freezes += 1
 	changed.emit()
 	return true
+
+func work_counts() -> Dictionary:
+	return RaidProgressionValues.freeze({
+		"frame_freezes": _frame_freezes,
+		"immutable_subtree_reuses": _immutable_subtree_reuses,
+	})
+
+
+func _freeze_frame_value(value: Variant) -> Variant:
+	if value is Dictionary:
+		if value.is_read_only():
+			_immutable_subtree_reuses += 1
+			return value
+		var dictionary: Dictionary = {}
+		for key in value:
+			dictionary[key] = _freeze_frame_value(value[key])
+		dictionary.make_read_only()
+		return dictionary
+	if value is Array:
+		if value.is_read_only():
+			_immutable_subtree_reuses += 1
+			return value
+		var array: Array = []
+		for child in value:
+			array.append(_freeze_frame_value(child))
+		array.make_read_only()
+		return array
+	if value is PackedByteArray:
+		return value.duplicate()
+	return value
+
 
 func snapshot() -> Dictionary:
 	return _frame

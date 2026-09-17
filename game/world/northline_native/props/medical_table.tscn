@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_14.png" id="1_syeep"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qpb6c"]
+size = Vector2(37, 8)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_aa38l"]
+polygon = PackedVector2Array(-18.5, -8, 18.5, -8, 18.5, 0, -18.5, 0)
+
+[node name="MedicalTable" type="Node2D" unique_id=1]
+metadata/source_asset = "medical_table"
+metadata/source_pixels_per_world_unit = 3
+
+[node name="ContactShadow" type="Polygon2D" parent="." unique_id=2]
+color = Color(0.035, 0.055, 0.055, 0.36)
+polygon = PackedVector2Array(-22.88, -4, 22.88, -4, 26.88, 3, -20.88, 3)
+
+[node name="SourceSprite" type="Sprite2D" parent="." unique_id=3]
+texture_filter = 1
+position = Vector2(-26, -27)
+scale = Vector2(0.33333334, 0.33333334)
+texture = ExtResource("1_syeep")
+centered = false
+region_enabled = true
+region_rect = Rect2(204, 399, 156, 81)
+region_filter_clip_enabled = true
+
+[node name="Footprint" type="StaticBody2D" parent="." unique_id=4]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=5]
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_qpb6c")
+
+[node name="FootOccluder" type="LightOccluder2D" parent="." unique_id=6]
+occluder = SubResource("OccluderPolygon2D_aa38l")
+sdf_collision = false
+occluder_light_mask = 2

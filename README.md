@@ -1,15 +1,19 @@
 # Zerkov
 
 Native Godot 4 project combining the approved Zerkov UI with the Stage 2
-playable-raid implementation. Open `project.godot` and press **F6** on
-`ui/main.tscn`, or **F5** to run the current product shell. Start at the title
-screen and press **Enter**, controller **A**, or click.
+offline playable raid. Open `project.godot` and press **F5** to run the actual
+local-save product path. It starts at the title screen and continues through
+New/Continue, Bunker, loadout, deployment, Sawmill combat and looting,
+extraction or death, committed summary, and return home. Pressing **F6** on
+`ui/main.tscn` runs the separate unbound UI/QA host; it is not the game root and
+does not own a profile or raid authority.
 
-The checked-in screens are still driven primarily by prototype data while the
-approved offline Sawmill gameplay slice is integrated. Multiplayer, economy
-and expanded bunker systems remain outside the active slice.
+The F5 path binds the existing authored HUD, inventory, Tasks, Maps, deployment
+and summary screens to real local projections. Screens and actions outside the
+offline slice remain explicit prototypes or locked features. Multiplayer,
+economy and expanded bunker systems are outside the active slice.
 
-## Review controls
+## UI review-host controls
 
 | Key | Action |
 | --- | --- |
@@ -62,7 +66,21 @@ Square borders and grid outer edges stay pixel-aligned inside clipping bounds at
 
 ## Verification and captures
 
-Replace `godot` below with your Godot executable. The local editor used for this project is `/Volumes/Data/sdk/godot/editors/4.7.2/Godot.app/Contents/MacOS/Godot`.
+Use the exact engine version in `config/toolchain.lock.json`. The consolidated
+runner fails on a version mismatch, a child timeout, any non-zero contract, or
+the diagnostic rules enforced by the domain runners:
+
+```sh
+# Portable: repository policy, all Python tooling, and isolated combat/AI/progression.
+python3 tools/run_pre_multiplayer_validation.py --godot "$ZERKOV_GODOT" --mode isolated
+
+# Requires a host that can load the checked-in native add-ons (currently macOS).
+python3 tools/run_pre_multiplayer_validation.py --godot "$ZERKOV_GODOT" --mode native
+python3 tools/run_pre_multiplayer_validation.py --godot "$ZERKOV_GODOT" --mode local-flow --scenario full
+```
+
+The remaining commands are individual UI and capture gates. Replace `godot`
+with the pinned executable:
 
 ```sh
 godot --headless --path . --editor --import --quit

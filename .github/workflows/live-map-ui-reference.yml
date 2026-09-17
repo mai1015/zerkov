@@ -1,0 +1,35 @@
+name: Live map UI reference
+on:
+  pull_request:
+    paths: ['.github/workflows/live-map-ui-reference.yml']
+permissions:
+  contents: read
+jobs:
+  internal-test-dependencies:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Copy the unchanged repository UI dependencies for internal testing
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,zipfile
+          root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'internal-ui-reference';out.mkdir()
+          names=['assets/fonts/'+name+'.ttf' for name in ['ChakraPetch-Regular','ChakraPetch-SemiBold','ChakraPetch-Medium','ChakraPetch-Bold','IBMPlexMono-Regular','IBMPlexMono-Medium','IBMPlexMono-SemiBold']]
+          records={}
+          with zipfile.ZipFile(out/'internal.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in names:
+                  p=root/name;assert p.is_file() and not p.is_symlink()
+                  data=p.read_bytes();z.writestr(name,data)
+                  records[name]=hashlib.sha256(data).hexdigest()
+          (out/'manifest.json').write_text(json.dumps(records,indent=2)+'\n')
+          (out/'scope.txt').write_text('Existing repository UI dependencies for internal native host tests only. Do not include these files in conversation delivery packages. No gameplay, source artwork or font file is modified.\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: live-map-internal-ui-reference
+          path: ${{ runner.temp }}/internal-ui-reference
+          retention-days: 1

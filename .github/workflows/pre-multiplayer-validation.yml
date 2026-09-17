@@ -1,0 +1,62 @@
+name: Pre-multiplayer validation
+
+on:
+  pull_request:
+    paths:
+      - 'game/**'
+      - 'ui/**'
+      - 'addons/**'
+      - 'assets/**'
+      - 'tests/**'
+      - 'tools/**'
+      - 'config/**'
+      - 'project.godot'
+      - 'README.md'
+      - 'docs/DEVELOPMENT.md'
+      - 'docs/qa/pre_multiplayer_validation/**'
+      - 'docs/spec/changes/add-zerkov-playable-raid-2026-09-09/tasks.md'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-multiplayer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  isolated-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Install tooling dependency
+        run: python3 -m pip install --disable-pip-version-check --user pillow
+      - name: Install exact locked Linux engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v${VERSION}-stable_linux.x86_64"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot_v${VERSION}-stable_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Policy, tooling and source-isolated domains
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/pre-multiplayer"
+          git rev-parse HEAD > "$RUNNER_TEMP/pre-multiplayer/commit.txt"
+          python3 -u tools/run_pre_multiplayer_validation.py \
+            --godot "$ZERKOV_GODOT" --mode isolated \
+            2>&1 | tee "$RUNNER_TEMP/pre-multiplayer/isolated-linux.log"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pre-multiplayer-isolated-linux
+          path: ${{ runner.temp }}/pre-multiplayer
+          retention-days: 3

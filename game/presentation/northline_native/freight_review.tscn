@@ -1,0 +1,96 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://game/presentation/northline_native/freight_review.gd" id="1"]
+[ext_resource type="PackedScene" path="res://game/world/northline_native/freight_sector.tscn" id="2"]
+[ext_resource type="Script" path="res://game/presentation/northline_zone/review_walker.gd" id="3"]
+[sub_resource type="StyleBoxFlat" id="Panel"]
+bg_color = Color(0.036,0.055,0.047,0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.29,0.36,0.28,1)
+
+[node name="NorthlineFreightReview" type="Node2D"]
+script = ExtResource("1")
+
+[node name="FreightSector" parent="." instance=ExtResource("2")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(1184,650)
+zoom = Vector2(3,3)
+position_smoothing_enabled = false
+
+[node name="ReviewWalker" type="CharacterBody2D" parent="FreightSector/WorldProps"]
+visible = false
+position = Vector2(1112,795)
+script = ExtResource("3")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Top" type="Panel" parent="HUD"]
+offset_right = 1920.0
+offset_bottom = 76.0
+theme_override_styles/panel = SubResource("Panel")
+mouse_filter = 1
+
+[node name="Title" type="Label" parent="HUD/Top"]
+offset_left = 26.0
+offset_top = 9.0
+offset_right = 1050.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.9,0.87,0.77,1)
+theme_override_font_sizes/font_size = 25
+text = "NORTHLINE / FREIGHT 04"
+mouse_filter = 2
+
+[node name="Subtitle" type="Label" parent="HUD/Top"]
+offset_left = 28.0
+offset_top = 45.0
+offset_right = 1180.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.64,0.71,0.62,1)
+theme_override_font_sizes/font_size = 13
+text = "NATIVE TILEMAPLAYERS  /  ORIGINAL PNG SHEETS  /  SAME WORLD FOOTPRINT  /  1920 x 1080 NATIVE RENDER"
+mouse_filter = 2
+
+[node name="Reset" type="Button" parent="HUD/Top"]
+offset_left = 1276.0
+offset_top = 20.0
+offset_right = 1490.0
+offset_bottom = 57.0
+text = "HOME  FREIGHT"
+
+[node name="Inspection" type="Button" parent="HUD/Top"]
+offset_left = 1503.0
+offset_top = 20.0
+offset_right = 1740.0
+offset_bottom = 57.0
+text = "END  INSPECTION"
+
+[node name="Walk" type="Button" parent="HUD/Top"]
+offset_left = 1753.0
+offset_top = 20.0
+offset_right = 1894.0
+offset_bottom = 57.0
+text = "P  WALK"
+
+[node name="Bottom" type="Panel" parent="HUD"]
+offset_top = 1030.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+theme_override_styles/panel = SubResource("Panel")
+mouse_filter = 2
+
+[node name="Help" type="Label" parent="HUD/Bottom"]
+offset_left = 26.0
+offset_top = 14.0
+offset_right = 1894.0
+offset_bottom = 41.0
+theme_override_colors/font_color = Color(0.72,0.76,0.68,1)
+theme_override_font_sizes/font_size = 13
+text = "WASD: pan  |  P: walkthrough  |  Native source pixels, not an upscaled low-resolution viewport"
+mouse_filter = 2
+
+[editable path="FreightSector"]

@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_14.png" id="1_uxy20"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5c8f1"]
+size = Vector2(26, 20)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_kixbq"]
+polygon = PackedVector2Array(-13, -20, 13, -20, 13, 0, -13, 0)
+
+[node name="BedGreen" type="Node2D" unique_id=1]
+metadata/source_asset = "bed_green"
+metadata/source_pixels_per_world_unit = 3
+
+[node name="ContactShadow" type="Polygon2D" parent="." unique_id=2]
+color = Color(0.035, 0.055, 0.055, 0.36)
+polygon = PackedVector2Array(-14.08, -4, 14.08, -4, 18.08, 3, -12.08, 3)
+
+[node name="SourceSprite" type="Sprite2D" parent="." unique_id=3]
+texture_filter = 1
+position = Vector2(-16, -42)
+scale = Vector2(0.33333334, 0.33333334)
+texture = ExtResource("1_uxy20")
+centered = false
+region_enabled = true
+region_rect = Rect2(384, 114, 96, 126)
+region_filter_clip_enabled = true
+
+[node name="Footprint" type="StaticBody2D" parent="." unique_id=4]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=5]
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_5c8f1")
+
+[node name="FootOccluder" type="LightOccluder2D" parent="." unique_id=6]
+occluder = SubResource("OccluderPolygon2D_kixbq")
+sdf_collision = false
+occluder_light_mask = 2
