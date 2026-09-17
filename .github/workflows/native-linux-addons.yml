@@ -10,7 +10,6 @@ on:
       - 'tools/native_addons/**'
       - '.github/workflows/native-linux-addons.yml'
   push:
-    branches: ['main']
     paths:
       - 'addons/*/native/**'
       - 'addons/*/*.gdextension'
