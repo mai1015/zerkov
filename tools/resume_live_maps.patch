@@ -1,0 +1,126 @@
+diff --git a/.github/workflows/raid-handler-profile.yml b/.github/workflows/raid-handler-profile.yml
+index 9f59c21..1e9de42 100644
+--- a/.github/workflows/raid-handler-profile.yml
++++ b/.github/workflows/raid-handler-profile.yml
+@@ -81,7 +81,12 @@ jobs:
+           set -euo pipefail
+           mkdir -p "$RUNNER_TEMP/handler-profile"
+           git rev-parse HEAD > "$RUNNER_TEMP/handler-profile/commit.txt"
+-          python3 -u tools/profile_raid_handlers.py --godot "$ZERKOV_GODOT" --baseline-ref 23f727c9af122df20a70db17a16924d75faafc93 2>&1 | tee "$RUNNER_TEMP/handler-profile/native.log"
++          # Ongoing profile: compare this revision's uninstrumented and
++          # instrumented ticks. The historical optimization experiment belongs
++          # to its original revision; transplanting that old LocalRaidSession
++          # into today's caller creates an invalid mixed-API application.
++          # The separate health-catalog differential still runs above.
++          python3 -u tools/profile_raid_handlers.py --godot "$ZERKOV_GODOT" 2>&1 | tee "$RUNNER_TEMP/handler-profile/native.log"
+       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+         if: always()
+         with:
+diff --git a/game/bootstrap/local/local_game.gd b/game/bootstrap/local/local_game.gd
+index 71d53c6..f4b2489 100644
+--- a/game/bootstrap/local/local_game.gd
++++ b/game/bootstrap/local/local_game.gd
+@@ -299,7 +299,7 @@ func _handle_interact(event: Dictionary) -> int:
+ 
+ func _interact() -> void:
+ 	var target := _session.nearest_target()
+-	if target.is_empty(): _notice = "Move within reach of a marked crate or Road Gate."; _publish(); return
++	if target.is_empty(): _notice = "Move within reach of a marked crate or " + SupplyRunGraph.exit_title(_session.map_id) + "."; _publish(); return
+ 	if _session.crate_ids.has(target) and _session.progression.was_crate_searched(target):
+ 		if not _character.open_world_loot(InventoryPresentationController.SOURCE_CRATE, _session.crate_ids[target]):
+ 			_error(&"local_loot_workspace_failed"); return
+diff --git a/game/bootstrap/local/local_raid_session.gd b/game/bootstrap/local/local_raid_session.gd
+index afae7d8..9b28331 100644
+--- a/game/bootstrap/local/local_raid_session.gd
++++ b/game/bootstrap/local/local_raid_session.gd
+@@ -19,7 +19,7 @@ var player_input: RaidGameplayInput
+ var player_router: ZCombatActionRouter
+ var hud_model: ZCombatHudModel
+ var ai: RaidAIRuntime
+-var camera := ZWorldCamera2D.new()
++var camera: ZWorldCamera2D
+ var crate_ids: Dictionary = {}
+ var rows: Dictionary = {}
+ var _routers: Dictionary = {}
+@@ -38,13 +38,17 @@ var _closing: bool = false
+ var _world_scene: Node2D
+ 
+ func start(store: ProfileStore, request_id: String, profile_generation: int, seed: int, selected_map: String = "sawmill", preflight: NativeRaidMap = null) -> bool:
++	# Admission precedes preflight and assignment. A duplicate start must never
++	# switch an active session's map identity or replace its detached geometry.
++	if _started or not is_inside_tree(): return _fail(&"local_raid_already_started")
+ 	if not SupplyRunGraph.is_map(selected_map): return _fail(&"local_map_unknown")
++	var candidate: NativeRaidMap = null
++	if selected_map != "sawmill":
++		candidate=preflight if preflight!=null else NativeRaidMap.open(selected_map)
++		if candidate==null or candidate.id()!=selected_map or not RaidProgressionValues.valid_map_descriptor(candidate.descriptor()):
++			return _fail(NativeRaidMap.last_error if candidate==null else &"local_map_preflight_invalid")
+ 	map_id=selected_map
+-	if map_id != "sawmill":
+-		native_map=preflight if preflight!=null else NativeRaidMap.open(map_id)
+-		if native_map==null or native_map.id()!=map_id or not RaidProgressionValues.valid_map_descriptor(native_map.descriptor()):
+-			return _fail(NativeRaidMap.last_error if native_map==null else &"local_map_preflight_invalid")
+-	if _started or not is_inside_tree(): return _fail(&"local_raid_already_started")
++	native_map=candidate
+ 	_started = true
+ 	deployment = RaidDeployment.new()
+ 	if not deployment.begin(self, store, request_id, profile_generation, seed, native_map.descriptor() if native_map!=null else {}): return _fail(deployment.last_error)
+@@ -274,6 +278,8 @@ func _obstructions() -> Array[Dictionary]:
+ func _build_visuals() -> bool:
+ 	_world_scene = native_map.instantiate_visuals() if native_map!=null else load("res://game/world/sawmill/sawmill_yard.tscn").instantiate() as Node2D
+ 	add_child(_world_scene)
++	# Allocate with its scene-tree owner, not during rejected/unused sessions.
++	camera = ZWorldCamera2D.new()
+ 	add_child(camera)
+ 	camera.configure(world_bounds(), player_movement.position_px)
+ 	if native_map!=null:
+diff --git a/tests/raid/live_maps_contract.gd b/tests/raid/live_maps_contract.gd
+index 7f86a77..7dfb660 100644
+--- a/tests/raid/live_maps_contract.gd
++++ b/tests/raid/live_maps_contract.gd
+@@ -13,6 +13,7 @@ func run() -> void:
+ 	_test_convex()
+ 	_test_swept_navigation()
+ 	_test_capacity()
++	_test_session_start_admission()
+ 	_test_map_preflight()
+ 	_test_pinned_persistence()
+ 	print("LIVE_MAP_CONTRACT_RESULT checks=",checks," failures=",failures)
+@@ -86,6 +87,22 @@ func _test_capacity() -> void:
+ 	check(not world.add_static_collider_px("overflow",Rect2(2000,2000,8,8),1) and world.last_error==&"collider_limit","capacity+1 rejected")
+ 	check(world.geometry_digest()==before,"overflow leaves geometry unchanged")
+ 
++func _test_session_start_admission() -> void:
++	var session:=LocalRaidSession.new()
++	# Off-tree admission must fail before even looking at map content.
++	check(not session.start(null,"unused",0,0,"northline"),"off-tree start rejected")
++	check(session.map_id=="sawmill" and session.native_map==null and not session._started,"off-tree rejection retains prior map state")
++	root.add_child(session)
++	check(not session.start(null,"unused",0,0,"not_a_map"),"unknown map rejected before deployment")
++	check(session.map_id=="sawmill" and session.native_map==null and session.deployment==null,"invalid selection does not create escrow")
++	# Isolated lifecycle guard; the input-flow suite separately runs real sessions.
++	var pinned:=NativeRaidMap.new()
++	session.map_id="northline";session.native_map=pinned;session._started=true
++	check(not session.start(null,"unused",0,0,"blackwater"),"second start rejected before map preflight")
++	check(session.last_error==&"local_raid_already_started" and session.map_id=="northline" and session.native_map==pinned and session.deployment==null,"second start cannot replace session map or geometry")
++	check(session.camera==null,"rejected starts allocate no orphan camera")
++	session.free()
++
+ func _test_map_preflight() -> void:
+ 	check(NativeRaidMap.open("../northline")==null,"map catalog rejects arbitrary path")
+ 	for id:String in ["northline","blackwater"]:
+diff --git a/ui/core/local/local_flow_binding.gd b/ui/core/local/local_flow_binding.gd
+index 51d1596..efd36a0 100644
+--- a/ui/core/local/local_flow_binding.gd
++++ b/ui/core/local/local_flow_binding.gd
+@@ -270,7 +270,9 @@ func _maps(frame: Dictionary) -> void:
+ 		_text("SquadStatus%d" % index, "SOLO" if index == 0 else "")
+ 	_text("LoadoutValue", "REVIEW EQUIPMENT IN STASH / LOADOUT")
+ 	_text("UninsuredValue", "INSURANCE UNAVAILABLE")
+-	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else "DEPLOY SOLO · "+String(frame.get("map_title","Sawmill Yard")).to_upper(), frame.mode in ["home", "raid"] and frame.error.is_empty() and String(frame.get("map_error","")).is_empty())
++	# Retain the established Sawmill action while making new maps explicit.
++	var deploy_text := "DEPLOY SOLO TO SAWMILL" if frame.get("map_id","sawmill") == "sawmill" else "DEPLOY SOLO · "+String(frame.get("map_title","")).to_upper()
++	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else deploy_text, frame.mode in ["home", "raid"] and frame.error.is_empty() and String(frame.get("map_error","")).is_empty())
+ 	_focus("Deploy")
+ 
+ func _tasks(frame: Dictionary) -> void:
