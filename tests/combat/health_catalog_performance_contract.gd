@@ -148,7 +148,8 @@ func _compiled_runtime_isolation_contract() -> void:
 	check(bool(initialized.get("accepted", false)),
 		"compiled-runtime fixture initializes native health state")
 	var granted := component.grant_ability(
-		String(ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND), 1, 91_001, 0)
+		String(ZerkovHealthAbilityContent.ABILITY_STAMINA_SPEND), 1,
+		"zerkov.test.catalog_runtime_isolation", 0)
 	var spec := int(granted.get("spec", 0))
 	check(bool((granted.get("status", {}) as Dictionary).get("ok", false))
 		and not bool(granted.get("queued", false)) and spec > 0,
