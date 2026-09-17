@@ -121,5 +121,28 @@ class RunnerTests(unittest.TestCase):
         with patch.dict(runner.os.environ, {"ZERKOV_BUNKER_WORKSPACES": "1"}):
             self.assertEqual(0, self.run_main(execute))
 
+    def test_journey_requires_its_own_completion(self):
+        self.assertEqual(1, self.run_main(suite="journey"))
+        self.assertIn("cleanup", self.calls[-1])
+        self.assertFalse((self.out / "result.json").exists())
+
+    def test_journey_selection_is_exclusive_and_recorded(self):
+        def execute(command, env, *args, **kwargs):
+            self.assertEqual("1", env["ZERKOV_OFFLINE_JOURNEY"])
+            self.assertEqual("0", env["ZERKOV_BUNKER_WORKSPACES"])
+            value = self.result(command, env, *args, **kwargs)
+            if "new" in command or "continue" in command:
+                value += "OFFLINE_JOURNEY_COMPLETE native=true\n"
+            return value
+        self.assertEqual(0, self.run_main(execute, suite="journey"))
+        self.assertEqual("journey", json.loads((self.out / "result.json").read_text())["suite"])
+
+    def test_hub_does_not_inherit_journey_environment(self):
+        def execute(command, env, *args, **kwargs):
+            self.assertEqual("0", env["ZERKOV_OFFLINE_JOURNEY"])
+            return self.result(command, env, *args, **kwargs)
+        with patch.dict(runner.os.environ, {"ZERKOV_OFFLINE_JOURNEY": "1"}):
+            self.assertEqual(0, self.run_main(execute))
+
 if __name__ == "__main__":
     unittest.main()

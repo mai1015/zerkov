@@ -167,6 +167,7 @@ func _refresh_briefing(frame: Dictionary) -> void:
 	# retired sections again without rebuilding controls or stealing focus.
 	for path: String in ["SquadTitle", "SquadPanel", "MapTaskStatus0", "LoadoutValue", "UninsuredValue"]: _hide(path)
 	if _card == null: return
+	_screen.default_focus = _screen.get_path_to(_card.get_node("EditLoadout"))
 	var preparation := _preparation()
 	if preparation != _last_preparation:
 		_last_preparation = preparation

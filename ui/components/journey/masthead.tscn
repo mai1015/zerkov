@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="1"]
+[ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="Panel"]
+bg_color = Color(0.063, 0.09, 0.094, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.188, 0.231, 0.227, 1)
+
+[node name="JourneyMasthead" type="Panel"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Brand" type="Label" parent="."]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 12.0
+offset_right = 208.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.902, 0.89, 0.835, 1)
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 27
+text = "ZERKOV"
+autowrap_mode = 3
+
+[node name="Context" type="Label" parent="."]
+layout_mode = 0
+offset_left = 212.0
+offset_top = 23.0
+offset_right = 512.0
+offset_bottom = 43.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.576, 0.616, 0.592, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 12
+text = "/     OPERATIONS"
+autowrap_mode = 3
+
+[node name="Stage" type="Label" parent="."]
+layout_mode = 0
+offset_left = 650.0
+offset_top = 22.0
+offset_right = 1340.0
+offset_bottom = 46.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.82, 0.627, 0.361, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 12
+text = ""
+autowrap_mode = 3
+
+[node name="Mode" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1632.0
+offset_top = 22.0
+offset_right = 1872.0
+offset_bottom = 46.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.576, 0.616, 0.592, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 12
+text = "SOLO / LOCAL SAVE"
+autowrap_mode = 3
