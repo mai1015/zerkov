@@ -1,0 +1,15 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_12.png" id="1_7gh2b"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7ay64"]
+texture = ExtResource("1_7gh2b")
+texture_region_size = Vector2i(48, 48)
+6:0/size_in_atlas = Vector2i(1, 2)
+6:0/0 = 0
+7:0/size_in_atlas = Vector2i(1, 2)
+7:0/0 = 0
+
+[resource]
+tile_size = Vector2i(48, 96)
+sources/0 = SubResource("TileSetAtlasSource_7ay64")

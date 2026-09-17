@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_60.png" id="1_r2edk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yf24e"]
+size = Vector2(22, 9)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_nprnl"]
+polygon = PackedVector2Array(-11, -9, 11, -9, 11, 0, -11, 0)
+
+[node name="Tyres" type="Node2D" unique_id=1734238754]
+metadata/source_asset = "tyres"
+metadata/source_pixels_per_world_unit = 3
+
+[node name="ContactShadow" type="Polygon2D" parent="." unique_id=710466237]
+color = Color(0.035, 0.055, 0.055, 0.36)
+polygon = PackedVector2Array(-13.64, -4, 13.64, -4, 17.64, 3, -11.64, 3)
+
+[node name="SourceSprite" type="Sprite2D" parent="." unique_id=1219763296]
+texture_filter = 1
+position = Vector2(-15, -31)
+scale = Vector2(0.33333334, 0.33333334)
+texture = ExtResource("1_r2edk")
+centered = false
+region_enabled = true
+region_rect = Rect2(483, 291, 93, 93)
+region_filter_clip_enabled = true
+
+[node name="Footprint" type="StaticBody2D" parent="." unique_id=2075423520]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=127563405]
+position = Vector2(0, -4.5)
+shape = SubResource("RectangleShape2D_yf24e")
+
+[node name="FootOccluder" type="LightOccluder2D" parent="." unique_id=1430169738]
+occluder = SubResource("OccluderPolygon2D_nprnl")
+sdf_collision = false
+occluder_light_mask = 2

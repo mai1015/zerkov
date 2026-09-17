@@ -1,0 +1,92 @@
+name: Native freight TileMap verification
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/native-freight.yml'
+      - 'game/world/northline_native/**'
+      - 'game/presentation/northline_native/**'
+      - 'assets/world/northline_native/**'
+      - 'tests/presentation/northline_native_contract.gd'
+      - 'tests/tooling/*northline_native*'
+      - 'tools/*northline_native*'
+      - 'tools/migrate_northline_freight.gd'
+      - 'tools/register_native_freight.py'
+      - 'config/first_playable_1080_gate.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-freight-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Validate native resources and output policy
+        run: |
+          python3 -m unittest discover -s tests/tooling -p test_northline_native_sources.py -v
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
+          test ! -d tools/native_freight_stage
+          git diff --check
+      - name: Retain exact source for reproducible local review
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-freight-source"
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess, zipfile
+          root=pathlib.Path.cwd()
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'native-freight-source'
+          records={}
+          text_suffixes={'.gd','.gdshader','.tscn','.tres','.godot','.py','.json','.md','.yml','.yaml','.gdextension','.cfg','.import','.uid'}
+          original_dirs=('assets/world/northline_native/','assets/world/northline_zone/')
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=root/name
+                  if not name or not p.is_file() or p.is_symlink(): continue
+                  selected=p.suffix in text_suffixes or name in {'.gitignore','.gitattributes'}
+                  selected=selected or (name.startswith(original_dirs) and p.suffix in {'.webp','.png'})
+                  if not selected: continue
+                  data=p.read_bytes();z.writestr(name,data)
+                  records[name]={'sha256':hashlib.sha256(data).hexdigest(),'git_blob':hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()}
+          (out/'source.json').write_text(json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'files':records},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-freight-exact-source
+          path: ${{ runner.temp }}/native-freight-source
+          retention-days: 7
+  native-scene:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Require original art before claiming a native render
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-freight"
+          set -o pipefail
+          python3 tools/install_northline_native_sources.py --verify 2>&1 | tee "$RUNNER_TEMP/native-freight/source-preflight.log"
+      - name: Prepare the pinned renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Render twice and reopen saved editor resources
+        run: |
+          xvfb-run -a -s '-screen 0 1920x1080x24' python3 tests/tooling/run_northline_native_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/native-freight/capture"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-freight-scene-results
+          path: ${{ runner.temp }}/native-freight
+          retention-days: 7
