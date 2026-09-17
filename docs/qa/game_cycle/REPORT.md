@@ -1,5 +1,14 @@
 # Merged-main game-cycle audit — 2026-09-15
 
+> **Historical forensic snapshot.** This report intentionally describes commit
+> `cb8bc50`, before the production local-save composition was merged. Current
+> `main` starts `game/bootstrap/local/local_game.tscn` and the superseding native
+> flow is tracked by `local-first-playable.yml` plus
+> `pre-multiplayer-validation.yml`. The two workflows pinned to this old commit
+> were removed on 2026-09-17 so historical reproduction can no longer be mistaken
+> for current-head protection. The observations below remain unchanged audit
+> evidence; they are not the current product verdict.
+
 ## Verdict and revisions
 
 **The raid-cycle components pass their native contracts, but the normal player-facing game cycle is not connected.** Zero complete player-driven cycles were executed. The first reproducible blocker is the main menu immediately after the title screen, before bunker/profile selection or deployment.

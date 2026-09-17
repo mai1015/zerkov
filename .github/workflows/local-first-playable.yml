@@ -1,7 +1,7 @@
 name: Local first playable
 on:
   pull_request:
-    paths: ['game/**', 'ui/**', 'project.godot', 'tests/**', 'tools/**', 'config/**', '.github/workflows/local-first-playable.yml']
+    paths: ['game/**', 'ui/**', 'addons/**', 'assets/**', 'project.godot', 'tests/**', 'tools/**', 'config/**', '.github/workflows/**']
 permissions:
   contents: read
 concurrency:
