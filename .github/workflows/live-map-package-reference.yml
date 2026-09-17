@@ -1,0 +1,34 @@
+name: Live map package reference
+on:
+  pull_request:
+    paths: ['.github/workflows/live-map-package-reference.yml']
+permissions:
+  contents: read
+jobs:
+  reference-files:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Retain exact installed Vision files without changing package or runtime checks
+        run: |
+          mkdir -p "$RUNNER_TEMP/vision-reference"
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,zipfile
+          root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'vision-reference'
+          names=['addons/common_vision/bin/libcommon_vision.macos.template_debug.universal.dylib','addons/common_vision/bin/libcommon_vision.macos.template_release.universal.dylib']
+          expected=['e03cc5322eff09e287dedf983262ebebc1e4bb9ad956a47a1ba06becbdf30791','a4b30328059c8329c68ab6e92a36ffdb208fa347b6094e68f6e15fd6c4dc4a55']
+          with zipfile.ZipFile(out/'reference.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for n,h in zip(names,expected):
+                  data=(root/n).read_bytes();assert hashlib.sha256(data).hexdigest()==h,n
+                  z.writestr(n,data)
+          (out/'scope.txt').write_text('Unchanged installed macOS Vision artifacts. Retain package-file integrity when testing unchanged source rebuilt for a separate Linux diagnostic host. This is not Linux package promotion or shipped-library runtime qualification. No font or credential is included.\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: live-map-vision-package-reference
+          path: ${{ runner.temp }}/vision-reference
+          retention-days: 3
