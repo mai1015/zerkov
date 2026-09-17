@@ -137,7 +137,7 @@
     },
     "tests/local/native_bunker_flow_contract.gd": {
       "purpose": "full native campaign bunker flow with actual input and optional exact guarded captures",
-      "sha256": "eeb1c156134b8e1b3daf139de7e4d2f9a6fe20a52199d6f7a84b12ac43309a56"
+      "sha256": "1f97459810e40d80c35363c1ccef3126b4f28a4b464afff62d7d690a7351613d"
     }
   },
   "active_command_entrypoints": {

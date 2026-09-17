@@ -43,9 +43,11 @@ func run() -> void:
 	_game.configure_test_store(_store, false)
 	root.add_child(_game)
 	if not _capture_dir.is_empty():
-		# Use the shell's existing exact render-target mode, never fixture data.
-		_game._ui.set("_qa_size_suite", true)
-		_game._ui.call("_update_window_policy")
+		# A real viewport render target permits readback without fixture data.
+		# Direct canvas-item output can report a zero-sized root texture.
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+		root.content_scale_size = BUNKER_SIZE
+		_game._ui.exact_capture_mode = true
 	await settle()
 	if not route("title"): await finish(); return
 	await key(KEY_ENTER)
