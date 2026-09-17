@@ -1,7 +1,7 @@
 extends SceneTree
 ## Real native inventory / existing bridge / strict intents. Fixture construction
 ## is limited to this unit test; the separate application test uses New Game UI.
-const C = ZerkovInventoryCatalog
+const C = preload("res://game/content/zerkov_inventory_catalog.gd")
 const PRIMARY = EquippedItemReconciler.SLOT_PRIMARY
 const MELEE = EquippedItemReconciler.SLOT_MELEE
 var checks: int = 0
