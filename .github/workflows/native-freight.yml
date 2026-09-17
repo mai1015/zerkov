@@ -51,8 +51,8 @@ jobs:
               assert subprocess.check_output(['git','hash-object',name],text=True).strip()==expected,name
           for name,text in packet['files'].items():
               target=root/name; target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(text.encode())
-          # Explicit pre/postimage-sealed correction to the new capture writer.
-          # The existing exact-output checker and guard are not modified.
+          # Explicit pre/postimage-sealed corrections to new files only.
+          # Existing exact-output checker and physical guard remain unchanged.
           target=root/'tests/presentation/northline_native_contract.gd'
           text=target.read_text()
           assert hashlib.sha256(text.encode()).hexdigest()=='a864ca6bc68a432d38d02b2f541e1cbfd5c2082287a83ea134994dcb156095d6'
@@ -61,6 +61,15 @@ jobs:
           assert text.count(old)==1
           text=text.replace(old,new)
           assert hashlib.sha256(text.encode()).hexdigest()=='a675e5a7cdbd8f2842463df96db2a424b8011c3f9346b307a964be1e485fda81'
+          target.write_bytes(text.encode())
+          target=root/'tools/register_native_freight.py'
+          text=target.read_text()
+          assert hashlib.sha256(text.encode()).hexdigest()=='a459e0f87608ae4aafc1a2d7d045ac979222b384b50ad2c8baf9729b3742a285'
+          old="for group in ['active_visual_entrypoints','active_headless_entrypoints']:"
+          new="for group in ['active_visual_entrypoints','active_headless_entrypoints','sanctioned_capture_writers']:"
+          assert text.count(old)==1
+          text=text.replace(old,new)
+          assert hashlib.sha256(text.encode()).hexdigest()=='730df25d90a24cdf70083d670d35857520cc73e0ef2992e3b94288295fabcf44'
           target.write_bytes(text.encode())
           subprocess.run(['python3','tools/register_native_freight.py'],check=True)
           subprocess.run(['git','add','--',*packet['files'],'config/first_playable_1080_gate.json','tests/tooling/test_ui_first_playable_scope.py'],check=True)
