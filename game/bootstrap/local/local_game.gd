@@ -151,6 +151,9 @@ func _consume(command: StringName, epoch: int) -> void:
 		&"loadout", &"health", &"maps", &"tasks", &"controls", &"pause":
 			if _mode in ["home", "raid"] or (command == &"controls" and _mode == "menu"):
 				_navigate({&"loadout":"inventory", &"health":"health", &"maps":"maps", &"tasks":"tasks", &"controls":"controls", &"pause":"pause"}[command])
+		&"crafting", &"build_mode", &"session":
+			if _mode == "home" and _home != null:
+				_navigate(String(command))
 		&"deploy":
 			# The hub opens a briefing, never a raid. Only its explicit final action
 			# may deploy; retained hub controls cannot skip loadout/exit review.

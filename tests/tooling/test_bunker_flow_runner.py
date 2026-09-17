@@ -39,8 +39,9 @@ class RunnerTests(unittest.TestCase):
         if "cleanup" in command: return "BUNKER_FLOW_CLEANUP checks=1 failures=0\n"
         return "BUNKER_FLOW_RESULT checks=2 failures=0\nBUNKER_FLOW_FINGERPRINT " + "a" * 64 + "\n"
 
-    def run_main(self, action=None, output=None, graphical=False):
+    def run_main(self, action=None, output=None, graphical=False, suite="hub"):
         args = ["runner", "--godot", str(self.engine), "--output", str(output or self.out)]
+        args.extend(["--suite", suite])
         if graphical: args.append("--graphical")
         with patch.object(runner, "ROOT", self.root), patch.object(sys, "argv", args), \
              patch.object(runner.flow, "execute", side_effect=action or self.result), contextlib.redirect_stdout(io.StringIO()):
@@ -97,6 +98,28 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(1, self.run_main(graphical=True))
         self.assertNotIn("--headless", self.calls[2])
         self.assertFalse((self.out / "result.json").exists())
+
+    def test_workspace_mode_requires_its_own_native_completion(self):
+        self.assertEqual(1, self.run_main(suite="workspaces"))
+        self.assertIn("cleanup", self.calls[-1])
+        self.assertFalse((self.out / "result.json").exists())
+
+    def test_workspace_mode_propagates_and_records_selection(self):
+        def execute(command, env, *args, **kwargs):
+            self.assertEqual("1", env["ZERKOV_BUNKER_WORKSPACES"])
+            result = self.result(command, env, *args, **kwargs)
+            if "new" in command or "continue" in command:
+                result += "BUNKER_WORKSPACES_COMPLETE native=true\n"
+            return result
+        self.assertEqual(0, self.run_main(execute, suite="workspaces"))
+        self.assertEqual("workspaces", json.loads((self.out / "result.json").read_text())["suite"])
+
+    def test_hub_mode_does_not_inherit_workspace_environment(self):
+        def execute(command, env, *args, **kwargs):
+            self.assertEqual("0", env["ZERKOV_BUNKER_WORKSPACES"])
+            return self.result(command, env, *args, **kwargs)
+        with patch.dict(runner.os.environ, {"ZERKOV_BUNKER_WORKSPACES": "1"}):
+            self.assertEqual(0, self.run_main(execute))
 
 if __name__ == "__main__":
     unittest.main()
