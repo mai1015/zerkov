@@ -1,0 +1,35 @@
+name: Native offline raid integration
+on:
+  pull_request:
+    paths: ['.github/workflows/native-raids.yml', 'game/world/live_maps/**', 'game/bootstrap/local/**', 'game/raid/progression/**', 'tests/raid/live_maps*', 'tools/run_live_maps*']
+permissions:
+  contents: read
+jobs:
+  source-reference:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Retain exact source and installed Linux runtime for testing
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,subprocess,zipfile
+          root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'native-raids-source';out.mkdir()
+          records={}
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=root/name
+                  if not name or not p.is_file() or p.is_symlink():continue
+                  if p.suffix.lower() in {'.ttf','.otf','.woff','.woff2','.dll','.dylib','.exe'}:continue
+                  raw=p.read_bytes();z.writestr(name,raw)
+                  records[name]={'sha256':hashlib.sha256(raw).hexdigest(),'git_blob':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()}
+          (out/'manifest.json').write_text(json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'files':records},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-raids-source
+          path: ${{ runner.temp }}/native-raids-source
+          retention-days: 3
