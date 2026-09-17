@@ -3,6 +3,73 @@ extends Control
 ## The production bunker presentation, also instantiated by native capture.
 ## Selection and lighting are local view state. There are no gameplay writes.
 signal menu_requested
+signal action_requested(command: StringName)
+signal room_selected(room: String)
+const HOME_ROOMS: Dictionary = {
+	"storage": {"title":"STASH & LOADOUT", "detail":"Manage your carried equipment and stored supplies in the existing inventory workspace.", "action":&"loadout", "label":"OPEN STASH / LOADOUT"},
+	"workshop": {"title":"WORKSHOP & PLANNING", "detail":"Review Sawmill, Supply Run and extraction before leaving. Crafting and upgrades are not available.", "action":&"maps", "label":"PLAN A RAID"},
+	"medical": {"title":"MEDICAL CORNER", "detail":"Inspect your body and injuries in the existing health workspace. Medical crafting is not available.", "action":&"health", "label":"VIEW HEALTH"},
+	"utilities": {"title":"UTILITY BAY", "detail":"Power and water systems are not simulated. The lighting switch below changes appearance only.", "action":&"", "label":"UTILITIES UNAVAILABLE"},
+	"rest": {"title":"REST AREA", "detail":"Body and survival resources recover when returning home. Resting is not a separate action and never restores lost equipment.", "action":&"", "label":"RECOVERY ON RETURN"},
+	"kitchen": {"title":"FIELD KITCHEN", "detail":"Cooking and production are not available. Manage carried rations and supplies through the stash.", "action":&"", "label":"COOKING UNAVAILABLE"},
+}
+var _campaign: bool = false
+var _campaign_ready: bool = false
+var _home_error: String = ""
+var _facility_action: Button
+var _profile: Label
+var _notice: Label
+var _status: Label
+var _shortcuts: Dictionary = {}
+var _interaction_allowed: Callable
+
+## Bind before mounting. A standalone art preview never gains gameplay actions.
+## Only values/intent callbacks enter this view; no inventory or save owner.
+func configure_campaign(room: String, interaction_allowed: Callable) -> bool:
+	if is_inside_tree() or _campaign or not HOME_ROOMS.has(room) or not interaction_allowed.is_valid(): return false
+	_campaign = true
+	current_room = room
+	_interaction_allowed = interaction_allowed
+	return true
+
+func present_home(frame: Dictionary) -> bool:
+	if not _campaign or not is_node_ready(): return false
+	_campaign_ready = frame.get("mode") == "home" and frame.get("home_available") == true
+	_home_error = String(frame.get("error", ""))
+	_profile.text = "LOCAL PROFILE  /  GEN %d" % int(frame.get("profile_generation", 0))
+	_notice.text = String(frame.get("notice", ""))
+	_status.text = "LOCAL SAVE  /  SOLO" if _home_error.is_empty() else "LOCAL SAVE NEEDS ATTENTION"
+	for command: StringName in _shortcuts:
+		var target: Button = _shortcuts[command]
+		target.disabled = not _campaign_ready or (command == &"maps" and not _home_error.is_empty())
+	var retry := get_node("RetrySave") as Button
+	retry.visible = not _home_error.is_empty()
+	retry.disabled = not _campaign_ready
+	_sync_campaign_room()
+	return _campaign_ready
+
+func _can_interact() -> bool:
+	return not _campaign or (_campaign_ready and _interaction_allowed.is_valid() and _interaction_allowed.call())
+
+func _request_action(command: StringName) -> void:
+	if not _campaign or not _can_interact() or command.is_empty(): return
+	if command == &"maps" and not _home_error.is_empty(): return
+	action_requested.emit(command)
+
+func _sync_campaign_room() -> void:
+	if not _campaign or _facility_action == null: return
+	var room: Dictionary = HOME_ROOMS[current_room]
+	_heading.text = room.title
+	_description.text = room.detail
+	_number.text = "AREA " + str(_room_number()) + "  /  " + ("READY" if not String(room.action).is_empty() else "INACTIVE")
+	_facility_action.text = room.label
+	_facility_action.disabled = not _campaign_ready or String(room.action).is_empty() or (room.action == &"maps" and not _home_error.is_empty())
+
+func _room_number() -> String:
+	for room: Dictionary in world.layout["rooms"]:
+		if room.id == current_room: return String(room.number)
+	return ""
+
 const WorldScene = preload("res://game/presentation/bunker/bunker_world.tscn")
 const LIGHTING = preload("res://game/presentation/bunker/bunker_lighting.gdshader")
 const CREAM := Color("e6e3d5")
@@ -60,7 +127,7 @@ func _ready() -> void:
 	for room: Dictionary in world.layout["rooms"]:
 		var at: Array = room["label_at"]
 		label(String(room["number"]) + " / " + String(room["name"]), Rect2(at[0] * 3, at[1] * 3, 300, 20), 12, Color("c4c3af"))
-	select_room("workshop")
+	select_room(current_room)
 
 func _build_header() -> void:
 	box(Rect2(0, 0, 1920, 58), Color("0e1213"))
@@ -70,11 +137,16 @@ func _build_header() -> void:
 	label("B1  /  SERVICE LEVEL", Rect2(780, 22, 400, 20), 12, MUTED)
 	var menu := button("ESC  MENU", Rect2(1744, 14, 128, 32))
 	menu.name = "Menu"
-	menu.pressed.connect(func(): menu_requested.emit())
+	menu.pressed.connect(func():
+		if _can_interact(): menu_requested.emit())
 	label("THE BUNKER", Rect2(48, 72, 330, 45), 36, CREAM, true)
 	label("04", Rect2(378, 75, 80, 43), 33, ACCENT, true)
 	label("A SHELTER BETWEEN RAIDS", Rect2(470, 94, 430, 20), 12, MUTED)
-	label("OFFLINE  /  VISUAL PREVIEW", Rect2(1552, 89, 340, 22), 12, ACCENT)
+	_status = label("LOCAL SAVE  /  SOLO" if _campaign else "OFFLINE  /  VISUAL PREVIEW", Rect2(1552, 89, 340, 22), 12, ACCENT)
+	_status.name = "SessionStatus"
+	if _campaign:
+		_profile = label("", Rect2(1552, 120, 320, 20), 11, MUTED)
+		_profile.name = "LocalProfile"
 
 func _build_inspector() -> void:
 	var panel := Panel.new()
@@ -92,7 +164,7 @@ func _build_inspector() -> void:
 		var b := button(String(room["number"]) + "     " + String(room["name"]), Rect2(1576, 210 + index * 43, 272, 35))
 		b.name = "Select_" + id
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.pressed.connect(select_room.bind(id))
+		b.pressed.connect(_choose_room.bind(id))
 		_buttons[id] = b
 		index += 1
 	box(Rect2(1576, 482, 272, 1), Color("303b3a"))
@@ -107,13 +179,37 @@ func _build_inspector() -> void:
 	add_child(_hero)
 	_description = label("", Rect2(1576, 794, 272, 100), 12, MUTED)
 	_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_light_button = button("LIGHTS  /  STANDARD", Rect2(1576, 914, 272, 32))
+	if _campaign:
+		_description.position.y = 782
+		_description.size.y = 88
+		_facility_action = button("", Rect2(1576, 870, 272, 36))
+		_facility_action.name = "FacilityAction"
+		_facility_action.disabled = true
+		_facility_action.pressed.connect(func(): _request_action(HOME_ROOMS[current_room].action))
+	_light_button = button("PREVIEW LIGHTS / STANDARD" if _campaign else "LIGHTS  /  STANDARD", Rect2(1576, 914, 272, 32))
 	_light_button.name = "LightingPreview"
 	_light_button.pressed.connect(toggle_lighting)
 
 func _build_footer() -> void:
 	box(Rect2(0, 998, 1920, 82), Color("0c1112"))
 	box(Rect2(48, 998, 1824, 1), Color("303b3a"))
+	if _campaign:
+		label("YOUR BUNKER", Rect2(48, 1008, 320, 25), 18, CREAM, true)
+		label("Select a room, then choose its action", Rect2(48, 1043, 360, 22), 11, MUTED)
+		_notice = label("", Rect2(436, 1009, 510, 58), 11, MUTED)
+		_notice.name = "LocalNotice"
+		_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		for item: Array in [["LocalLoadout", &"loadout", "TAB  STASH / LOADOUT", 980],
+			["LocalDeploy", &"maps", "M  RAID BRIEFING", 1280], ["LocalTasks", &"tasks", "T  TASKS", 1580]]:
+			var shortcut := button(item[2], Rect2(item[3], 1017, 280, 36))
+			shortcut.name = item[0]
+			shortcut.pressed.connect(_request_action.bind(item[1]))
+			_shortcuts[item[1]] = shortcut
+		var retry := button("RETRY SAVE", Rect2(1380, 76, 150, 34))
+		retry.name = "RetrySave"
+		retry.hide()
+		retry.pressed.connect(_request_action.bind(&"retry_save"))
+		return
 	label("INSPECT YOUR HIDEOUT", Rect2(48, 1018, 340, 27), 18, CREAM, true)
 	label("Click a room or facility to inspect", Rect2(400, 1022, 450, 22), 12, MUTED)
 	label("BUILD  /  CRAFT  /  UPGRADE", Rect2(1110, 1014, 400, 20), 12, MUTED)
@@ -142,20 +238,26 @@ func select_room(id: String) -> bool:
 		var b: Button = _buttons[key]
 		b.add_theme_color_override("font_color", ACCENT if key == id else MUTED)
 		b.add_theme_stylebox_override("normal", style(Color("292820") if key == id else Color("101718"), Color("8e7145") if key == id else Color("293130")))
+	_sync_campaign_room()
 	return true
 
+func _choose_room(id: String) -> void:
+	if not _can_interact(): return
+	if select_room(id) and _campaign: room_selected.emit(id)
+
 func toggle_lighting() -> void:
+	if not _can_interact(): return
 	emergency = not emergency
 	_material.set_shader_parameter("emergency", emergency)
-	_light_button.text = "LIGHTS  /  EMERGENCY" if emergency else "LIGHTS  /  STANDARD"
+	_light_button.text = ("PREVIEW LIGHTS / " if _campaign else "LIGHTS  /  ") + ("EMERGENCY" if emergency else "STANDARD")
 
 func _gui_input(event: InputEvent) -> void:
-	if not is_visible_in_tree():
+	if not is_visible_in_tree() or not _can_interact():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		var id := world.room_at(event.position / 3.0)
 		if not id.is_empty():
-			select_room(id)
+			_choose_room(id)
 			accept_event()
 
 func box(rect: Rect2, color: Color) -> ColorRect:

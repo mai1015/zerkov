@@ -8,7 +8,7 @@ var _port: LocalGameUI
 var _epoch: int = 0
 var _map: LocalMapCanvas
 var _commands: Dictionary = {}
-var _hideout: Control
+var _hideout: ZBunkerHideoutView
 
 static func supports(route: String) -> bool:
 	return ROUTES.has(route)
@@ -73,7 +73,12 @@ func _menu(frame: Dictionary) -> void:
 	_text("Header/Connection", "LOCAL SAVES")
 	_text("Header/SignedIn", "PROFILE")
 	_text("Header/AccountName", "LOCAL OPERATOR")
-	_card("MenuContinue", "CONTINUE", "Open the saved local loadout", &"continue", frame.has_profile)
+	_card("MenuContinue", "CONTINUE", "", &"", false)
+	_show("MenuContinue", false)
+	_show("MenuExtras", false)
+	_show("ContinueAction", false)
+	for entry: Array in [["MenuPlay", 240], ["MenuSettings", 340], ["MenuQuit", 440], ["MenuJoinFriend", 570]]:
+		(_screen.get_node(entry[0]) as Control).position.y = entry[1]
 	# The primary entry always leads into the playable campaign when it is safe.
 	# Existing saves are continued, never overwritten or given starter gear again.
 	var entry := primary_entry(frame)
@@ -90,7 +95,7 @@ func _menu(frame: Dictionary) -> void:
 	_text("ContinueCard/LastPlayed", "PROFILE GENERATION %d" % frame.profile_generation)
 	_text("ContinueCard/CloudStatus", "LOCAL ONLY · NO CLOUD SAVE")
 	for path: String in ["ContinueCard/Stats", "Header/SwitchAccount", "ContinueCard/ManageSaves", "FriendsTitle", "FriendsSub", "FriendsRule", "FriendKevin", "FriendDenz", "FriendMara", "FriendCode", "PatchCard"]: _show(path, false)
-	_button("ContinueAction", &"continue", "CONTINUE LOCAL GAME", frame.has_profile)
+	_button("ContinueAction", &"", "", false)
 	# Saying the campaign is unavailable is not actionable on its own. The card
 	# body is empty in that state, so spend it on the folder holding the save.
 	if entry.enabled: _text("ContinueCard/CloudStatus", frame.notice)
@@ -135,84 +140,43 @@ static func primary_entry(frame: Dictionary) -> Dictionary:
 	return {"title":"LOCAL SAVE UNAVAILABLE", "command":StringName(), "enabled":false,
 		"detail":"Campaign data is unavailable. No new save was created. " + String(frame.get("notice", ""))}
 
-## bunker.tscn carries the authored station layout only as a placeholder; the
-## production hideout view is the real bunker and is what build() installs
-## everywhere outside the local flow. The binding skips build(), so install it
-## here too, then hand it the actions the local campaign actually owns.
+## The same authored map serves the campaign and the isolated art preview.
+## Retire the placeholder CanvasItems, not just their visible paint: the generic
+## reflow pass must not resurrect its NavigationChrome or obsolete station UI.
 func _install_hideout(screen: ZScreen) -> bool:
-	var scene := load("res://game/presentation/bunker/bunker_hideout_view.tscn")
-	var view := scene.instantiate() as Control if scene != null else null
+	var view := load("res://game/presentation/bunker/bunker_hideout_view.tscn").instantiate() as ZBunkerHideoutView
 	if view == null: return false
+	if not view.configure_campaign(_port.bunker_room(_epoch), _home_input_allowed):
+		view.free()
+		return false
 	for child: Node in screen.get_children():
-		if child is CanvasItem: (child as CanvasItem).hide()
-	view.name = "BunkerHideoutView"
-	screen.add_child(view)
+		if child is CanvasItem:
+			screen.remove_child(child)
+			child.queue_free()
 	_hideout = view
-	if view.has_signal("menu_requested"): view.connect("menu_requested", _send.bind(&"pause"))
-	# The authored footer advertises build/craft/upgrade and calls the systems
-	# locked. Neither is true here, and the space is the only free width on the
-	# screen, so it carries the two real actions instead.
-	for node: Node in view.get_children():
-		if node is Label:
-			var text := (node as Label).text
-			if text.begins_with("BUILD") or text.begins_with("Systems locked") \
-				or text.begins_with("Click a room"): (node as Label).hide()
-			elif text.begins_with("OFFLINE"): (node as Label).text = "LOCAL SAVE  /  SOLO"
-	_hideout_button(view, "LocalLoadout", &"loadout", "OPEN LOADOUT", Vector2(1004, 1016))
-	_hideout_button(view, "LocalDeploy", &"deploy", "DEPLOY TO SAWMILL", Vector2(1256, 1016))
-	_hideout_label(view, "LocalNotice", Rect2(388, 1016, 600, 46), 11)
-	_hideout_label(view, "LocalProfile", Rect2(1576, 122, 272, 20), 11)
+	view.action_requested.connect(_send)
+	view.menu_requested.connect(_send.bind(&"pause"))
+	view.room_selected.connect(_remember_room)
+	screen.add_child(view)
 	return true
 
+func _home_input_allowed() -> bool:
+	return _screen != null and is_instance_valid(_screen) and _screen.app.accepts_input(_screen) 		and _screen.app.local_game_ui() == _port
 
-## The view owns the bunker's type and button styling, so build the local
-## actions through its own helpers rather than dropping default-themed controls
-## onto authored art.
-func _hideout_button(view: Control, name: String, command: StringName, text: String, at: Vector2) -> void:
-	var button := view.call("button", text, Rect2(at, Vector2(236, 36))) as Button
-	if button == null: return
-	button.name = name
-	_button("BunkerHideoutView/" + name, command, text)
+func _remember_room(room: String) -> void:
+	if _home_input_allowed(): _port.remember_bunker_room(room, _epoch)
 
-
-func _hideout_label(view: Control, name: String, rect: Rect2, size: int) -> void:
-	var text := view.call("label", "", rect, size, view.get("MUTED")) as Label
-	if text == null: return
-	text.name = name
-	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-
+func layout_home(viewport_size: Vector2) -> bool:
+	if _hideout == null: return false
+	var ratio := minf(viewport_size.x / 1920.0, viewport_size.y / 1080.0)
+	_hideout.scale = Vector2.ONE * ratio
+	_hideout.position = (viewport_size - Vector2(1920, 1080) * ratio) * 0.5
+	return true
 
 func _home(frame: Dictionary) -> void:
-	if _hideout != null:
-		_text("BunkerHideoutView/LocalNotice", frame.notice)
-		_text("BunkerHideoutView/LocalProfile", "LOCAL · PROFILE GENERATION %d" % frame.profile_generation)
-		_button("BunkerHideoutView/LocalLoadout", &"loadout", "OPEN LOADOUT")
-		_button("BunkerHideoutView/LocalDeploy", &"deploy", "DEPLOY TO SAWMILL", frame.error.is_empty())
-		_focus("BunkerHideoutView/LocalDeploy")
-		return
-	_home_placeholder(frame)
-
-
-func _home_placeholder(frame: Dictionary) -> void:
-	for child in _children("StationDetails"):
-		if child is CanvasItem: child.hide()
-	for path: String in ["StationDetails/AltTitle", "StationDetails/AltDetail", "StationDetails/AltDescription", "StationDetails/AltUseAction", "StationDetails/UpgradeAction"]: _show(path, true)
-	_text("StationDetails/AltTitle", "LOCAL HOME")
-	_text("StationDetails/AltDetail", "PROFILE GENERATION %d · SAVED ON THIS COMPUTER" % frame.profile_generation)
-	_text("StationDetails/AltDescription", frame.notice + "\n\nEquip or rearrange your loadout before deploying. Crafting, trading, insurance and co-op remain locked.")
-	_button("StationDetails/AltUseAction", &"loadout", "OPEN LOADOUT")
-	_button("StationDetails/UpgradeAction", &"deploy", "DEPLOY TO SAWMILL", frame.error.is_empty())
-	var names: Array[String] = ["Loadout", "Health", "Map / deployment", "Supply Run", "Local save", "Steam co-op"]
-	var commands: Array[StringName] = [&"loadout", &"health", &"maps", &"tasks", &"retry_save", &""]
-	for index in range(6):
-		var path := "Stations/Row%d" % (index + 1)
-		_text(path + "/Name", names[index])
-		_text(path + "/Level", "LOCAL" if index < 5 else "LOCKED")
-		_button(path + "/Hit", commands[index], "", index < 5)
-		_show("Marker%dCard" % (index + 1), false)
-		_show("Marker%dBadge" % (index + 1), false)
-	_text("Hint", "TAB  Loadout      M  Map      T  Tasks      ESC  Menu")
-	_focus("StationDetails/AltUseAction")
+	if _hideout == null: return
+	_hideout.present_home(frame)
+	_focus("BunkerHideoutView/Select_" + _port.bunker_room(_epoch))
 
 func _deploy(frame: Dictionary) -> void:
 	_text("DeployStatus", "LOCAL DEPLOYMENT")
@@ -261,7 +225,7 @@ func _maps(frame: Dictionary) -> void:
 		_text("ZoneMeta%d" % index, "NOT CONNECTED TO LIVE RAID")
 		_text("ZoneTaskCount%d" % index, "—")
 	_text("HistoryStats", "LOCAL PROFILE GENERATION %d" % frame.profile_generation)
-	_text("RegionNote", "Authored geometry · your position · task and exit markers")
+	_text("RegionNote", "RAID BRIEFING · Review your loadout, objective and exit before deploying" if frame.mode == "home" else "Your position · task and exit markers")
 	var info: Array[String] = ["15:00", "1 · SOLO", "1 · ROAD GATE", "SCAV / MUTANT", "SUPPLY RUN"]
 	for index in range(5): _text("MapInfoValue%d" % index, info[index])
 	_text("MapTaskName0", "SUPPLY RUN")
@@ -269,16 +233,16 @@ func _maps(frame: Dictionary) -> void:
 	_text("MapTaskStatus0", "LIVE" if frame.mode == "raid" else "RAID-SCOPED")
 	for prefix: String in ["MapTaskPanel", "MapTaskHit", "MapTaskName", "MapTaskMeta", "MapTaskStatus"]: _show(prefix + "1", false)
 	_text("ZoneDetailsRisk", "SCAV / MUTANT")
-	_text("ZoneDetailsSummary", "Three marked crates. Hold supplies and reach Road Gate.")
+	_text("ZoneDetailsSummary", "Search three crates, retain supplies, then hold Road Gate for 5 seconds. Death or abandonment loses unsecured equipment.")
 	_text("ZoneTasksTitle", "TASKS IN THIS ZONE · 1")
 	_text("SquadName3", "CO-OP UNAVAILABLE")
 	_text("SquadTitle", "SOLO SESSION")
 	for index in range(3):
 		_text("SquadName%d" % index, "LOCAL OPERATOR" if index == 0 else "")
 		_text("SquadStatus%d" % index, "SOLO" if index == 0 else "")
-	_text("LoadoutValue", "YOUR PERSISTED LOADOUT")
+	_text("LoadoutValue", "REVIEW EQUIPMENT IN STASH / LOADOUT")
 	_text("UninsuredValue", "INSURANCE UNAVAILABLE")
-	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else "DEPLOY", frame.mode in ["home", "raid"] and frame.error.is_empty())
+	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else "DEPLOY SOLO TO SAWMILL", frame.mode in ["home", "raid"] and frame.error.is_empty())
 	_focus("Deploy")
 
 func _tasks(frame: Dictionary) -> void:
@@ -374,9 +338,11 @@ func _pause(frame: Dictionary) -> void:
 	_button("ActionsPanel/CharacterRow/Hit", &"loadout")
 	_button("ActionsPanel/MapRow/Hit", &"maps")
 	_button("ActionsPanel/SettingsRow/Hit", &"controls")
-	_button("ActionsPanel/SaveQuitRow/Hit", &"abandon" if frame.mode == "raid" else &"quit")
-	_text("ActionsPanel/SaveQuitRow/Label", "ABANDON RAID" if frame.mode == "raid" else "SAVE AND QUIT")
-	_text("ActionsPanel/SaveQuitRow/Detail", "Lose unsecured deployment equipment; uncommitted loot is not retained" if frame.mode == "raid" else "Save the current loadout locally")
+	_text("ActionsPanel/SettingsRow/Label", "CONTROLS")
+	_text("ActionsPanel/SettingsRow/Detail", "Keyboard and controller bindings")
+	_button("ActionsPanel/SaveQuitRow/Hit", &"abandon" if frame.mode == "raid" else &"close_profile")
+	_text("ActionsPanel/SaveQuitRow/Label", "ABANDON RAID" if frame.mode == "raid" else "MAIN MENU")
+	_text("ActionsPanel/SaveQuitRow/Detail", "Lose unsecured deployment equipment; uncommitted loot is not retained" if frame.mode == "raid" else "Save the loadout and return to the menu; Continue keeps your campaign")
 	_button("ActionsPanel/QuitDesktopRow/Hit", &"quit")
 	_focus("ActionsPanel/ResumeRow/Hit")
 

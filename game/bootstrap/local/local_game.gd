@@ -142,7 +142,11 @@ func _consume(command: StringName, epoch: int) -> void:
 			if _mode in ["home", "raid"] or (command == &"controls" and _mode == "menu"):
 				_navigate({&"loadout":"inventory", &"health":"health", &"maps":"maps", &"tasks":"tasks", &"controls":"controls", &"pause":"pause"}[command])
 		&"deploy":
-			if _mode == "home": _deploy()
+			# The hub opens a briefing, never a raid. Only its explicit final action
+			# may deploy; retained hub controls cannot skip loadout/exit review.
+			if _mode == "home" and _ui != null and _ui.current_route == "maps" and last_error.is_empty(): _deploy()
+		&"close_profile":
+			if _mode == "home": _close_profile()
 		&"resume":
 			if _mode == "raid": _navigate("hud", false)
 			elif _mode == "home": _navigate("bunker", false)
@@ -192,6 +196,22 @@ func _open_home() -> void:
 	_busy = false
 	_publish()
 	_navigate("bunker", false)
+
+func _close_profile() -> void:
+	# A failed save leaves the same home and bindings available for retry.
+	if _home == null or not _campaign.save_home(_home):
+		_error(_campaign.last_error if not _campaign.last_error.is_empty() else &"local_home_missing")
+		return
+	_release_character()
+	if not _home.teardown(_home.generation()): _error(&"local_home_teardown_failed"); return
+	_home.queue_free(); _home = null
+	_home_admission = null
+	_mode = "menu"; _epoch += 1; last_error = &""
+	_notice = "Campaign saved on this computer. Continue returns to your bunker."
+	_world_image.hide()
+	_publish()
+	_navigate("main_menu", false)
+
 
 func _deploy() -> void:
 	_busy = true
@@ -294,7 +314,7 @@ func _publish() -> void:
 		"can_create":_campaign.loaded.get("reason") == &"profile_missing" and _campaign.last_error.is_empty(),
 		"profile_generation":int(_campaign.loaded.get("generation", 0)),"notice":_notice,"error":String(last_error),
 		"summary":_summary,"progression":{},"combat":{},"tick":0,"map_markers":[],"searched_ids":[],"nearest_target":"",
-		"save_location":_save_location}
+		"save_location":_save_location,"home_available":_mode == "home" and _home != null and _home.is_current_generation(_home.generation())}
 	if _session != null and _session.progression != null:
 		frame.progression = _session.progression.snapshot()
 		frame.lifecycle = int(_session.raid.lifecycle)
