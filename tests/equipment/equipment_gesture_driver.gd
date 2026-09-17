@@ -6,6 +6,12 @@ var _drop_events: Array[Dictionary] = []
 
 func run(value: RefCounted) -> bool:
 	driver = value
+	var chrome := driver.game._ui.screen.get_node("NavigationChrome") as ZNavigationChrome
+	if not driver.check(chrome.level_text == "LOCAL" and chrome.money_text == "—",
+		"live equipment header never shows fixture economy or level"): return false
+	var task_view: TaskView = driver.game._ui.screen.app.task_view()
+	if not driver.check(task_view != null and task_view.is_ready() and chrome.task_count == task_view.tasks().size(),
+		"header task count comes from the current task projection"): return false
 	var sling := driver.named("InventoryContent/CharacterColumn/SlingSlot") as Button
 	var grid: Control = driver.game._ui.screen.call("_grid_for_source", "backpack")
 	var id: int = driver.gear(driver.PRIMARY).item_id
@@ -51,7 +57,6 @@ func drag(source: Control, destination: Vector2) -> bool:
 	for grid: Control in driver.game._ui.screen.get("_grids"):
 		grid.drop_rejected.connect(_observe_drop.bind(grid, false))
 		grid.item_dropped.connect(_observe_drop.bind(grid, true))
-		grid.set_drag_forwarding(Callable(), _observe_can.bind(grid), _observe_release.bind(grid))
 		observed.append(grid)
 	var start := source.get_global_rect().get_center()
 	motion(start, Vector2.ZERO, false)
@@ -65,18 +70,23 @@ func drag(source: Control, destination: Vector2) -> bool:
 		previous = point
 		await driver.process_frame
 	var started: bool = driver.root.gui_is_dragging()
+	if driver.filming:
+		driver.check(driver.root.get_mouse_position().distance_to(destination) <= 2.0,
+			"native cursor agrees with the recorded drag destination")
 	button(destination, false)
 	await driver.settle()
 	for grid: Control in observed:
 		if not is_instance_valid(grid): continue
 		grid.drop_rejected.disconnect(_observe_drop.bind(grid, false))
 		grid.item_dropped.disconnect(_observe_drop.bind(grid, true))
-		grid.set_drag_forwarding(Callable(), Callable(), Callable())
 	print("EQUIPMENT_DRAG_TRACE start=", start, " destination=", destination,
 		" events=", _drop_events)
 	return driver.check(started and not driver.root.gui_is_dragging(), "native drag starts and completes without forced payload")
 
 func motion(point: Vector2, relative: Vector2, held: bool) -> void:
+	# Injected events do not move the OS pointer; native drag processing also
+	# reads that pointer. Align it when filming instead of changing inventory rules.
+	if driver.filming: driver.root.warp_mouse(point)
 	var event := InputEventMouseMotion.new()
 	event.position = point; event.global_position = point; event.relative = relative
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
@@ -98,15 +108,3 @@ func _observe_drop(item: Dictionary, source_key: String, cell: Vector2i, grid: C
 		"size_cells": Vector2i(grid.grid_columns, grid.grid_rows),
 		"item_id": item.get("item_id", 0), "item_size": Vector2i(item.get("w", 0), item.get("h", 0)),
 		"occupancy": grid.occupancy_items, "viewport_mouse": grid.get_viewport().get_mouse_position()})
-
-func _observe_can(point: Vector2, data: Variant, grid: Control) -> bool:
-	return grid.call("_can_drop_data", point, data)
-
-func _observe_release(point: Vector2, data: Variant, grid: Control) -> void:
-	print("EQUIPMENT_RELEASE_COORDINATES local_argument=", point,
-		" live_local_mouse=", grid.get_local_mouse_position(),
-		" viewport_mouse=", grid.get_viewport().get_mouse_position(),
-		" global_transform=", grid.get_global_transform_with_canvas(),
-		" local_transform=", grid.get_transform(), " parent=", grid.get_parent().get_path(),
-		" native_hover=", grid.get_viewport().gui_get_hovered_control())
-	grid.call("_drop_data", point, data)

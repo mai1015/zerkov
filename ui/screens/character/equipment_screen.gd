@@ -12,6 +12,17 @@ var _equipment_slots: Dictionary = {}
 var _secure_grid: Control
 var _secure_title: Label
 
+func _bind_header() -> void:
+	super._bind_header()
+	if not _live_inventory_binding: return
+	var chrome := get_node_or_null("NavigationChrome") as ZNavigationChrome
+	if chrome == null: return
+	# No progression/economy owner supplies the authored level/money examples.
+	chrome.level_text = "LOCAL"
+	chrome.money_text = "—"
+	var tasks: TaskView = app.task_view()
+	chrome.task_count = tasks.tasks().size() if tasks != null and tasks.is_ready() else 0
+
 func _equipment_controller() -> InventoryEquipmentController:
 	return _inventory_controller as InventoryEquipmentController
 
@@ -36,8 +47,7 @@ func _bind_gear() -> void:
 func _bind_loadout() -> void:
 	super._bind_loadout()
 	if not _live_inventory_binding: return
-	# Keep the existing storage geometry. Root rig/backpack storage is separate
-	# from named-slot gear and must not claim a fixture bag is equipped.
+	# Root rig/backpack storage is separate from named-slot equipment.
 	for pair: Array in [["Rig", &"zerkov.slot.rig", "rig"], ["Pack", &"zerkov.slot.backpack", "backpack"]]:
 		var swap := _node(pair[0] + "Swap") as Button
 		var preview := Callable(self, "_swap_container").bind(pair[2])
@@ -125,8 +135,7 @@ func _equipment_drag(_position: Vector2, slot_id: StringName, button: Button) ->
 		"item_id":item.item_id, "binding_token":_active_binding_token, "split":false}
 
 func _equipment_can_drop(_position: Vector2, data: Variant, slot_id: StringName) -> bool:
-	# Accept well-shaped releases so invalid destinations still get an explicit
-	# authoritative rejection. Hover does not promise compatibility or mutate.
+	# Well-shaped releases receive authoritative rejection for invalid slots.
 	return accepts_input() and _equipment_slots.has(slot_id) and data is Dictionary \
 		and data.get("type") == "inventory_item" and data.get("item") is Dictionary
 
