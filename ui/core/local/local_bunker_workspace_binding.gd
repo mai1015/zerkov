@@ -106,7 +106,7 @@ func refresh() -> void:
 		"build_mode": _refresh_facility()
 		"session":
 			_text_at("SessionPanel/LocalProfile", "PROFILE GENERATION %d\n\n%s\n\n%s" % [int(frame.profile_generation),
-				"%d projected item stacks" % int(_stock.stacks) if _stock.ready else "Inventory temporarily unavailable", String(frame.notice)])
+				"%d item stacks in stash and loadout" % int(_stock.stacks) if _stock.ready else "Inventory temporarily unavailable", String(frame.notice)])
 
 func _inventory_changed(_scope: StringName, _view: InventoryView) -> void:
 	refresh()
@@ -149,13 +149,13 @@ func _build_crafting() -> void:
 		var prefix := "RecipePanel/Recipe" + String(SUPPLIES[index][0])
 		_visible(prefix + "/Availability", false)
 		_select_button(prefix + "/Hit", _choose_supply.bind(index))
-	_text_at("DetailPanel/Description", "View the medical supplies currently projected from your stash and carried containers. This is not a crafting recipe.")
+	_text_at("DetailPanel/Description", "Your medical supplies from the stash and carried equipment. Open your loadout to organize them.")
 	var detail := _node("DetailPanel") as Control
 	var description := _node("DetailPanel/Description") as Label
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.size = Vector2(760, 108)
 	_add_label(detail, "SupplyStock", "", Rect2(32, 200, 740, 100), 24)
-	_add_label(detail, "ServiceStatus", "CRAFTING UNAVAILABLE\n\nRecipes, ingredient consumption, timed production and collection are not implemented. No queue runs while you raid.", Rect2(32, 370, 740, 180), 16)
+	_add_label(detail, "ServiceStatus", "CRAFTING UNAVAILABLE\n\nMaking new items and collecting production are not available in this build. Your existing supplies are kept in the stash and loadout.", Rect2(32, 370, 740, 180), 16)
 	var craft := _node("DetailPanel/CraftNow") as Button
 	craft.text = "CRAFTING UNAVAILABLE"
 	craft.disabled = true
@@ -163,7 +163,7 @@ func _build_crafting() -> void:
 	_action(detail, "OpenLoadout", "MANAGE SUPPLIES IN STASH / LOADOUT", Rect2(32, 600, 680, 44), &"loadout")
 	_text_at("QueuePanel/Title", "PRODUCTION")
 	_text_at("QueuePanel/Detail", "UNAVAILABLE")
-	_add_label(_node("QueuePanel") as Control, "QueueStatus", "No active crafting service.\n\nExisting supplies are read from your live inventory; production quantities and completion times are not guessed.", Rect2(24, 68, 420, 220), 15)
+	_add_label(_node("QueuePanel") as Control, "QueueStatus", "Crafting is not available in this build.\n\nYou can inspect and organize the supplies you already own. No production queue is running.", Rect2(24, 68, 420, 220), 15)
 
 func _choose_supply(index: int) -> void:
 	if not _screen.accepts_input() or index < 0 or index >= SUPPLIES.size(): return
@@ -173,11 +173,12 @@ func _choose_supply(index: int) -> void:
 func _refresh_crafting() -> void:
 	for row: Array in SUPPLIES:
 		var id := String(row[1])
-		var copy := "%d IN PROJECTED STOCK" % int(_stock.quantities.get(id, 0)) if _stock.ready else "STOCK UNAVAILABLE"
+		var copy := "%d IN STASH + LOADOUT" % int(_stock.quantities.get(id, 0)) if _stock.ready else "STOCK UNAVAILABLE"
 		_text_at("RecipePanel/Recipe" + String(row[0]) + "/Duration", copy)
+		(_node("RecipePanel/Recipe" + String(row[0])) as CanvasItem).modulate.a = 1.0 if row == SUPPLIES[_supply] else 0.65
 	var selected: Array = SUPPLIES[_supply]
 	_text_at("DetailPanel/Title", String(selected[0]).to_upper())
-	_text_at("DetailPanel/SupplyStock", "%d AVAILABLE IN PROJECTED INVENTORY" % int(_stock.quantities.get(String(selected[1]), 0)) if _stock.ready else "INVENTORY UNAVAILABLE")
+	_text_at("DetailPanel/SupplyStock", "%d IN STASH + LOADOUT" % int(_stock.quantities.get(String(selected[1]), 0)) if _stock.ready else "INVENTORY UNAVAILABLE")
 
 func _build_facilities() -> void:
 	for child: Node in _canvas.get_children():
@@ -192,7 +193,7 @@ func _build_facilities() -> void:
 		card.position.x = 48 + index * 226
 		_text_at(prefix + "/Title", row[2])
 		_text_at(prefix + "/Size", "INSTALLED AREA")
-		_text_at(prefix + "/Cost", "NO PURCHASE ACTION")
+		_text_at(prefix + "/Cost", "EXISTING ROOM")
 		_text_at(prefix + "/Detail", "Inspect facility")
 		_visible(prefix + "/Sprite/Label", false)
 		var icon := TextureRect.new()
@@ -221,7 +222,8 @@ func _build_facilities() -> void:
 	_add_label(panel, "FacilityStatus", "", Rect2(24, 84, 432, 230), 15)
 	(_node("PlacementPanel/Place") as Button).text = "CONSTRUCTION UNAVAILABLE"
 	(_node("PlacementPanel/Rotate") as Button).text = "LAYOUT READ-ONLY"
-	_action(panel, "FacilityRoute", "", Rect2(24, 330, 432, 42), &"loadout")
+	var action := _screen.btn(panel, "", Rect2(24, 330, 432, 42), _open_facility)
+	action.name = "FacilityRoute"
 
 func _choose_facility(room: String) -> void:
 	if not _screen.accepts_input() or not ZBunkerHideoutView.HOME_ROOMS.has(room): return
@@ -231,17 +233,21 @@ func _choose_facility(room: String) -> void:
 
 func _refresh_facility() -> void:
 	var room: Dictionary = ZBunkerHideoutView.HOME_ROOMS[_selection]
+	for entry: Array in FACILITIES:
+		(_node("Card" + String(entry[0])) as CanvasItem).modulate.a = 1.0 if entry[1] == _selection else 0.65
 	_text_at("PlacementPanel/Title", room.title)
-	_text_at("PlacementPanel/FacilityStatus", String(room.detail) + "\n\nThe facility is part of the authored map. Placement, prices, power simulation and upgrades are unavailable.")
+	_text_at("PlacementPanel/FacilityStatus", String(room.detail) + "\n\nThis room is part of your bunker. Construction, upgrades and utility simulation are not available in this build.")
 	var action := _node("PlacementPanel/FacilityRoute") as Button
 	var command: StringName = &"crafting" if _selection == "workshop" else room.action
-	# Replace only our route connection, never enable a construction callback.
-	for connection: Dictionary in action.pressed.get_connections():
-		var cb: Callable = connection.callable
-		if cb.get_object() == self: action.pressed.disconnect(cb)
 	action.disabled = command.is_empty()
 	action.text = "OPEN WORKSHOP" if _selection == "workshop" else room.label
-	if not command.is_empty(): action.pressed.connect(_send.bind(command))
+
+func _open_facility() -> void:
+	# U.button owns logical activation; retain one callback that reads the
+	# current selection instead of adding a second raw pressed connection.
+	var room: Dictionary = ZBunkerHideoutView.HOME_ROOMS[_selection]
+	var command: StringName = &"crafting" if _selection == "workshop" else room.action
+	if not command.is_empty(): _send(command)
 
 func _build_session() -> void:
 	for name: String in ["StorageMarker", "MedicalMarker", "UtilitiesMarker", "AmmoMarker", "FoodMarker", "HostSprite", "GuestSprite", "GuestName", "JoinToast", "FooterHint"]: _visible(name, false)

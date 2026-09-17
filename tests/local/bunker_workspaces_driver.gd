@@ -13,6 +13,8 @@ func run(h, initial: Dictionary) -> bool:
 		if not h.check(binding != null, "production workspace binding installed"): return false
 		h.check(not screen.is_processing() and not screen.is_processing_input(), "sample clocks/input handlers are disabled")
 		h.check(h._game._home.get_instance_id() == home_id and h._game._session == null, "same native inventory owner, no raid created")
+		h.check(screen.app.character_runtime() == h._game._character, "same Character presentation port injected")
+		h.check(h._game._ui.character_runtime_for_route(entry[1], ZUIRouteIntent.Origin.REVIEW) == null, "review origin cannot acquire home runtime")
 		h.check(screen.app.fixture_generation() == 0 and screen.app.fixture_state().is_empty(), "no mutable fixture state")
 		var stock := LocalBunkerWorkspaceBinding.stock_from_views(h._game._character.inventory_view(&"profile"), h._game._character.inventory_view(&"raid"))
 		h.check(stock.ready and stock.stacks > 0, "live stock projected from real native inventory")
@@ -32,6 +34,8 @@ func run(h, initial: Dictionary) -> bool:
 			"build_mode":
 				h.check((screen.get_node("LocalWorkspaceCanvas/PlacementPanel/Place") as Button).disabled, "construction is not enabled")
 				h.check((screen.get_node("LocalWorkspaceCanvas/PlacementPanel/Rotate") as Button).disabled, "rotation is not enabled")
+				await h.click("LocalWorkspaceCanvas/CardGenerator/Hit")
+				h.check((screen.get_node("LocalWorkspaceCanvas/PlacementPanel/FacilityRoute") as Button).disabled, "unavailable utility has no inherited loadout action")
 				await h.click("LocalWorkspaceCanvas/CardWatercollector/Hit")
 				h.check((screen.get_node("LocalWorkspaceCanvas/PlacementPanel/Title") as Label).text == "MEDICAL CORNER", "facility selection shows actual authored room")
 				await h.capture("03-facilities.png")
@@ -63,4 +67,9 @@ func run(h, initial: Dictionary) -> bool:
 	if not await h.click("ActionsPanel/SaveQuitRow/Hit") or not h.route("main_menu"): return false
 	h.check(not h._game._ui_port.request(&"session", epoch), "retired home epoch cannot reopen session")
 	h.check(h._store.load_profile().fingerprint == initial.fingerprint, "closing campaign preserves stock and profile")
+	for command: StringName in [&"crafting", &"build_mode", &"session"]:
+		h._game._ui_port.request(command, h._game._epoch)
+		await h.settle()
+		h.check(h._game._ui.current_route == "main_menu" and h._game._home == null, "current menu epoch cannot open a home-only workspace")
+		h.check(h._game._ui.character_runtime_for_route(String(command), ZUIRouteIntent.Origin.PRODUCTION) == null, "menu context cannot acquire home runtime")
 	return h.failures == 0
