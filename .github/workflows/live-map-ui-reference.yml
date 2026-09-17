@@ -18,7 +18,7 @@ jobs:
           python3 - <<'PY'
           import hashlib,json,os,pathlib,zipfile
           root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'internal-ui-reference';out.mkdir()
-          names=['assets/fonts/ChakraPetch-Regular.ttf','assets/fonts/ChakraPetch-SemiBold.ttf']
+          names=['assets/fonts/'+name+'.ttf' for name in ['ChakraPetch-Regular','ChakraPetch-SemiBold','ChakraPetch-Medium','ChakraPetch-Bold','IBMPlexMono-Regular','IBMPlexMono-Medium','IBMPlexMono-SemiBold']]
           records={}
           with zipfile.ZipFile(out/'internal.zip','w',zipfile.ZIP_DEFLATED) as z:
               for name in names:
