@@ -5,6 +5,7 @@ extends Node
 const Style = preload("res://ui/theme/local_journey_style.gd")
 const BRIEFING = preload("res://ui/components/journey/briefing_card.tscn")
 const RESULT = preload("res://ui/components/journey/result_card.tscn")
+const NAVIGATION = preload("res://ui/components/layout/navigation_chrome.tscn")
 const MASTHEAD = preload("res://ui/components/journey/masthead.tscn")
 const ROUTES := ["hud", "bunker", "inventory", "health", "stats", "maps", "tasks", "deploying", "summary_solo", "pause", "crafting", "build_mode", "session", "controls"]
 var _screen: ZScreen
@@ -23,16 +24,20 @@ func bind(screen: ZScreen, port: LocalGameUI) -> void:
 	_epoch = screen.app.local_epoch()
 	_route = screen.app.current_route
 	_runtime = screen.app.character_runtime()
-	if _route != "hud": Style.apply_screen(screen)
+	# The bunker styles its own panels and transparent room outline.
+	# A generic panel sweep would turn that outline into an opaque rectangle.
+	if _route not in ["hud", "bunker"]: Style.apply_screen(screen)
+	var background := screen.get_node_or_null("BackgroundBase") as Panel
+	if background != null: background.add_theme_stylebox_override("panel", Style.panel(Style.BG))
 	# Management panels read cleanly against the same neutral shelter palette.
 	# Keep the authored panels, their contents and input handlers intact.
 	if _route != "bunker":
 		for path: String in ["BackdropImage", "BackgroundImage", "BackdropArt", "BackgroundFrame", "Background"]:
 			var image := screen.get_node_or_null(path) as CanvasItem
-			if image is TextureRect: image.modulate = Color(0.48, 0.50, 0.46, 0.16)
+			if image is TextureRect: image.modulate = Color(0.8, 0.82, 0.77, 0.10)
 		for path: String in ["BackdropShade", "BackdropDim", "BackdropTint", "DeployTint", "BackgroundShade", "Atmosphere"]:
 			var shade := screen.get_node_or_null(path) as ColorRect
-			if shade != null: shade.color = Color(0.03, 0.045, 0.05, 0.76)
+			if shade != null: shade.color = Color(Style.BG, 0.90)
 	if _route in ["maps", "deploying", "summary_solo"]:
 		# A real Control parent preserves the screen's visibility/input lifetime.
 		# CanvasItems directly below a plain Node escape CanvasItem inheritance.
@@ -41,8 +46,16 @@ func bind(screen: ZScreen, port: LocalGameUI) -> void:
 		_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		screen.add_child(_canvas)
 		_canvas.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if _route in ["crafting", "build_mode", "session"]:
+		var canvas := screen.get_node("LocalWorkspaceCanvas") as Control
+		(canvas.get_node("TopChrome") as Control).hide()
+		var chrome := NAVIGATION.instantiate() as ZNavigationChrome
+		canvas.add_child(chrome)
+		chrome.navigate_requested.connect(_section_requested)
+		chrome.back_requested.connect(_request.bind(&"return_home"))
 	match _route:
 		"hud": _layout_hud()
+		"controls": _layout_settings()
 		"maps": _layout_briefing()
 		"deploying": _layout_loading()
 		"summary_solo": _layout_result()
@@ -83,27 +96,17 @@ func refresh() -> void:
 
 func _refresh_navigation(frame: Dictionary) -> void:
 	var chrome := _screen.get_node_or_null("NavigationChrome") as ZNavigationChrome
-	if chrome != null:
-		chrome.level_text = "SOLO / LOCAL"
-		chrome.money_text = ""
-		var tasks := _screen.app.task_view()
-		chrome.task_count = tasks.tasks().size() if tasks != null and tasks.is_ready() else 0
-		_text("NavigationChrome/Maps", "FIELD MAP" if frame.mode == "raid" else "BRIEFING")
-		_text("NavigationChrome/Settings", "CONTROLS")
-		var back := "BACK"
-		if frame.mode == "home":
-			back = "BRIEFING" if frame.get("preparation_return", "") == "maps" and _route in ["inventory", "health", "stats"] else "BUNKER"
-		elif frame.mode == "raid": back = "RAID"
-		var close := chrome.get_node("Close") as Button
-		close.text = "ESC / " + back
-		close.position.x = 1672
-		close.size.x = 200
-		(chrome.get_node("Level") as Control).position.x = 1460
-		(chrome.get_node("Level") as Control).size.x = 196
-		for name: String in ["Money"]: (chrome.get_node(name) as CanvasItem).hide()
-		for name: String in ["CharacterUnderline", "MapsUnderline", "TasksUnderline", "SettingsUnderline"]:
-			(chrome.get_node(name) as ColorRect).color = Style.ACCENT
-		Style.button(close)
+	if _route == "bunker": chrome = _screen.get_node_or_null("BunkerHideoutView/NavigationChrome") as ZNavigationChrome
+	if _route in ["crafting", "build_mode", "session"]:
+		chrome = _screen.get_node_or_null("LocalWorkspaceCanvas/NavigationChrome") as ZNavigationChrome
+		_hide("LocalWorkspaceCanvas/TopChrome")
+	if chrome == null: return
+	var back := "MAIN MENU"
+	if frame.mode == "home":
+		back = "MENU" if _route == "bunker" else ("BRIEFING" if frame.get("preparation_return", "") == "maps" and _route in ["inventory", "health", "stats"] else "BUNKER")
+	elif frame.mode == "raid": back = "RAID"
+	chrome.configure_local_sections(String(frame.mode), _route, back)
+
 
 func _layout_briefing() -> void:
 	# Keep the map and zone detail composition. Retire fake history and locked
@@ -139,6 +142,7 @@ func _layout_briefing() -> void:
 	if _port.snapshot().get("mode") == "home":
 		_card = BRIEFING.instantiate()
 		_canvas.add_child(_card)
+		Style.apply_card(_card)
 		_wire(_card.get_node("EditLoadout"), &"loadout")
 		_wire(_card.get_node("InspectHealth"), &"health")
 		var edit := _card.get_node("EditLoadout") as Button
@@ -221,6 +225,7 @@ func _layout_hud() -> void:
 func _layout_loading() -> void:
 	_masthead = MASTHEAD.instantiate()
 	_canvas.add_child(_masthead)
+	Style.apply_card(_masthead)
 	_place("DeployStatus", Rect2(48, 86, 640, 24), 12)
 	_place("ZoneTitle", Rect2(48, 124, 1050, 70), 48)
 	_place("MissionDetails", Rect2(48, 206, 1050, 28), 16)
@@ -243,6 +248,7 @@ func _layout_loading() -> void:
 func _layout_result() -> void:
 	_masthead = MASTHEAD.instantiate()
 	_canvas.add_child(_masthead)
+	Style.apply_card(_masthead)
 	_set_label(_masthead, "Stage", "01  PREPARE     /     02  DEPLOY     /     [03  RETURN]")
 	_hide("VerdictDot")
 	_place("Verdict", Rect2(48, 86, 1040, 28), 16)
@@ -264,6 +270,7 @@ func _layout_result() -> void:
 				elif child.name == &"Detail": child.hide()
 	_card = RESULT.instantiate()
 	_canvas.add_child(_card)
+	Style.apply_card(_card)
 	_place("LootTitle", Rect2(648, 236, 620, 30), 22)
 	_hide("LootTrailing")
 	for index in range(9):
@@ -395,3 +402,20 @@ func _exit_tree() -> void:
 		if _runtime.inventory_view_changed.is_connected(_inventory_changed): _runtime.inventory_view_changed.disconnect(_inventory_changed)
 		if _runtime.health_view_changed.is_connected(_health_changed): _runtime.health_view_changed.disconnect(_health_changed)
 		if _runtime.binding_invalidated.is_connected(_invalidated): _runtime.binding_invalidated.disconnect(_invalidated)
+
+
+func _layout_settings() -> void:
+	_text("SidebarTitle", "SETTINGS")
+	_text("SidebarVersion", "LOCAL")
+	_text("InputHint", "Changes apply to this device.")
+	_text("BindingsPane/BindingsBody/SectionTitle", "CONTROLS")
+	for name: String in ["SidebarGameplay", "SidebarHud", "SidebarGraphics", "SidebarAudio", "SidebarAccessibility", "SidebarAccount"]:
+		var button := _screen.get_node_or_null(name) as Button
+		if button != null:
+			button.disabled = true
+			button.tooltip_text = "This settings category is not available in the current build."
+
+
+func _section_requested(route: String) -> void:
+	var command := LocalGameUI.route_command(route)
+	if not command.is_empty(): _request(command)

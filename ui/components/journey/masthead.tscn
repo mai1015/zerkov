@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/ChakraPetch-SemiBold.ttf" id="1"]
 [ext_resource type="FontFile" path="res://assets/fonts/IBMPlexMono-Regular.ttf" id="2"]
+
+[ext_resource type="Texture2D" path="res://assets/handoff/logo_white_pixel.png" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="Panel"]
 bg_color = Color(0.063, 0.09, 0.094, 1)
@@ -20,18 +22,16 @@ offset_bottom = 58.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("Panel")
 
-[node name="Brand" type="Label" parent="."]
+[node name="Brand" type="TextureRect" parent="."]
 layout_mode = 0
 offset_left = 48.0
-offset_top = 12.0
-offset_right = 208.0
-offset_bottom = 48.0
+offset_top = 16.0
+offset_right = 160.0
+offset_bottom = 40.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.902, 0.89, 0.835, 1)
-theme_override_fonts/font = ExtResource("1")
-theme_override_font_sizes/font_size = 27
-text = "ZERKOV"
-autowrap_mode = 3
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Context" type="Label" parent="."]
 layout_mode = 0
