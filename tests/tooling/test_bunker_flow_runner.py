@@ -18,7 +18,7 @@ class RunnerTests(unittest.TestCase):
     def setUp(self):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
-        self.base = Path(temp.name)
+        self.base = Path(temp.name).resolve()
         self.root = self.base / "checkout"
         (self.root / "config").mkdir(parents=True)
         (self.root / "config/toolchain.lock.json").write_text('{"engine":{"required_version":"locked.test"}}')
