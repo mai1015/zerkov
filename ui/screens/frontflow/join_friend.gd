@@ -27,10 +27,10 @@ func _configure_shared_styles() -> void:
 	# The generated screen applied these same helpers to every authored control.
 	# Calling them here keeps the native font, cursor, focus, and pixel-safe style
 	# behavior identical while leaving the node hierarchy in the scene file.
-	var back: Button = get_node("Header/Back") as Button
-	_button_style(back, false)
-	_button_label(back, 10, true)
-	back.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# Header/Back is deliberately left out of this sweep. It carries the shared
+	# "ESC · <VERB>" dismiss contract, which the scene authors directly; the
+	# helpers above would silently restyle it back to a one-off font and size.
+	# The authored styleboxes already match _button_style's non-primary output.
 
 	var tabs: Array[Button] = [
 		get_node("WorldsTab") as Button,

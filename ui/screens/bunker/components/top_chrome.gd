@@ -26,11 +26,15 @@ signal world_back_requested
 		money = value
 		_sync()
 var _authored: Dictionary = {}
+## MenuLabel is a grandchild, so the authored-rect sweep below never sees it.
+## Compact rewrites its box, and desktop has to be able to put it back.
+var _authored_menu_label := Rect2()
 var _compact := false
 
 func _ready() -> void:
 	for node in get_children():
 		if node is Control: _authored[node.name] = Rect2(node.position, node.size)
+	_authored_menu_label = Rect2($MenuRim/MenuLabel.position, $MenuRim/MenuLabel.size)
 	ZThemeAdapter.apply_controls(self)
 	_sync()
 	if not Engine.is_editor_hint():
@@ -59,6 +63,9 @@ func layout_for(view: Vector2) -> void:
 	for key in _authored: _rect(str(key), _authored[key])
 	$Divider.visible = not _compact
 	_sync()
+	# One dismiss-label contract across every shell: "ESC · <VERB>", single
+	# spaces either side of the separator. Only the box geometry reflows.
+	$MenuRim/MenuLabel.text = "ESC · MENU"
 	if _compact:
 		_rect("Logo", Rect2(16, 18, 101, 20))
 		_rect("Title", Rect2(136, 17, 188, 22))
@@ -69,11 +76,11 @@ func layout_for(view: Vector2) -> void:
 		_rect("Money", Rect2(view.x - 224, 18, 112, 22))
 		_rect("MenuRim", Rect2(view.x - 104, 12, 88, 32))
 		_rect("MenuButton", Rect2(view.x - 104, 12, 88, 32))
-		$MenuRim/MenuLabel.text = "ESC MENU"
 		$MenuRim/MenuLabel.position = Vector2.ZERO
 		$MenuRim/MenuLabel.size = Vector2(88, 32)
 	else:
-		$MenuRim/MenuLabel.text = "ESC  MENU"
+		$MenuRim/MenuLabel.position = _authored_menu_label.position
+		$MenuRim/MenuLabel.size = _authored_menu_label.size
 
 func get_menu_action() -> CommonButton:
 	return $MenuButton

@@ -293,13 +293,13 @@ offset_bottom = 47.0
 mouse_default_cursor_shape = 2
 focus_mode = 2
 show_glyph = false
-theme_override_colors/font_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
-theme_override_colors/font_hover_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
-theme_override_colors/font_pressed_color = Color(0.9490196, 0.6941177, 0.3529412, 1)
+theme_override_colors/font_color = Color(0.545098, 0.568627, 0.541176, 1)
+theme_override_colors/font_hover_color = Color(0.901961, 0.909804, 0.890196, 1)
+theme_override_colors/font_pressed_color = Color(0.901961, 0.909804, 0.890196, 1)
 theme_override_colors/font_focus_color = Color(0.9019608, 0.9098039, 0.8901961, 1)
 theme_override_colors/font_disabled_color = Color(0.5450981, 0.5686275, 0.5411765, 1)
-theme_override_fonts/font = ExtResource("4_chakra")
-theme_override_font_sizes/font_size = 13
+theme_override_fonts/font = ExtResource("5_mono_regular")
+theme_override_font_sizes/font_size = 11
 text = "ESC · CLOSE"
 
 [node name="HeaderRule" type="ColorRect" parent="."]
