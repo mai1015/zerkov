@@ -44,6 +44,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 			# Interact again while the prior search is still active.
 			if _game._session.progression.snapshot().get("searching", "").is_empty():
 				if not _assert(attempts < 3 and _game._session.nearest_target() == id, "bounded search retry remains in reach"): return false
+				if not await _stabilize_bleeding(): return false
 				attempts += 1
 				print("LOCAL_FLOW_SEARCH_RETRY crate=", id, " attempt=", attempts, " tick=", ticks)
 				_key(KEY_E, true); _key(KEY_E, false)
@@ -142,6 +143,10 @@ func _walk_to(goal: Vector2) -> bool:
 	var path := session._navigation.request_path(start, target, session._navigation.revision())
 	if not _assert(path.is_ok(), "navigation route to " + str(target)): return false
 	for cell: Vector2i in path.cells:
+		# React to the published bleed while travelling, not only at the exit.
+		# The deliberate death scenario must never heal. Treatment still goes
+		# through the bound Y action and consumes the real carried bandage.
+		if not _death_run and not await _stabilize_bleeding(): return false
 		var waypoint := ZWorldUnits.tile_center_to_godot(cell).vector2_value
 		var reached: bool = false
 		for _i in range(160):
@@ -158,6 +163,9 @@ func _walk_to(goal: Vector2) -> bool:
 	return true
 
 func _tick(direction: Vector2) -> bool:
+	if _game._mode != "raid":
+		print("LOCAL_FLOW_TERMINAL_DIAGNOSTIC mode=", _game._mode, " ticks=", ticks, " fired=", fired, " searched=", searched,
+			" stats=", _game._session.progression._stats, " health=", _game._session.hud_model.confirmed_frame().get("health", {}))
 	if not _assert(_game._mode == "raid" and _game.can_advance(), "live input tick: " + _game._mode): return false
 	for code: Key in [KEY_W, KEY_A, KEY_S, KEY_D]:
 		var down: bool = (code == KEY_W and direction.y < 0) or (code == KEY_S and direction.y > 0) \
@@ -182,8 +190,21 @@ func _face_visible_threat() -> void:
 		var row: Dictionary = session.rows[key]
 		if row.archetype == "player" or not session.combat.health.actor_snapshot(row.actor_id).alive: continue
 		var position: Vector2 = row.movement.position_px
-		var screen := ZWorldViewportPolicy.world_to_screen(position, session.camera.global_position)
-		if Rect2(8, 8, 1904, 1064).has_point(screen) and _clear_segment(origin, position):
+		# This is white-box input automation, not a hidden damage command. Aim
+		# at the declared head rather than repeatedly hitting a zero-health limb;
+		# the real shot, obstruction, ammunition and health owners still decide.
+		var aim_point := position
+		if not _death_run:
+			var canonical := ZWorldUnits.godot_to_canonical(position)
+			var boxes := ZerkovBodyHitboxProfile.build_world_hitboxes(canonical.vector2i_value, int(row.movement.facing_4))
+			for box: Dictionary in boxes:
+				if StringName(box.hitbox_id) == ZerkovBodyHitboxProfile.HITBOX_HEAD:
+					var minimum := ZWorldUnits.canonical_to_godot(box.min_raw).vector2_value
+					var maximum := ZWorldUnits.canonical_to_godot(box.max_raw).vector2_value
+					aim_point = (minimum + maximum) / 2.0
+					break
+		var screen := ZWorldViewportPolicy.world_to_screen(aim_point, session.camera.global_position)
+		if Rect2(8, 8, 1904, 1064).has_point(screen) and _clear_segment(origin, aim_point):
 			candidates.append({"key":key,"position":position,"screen":screen,"distance":origin.distance_squared_to(position)})
 	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return a.distance < b.distance if a.distance != b.distance else a.key < b.key)
