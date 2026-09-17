@@ -10,6 +10,7 @@ func run() -> void:
 	# The existing native capture contract uses borderless output to avoid OS
 	# title-bar clamping on a 1080-line display. This never rescales an image.
 	root.borderless = true
+	root.min_size = BUNKER_SIZE
 	root.size = BUNKER_SIZE
 	await process_frame
 	if root.get_visible_rect().size != Vector2(BUNKER_SIZE):
