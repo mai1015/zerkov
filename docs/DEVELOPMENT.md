@@ -44,6 +44,31 @@ the change and intentionally update `config/addons.lock.json` before applying
 it. `apply` stages and verifies all six packages before replacing any existing
 snapshot; it rejects an unlocked tree or native artifact.
 
+## Consolidated pre-multiplayer validation
+
+The current-head gate replaces the old forensic workflows that were pinned to
+the pre-integration `cb8bc50` snapshot. It verifies the exact locked engine and
+then delegates to the promoted runners; it does not reinterpret a zero Godot
+exit as success when a named result or diagnostic fails.
+
+```sh
+# Portable source-policy and deterministic domain validation.
+python3 tools/run_pre_multiplayer_validation.py --godot "$ZERKOV_GODOT" --mode isolated
+
+# Real checked-in native add-ons; currently a macOS development path.
+python3 tools/run_pre_multiplayer_validation.py --godot "$ZERKOV_GODOT" --mode native
+
+# Real F5 application flow. Repeat with death, clock and launch scenarios.
+python3 tools/run_pre_multiplayer_validation.py --godot "$ZERKOV_GODOT" \
+  --mode local-flow --scenario full
+```
+
+The pre-multiplayer workflow runs `isolated` on Linux. Existing macOS combat,
+AI, progression and four-scenario local-flow workflows remain the native
+evidence. This gate certifies functional and deterministic coverage only; it
+does not close performance, visual/human acceptance, controller, VFX/audio,
+ten-cycle, release-artifact or multiplayer tasks.
+
 ## Foundation verification
 
 ```sh

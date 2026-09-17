@@ -17,23 +17,23 @@ const NATIVE_DEFINITIONS: PackedStringArray = [
 	"InventoryDiscoveryPolicy", "InventoryItemDefinition", "InventoryItemTraitValue",
 	"InventoryNamedSlot", "InventoryProfileDefinition", "InventoryProfileLimits", "InventoryTraitSchema",
 ]
-# Cached schemas are lexical and immutable at the publication boundary.
-# Reflection can query the dispatcher, but cannot replace it or edit its cache.
-var _schema_dispatch: Callable = Callable():
+# The cache is retained only by this write-once closure, never published. Pass it
+# down one scan instead of re-entering a closure (and repeating native/script
+# checks) for every object in every callback graph. Entries are schemas, NOT
+# object values or safety verdicts; a fresh visited set is made for every call.
+var _scan_dispatch: Callable = Callable():
 	set(value):
-		if not _schema_dispatch.is_valid(): _schema_dispatch = value
+		if not _scan_dispatch.is_valid(): _scan_dispatch = value
 
 func _init() -> void:
 	var schemas: Dictionary = {}
-	_schema_dispatch = func(object: Object, native: String) -> Dictionary:
-		if object == null or not is_instance_valid(object) or object.get_script() != null \
-			or object.get_class() != native or not NATIVE_DEFINITIONS.has(native): return {}
-		if schemas.has(native): return schemas[native]
-		var schema := _build_definition_schema(object, native)
-		if schema.has("references"): schema.references.make_read_only()
-		schema.make_read_only()
-		schemas[native] = schema
-		return schema
+	for native in NATIVE_DEFINITIONS:
+		schemas[native] = false # Known native class, schema not built yet.
+	# A static call is essential: an instance call captures self, making the
+	# retained dispatcher a RefCounted cycle that survives raid teardown.
+	_scan_dispatch = func(callback: Callable, authority_instance_id: int) -> bool:
+		return callback.is_valid() and not RaidCallbackCaptureScanner._capture_contains_bearer(
+			callback, 0, {authority_instance_id:true}, schemas)
 
 # Scalar Variants cannot contain a bearer. Avoid a GDScript recursive call for
 # each number/string in snapshots and definitions. This is type dispatch only;
@@ -42,19 +42,19 @@ func _init() -> void:
 const REFERENCE_TYPES: int = (1 << TYPE_OBJECT) | (1 << TYPE_CALLABLE) | (1 << TYPE_DICTIONARY) | (1 << TYPE_ARRAY)
 
 func is_safe(callback: Callable, authority_instance_id: int) -> bool:
-	return callback.is_valid() and not _capture_contains_bearer(callback, 0, {authority_instance_id:true})
+	return _scan_dispatch.call(callback, authority_instance_id)
 
-func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -> bool:
+static func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary, schemas: Dictionary) -> bool:
 	if depth > 16: return true
 	match typeof(value):
 		TYPE_CALLABLE:
 			# The reference scanner visits even a null callable owner at depth+1.
 			if depth == 16: return true
 			var callback := value as Callable
-			if _capture_contains_bearer(callback.get_object(), depth + 1, visited): return true
+			if _capture_contains_bearer(callback.get_object(), depth + 1, visited, schemas): return true
 			for argument in callback.get_bound_arguments():
 				if (REFERENCE_TYPES & (1 << typeof(argument))) != 0 \
-					and _capture_contains_bearer(argument, depth + 1, visited): return true
+					and _capture_contains_bearer(argument, depth + 1, visited, schemas): return true
 		TYPE_OBJECT:
 			var object := value as Object
 			if object == null or not is_instance_valid(object): return false
@@ -64,19 +64,25 @@ func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -
 			visited[id] = true
 			var native: String = object.get_class()
 			var schema: Dictionary = {}
-			if object.get_script() == null and NATIVE_DEFINITIONS.has(native):
-				schema = _definition_schema(object, native)
+			var cached: Variant = schemas.get(native)
+			if cached != null and object.get_script() == null:
+				if cached is bool:
+					cached = _build_definition_schema(object, native)
+					if cached.has("references"): cached.references.make_read_only()
+					cached.make_read_only()
+					schemas[native] = cached
+				schema = cached
 			if not schema.is_empty():
 				if depth == 16 and schema.has_properties: return true
 				for name: StringName in schema.references:
 					var child: Variant = object.get(name)
 					if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
-						and _capture_contains_bearer(child, depth + 1, visited): return true
+						and _capture_contains_bearer(child, depth + 1, visited, schemas): return true
 				for name: StringName in object.get_meta_list():
 					if depth == 16: return true
 					var child: Variant = object.get_meta(name)
 					if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
-						and _capture_contains_bearer(child, depth + 1, visited): return true
+						and _capture_contains_bearer(child, depth + 1, visited, schemas): return true
 			else:
 				for property_value in object.get_property_list():
 					var name := StringName((property_value as Dictionary).get("name", &""))
@@ -85,28 +91,25 @@ func _capture_contains_bearer(value: Variant, depth: int, visited: Dictionary) -
 					var child: Variant = object.get(name)
 					if depth == 16: return true
 					if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
-						and _capture_contains_bearer(child, depth + 1, visited): return true
+						and _capture_contains_bearer(child, depth + 1, visited, schemas): return true
 			if object is RaidAuthority.PhaseHandlerRelay:
 				for connection: Dictionary in object.get_signal_connection_list(&"invoked"):
-					if _capture_contains_bearer(connection.get("callable", Callable()), depth + 1, visited): return true
+					if _capture_contains_bearer(connection.get("callable", Callable()), depth + 1, visited, schemas): return true
 		TYPE_DICTIONARY:
 			# Nonempty collections at the boundary fail even with scalar children.
 			if depth == 16: return not value.is_empty()
 			for key in value.keys():
 				if (REFERENCE_TYPES & (1 << typeof(key))) != 0 \
-					and _capture_contains_bearer(key, depth + 1, visited): return true
+					and _capture_contains_bearer(key, depth + 1, visited, schemas): return true
 				var child: Variant = value[key]
 				if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
-					and _capture_contains_bearer(child, depth + 1, visited): return true
+					and _capture_contains_bearer(child, depth + 1, visited, schemas): return true
 		TYPE_ARRAY:
 			if depth == 16: return not value.is_empty()
 			for child in value as Array:
 				if (REFERENCE_TYPES & (1 << typeof(child))) != 0 \
-					and _capture_contains_bearer(child, depth + 1, visited): return true
+					and _capture_contains_bearer(child, depth + 1, visited, schemas): return true
 	return false
-
-func _definition_schema(object: Object, native: String) -> Dictionary:
-	return _schema_dispatch.call(object, native)
 
 static func _build_definition_schema(object: Object, native: String) -> Dictionary:
 	var registered: Dictionary = {}

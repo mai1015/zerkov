@@ -573,6 +573,46 @@ func phase_publisher_publish_snapshot(
 		publisher_actor_value, publisher_source_value)
 
 
+## Advances only the authoritative tick envelope when the exact production
+## publisher proves that no body or obstruction record changed. Geometry,
+## revision history and the canonical snapshot digest remain immutable; phase
+## consumers still require the refreshed current tick before querying.
+func phase_publisher_refresh_snapshot(
+	tick: int,
+	world_revision: int,
+	publisher_actor_value: Variant,
+	publisher_source_value: Variant,
+	handler_id: StringName,
+	registration_id: String,
+	callback: Callable
+) -> bool:
+	last_error = &""
+	last_publication_duplicate = false
+	if not _guard_exact_phase_grant(
+		handler_id, registration_id, callback, tick,
+		RaidAuthority.TickPhase.MOVEMENT, &"publish"):
+		return false
+	if not _guard_publisher(publisher_actor_value, publisher_source_value):
+		return false
+	if not _authority_allows_publication():
+		return _reject_bool(&"authority_not_accepting_world_snapshot")
+	if tick < 0 or tick != _authority.clock.current_tick:
+		return _reject_bool(&"snapshot_tick_not_current")
+	if _snapshot_revision <= 0 or _snapshot_digest.is_empty() \
+			or _bodies_by_id.is_empty():
+		return _reject_bool(&"world_snapshot_missing")
+	if world_revision != _snapshot_revision:
+		return _reject_bool(&"world_revision_mismatch")
+	if tick == _snapshot_tick:
+		last_publication_duplicate = true
+		return true
+	if tick != _snapshot_tick + 1:
+		return _reject_bool(&"snapshot_tick_regressed_or_skipped")
+	_snapshot_tick = tick
+	last_publication_duplicate = true
+	return true
+
+
 func _publish_snapshot_after_binding(
 	tick: int,
 	world_revision: int,
