@@ -13,6 +13,7 @@ func run(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool:
 	var instance: int = raid.get_instance_id()
 	if not _assert(ProjectSettings.get_setting("application/run/main_scene") == "res://game/bootstrap/local/local_game.tscn", "normal entrypoint is the composed application"): return false
 	if not _assert(Engine.physics_ticks_per_second == 60, "engine scheduling uses canonical 60 Hz"): return false
+	if not _assert(Engine.max_physics_steps_per_frame == 2, "physics catch-up is bounded to one additional step per rendered frame"): return false
 	# Exercise the same callback that runs after F6/F5/exported normal launch.
 	# Tests still isolate storage. They do not change physics frequency or delta.
 	var tick: int = raid.last_processed_tick

@@ -78,7 +78,10 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 		if StringName(row.definition) == ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE and row.quantity == 1: retained = true
 	if not _assert(retained and transferred and searched == 3, "one UI-transferred supply retained"): return false
 	if not _assert(_game._ui.screen.get_node("MetricKills/Value").text == str(result.stats.kills), "summary renders actual kill count"): return false
-	if not _assert(_game._ui.screen.get_node("MetricXP/Value").text == str(result.profile_generation), "summary renders committed profile generation"): return false
+	if not _assert(_game._campaign.store.load_profile().generation == result.profile_generation, "debrief receipt matches the committed file generation"): return false
+	var lost_count: int = 0
+	for row: Dictionary in result.get("lost", []): lost_count += int(row.quantity)
+	if not _assert(_game._ui.screen.get_node("MetricXP/Title").text == "ITEMS LOST" and _game._ui.screen.get_node("MetricXP/Value").text == str(lost_count), "debrief renders actual losses instead of a profile debug counter"): return false
 	print("LOCAL_FLOW_EXTRACT ticks=", ticks, " fire_inputs=", fired, " searched=", searched,
 		" kills=", result.get("stats", {}).get("kills", 0), " outcome=", result.outcome)
 	return true

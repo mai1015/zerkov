@@ -303,6 +303,7 @@ func check(condition: bool, message: String) -> void:
 func run() -> void:
 	_test_policy_and_injury_order()
 	_test_change_driven_idle_health()
+	_test_hydration_is_part_of_snapshot_identity()
 	_test_damage_bleed_and_death_order()
 	_test_atomic_treatment_and_rollback()
 	_test_real_inventory_medical_transactions()
@@ -407,6 +408,56 @@ func _test_change_driven_idle_health() -> void:
 		and adapter.lifecycle == HealthConsequenceAdapter.Lifecycle.RECOVERY_REQUIRED
 		and adapter.last_error == &"health_component_mutated_outside_authority",
 		"signal-driven tracking fails closed on out-of-band component mutation")
+
+
+func _test_hydration_is_part_of_snapshot_identity() -> void:
+	var fixture := _new_fixture("hydration_snapshot_identity")
+	var authority := fixture["authority"] as RaidAuthority
+	var adapter := fixture["adapter"] as HealthConsequenceAdapter
+	var component := fixture["component"] as GameplayAbilityComponent
+	var target := fixture["target"] as ZEntityId
+	var generation := int(fixture["generation"])
+	var before := adapter.actor_snapshot(target)
+	var before_counts := adapter.work_counts()
+	check(authority.transition(RaidAuthority.Lifecycle.ACTIVE, generation),
+		"hydration snapshot fixture becomes active")
+
+	# Model another game-owned subsystem mutating the same authoritative native
+	# component inside an owned mutation boundary. The health adapter must observe
+	# every value it publishes even when it does not own that ability grant.
+	adapter._mutation_active = true
+	var grant := component.grant_ability(
+		String(ZerkovHealthAbilityContent.ABILITY_HYDRATION_DRAIN), 1,
+		"zerkov.test.hydration_snapshot_identity", component.get_current_tick())
+	var hydration_spec := int(grant.get("spec", 0))
+	var applied := ZerkovHealthAbilityContent.apply_bounded_instant(
+		component, hydration_spec, ZerkovHealthAbilityContent.EFFECT_HYDRATION_DRAIN,
+		1_000_000, component.get_current_tick(), 9_000_002)
+	adapter._mutation_active = false
+	check(bool((grant.get("status", {}) as Dictionary).get("ok", false)) \
+			and hydration_spec > 0 and bool(applied.get("accepted", false)),
+		"authority-owned hydration-only native mutation succeeds")
+	check(authority.advance_one(generation),
+		"hydration-only dirty actor completes the authoritative phase")
+
+	var after := adapter.actor_snapshot(target)
+	var after_counts := adapter.work_counts()
+	check(int(after.get("hydration_micros", -1)) \
+			== int(before.get("hydration_micros", -1)) - 1_000_000,
+		"hydration-only mutation invalidates the cached actor snapshot")
+	check(int(after.get("health_revision", -1)) \
+			== int(before.get("health_revision", -1)) + 1,
+		"hydration-only mutation advances health revision exactly once")
+	check(int(after_counts.get("snapshot_builds", -1)) \
+			== int(before_counts.get("snapshot_builds", -1)) + 1,
+		"hydration-only mutation rebuilds one immutable health snapshot")
+	check(authority.advance_one(generation)
+			and adapter.actor_snapshot(target) == after,
+		"next idle tick reuses the corrected hydration snapshot")
+	var idle_counts := adapter.work_counts()
+	check(int(idle_counts.get("snapshot_builds", -1)) \
+			== int(after_counts.get("snapshot_builds", -1)),
+		"corrected hydration snapshot is not rebuilt while unchanged")
 
 
 func _test_damage_bleed_and_death_order() -> void:
