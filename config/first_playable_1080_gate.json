@@ -37,6 +37,7 @@
     "tests/ai/ai_debug_render_contract.gd":{"purpose":"synthetic AI diagnostics with approved 640x360 nearest 3x world; not native gameplay acceptance","sha256":"d755dee2ff26a69721e115867752373e3d677d7cb2e386fdf64225f530d31475"}
   },
   "active_command_entrypoints": {
+    "tools/run_health_catalog_contracts.py":{"purpose":"headless native health-catalog differential and preflight benchmark; no captures or FPS claims","sha256":"b06727fd38fbb5a715c2a4109d797cf2911b7c26eea83f5bd7415cb527b4a98b"},
     "tests/tooling/run_interaction_policy_headless_gate.py":{"purpose":"exact headless interaction policy driver","sha256":"a080fe27aa70df44588b433fdd2d963cea4833a3e24770e6670788c2428d73f8"},
     "tests/tooling/run_movement_authority_headless_gate.py":{"purpose":"exact headless movement authority driver","sha256":"539eed3dc9b0a20cc6393111d1e4dad6aefe093554e664695b33c7c7643a735a"},
     "tests/tooling/run_navigation_path_headless_gate.py":{"purpose":"exact headless navigation path driver","sha256":"c365012e9da0620a8899e1c85e88f60293a34fb6dc1965a22f25726a7627837c"},
@@ -62,6 +63,7 @@
     "ui/main.gd":{"purpose":"runtime UI host and sanctioned QA writer","runner_inventory":false,"sha256":"0c2ebd273ab3489c4fb933d46f4d95d0cd3e5820d8d4b1baef6436d3dd691524"}
   },
   "active_headless_entrypoints": [
+    "tests/combat/health_catalog_performance_contract.gd",
     "tests/addons/combined_addons_smoke.gd",
     "tests/ai/ai_review_regression_contract.gd",
     "tests/ai/ai_workstream_contract.gd",

@@ -43,7 +43,7 @@ def main() -> int:
             project = Path(temp) / "project"
             shutil.copytree(root, project, ignore=shutil.ignore_patterns(".git", ".godot", ".codegraph", "__pycache__"))
             env["XDG_DATA_HOME"] = str(Path(temp) / "userdata")
-            base = [engine, "--headless", "--path", str(project), "--audio-driver", "Dummy"]
+            base = [engine, "--headless", "--path", str(project), "--resolution", "1920x1080", "--audio-driver", "Dummy"]
             execute(base + ["--editor", "--import", "--quit"], env)
             output = execute(base + ["--script", "res://tests/combat/health_catalog_performance_contract.gd"], env)
             if not MARKER.search(output):

@@ -5,6 +5,9 @@ const Reference = preload("res://tests/combat/health_catalog_reference.gd")
 var checks: int = 0
 var failures: int = 0
 var _next_entity: int = 95_000
+# Dynamic only so the unchanged baseline can import this candidate-only test.
+# The runner executes it against the candidate, never against the old API.
+var _content = load("res://game/combat/content/zerkov_health_ability_content.gd")
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -91,17 +94,17 @@ func run() -> void:
 	quit(0 if failures == 0 else 1)
 
 func _metadata_contract() -> void:
-	var metadata: Dictionary = ZerkovHealthAbilityContent._expected_catalog_metadata
+	var metadata: Dictionary = _content._expected_catalog_metadata
 	check(metadata.is_read_only() and bool(metadata.get("ok", false)), "expected metadata is read-only and valid")
 	check(_immutable_values_only(metadata), "metadata has no Resource, Callable or mutable nested container")
-	var current: Dictionary = ZerkovHealthAbilityContent._build_expected_catalog_metadata()
+	var current: Dictionary = _content._build_expected_catalog_metadata()
 	check(metadata == current, "retained metadata equals freshly built native expected manifest")
-	ZerkovHealthAbilityContent._expected_catalog_metadata = {"ok": false}
-	check(ZerkovHealthAbilityContent._expected_catalog_metadata == current,
+	_content._expected_catalog_metadata = {"ok": false}
+	check(_content._expected_catalog_metadata == current,
 		"write-once metadata cannot be replaced")
 	var authoring := ZerkovHealthAbilityContent.build_definition_catalog()
 	authoring.get_attribute_definitions()[0].max_value -= 1.0
-	check(ZerkovHealthAbilityContent._expected_catalog_metadata == current,
+	check(_content._expected_catalog_metadata == current,
 		"independent authoring resources cannot mutate expected metadata")
 
 func _immutable_values_only(value: Variant) -> bool:
@@ -125,11 +128,12 @@ func _index_contract() -> void:
 	for category: StringName in [&"tag", &"attribute", &"effect", &"ability"]:
 		var definitions: Array = catalog.call("get_%s_definitions" % category)
 		for repeats: int in [0, 1, 2, 3]:
-			var values: Array = definitions.duplicate()
+			var values: Array = []
+			values.append_array(definitions)
 			for _i in range(repeats): values.append(definitions[0])
 			values.append(null)
 			values.append(Resource.new()) # No get_identifier(): ignored by both.
-			var index: Dictionary = ZerkovHealthAbilityContent._index_definitions(values)
+			var index: Dictionary = _content._index_definitions(values)
 			for definition: Resource in definitions:
 				var id := StringName(definition.call("get_identifier"))
 				check(index.get(id) == Reference._find_definition(values, id),
