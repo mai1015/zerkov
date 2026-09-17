@@ -85,6 +85,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 
 func _walk_to(goal: Vector2) -> bool:
 	var session := _game._session
+	var map_builds_before := int(_game.presentation_work_counts().map_view_builds)
 	var start: Vector2i = ZWorldUnits.godot_to_tile(session.player_movement.position_px).vector2i_value
 	var target: Vector2i = ZWorldUnits.godot_to_tile(goal).vector2i_value
 	var path := session._navigation.request_path(start, target, session._navigation.revision())
@@ -100,6 +101,9 @@ func _walk_to(goal: Vector2) -> bool:
 				signf(delta.y) if absf(delta.y) > 3.0 else 0.0)
 			if not await _tick(direction): return false
 		if not _assert(reached, "physical movement reaches waypoint " + str(cell)): return false
+	if not _assert(int(_game.presentation_work_counts().map_view_builds) == map_builds_before,
+			"hidden map projection remains unchanged during player movement"):
+		return false
 	return true
 
 func _tick(direction: Vector2) -> bool:

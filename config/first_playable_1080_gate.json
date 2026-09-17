@@ -39,6 +39,7 @@
     "tests/ai/ai_debug_render_contract.gd":{"purpose":"synthetic AI diagnostics with approved 640x360 nearest 3x world; not native gameplay acceptance","sha256":"d755dee2ff26a69721e115867752373e3d677d7cb2e386fdf64225f530d31475"}
   },
   "active_command_entrypoints": {
+    "tools/run_health_catalog_contracts.py":{"purpose":"headless native health-catalog differential and preflight benchmark; no captures or FPS claims","sha256":"b06727fd38fbb5a715c2a4109d797cf2911b7c26eea83f5bd7415cb527b4a98b"},
     "tests/tooling/run_northline_native_zone_gate.py": {"purpose": "native 1080 full map, four collision routes and edit reopening", "sha256": "67b8d47d255ed746a1e69e288a16d9993446c06966241c6c87a24492980a4383"},
     "tests/tooling/run_northline_native_gate.py": {"purpose": "native 1080 freight scene and third-process edit reopening", "sha256": "a33d2d91ab81b4cebf920c50fb15a03dfe5e9dd469617f2f19cc99ffa145e4a9"},
     "tests/tooling/run_interaction_policy_headless_gate.py":{"purpose":"exact headless interaction policy driver","sha256":"a080fe27aa70df44588b433fdd2d963cea4833a3e24770e6670788c2428d73f8"},
@@ -66,6 +67,7 @@
     "ui/main.gd":{"purpose":"runtime UI host and sanctioned QA writer","runner_inventory":false,"sha256":"0c2ebd273ab3489c4fb933d46f4d95d0cd3e5820d8d4b1baef6436d3dd691524"}
   },
   "active_headless_entrypoints": [
+    "tests/combat/health_catalog_performance_contract.gd",
     "tools/migrate_northline_zone_native.gd",
     "tools/migrate_northline_freight.gd",
     "tests/addons/combined_addons_smoke.gd",

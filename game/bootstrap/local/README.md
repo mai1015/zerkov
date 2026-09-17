@@ -6,7 +6,7 @@ host is macOS. There is no .NET dependency for this flow.
 
 ## Starting the actual game
 
-Open `project.godot` from the local-flow branch and use **Run Project (F5)**,
+Open `project.godot` from the current checkout and use **Run Project (F5)**,
 not Run Current Scene on `ui/main.tscn`. The UI scene on its own is an unbound
 host for composition/QA; it does not own a ProfileStore or create a campaign.
 The project entrypoint must be `res://game/bootstrap/local/local_game.tscn`.
@@ -101,10 +101,10 @@ well outside the 60 Hz budget and needs a dedicated performance pass. Do not
 call this release-ready, use a larger timeout as a performance fix, or cache
 mutable callback-safety decisions to hide that cost.
 
-Task mapping: death-race coverage addresses 5.10; the visible canonical clock
-addresses 7.3; live HUD, Tasks/Maps and deployment/receipt binding address
-8.5/8.7/8.8. Review those implementations with their native evidence before
-checking acceptance. No claim of ten consecutive extract/death cycles, complete
+Task mapping: reviewed death-race coverage closes 5.10; the visible canonical
+clock closes 7.3; live HUD, Tasks/Maps and deployment/receipt binding close
+8.5/8.7/8.8. The implementation ledger records the exact native evidence. No
+claim of ten consecutive extract/death cycles, complete
 controller navigation, native combat readability, VFX/audio completion, human
 visual approval, a hit-reaction clip, or Steam support is made here.
 
