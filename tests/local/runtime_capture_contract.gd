@@ -64,6 +64,8 @@ func run(raid: RaidAuthority, check_callback: Callable) -> bool:
 	holder.payload = null
 	if not _scalar_graph_cases(holder, bearer): return false
 	if not _lifecycle_boundaries(): return false
+	var closed_contract = load("res://tests/local/closed_dispatch_contract.gd").new()
+	if not closed_contract.run(_check): return false
 	print("RUNTIME_CAPTURE_RESULT checks=", _checks, " failures=", _failures)
 	return _failures == 0
 

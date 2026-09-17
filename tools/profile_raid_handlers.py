@@ -75,10 +75,10 @@ func run(game, tree: SceneTree, check: Callable) -> bool:
 			if index % 16 == 15: await tree.process_frame
 		collecting = false
 		if stage == "move": key(KEY_D, false)
-		var row := {"stage":stage, "root":stats(total), "handlers":{}, "details":{}}
+		var row := {"stage":stage, "root":stats(total), "handlers":{}, "details":{}, "dispatch_work":game._session.raid.dispatch_work_counts() if game._session.raid.has_method("dispatch_work_counts") else {}}
 		var ids := timings.keys(); ids.sort()
 		for id in ids:
-			row.handlers[String(id)] = {"scan":stats(timings[id].scan), "body":stats(timings[id].body)}
+			row.handlers[String(id)] = {"dispatch_validation":stats(timings[id].scan), "body":stats(timings[id].body)}
 		for id in details: row.details[id] = stats(details[id])
 		print("RAID_HANDLER_PROFILE ", JSON.stringify(row))
 		var digest: String = game._session.raid.state_digest()
@@ -115,9 +115,9 @@ def instrument(project: Path, enabled: bool) -> None:
         return
     path = project / "game/raid/raid_authority.gd"
     text = path.read_text(encoding="utf-8")
-    old = '\t\t\tif not authority.phase_handler_callback_is_safe(callback):\n\t\t\t\tresult_box.append(false)\n\t\t\t\treturn\n\t\t\tresult_box.append(callback.call(authority, phase, tick, intents))'
+    old = '\t\t\tif not authority.can_dispatch_phase_callback(callback):\n\t\t\t\tresult_box.append(false)\n\t\t\t\treturn\n\t\t\tresult_box.append(callback.call(authority, phase, tick, intents))'
     new = '\t\t\tvar profile_start := Time.get_ticks_usec()\n'
-    new += '\t\t\tvar profile_safe: bool = authority.phase_handler_callback_is_safe(callback)\n'
+    new += '\t\t\tvar profile_safe: bool = authority.can_dispatch_phase_callback(callback)\n'
     new += '\t\t\tvar profile_body_start := Time.get_ticks_usec()\n'
     new += '\t\t\tif not profile_safe:\n\t\t\t\tresult_box.append(false)\n\t\t\t\treturn\n'
     new += '\t\t\tvar profile_outcome: Variant = callback.call(authority, phase, tick, intents)\n'
@@ -153,7 +153,7 @@ def execute(command: list[str], env: dict[str, str], timeout: int = 300) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", type=Path, required=True)
-    parser.add_argument("--baseline-ref", help="Git revision supplying the two optimized production files")
+    parser.add_argument("--baseline-ref", help="Git revision supplying the explicitly listed optimized production files")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[1]
     engine = str(args.godot.expanduser().resolve(strict=True))
@@ -168,7 +168,8 @@ def main() -> int:
     print("RAID_PROFILE_SOURCE " + json.dumps(checksums), flush=True)
     traces = []
     modes = ["baseline", "control", "control", "baseline", "instrumented"] if args.baseline_ref else ["control", "instrumented"]
-    optimized = ("game/raid/raid_callback_capture_scanner.gd", "game/combat/content/zerkov_health_ability_content.gd")
+    optimized = ("game/raid/raid_callback_capture_scanner.gd", "game/combat/content/zerkov_health_ability_content.gd",
+                 "game/raid/raid_authority.gd", "game/bootstrap/local/local_raid_session.gd")
     baseline = {}
     if args.baseline_ref:
         revision = subprocess.check_output(["git", "rev-parse", "--verify", args.baseline_ref + "^{commit}"], cwd=source, text=True).strip()
