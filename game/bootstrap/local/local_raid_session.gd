@@ -114,6 +114,9 @@ func start(store: ProfileStore, request_id: String, profile_generation: int, see
 	hud_model = ZCombatHudModel.new()
 	if not hud_model.configure(raid.admission().actor_id.canonical_key(), _generation): return _fail(&"local_hud_binding_failed")
 	if not _build_visuals(): return false
+	# All native consumers are installed and raw hitbox bearer has been revoked.
+	# Active dispatch uses the fixed roster; generic/test authorities keep scans.
+	if not raid.seal_production_dispatch(_generation): return _fail(raid.last_error)
 	if not raid.transition(RaidAuthority.Lifecycle.ACTIVE, _generation): return _fail(raid.last_error)
 	return advance()
 

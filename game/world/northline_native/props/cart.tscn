@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_49.png" id="1_fhxms"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fnf6f"]
+size = Vector2(12, 8)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_vc3ps"]
+polygon = PackedVector2Array(-6, -8, 6, -8, 6, 0, -6, 0)
+
+[node name="Cart" type="Node2D" unique_id=1]
+metadata/source_asset = "cart"
+metadata/source_pixels_per_world_unit = 3
+
+[node name="ContactShadow" type="Polygon2D" parent="." unique_id=2]
+color = Color(0.035, 0.055, 0.055, 0.36)
+polygon = PackedVector2Array(-7.04, -4, 7.04, -4, 11.04, 3, -5.04, 3)
+
+[node name="SourceSprite" type="Sprite2D" parent="." unique_id=3]
+texture_filter = 1
+position = Vector2(-8, -28)
+scale = Vector2(0.33333334, 0.33333334)
+texture = ExtResource("1_fhxms")
+centered = false
+region_enabled = true
+region_rect = Rect2(576, 252, 48, 84)
+region_filter_clip_enabled = true
+
+[node name="Footprint" type="StaticBody2D" parent="." unique_id=4]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Footprint" unique_id=5]
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_fnf6f")
+
+[node name="FootOccluder" type="LightOccluder2D" parent="." unique_id=6]
+occluder = SubResource("OccluderPolygon2D_vc3ps")
+sdf_collision = false
+occluder_light_mask = 2

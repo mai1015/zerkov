@@ -1,0 +1,16 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_62.png" id="1_hejnc"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_l8vtr"]
+texture = ExtResource("1_hejnc")
+texture_region_size = Vector2i(48, 48)
+0:1/size_in_atlas = Vector2i(1, 2)
+0:1/0 = 0
+1:1/size_in_atlas = Vector2i(1, 2)
+1:1/0 = 0
+
+[resource]
+resource_name = "brick wall original source"
+tile_size = Vector2i(48, 96)
+sources/0 = SubResource("TileSetAtlasSource_l8vtr")

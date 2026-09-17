@@ -1,0 +1,80 @@
+name: Full native Northline verification
+on:
+  pull_request:
+    paths: ['.github/workflows/native-zone.yml', 'game/world/northline_native/**', 'game/presentation/northline_native/**', 'assets/world/northline_native/**', 'tests/presentation/northline_native_zone_contract.gd', 'tests/tooling/*northline_native*', 'tools/*native_zone*', 'tools/migrate_northline_zone_native.gd', 'config/first_playable_1080_gate.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-zone-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Native resource structure and exact-output policy
+        run: |
+          python3 -m unittest discover -s tests/tooling -p 'test_northline_native*.py' -v
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
+          test ! -f .github/workflows/native-zone-publication.yml
+          git diff --check
+      - name: Retain exact published text and source seals, no artwork or binaries
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-zone-source"
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,subprocess,zipfile
+          root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'native-zone-source'
+          records={}
+          names=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as archive:
+              for name in names:
+                  p=root/name
+                  if not name or not p.is_file() or p.is_symlink():continue
+                  if p.suffix not in {'.gd','.uid','.gdshader','.tscn','.tres','.py','.json','.md','.godot','.yml','.yaml','.cfg','.import','.gdextension'}:continue
+                  raw=p.read_bytes()
+                  try:raw.decode('utf-8')
+                  except UnicodeError:continue
+                  archive.writestr(name,raw)
+                  records[name]={'sha256':hashlib.sha256(raw).hexdigest(),'git_blob':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()}
+          (out/'source.json').write_text(json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'files':records},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: full-native-zone-source
+          path: ${{ runner.temp }}/native-zone-source
+          retention-days: 7
+  native-original-art:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Require exact original PNGs (missing art is BLOCKED, not a pass)
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-zone-results"
+          set -o pipefail
+          python3 tools/install_northline_native_sources.py --verify 2>&1 | tee "$RUNNER_TEMP/native-zone-results/source-preflight.log"
+      - name: Prepare the pinned real renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Render twice, traverse native collision and reopen edits
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' python3 tests/tooling/run_northline_native_zone_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/native-zone-results/run"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: full-native-zone-evidence
+          path: ${{ runner.temp }}/native-zone-results
+          retention-days: 14

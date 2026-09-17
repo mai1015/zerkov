@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Build the six shipped GDExtensions against the repository-pinned godot-cpp SDK."""
+import os
+from pathlib import Path
+
+ADDONS = (
+    "common_ui",
+    "common_vision",
+    "gameplay_abilities",
+    "inventory_system",
+    "level_task_system",
+    "weapon_system",
+)
+
+workspace = Path.cwd().resolve()
+sdk = Path(os.environ["GODOT_CPP"]).resolve()
+if not (workspace / "config" / "toolchain.lock.json").is_file():
+    raise RuntimeError("Run this SConstruct from the repository root")
+if not (sdk / "SConstruct").is_file():
+    raise RuntimeError("GODOT_CPP must point at the pinned godot-cpp checkout")
+
+env = SConscript(str(sdk / "SConstruct"))
+env.Append(CXXFLAGS=["/std:c++17"] if env.get("is_msvc", False) else ["-std=c++17"])
+
+platform = env["platform"]
+arch = env["arch"]
+target = env["target"]
+suffixes = {"linux": ".so", "macos": ".dylib", "windows": ".dll"}
+if platform not in suffixes:
+    raise RuntimeError("Native addon CI currently supports linux, macos, and windows")
+
+outputs = []
+for name in ADDONS:
+    addon_env = env.Clone()
+    native_root = workspace / "addons" / name / "native"
+    addon_env.Append(CPPPATH=[str(native_root)])
+    sources = [str(path) for path in sorted(native_root.rglob("*.cpp"))]
+    if not sources:
+        raise RuntimeError("Missing native sources for " + name)
+    output = workspace / "addons" / name / "bin" / (
+        "lib" + name + "." + platform + "." + target + "." + arch + suffixes[platform]
+    )
+    nodes = addon_env.SharedLibrary(target=str(output), source=sources)
+    addon_env.NoCache(nodes)
+    outputs.extend(nodes)
+
+Default(outputs)

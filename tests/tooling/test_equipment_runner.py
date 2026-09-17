@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
@@ -95,6 +96,50 @@ class EquipmentRunnerTests(unittest.TestCase):
         result = subprocess.CompletedProcess(["godot"], 0, stdout)
         with patch.object(runner.subprocess, "run", return_value=result), redirect_stdout(io.StringIO()):
             self.assertEqual(runner.execute(["godot"], {}, "EQUIPMENT_UI_RESULT"), stdout)
+
+
+    def test_runtime_import_only_disables_editor_dashboards_and_restores_bytes(self):
+        config = b'[autoload]\nCommonUI="*res://addons/common_ui/runtime.gd"\n\n[editor_plugins]\nenabled=PackedStringArray("res://addons/example/plugin.cfg")\n\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n'
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            path = project / "project.godot"
+            path.write_bytes(config)
+            extension = project / "example.gdextension"
+            extension.write_bytes(b"native-extension-unchanged")
+            def inspect(command, env):
+                self.assertEqual(command, ["godot", "--headless", "--editor", "--import", "--quit"])
+                self.assertEqual(path.read_bytes(), config.replace(b'enabled=PackedStringArray("res://addons/example/plugin.cfg")', b'enabled=PackedStringArray()'))
+                self.assertEqual(extension.read_bytes(), b"native-extension-unchanged")
+                return "import complete"
+            with patch.object(runner, "execute", side_effect=inspect), redirect_stdout(io.StringIO()):
+                runner.import_runtime_project(["godot", "--headless"], {}, project)
+            self.assertEqual(path.read_bytes(), config)
+
+    def test_failed_runtime_import_restores_config_and_keeps_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            path = project / "project.godot"
+            original = b'[editor_plugins]\nenabled=PackedStringArray("plugin.cfg")\n'
+            path.write_bytes(original)
+            error = RuntimeError("native import failed")
+            with patch.object(runner, "execute", side_effect=error), redirect_stdout(io.StringIO()):
+                with self.assertRaises(RuntimeError) as raised:
+                    runner.import_runtime_project(["godot"], {}, project)
+            self.assertIs(raised.exception, error)
+            self.assertEqual(path.read_bytes(), original)
+
+    def test_full_flow_uses_distinct_namespace_and_two_fingerprint_reads(self):
+        calls = []
+        def execute(command, env, marker, timeout=180):
+            calls.append((command, env, marker))
+            return "LOCAL_FLOW_FINGERPRINT " + "a" * 64 + "\n"
+        with patch.object(runner, "execute", side_effect=execute), redirect_stdout(io.StringIO()):
+            runner.verify_local_flow(["godot"], {"ZERKOV_TEST_SCENARIO": "death"})
+        self.assertEqual([c[2] for c in calls], ["NATIVE_LOCAL_FLOW_RESULT", "LOCAL_FLOW_VERIFY", "LOCAL_FLOW_VERIFY", "LOCAL_FLOW_CLEANUP"])
+        self.assertTrue(all(c[1]["ZERKOV_TEST_SCENARIO"] == "full" for c in calls))
+        namespaces = [c[0][c[0].index("--") + 2] for c in calls]
+        self.assertEqual(len(set(namespaces)), 1)
+        self.assertRegex(namespaces[0], r"^localflow_[a-f0-9]{32}$")
 
 
 if __name__ == "__main__":

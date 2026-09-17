@@ -54,10 +54,49 @@ def cleanup_after(cleanup: Callable[[], object]) -> Iterator[None]:
         cleanup()
 
 
+def import_runtime_project(base: list[str], env: dict[str, str], project: Path) -> None:
+    """Import runtime dependencies without running unrelated editor dashboards.
+
+    The temporary project's GDExtensions and autoloads remain enabled. Restore
+    project.godot byte-for-byte before gameplay; this is not an editor audit.
+    """
+    config = project / "project.godot"
+    original = config.read_bytes()
+    text = original.decode("utf-8")
+    section = re.compile(r"(?ms)(^\[editor_plugins\]\r?\n)(.*?)(?=^\[|\Z)")
+    def disable(match: re.Match[str]) -> str:
+        body = re.sub(r"(?m)^enabled=.*$", "enabled=PackedStringArray()", match[2])
+        return match[1] + body
+    try:
+        config.write_text(section.sub(disable, text), encoding="utf-8")
+        print("EQUIPMENT_IMPORT: editor dashboards disabled in temporary copy; native extensions unchanged", flush=True)
+        execute(base + ["--editor", "--import", "--quit"], env)
+    finally:
+        config.write_bytes(original)
+    if config.read_bytes() != original:
+        raise RuntimeError("Runtime project configuration was not restored")
+
+
+def verify_local_flow(base: list[str], env: dict[str, str]) -> None:
+    """Run the unchanged full local-flow driver in the same native project."""
+    namespace = "localflow_" + uuid.uuid4().hex
+    command = base + ["--script", "res://tests/local/native_local_flow_contract.gd", "--"]
+    full_env = {**env, "ZERKOV_TEST_SCENARIO": "full"}
+    with cleanup_after(lambda: execute(command + ["cleanup", namespace], full_env, "LOCAL_FLOW_CLEANUP", 30)):
+        log = execute(command + ["run", namespace], full_env, "NATIVE_LOCAL_FLOW_RESULT", 660)
+        match = re.search(r"(?m)^LOCAL_FLOW_FINGERPRINT ([a-f0-9]{64})$", log)
+        if not match:
+            raise RuntimeError("Missing local-flow profile fingerprint")
+        for _ in range(2):
+            execute(command + ["verify", namespace, match[1]], full_env, "LOCAL_FLOW_VERIFY")
+    print("EQUIPMENT_LOCAL_FLOW_COMPLETE", flush=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", type=Path, required=True)
     parser.add_argument("--capture-dir", type=Path, help="Record native fullscreen AVI clips; not a real-time FPS measurement")
+    parser.add_argument("--local-flow", action="store_true", help="Also verify extraction/death/save-retry and two fresh-process reloads")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[1]
     env = {**os.environ, "GODOT_SILENCE_ROOT_WARNING": "1"}
@@ -70,7 +109,7 @@ def main() -> int:
         shutil.copytree(source, project, ignore=shutil.ignore_patterns(".git", ".godot", ".codegraph", "__pycache__"))
         env["XDG_DATA_HOME"] = str(Path(temp) / "user")
         base = [engine, "--headless", "--path", str(project), "--resolution", "1920x1080", "--audio-driver", "Dummy"]
-        execute(base + ["--editor", "--import", "--quit"], env)
+        import_runtime_project(base, env, project)
         # Dynamic input drivers must compile before any profiles or movies are
         # created. A failed preload can prevent the in-script watchdog starting.
         for path in (
@@ -105,6 +144,8 @@ def main() -> int:
                 if not match:
                     raise RuntimeError("Missing exact saved identity/fingerprint")
                 saved = list(match.groups())
+        if args.local_flow:
+            verify_local_flow(base, env)
     print("EQUIPMENT_RUNNER_COMPLETE")
     return 0
 

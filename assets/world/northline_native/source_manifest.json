@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "purpose": "Original full PNG sheets for native freight TileSet/prop resources. Byte copies only; never resize, quantize or repack.",
+  "base_commit": "36e363625861e3fe3758c345181a66891facdabd",
+  "distribution_status": "internal_development_provenance_not_release_clearance",
+  "archives": {
+    "abandoned-assets(1).zip": "1fad33e0a477e38f1302babf1e4160fa8d939879e529e3237d8bccd284e16b95",
+    "post-apocalyptic-assets(1).zip": "bbb621af4e93ded631b68b51bc8eae60e86b00e522c4757a6cdf280e9c68eaa8"
+  },
+  "sources": [
+    {
+      "id": 10,
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-factory-ruins-pixel-art-tileset-pack/2.png",
+      "path": "assets/world/northline_native/sources/sheet_10.png",
+      "sha256": "7d149e6f6b532d69820d572469a4135eef3a3d533739e6e642b1236a8e47ea0c",
+      "bytes": 789655,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 12,
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-factory-ruins-pixel-art-tileset-pack/1.png",
+      "path": "assets/world/northline_native/sources/sheet_12.png",
+      "sha256": "6e9f85e648407adf25d34f263304b2ffe31cd4b7ebbdf5a64cef9e7814ba48ba",
+      "bytes": 746587,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 14,
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-hospital-tileset/2.png",
+      "path": "assets/world/northline_native/sources/sheet_14.png",
+      "sha256": "af7d1eab9504f14ff69732ddc0fa4a850a85500e1a83ad50f7cb7045eae7e400",
+      "bytes": 722270,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 17,
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-05.png",
+      "path": "assets/world/northline_native/sources/sheet_17.png",
+      "sha256": "ad5519f9fb7d7602ba84e34a87a4951ed6e8b736f3e8eaa429f564b447bf3390",
+      "bytes": 639311,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 18,
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-07.png",
+      "path": "assets/world/northline_native/sources/sheet_18.png",
+      "sha256": "24c0031a8522a3c518569f11469fdf6ed525ead2835e42f10a2c0ced872a5b3e",
+      "bytes": 847544,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 19,
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-06.png",
+      "path": "assets/world/northline_native/sources/sheet_19.png",
+      "sha256": "ad3f55bdfc1cbe3e5d4ced27d86aef604b65251af06dc6dff5f02d4f15cbe4d1",
+      "bytes": 883540,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 20,
+      "archive": "abandoned-assets(1).zip",
+      "member": "abandoned-military-base-wasteland-postapocalyptic-topdown-pixel-art-tileset/tile-B-02.png",
+      "path": "assets/world/northline_native/sources/sheet_20.png",
+      "sha256": "52c794ca914ddab474c61ce0ee08915b2d0bc0695fdc894b384656a8a4b8aacc",
+      "bytes": 1075608,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 49,
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-abandoned-supermarket-tileset/1.png",
+      "path": "assets/world/northline_native/sources/sheet_49.png",
+      "sha256": "55c39e50dd4eb03f17911aad85880678fb7eeb5cd0ea79d6e5a406922386a2cd",
+      "bytes": 1097544,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 60,
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-zombie-city-tileset/2.png",
+      "path": "assets/world/northline_native/sources/sheet_60.png",
+      "sha256": "699217ff3d67770ae05bf07217650635793b094c0f9708514b195778a88eb538",
+      "bytes": 803327,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 62,
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-zombie-city-tileset/1.png",
+      "path": "assets/world/northline_native/sources/sheet_62.png",
+      "sha256": "f84faf22e51de801d67b1c879f81c90ae317744bcb94cbcb77a67392f2c60386",
+      "bytes": 859415,
+      "size": [
+        768,
+        768
+      ]
+    },
+    {
+      "id": 147,
+      "archive": "post-apocalyptic-assets(1).zip",
+      "member": "post-apocalyptic-forest-pixel-art-tileset/tile-B-01.png",
+      "path": "assets/world/northline_native/sources/sheet_147.png",
+      "sha256": "98534b457f0b170c4bd89fd2127bad3445daf37548211ed108f62f2ae276044b",
+      "bytes": 1009739,
+      "size": [
+        768,
+        768
+      ]
+    }
+  ]
+}

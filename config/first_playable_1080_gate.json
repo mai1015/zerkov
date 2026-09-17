@@ -6,6 +6,8 @@
   "project_config": {"window/size/viewport_width":1920,"window/size/viewport_height":1080,"window/size/window_width_override":1920,"window/size/window_height_override":1080},
   "active_visual_entrypoints": {
     "tests/equipment/equipment_ui_flow.gd":{"purpose":"Real local equipment input, separate-process saves and optional native movie at exact 1080p","sha256":"8fff6287879cff05f39925b4ef884e4862c5b917f228e2400ebcfdaf7d210532"},
+    "tests/presentation/northline_native_zone_contract.gd": {"purpose": "original-PNG nine-district native TileMapLayer map and guarded 1080 capture", "sha256": "6a81592c3d36fc9c109b15624ea06c819ccebef592f3a997fc93a5bd0114cf63"},
+    "tests/presentation/northline_native_contract.gd": {"purpose": "original-PNG native TileMapLayer freight slice and guarded 1080 capture", "sha256": "a675e5a7cdbd8f2842463df96db2a424b8011c3f9346b307a964be1e485fda81"},
     "tests/border_render_smoke.gd":{"purpose":"native UI border contract","sha256":"17d489c83f39a4bfaa7613d4be445be2b5ff5dd8cfc3539a267062ba200410c9"},
     "tests/bunker_smoke.gd":{"purpose":"UI route contract","sha256":"fd48bd9a50f00609658d3ac5893c0339597e15453d52373d0ea5224cdaa2afd0"},
     "tests/common_ui_input_regression_1080.gd":{"purpose":"exact input regression","sha256":"8db61fcbd63b07159ee9e795f793a4bff7b85d25f1d7a214ccb379aafc9b8d32"},
@@ -38,6 +40,10 @@
     "tests/ai/ai_debug_render_contract.gd":{"purpose":"synthetic AI diagnostics with approved 640x360 nearest 3x world; not native gameplay acceptance","sha256":"d755dee2ff26a69721e115867752373e3d677d7cb2e386fdf64225f530d31475"}
   },
   "active_command_entrypoints": {
+    "tools/run_equipment_contracts.py":{"purpose":"Native equipment and existing reconciliation/UI suites; isolated real profile and native fullscreen recording","sha256":"4b0bf01c63182ff1b108aa614a42b5d430bba60554558917f02f6646a3a0fd14"},
+    "tools/run_health_catalog_contracts.py":{"purpose":"headless native health-catalog differential and preflight benchmark; no captures or FPS claims","sha256":"b06727fd38fbb5a715c2a4109d797cf2911b7c26eea83f5bd7415cb527b4a98b"},
+    "tests/tooling/run_northline_native_zone_gate.py": {"purpose": "native 1080 full map, four collision routes and edit reopening", "sha256": "67b8d47d255ed746a1e69e288a16d9993446c06966241c6c87a24492980a4383"},
+    "tests/tooling/run_northline_native_gate.py": {"purpose": "native 1080 freight scene and third-process edit reopening", "sha256": "a33d2d91ab81b4cebf920c50fb15a03dfe5e9dd469617f2f19cc99ffa145e4a9"},
     "tests/tooling/run_interaction_policy_headless_gate.py":{"purpose":"exact headless interaction policy driver","sha256":"a080fe27aa70df44588b433fdd2d963cea4833a3e24770e6670788c2428d73f8"},
     "tests/tooling/run_movement_authority_headless_gate.py":{"purpose":"exact headless movement authority driver","sha256":"539eed3dc9b0a20cc6393111d1e4dad6aefe093554e664695b33c7c7643a735a"},
     "tests/tooling/run_navigation_path_headless_gate.py":{"purpose":"exact headless navigation path driver","sha256":"c365012e9da0620a8899e1c85e88f60293a34fb6dc1965a22f25726a7627837c"},
@@ -55,7 +61,6 @@
     "tools/run_combat_input_contracts.py":{"purpose":"exact headless combat input, melee/HUD values and native execution regressions in temporary projects","sha256":"aad9d574a285d798c5ce90ab866ca86f78f4d12e3d6a2ef157155687835fe035"},
     "tools/run_raid_progression_contracts.py":{"purpose":"exact headless native raid progression and separate-process settlement restart contracts","sha256":"708399956f5264f132449cb23b49c01abff10fea485a3036b5d22d5d6e636e51"},
     "tests/tooling/run_bunker_hideout_gate.py":{"purpose":"Exact-1080 graphical bunker capture gate","sha256":"f09a63daa84a6f6e28b3f4134f635cf6a5e6c95d125baa7be6ca398de1316713"},
-    "tools/run_equipment_contracts.py":{"purpose":"Native equipment and existing reconciliation/UI suites; isolated real profile and native fullscreen recording","sha256":"b0f87a4b29eb1a59a27dfeaa6d68e8eb12bfe254ce93dbab7eda4b796524ecf1"},
     "tools/run_local_flow_contracts.py":{"purpose":"exact local root and isolated-file relaunch contracts","sha256":"6a37ecc5e859fa5321c70657b78904fe8e1c46757c9b42a9bd4a16a0a0ea7ecb"}
   },
   "active_reviewed_support": {
@@ -64,6 +69,10 @@
     "ui/main.gd":{"purpose":"runtime UI host and sanctioned QA writer","runner_inventory":false,"sha256":"0c2ebd273ab3489c4fb933d46f4d95d0cd3e5820d8d4b1baef6436d3dd691524"}
   },
   "active_headless_entrypoints": [
+    "tests/equipment/equipment_contract.gd",
+    "tests/combat/health_catalog_performance_contract.gd",
+    "tools/migrate_northline_zone_native.gd",
+    "tools/migrate_northline_freight.gd",
     "tests/addons/combined_addons_smoke.gd",
     "tests/ai/ai_review_regression_contract.gd",
     "tests/ai/ai_workstream_contract.gd",
@@ -121,7 +130,6 @@
     "tests/raid/weapon_instance_context_contract.gd",
     "tests/raid/weapon_persistence_integration_contract.gd",
     "tests/raid/world_markers_contract.gd",
-    "tests/equipment/equipment_contract.gd",
     "tests/combat/native_combat_death_contract.gd"
   ],
   "retired_display_entrypoints": {
@@ -189,6 +197,8 @@
     "guard_anchors":["const EXACT_SIZE := Vector2i(1920, 1080)","DisplayServer.get_name() == \"headless\"","DisplayServer.window_get_size(root_window.get_window_id()) == EXACT_SIZE","root_window.size == EXACT_SIZE","root_window.get_visible_rect().size == Vector2(EXACT_SIZE)","root_texture.get_size() == Vector2(EXACT_SIZE)","capture_viewport.get_visible_rect().size == Vector2(EXACT_SIZE)","capture_texture.get_size() == Vector2(EXACT_SIZE)","raw_image.get_size() == EXACT_SIZE"]
   },
   "sanctioned_capture_writers": {
+    "tests/presentation/northline_native_zone_contract.gd": {"physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)", "guard_anchors": ["root.size=EXACT", "const EXACT := Vector2i(1920,1080)"]},
+    "tests/presentation/northline_native_contract.gd": {"physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)", "guard_anchors": ["root.size=EXACT", "const EXACT := Vector2i(1920,1080)"]},
     "tests/presentation/feature_gates_8_9_contract.gd":{"physical_guard_call":"Exact1080CaptureGuard.accepts(root, production_render_target, image)","guard_anchors":["root.size = FIRST_PLAYABLE_SIZE","root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)","image.get_size() == FIRST_PLAYABLE_SIZE"]},
     "tests/presentation/feature_gates_8_9_visual_evidence.gd":{"physical_guard_call":"Exact1080CaptureGuard.accepts(root, target, image)","guard_anchors":["root.size = FIRST_PLAYABLE_SIZE","target.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)","image.get_size() == FIRST_PLAYABLE_SIZE"]},
     "tests/presentation/ui_production_unavailable_8_11_contract.gd":{"physical_guard_call":"Exact1080CaptureGuard.accepts(root, root, image)","guard_anchors":["root.size = FIRST_PLAYABLE_SIZE","root.get_visible_rect().size == Vector2(FIRST_PLAYABLE_SIZE)","image.get_size() == FIRST_PLAYABLE_SIZE"]},

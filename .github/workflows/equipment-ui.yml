@@ -40,7 +40,7 @@ jobs:
           if [ "$EQUIPMENT_MODE" = footage ]; then
             swift tools/with_macos_capture_display.swift python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" --capture-dir "$RUNNER_TEMP/equipment/footage" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
           else
-            python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
+            python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" --local-flow 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
           fi
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

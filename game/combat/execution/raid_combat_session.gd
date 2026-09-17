@@ -14,6 +14,10 @@ var _generation: int = 0
 var _rows: Array[Dictionary] = []
 var _obstructions: Array[Dictionary] = []
 var _publisher_registration: String = ""
+var _body_records: Dictionary = {}
+var _world_revision: int = 0
+var _world_snapshot_builds: int = 0
+var _world_snapshot_refreshes: int = 0
 var _started: bool = false
 var _released: bool = false
 const PUBLISHER: StringName = &"combat_world_snapshot"
@@ -146,7 +150,7 @@ func _publish_bodies(raid: RaidAuthority, phase: int, tick: int, _intents: Array
 	if _released or raid != _raid or not raid.is_dispatching_phase_registration(PUBLISHER,
 		_publisher_registration, Callable(self, "_publish_bodies"), phase, tick, _generation):
 		return _fail(&"combat_world_publish_out_of_phase")
-	var bodies: Array[Dictionary] = []
+	var changed := false
 	for row in _rows:
 		var movement := row.movement as ZPlayerLocomotion
 		var position := ZWorldUnits.godot_to_canonical(movement.position_px)
@@ -156,14 +160,54 @@ func _publish_bodies(raid: RaidAuthority, phase: int, tick: int, _intents: Array
 			ZPlayerFacing.Facing4.EAST: facing = 1
 			ZPlayerFacing.Facing4.SOUTH: facing = 2
 			ZPlayerFacing.Facing4.WEST: facing = 3
-		bodies.append({"entity_id": row.actor_id.canonical_key(), "actor_source": row.source,
-			"profile_id": String(ZerkovBodyHitboxProfile.PROFILE_HUMANOID_V1), "body_revision": tick,
-			"origin_raw": position.vector2i_value, "facing_quarter_turns": facing,
-			"collision_layer": 1, "targetable": health.actor_snapshot(row.actor_id).get("alive", false)})
-	if not hitboxes.phase_publisher_publish_snapshot(tick, tick, bodies, _obstructions,
-		raid.admission().actor_id, ZRaidIntent.Source.PLAYER, PUBLISHER,
-		_publisher_registration, Callable(self, "_publish_bodies")): return _fail(hitboxes.last_error)
+		var actor_key: String = row.actor_id.canonical_key()
+		var targetable := bool(health.actor_snapshot(row.actor_id).get("alive", false))
+		var prior := _body_records.get(actor_key, {}) as Dictionary
+		if prior.is_empty() \
+				or prior.get("origin_raw") != position.vector2i_value \
+				or int(prior.get("facing_quarter_turns", -1)) != facing \
+				or bool(prior.get("targetable", false)) != targetable:
+			_body_records[actor_key] = {
+				"entity_id": actor_key,
+				"actor_source": row.source,
+				"profile_id": String(ZerkovBodyHitboxProfile.PROFILE_HUMANOID_V1),
+				"body_revision": int(prior.get("body_revision", 0)) + 1,
+				"origin_raw": position.vector2i_value,
+				"facing_quarter_turns": facing,
+				"collision_layer": 1,
+				"targetable": targetable,
+			}
+			changed = true
+	if changed or _world_revision == 0:
+		_world_revision += 1
+		var bodies: Array[Dictionary] = []
+		var actor_keys := PackedStringArray(_body_records.keys())
+		actor_keys.sort()
+		for actor_key in actor_keys:
+			bodies.append(_body_records[actor_key] as Dictionary)
+		if not hitboxes.phase_publisher_publish_snapshot(tick, _world_revision, bodies, _obstructions,
+			raid.admission().actor_id, ZRaidIntent.Source.PLAYER, PUBLISHER,
+			_publisher_registration, Callable(self, "_publish_bodies")):
+			return _fail(hitboxes.last_error)
+		_world_snapshot_builds += 1
+	else:
+		if not hitboxes.phase_publisher_refresh_snapshot(tick, _world_revision,
+			raid.admission().actor_id, ZRaidIntent.Source.PLAYER, PUBLISHER,
+			_publisher_registration, Callable(self, "_publish_bodies")):
+			return _fail(hitboxes.last_error)
+		_world_snapshot_refreshes += 1
 	return true
+
+
+func world_publication_work_counts() -> Dictionary:
+	var result := {
+		"world_revision": _world_revision,
+		"snapshot_builds": _world_snapshot_builds,
+		"tick_refreshes": _world_snapshot_refreshes,
+		"body_count": _body_records.size(),
+	}
+	result.make_read_only()
+	return result
 
 ## Release consumers and outstanding reservations before the raid terminalizes.
 ## Prepared inventory owners are deliberately NOT erased; task 7 settles them.
@@ -190,6 +234,7 @@ func release() -> bool:
 		if row.has("bridge"): row.bridge.release_binding()
 	if health != null and health.lifecycle in [HealthConsequenceAdapter.Lifecycle.BOUND, HealthConsequenceAdapter.Lifecycle.RECOVERY_REQUIRED, HealthConsequenceAdapter.Lifecycle.INVALIDATED]:
 		if not health.release_binding(&"teardown", _raid.last_processed_tick): return _fail(health.last_error)
+	_body_records.clear()
 	_released = true
 	return true
 
