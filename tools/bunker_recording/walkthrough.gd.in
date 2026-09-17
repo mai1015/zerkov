@@ -1,0 +1,195 @@
+extends "res://tests/local/native_local_flow_contract.gd"
+## Recording driver only. Existing campaign root + genuine viewport input.
+## No route forcing, fixture inventory, gameplay changes, or profile replacement.
+## Fixed-frame movie output is a UX walkthrough, NOT a real-time FPS benchmark.
+const MOVIE_SIZE := Vector2i(1920, 1080)
+const MOVIE_FPS := 30
+var chapters: Array[Dictionary] = []
+var cursor: Node2D
+var pointer_layer: CanvasLayer
+
+class RecordingPointer:
+	extends Node2D
+	var clicking: bool = false
+	func _draw() -> void:
+		var arrow := PackedVector2Array([Vector2(0,0),Vector2(0,25),Vector2(7,19),Vector2(12,31),Vector2(17,29),Vector2(12,17),Vector2(22,17),Vector2(0,0)])
+		draw_colored_polygon(arrow, Color(0.98,0.98,0.96))
+		draw_polyline(arrow, Color(0.05,0.06,0.06), 2.0, true)
+		if clicking: draw_arc(Vector2(4,10),27,0,TAU,48,Color(0.95,0.72,0.32),3.0,true)
+
+func run() -> void:
+	create_timer(145.0).timeout.connect(func(): push_error("BUNKER_MOVIE_TIMEOUT"); quit(1))
+	var args := OS.get_cmdline_user_args()
+	if args.size() != 1 or not args[0].begins_with("localflow_") or args[0].length() != 42 or not args[0].substr(10).is_valid_hex_number():
+		push_error("BUNKER_MOVIE_INVALID_NAMESPACE"); quit(2); return
+	if DisplayServer.get_name() == "headless" or not OS.has_feature("movie"):
+		push_error("BUNKER_MOVIE_REQUIRES_GRAPHICAL_MOVIE_MODE"); quit(2); return
+	_namespace = args[0]
+	_operations = GodotProfileFileOperations.new(StringName(_namespace))
+	_store = ProfileStore.new()
+	if not check(_store.configure_with_trusted_operations(LocalCampaignContent.PROFILE_ID, _operations), "isolated native file store"): await finish(); return
+	if not check(_store.load_profile().get("reason") == &"profile_missing", "new recording save"): await finish(); return
+	root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+	root.content_scale_size = MOVIE_SIZE
+	_game = load(ProjectSettings.get_setting("application/run/main_scene")).instantiate() as LocalGame
+	if not check(_game != null and _game.configure_test_store(_store, false), "production root, isolated save"): await finish(); return
+	_game.child_entered_tree.connect(_configure_capture_layout)
+	root.add_child(_game)
+	pointer_layer = CanvasLayer.new()
+	pointer_layer.layer = 100
+	root.add_child(pointer_layer)
+	cursor = RecordingPointer.new()
+	cursor.position = Vector2(1080,840)
+	pointer_layer.add_child(cursor)
+	await settle()
+	if not route("title"): await finish(); return
+	chapter("Title")
+	await hold(2.0)
+	await key(KEY_ENTER)
+	if not route("main_menu"): await finish(); return
+	chapter("New local campaign")
+	await hold(3.0)
+	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
+	var initial: Dictionary = _store.load_profile()
+	if not check(initial.get("ok", false), "campaign committed"): await finish(); return
+	chapter("Bunker: one home hub")
+	await hold(4.5)
+	if not await click("BunkerHideoutView/FacilityAction") or not route("inventory"): await finish(); return
+	chapter("Stash and loadout")
+	await move_cursor(Vector2(780,590))
+	await hold(5.5)
+	await key(KEY_ESCAPE)
+	if not route("bunker"): await finish(); return
+	await hold(1.5)
+	if not await select_room("medical"): await finish(); return
+	chapter("Medical room")
+	await hold(2.5)
+	if not await click("BunkerHideoutView/FacilityAction") or not route("health"): await finish(); return
+	chapter("Health workspace")
+	await move_cursor(Vector2(870,515))
+	await hold(5.0)
+	await key(KEY_ESCAPE)
+	if not route("bunker"): await finish(); return
+	await hold(1.5)
+	if not await select_room("workshop"): await finish(); return
+	chapter("Workshop: raid planning")
+	await hold(2.5)
+	if not await click("BunkerHideoutView/FacilityAction") or not route("maps"): await finish(); return
+	if not check(_game._session == null, "briefing does not deploy"): await finish(); return
+	chapter("Sawmill raid briefing")
+	await move_cursor(Vector2(1260,820))
+	await hold(5.5)
+	await key(KEY_ESCAPE)
+	if not route("bunker"): await finish(); return
+	await hold(1.5)
+	await key(KEY_J)
+	if not route("tasks"): await finish(); return
+	chapter("Supply Run objectives")
+	await move_cursor(Vector2(1340,550))
+	await hold(4.5)
+	await key(KEY_ESCAPE)
+	if not route("bunker"): await finish(); return
+	if not await select_room("utilities"): await finish(); return
+	chapter("Unavailable facilities are explicit")
+	await hold(3.0)
+	if not await click("BunkerHideoutView/LightingPreview"): await finish(); return
+	chapter("Cosmetic emergency lighting")
+	await move_cursor(Vector2(995,805))
+	await hold(3.0)
+	if not await click("BunkerHideoutView/LightingPreview"): await finish(); return
+	await hold(1.5)
+	await key(KEY_ESCAPE)
+	if not route("pause"): await finish(); return
+	chapter("Home menu")
+	await hold(3.0)
+	if not await click("ActionsPanel/SaveQuitRow/Hit") or not route("main_menu"): await finish(); return
+	chapter("Saved campaign: Continue")
+	await hold(3.5)
+	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
+	if not check(_store.load_profile().fingerprint == initial.fingerprint, "navigation and Continue preserve saved inventory"): await finish(); return
+	chapter("Back to the same bunker")
+	await move_cursor(Vector2(1230,915))
+	await hold(4.5)
+	await finish()
+
+func _configure_capture_layout(node: Node) -> void:
+	# Capture viewport layout only; no QA/prototype mode, route, or provider swap.
+	# The remote display may be smaller; the native render target stays 1080p.
+	if node is LocalUIHost: node.ui_layout_mode = "desktop"
+
+func chapter(title: String) -> void:
+	check(root.get_visible_rect().size == Vector2(MOVIE_SIZE), "native 1080p render target")
+	chapters.append({"title":title,"frame":Engine.get_frames_drawn(),"seconds":float(Engine.get_frames_drawn())/MOVIE_FPS,"route":_game._ui.current_route})
+	print("BUNKER_MOVIE_CHAPTER ", JSON.stringify(chapters[-1]))
+
+func hold(seconds: float) -> void:
+	for _i: int in range(roundi(seconds * MOVIE_FPS)): await process_frame
+
+func move_cursor(point: Vector2) -> void:
+	var start: Vector2 = cursor.position
+	for i: int in range(24):
+		var weight: float = smoothstep(0.0, 1.0, float(i + 1) / 24.0)
+		var previous: Vector2 = cursor.position
+		cursor.position = start.lerp(point, weight)
+		var motion := InputEventMouseMotion.new()
+		motion.position = cursor.position
+		motion.global_position = cursor.position
+		motion.relative = cursor.position - previous
+		root.push_input(motion, true)
+		await process_frame
+
+func click_point(point: Vector2) -> void:
+	await move_cursor(point)
+	await hold(0.2)
+	for down: bool in [true, false]:
+		cursor.set("clicking", down)
+		cursor.queue_redraw()
+		var event := InputEventMouseButton.new()
+		event.position = point
+		event.global_position = point
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		root.push_input(event, true)
+		await hold(0.12)
+	await settle()
+
+func click(path: String) -> bool:
+	var control: Control = _game._ui.screen.get_node_or_null(path) as Control
+	if not check(control != null and control.is_visible_in_tree(), "visible input target " + path): return false
+	if control is BaseButton and not check(not control.disabled, "enabled input target " + path): return false
+	await click_point(control.get_global_rect().get_center())
+	return failures == 0
+
+func key(code: Key) -> void:
+	for down: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = code
+		event.physical_keycode = code
+		event.pressed = down
+		root.push_input(event, true)
+		await hold(0.1)
+	await settle()
+
+func select_room(room_id: String) -> bool:
+	var view: ZBunkerHideoutView = _game._ui.screen.get_node("BunkerHideoutView") as ZBunkerHideoutView
+	for room: Dictionary in view.world.layout.rooms:
+		if room.id != room_id: continue
+		var bounds: Array = room.rect
+		var point := Vector2(bounds[0] + bounds[2]*0.5, bounds[1] + bounds[3]*0.5)*3.0
+		await click_point(view.get_global_transform()*point)
+		return check(view.current_room == room_id, "actual map selected " + room_id)
+	return check(false, "authored room exists")
+
+func finish() -> void:
+	if _game != null and is_instance_valid(_game):
+		check(_game.shutdown(), "recording closes the campaign writer")
+		_game.queue_free()
+		await settle()
+		_game = null
+	if _store != null and _store.is_configured(): _store.close()
+	if _operations != null:
+		for slot: StringName in ProfileFileOperations.ALL_SLOTS:
+			check(_operations.remove_slot(slot).get("ok", false), "remove recording-only save")
+	print("BUNKER_MOVIE_CHAPTERS ", JSON.stringify(chapters))
+	print("BUNKER_MOVIE_RESULT checks=", checks, " failures=", failures, " native=true fixed_fps=30")
+	quit(0 if failures == 0 else 1)

@@ -1,0 +1,42 @@
+name: Bunker walkthrough recording
+on:
+  push:
+    branches: ['codex/bunker-flow-footage-e904645']
+    paths: ['tools/bunker_recording/**', '.github/workflows/record-bunker-footage.yml']
+permissions:
+  contents: read
+concurrency:
+  group: bunker-recording-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  record:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 12
+          persist-credentials: false
+      - name: Install pinned engine and video encoder
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json;print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          ffmpeg -version
+      - name: Record native campaign walkthrough
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -u tools/bunker_recording/record.py --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/bunker-footage"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: bunker-walkthrough
+          path: ${{ runner.temp }}/bunker-footage
+          retention-days: 7
+          compression-level: 0
