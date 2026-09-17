@@ -28,6 +28,8 @@ var _busy: bool = false
 var _closed: bool = false
 var _auto_advance: bool = true
 var _last_route: String = "title"
+var _preparation_return: String = "bunker"
+const CHARACTER_ROUTES: Array[String] = ["inventory", "health", "stats"]
 var _quit_pending: bool = false
 var _map_layout: ZSawmillYardLayout
 var _save_location: String = ""
@@ -77,6 +79,7 @@ func _ready() -> void:
 	add_child(_character)
 	_provider.start_unavailable(_epoch)
 	_ui_port.requested.connect(_request)
+	_character.inventory_view_changed.connect(_home_inventory_changed)
 	_world = SubViewport.new()
 	_world.name = "AuthoritativeWorldViewport"
 	_world.size = ZWorldViewportPolicy.BASE_SURFACE_SIZE
@@ -160,7 +163,8 @@ func _consume(command: StringName, epoch: int) -> void:
 			if _mode == "home": _close_profile()
 		&"resume":
 			if _mode == "raid": _navigate("hud", false)
-			elif _mode == "home": _navigate("bunker", false)
+			elif _mode == "home":
+				_navigate(_preparation_return if _ui != null and _ui.current_route in CHARACTER_ROUTES else "bunker", false)
 			elif _mode == "menu": _navigate("main_menu", false)
 		&"interact":
 			if can_advance(): _interact()
@@ -183,6 +187,7 @@ func _consume(command: StringName, epoch: int) -> void:
 			_quit()
 
 func _open_home() -> void:
+	_preparation_return = "bunker"
 	_busy = true
 	_release_input()
 	_release_character()
@@ -218,6 +223,7 @@ func _close_profile() -> void:
 	_home.queue_free(); _home = null
 	_home_admission = null
 	_mode = "menu"; _epoch += 1; last_error = &""
+	_preparation_return = "bunker"
 	_notice = "Campaign saved on this computer. Continue returns to your bunker."
 	_world_image.hide()
 	_publish()
@@ -225,6 +231,7 @@ func _close_profile() -> void:
 
 
 func _deploy() -> void:
+	_preparation_return = "bunker"
 	_busy = true
 	if not _campaign.save_home(_home): _busy = false; _error(_campaign.last_error); return
 	_release_character()
@@ -263,6 +270,12 @@ func _start_raid() -> void:
 
 func _route_changed(route: String, _screen: Control) -> void:
 	_release_input()
+	if _mode == "home":
+		if route in CHARACTER_ROUTES:
+			if _last_route not in CHARACTER_ROUTES:
+				_preparation_return = "maps" if _last_route == "maps" else "bunker"
+		else:
+			_preparation_return = "bunker"
 	if _mode == "home" and _home != null and _last_route in ["inventory", "health", "stats"]:
 		if not _campaign.save_home(_home): _error(_campaign.last_error)
 	if _mode == "raid" and route == "hud":
@@ -276,7 +289,19 @@ func _route_changed(route: String, _screen: Control) -> void:
 		if _interaction_handle == null: _error(&"local_interaction_input_failed"); return
 	_last_route = route
 	_publish()
-	if _mode == "deploying" and route == "deploying": _start_raid.call_deferred()
+	if _mode == "deploying" and route == "deploying": _present_deployment.call_deferred()
+
+## Give the real loading screen one rendered frame before synchronous raid setup.
+## No cosmetic timer or manufactured percentage delays a ready operation.
+func _present_deployment() -> void:
+	await get_tree().process_frame
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+	if not _closed and _mode == "deploying": _start_raid.call_deferred()
+
+func _home_inventory_changed(_scope: StringName, _view: InventoryView) -> void:
+	if not _closed and not _busy and _mode == "home": _publish()
+
 
 func _handle_interact(event: Dictionary) -> int:
 	if not can_advance(): return CommonUIRuntime.ROUTE_UNHANDLED
@@ -331,7 +356,10 @@ func _publish() -> void:
 		"can_create":_campaign.loaded.get("reason") == &"profile_missing" and _campaign.last_error.is_empty(),
 		"profile_generation":int(_campaign.loaded.get("generation", 0)),"notice":_notice,"error":String(last_error),
 		"summary":_summary,"progression":{},"combat":{},"tick":0,"map_markers":[],"searched_ids":[],"nearest_target":"",
-		"save_location":_save_location,"home_available":_mode == "home" and _home != null and _home.is_current_generation(_home.generation())}
+		"save_location":_save_location,"preparation_return":_preparation_return,"home_equipment":{},"home_available":_mode == "home" and _home != null and _home.is_current_generation(_home.generation())}
+	if frame.home_available:
+		frame.home_equipment = LocalPreparationView.equipment_from_snapshot(
+			_home.raid_authority().snapshot(_home.raid_player_inventory_id))
 	if _session != null and _session.progression != null:
 		frame.progression = _session.progression.snapshot()
 		frame.lifecycle = int(_session.raid.lifecycle)

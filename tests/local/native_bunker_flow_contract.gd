@@ -60,6 +60,13 @@ func run() -> void:
 	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
 	var initial := _store.load_profile()
 	if not check(initial.ok and (initial.generation == 1 if _run_mode == "new" else initial.fingerprint == saved.fingerprint), "entry never reseeds existing progress"): await finish(); return
+	if OS.get_environment("ZERKOV_OFFLINE_JOURNEY") == "1":
+		var driver = load("res://tests/local/offline_journey_driver.gd").new()
+		if not await driver.run(self, initial): await finish(); return
+		print("OFFLINE_JOURNEY_COMPLETE native=true")
+		print("BUNKER_FLOW_FINGERPRINT ", _store.load_profile().fingerprint)
+		await finish()
+		return
 	if OS.get_environment("ZERKOV_BUNKER_WORKSPACES") == "1":
 		var driver = load("res://tests/local/bunker_workspaces_driver.gd").new()
 		if not await driver.run(self, initial): await finish(); return
@@ -170,10 +177,13 @@ func room_click(room_id: String) -> void:
 		return
 	check(false, "room exists in authored layout")
 
-func capture(filename: String) -> void:
+func capture(filename: String, settle_first: bool = true) -> void:
 	if _capture_dir.is_empty() or failures > 0: return
-	await settle()
-	await RenderingServer.frame_post_draw
+	if settle_first:
+		await settle()
+		# Static paused screens may not schedule another redraw. Request a real
+		# main-thread render, never resize or reconstruct the returned image.
+		RenderingServer.force_draw(false)
 	var image := root.get_texture().get_image()
 	DirAccess.make_dir_recursive_absolute(_capture_dir)
 	if not Exact1080CaptureGuard.accepts(root, root, image):
