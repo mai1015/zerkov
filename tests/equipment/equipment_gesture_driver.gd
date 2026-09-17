@@ -2,6 +2,7 @@ extends RefCounted
 ## Exercises Godot's drag manager and native Button activation. No forced drag
 ## payloads, direct controller submissions, or canonical mutations are used.
 var driver: RefCounted
+var _drop_events: Array[Dictionary] = []
 
 func run(value: RefCounted) -> bool:
 	driver = value
@@ -45,6 +46,12 @@ func activate(control: Control) -> bool:
 
 func drag(source: Control, destination: Vector2) -> bool:
 	if not driver.check(source != null and source.is_visible_in_tree(), "drag source visible"): return false
+	_drop_events.clear()
+	var observed: Array[Control] = []
+	for grid: Control in driver.game._ui.screen.get("_grids"):
+		grid.drop_rejected.connect(_observe_drop.bind(grid, false))
+		grid.item_dropped.connect(_observe_drop.bind(grid, true))
+		observed.append(grid)
 	var start := source.get_global_rect().get_center()
 	motion(start, Vector2.ZERO, false)
 	await driver.process_frame
@@ -59,6 +66,12 @@ func drag(source: Control, destination: Vector2) -> bool:
 	var started: bool = driver.root.gui_is_dragging()
 	button(destination, false)
 	await driver.settle()
+	for grid: Control in observed:
+		if not is_instance_valid(grid): continue
+		grid.drop_rejected.disconnect(_observe_drop.bind(grid, false))
+		grid.item_dropped.disconnect(_observe_drop.bind(grid, true))
+	print("EQUIPMENT_DRAG_TRACE start=", start, " destination=", destination,
+		" events=", _drop_events)
 	return driver.check(started and not driver.root.gui_is_dragging(), "native drag starts and completes without forced payload")
 
 func motion(point: Vector2, relative: Vector2, held: bool) -> void:
@@ -75,3 +88,11 @@ func button(point: Vector2, down: bool) -> void:
 	event.button_index = MOUSE_BUTTON_LEFT; event.pressed = down
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+func _observe_drop(item: Dictionary, source_key: String, cell: Vector2i, grid: Control, admitted: bool) -> void:
+	_drop_events.append({"source": source_key, "target": grid.source_id,
+		"cell": cell, "admitted": admitted, "enabled": grid.mutation_enabled,
+		"grid_rect": grid.get_global_rect(), "grid_transform": grid.get_global_transform_with_canvas(),
+		"size_cells": Vector2i(grid.grid_columns, grid.grid_rows),
+		"item_id": item.get("item_id", 0), "item_size": Vector2i(item.get("w", 0), item.get("h", 0)),
+		"occupancy": grid.occupancy_items, "viewport_mouse": grid.get_viewport().get_mouse_position()})
