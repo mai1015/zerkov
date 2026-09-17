@@ -26,19 +26,22 @@ jobs:
           test ! -e tools/native_raids_stage
           test ! -e .github/workflows/publish-native-raids.yml
           git diff --check
-      - name: Seal the actual tested source without copying private runtime dependencies
+      - name: Retain tested text sources and hashes without fonts or runtime binaries
         run: |
           mkdir -p "$RUNNER_TEMP/source-seal"
           python3 - <<'PY'
-          import hashlib,json,os,pathlib,subprocess
+          import hashlib,json,os,pathlib,subprocess,zipfile
           root=pathlib.Path.cwd();out=pathlib.Path(os.environ['RUNNER_TEMP'])/'source-seal'
           rows={}
-          for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
-              p=root/name
-              if not name or not p.is_file() or p.is_symlink():continue
-              if p.suffix not in {'.gd','.tscn','.tres','.py','.json','.md','.yml','.godot'}:continue
-              raw=p.read_bytes()
-              rows[name]={'sha256':hashlib.sha256(raw).hexdigest(),'git_blob':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()}
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as archive:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=root/name
+                  if not name or not p.is_file() or p.is_symlink():continue
+                  if p.suffix not in {'.gd','.gdshader','.uid','.tscn','.tres','.py','.json','.md','.yml','.yaml','.godot','.cfg','.gdextension','.import'}:continue
+                  raw=p.read_bytes()
+                  raw.decode('utf-8')
+                  archive.writestr(name,raw)
+                  rows[name]={'sha256':hashlib.sha256(raw).hexdigest(),'git_blob':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()}
           (out/'source.json').write_text(json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'files':rows},indent=2)+'\n')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
