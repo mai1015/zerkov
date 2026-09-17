@@ -22,9 +22,9 @@ jobs:
           echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
-      - name: Serialize and compare to actual-original-art local resource hashes
+      - name: Serialize exact reviewed resources (no images or rendering)
         run: |
-          python3 - <<'PY'
+          python3 -u - <<'PY'
           import hashlib,itertools,json,os,pathlib,re,shutil,subprocess,tempfile
           root=pathlib.Path.cwd()
           expected=json.loads((root/'docs/qa/northline_native/full_zone_resource_hashes.json').read_text())
@@ -50,35 +50,35 @@ jobs:
               for name,sha in inputs.items():
                   raw=(root/name).read_bytes();assert hashlib.sha256(raw).hexdigest()==sha,name
                   target=workspace/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(raw)
-              # Reuse the fifteen previously committed native prop prototypes.
               props=root/'game/world/northline_native/props'
               assert len(list(props.glob('*.tscn')))==15
               shutil.copytree(props,workspace/'game/world/northline_native/props')
               (workspace/'project.godot').write_text('config_version=5\n[application]\nconfig/name="Metadata serialization only - no rendering"\n[display]\nwindow/size/viewport_width=1920\nwindow/size/viewport_height=1080\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-              # Dimensions-only cache exists solely in this disposable authoring process.
-              # No image or placeholder resource is saved or used as native test evidence.
+              # Temporary dimensions-only cache: not native visual verification.
+              # Canonical importer keeps its original-image preflight unchanged.
               source=workspace/'tools/migrate_northline_zone_native.gd';text=source.read_text()
               old='require(FileAccess.file_exists("res://"+str(row.path)),"original PNG required")'
               assert text.count(old)==1
-              source.write_text(text.replace(old,'require(sheets.has(int(row.source_index)),"source dimensions registered")'))
-              (workspace/'serialize_only.gd').write_text('extends "res://tools/migrate_northline_zone_native.gd"\nfunc _initialize() -> void:\n    var declared: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/world/northline_native/source_manifest.json"))\n    for row: Dictionary in declared.sources:\n        var texture := PlaceholderTexture2D.new()\n        texture.size = Vector2(768,768)\n        texture.take_over_path("res://"+str(row.path))\n        sheets[int(row.source_index)] = texture\n    call_deferred("run")\n')
-              result=subprocess.run([str(engine),'--headless','--path',str(workspace),'--resolution','1920x1080','--audio-driver','Dummy','--script','res://serialize_only.gd'],env=env,text=True,capture_output=True,timeout=120)
+              source.write_text(text.replace(old,'require(sheets.has(int(row.id)),"source dimensions registered")'))
+              (workspace/'serialize_only.gd').write_text('extends "res://tools/migrate_northline_zone_native.gd"\nfunc _initialize() -> void:\n    var declared: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/world/northline_native/source_manifest.json"))\n    for row: Dictionary in declared.sources:\n        var texture := PlaceholderTexture2D.new()\n        texture.size = Vector2(768,768)\n        texture.take_over_path("res://"+str(row.path))\n        sheets[int(row.id)] = texture\n    call_deferred("run")\n')
+              try:
+                  result=subprocess.run([str(engine),'--headless','--path',str(workspace),'--resolution','1920x1080','--audio-driver','Dummy','--script','res://serialize_only.gd'],env=env,text=True,capture_output=True,timeout=120)
+              except subprocess.TimeoutExpired as exc:
+                  print('SERIALIZER_TIMEOUT',exc.stdout,exc.stderr,flush=True)
+                  raise
               print(result.stdout);print(result.stderr)
               assert result.returncode==0 and 'failures=0' in result.stdout
               assert not re.search(r'SCRIPT ERROR|ERROR:|Parse Error',result.stdout+result.stderr)
               plan={}
               for name,sha in expected.items():
-                  data=(workspace/name).read_text()
-                  counter=itertools.count(1)
+                  data=(workspace/name).read_text();counter=itertools.count(1)
                   data=re.sub(r' unique_id=\d+',lambda _: ' unique_id='+str(next(counter)),data)
                   assert 'PlaceholderTexture' not in data and 'serialize_only' not in data,name
                   raw=data.encode();assert hashlib.sha256(raw).hexdigest()==sha,name
                   plan[name]=raw
-              # Publish only after every native resource matches original-art output.
               for name,raw in plan.items():
                   target=root/name;target.parent.mkdir(parents=True,exist_ok=True)
                   with target.open('xb') as stream:stream.write(raw)
-          # Final reviewed backdrop prevents the default gray clear around the map.
           path=root/'game/presentation/northline_native/zone_review.tscn';text=path.read_text()
           anchor='[node name="HUD" type="CanvasLayer" parent="."]'
           assert text.count(anchor)==1 and 'name="Backdrop"' not in text
