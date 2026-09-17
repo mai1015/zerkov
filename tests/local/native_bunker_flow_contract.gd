@@ -15,7 +15,7 @@ func run() -> void:
 	await process_frame
 	if root.get_visible_rect().size != Vector2(BUNKER_SIZE):
 		push_error("BUNKER_FLOW_OUTPUT_SIZE"); quit(2); return
-	create_timer(150.0).timeout.connect(func(): push_error("BUNKER_FLOW_TIMEOUT"); quit(1))
+	create_timer(300.0 if DisplayServer.get_name() != "headless" else 150.0).timeout.connect(func(): push_error("BUNKER_FLOW_TIMEOUT"); quit(1))
 	var args := OS.get_cmdline_user_args()
 	if args.size() < 2 or args[0] not in ["new", "continue", "cleanup"] \
 		or not args[1].begins_with("localflow_") or args[1].length() != 42 or not args[1].substr(10).is_valid_hex_number():

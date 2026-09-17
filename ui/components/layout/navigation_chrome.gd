@@ -58,6 +58,13 @@ const CHARACTER_ROUTES := ["inventory", "health", "stats", "character"]
 
 
 var _authored: Dictionary = {}
+var _local_sections: bool = false
+var _local_mode: String = ""
+var _local_back: String = "BACK"
+var _local_width: float = 1920.0
+var _bunker_button: CommonButton
+const SectionStyle = preload("res://ui/theme/local_journey_style.gd")
+const SectionButton = preload("res://ui/components/controls/zerkov_button.tscn")
 
 func _ready() -> void:
 	for node in get_children():
@@ -116,6 +123,10 @@ func _refresh_state() -> void:
 	if not is_node_ready():
 		return
 
+	if _local_sections:
+		_refresh_local_sections()
+		return
+
 	_level_label.text = level_text
 	_money_label.text = money_text
 	_task_count_label.text = str(maxi(task_count, 0))
@@ -148,10 +159,19 @@ func _route_color(route: String) -> Color:
 	return TEXT if _is_route_selected(route) else MUTED
 
 func get_focus_targets() -> Array[Control]:
+	if _local_sections:
+		var targets: Array[Control] = []
+		for control: Control in [_bunker_button, _character_button, _tasks_button, _maps_button, _settings_button, _close_button]:
+			if control != null and control.visible and not (control as BaseButton).disabled: targets.append(control)
+		return targets
 	return [_character_button, _maps_button, _tasks_button, _insurance_button, _settings_button, _close_button]
 
 func layout_for(view: Vector2) -> void:
 	if not is_node_ready(): return
+	if _local_sections:
+		_local_width = view.x
+		_refresh_local_sections()
+		return
 	var compact := view.x < 1920 or view.y < 1080
 	custom_minimum_size.x = 0
 	size = Vector2(view.x, 56)
@@ -182,3 +202,77 @@ func _rect(node_name: String, rect: Rect2) -> void:
 	var node: Control = get_node(NodePath(node_name))
 	node.position = rect.position
 	node.size = rect.size
+
+
+## Production-only top-level navigation. The same scene serves home, raid and
+## menu contexts; detailed actions remain in each page. No gameplay ownership.
+func configure_local_sections(mode: String, route: String, back: String) -> void:
+	if not is_node_ready(): return
+	_local_sections = true
+	_local_mode = mode
+	_local_back = back
+	if _bunker_button == null:
+		_bunker_button = SectionButton.instantiate() as CommonButton
+		_bunker_button.name = "Bunker"
+		_bunker_button.show_glyph = false
+		_bunker_button.text = "BUNKER"
+		add_child(_bunker_button)
+		_bunker_button.triggered.connect(func():
+			if _local_mode == "home": navigate_requested.emit("bunker"))
+	active_route = route
+
+func _refresh_local_sections() -> void:
+	if _bunker_button == null: return
+	custom_minimum_size.x = 0
+	size = Vector2(_local_width, 56)
+	_rect("Header", Rect2(0, 0, _local_width, 56))
+	$Header.add_theme_stylebox_override("panel", SectionStyle.panel(SectionStyle.BG, Color.TRANSPARENT))
+	_rect("HeaderRule", Rect2(48, 55, maxf(_local_width - 96, 0), 1))
+	$HeaderRule.color = SectionStyle.LINE
+	_rect("Logo", Rect2(48, 16, 112, 24))
+	# Never restore fixture insurance/currency/level chrome in a local reflow.
+	for name: String in ["Insurance", "Money", "TasksLabel", "TaskBadge", "CharacterUnderline", "MapsUnderline", "TasksUnderline", "SettingsUnderline"]:
+		(get_node(name) as CanvasItem).hide()
+	_insurance_button.disabled = true
+	_bunker_button.visible = _local_mode == "home"
+	var live := _local_mode in ["home", "raid"]
+	_character_button.visible = live
+	_tasks_button.visible = live
+	_maps_button.visible = live
+	_character_button.text = "CHARACTER"
+	_tasks_button.text = "TASKS"
+	_maps_button.text = "MAP" if _local_mode == "raid" else "BRIEFING"
+	_settings_button.text = "SETTINGS"
+	var section := active_route
+	if section in CHARACTER_ROUTES: section = "inventory"
+	elif section in ["crafting", "build_mode", "session"]: section = "bunker"
+	elif section == "controls": section = "settings"
+	var x := 220.0
+	var visible_buttons: Array[Control] = []
+	for entry: Array in [[_bunker_button, "bunker", 132.0], [_character_button, "inventory", 166.0],
+		[_tasks_button, "tasks", 126.0], [_maps_button, "maps", 154.0], [_settings_button, "settings", 148.0]]:
+		var button := entry[0] as CommonButton
+		if not button.visible: continue
+		button.position = Vector2(x, 0)
+		button.size = Vector2(entry[2], 56)
+		button.disabled = false
+		SectionStyle.section_button(button, section == entry[1])
+		visible_buttons.append(button)
+		x += float(entry[2]) + 12.0
+	_level_label.text = "IN RAID / SOLO" if _local_mode == "raid" else ("BUNKER / LOCAL" if _local_mode == "home" else "LOCAL GAME")
+	_level_label.add_theme_font_override("font", SectionStyle.MONO)
+	_level_label.add_theme_font_size_override("font_size", 12)
+	_level_label.add_theme_color_override("font_color", SectionStyle.MUTED)
+	_level_label.visible = _local_width >= 1600
+	_rect("Level", Rect2(_local_width - 480, 14, 230, 28))
+	_rect("Close", Rect2(_local_width - 248, 12, 200, 32))
+	_close_button.text = "ESC / " + _local_back
+	SectionStyle.button(_close_button)
+	visible_buttons.append(_close_button)
+	# Deliberate tab traversal, while each page keeps its own vertical graph.
+	for index in range(visible_buttons.size()):
+		var button := visible_buttons[index]
+		var previous := visible_buttons[(index - 1 + visible_buttons.size()) % visible_buttons.size()]
+		var next := visible_buttons[(index + 1) % visible_buttons.size()]
+		button.focus_neighbor_left = button.get_path_to(previous)
+		button.focus_neighbor_right = button.get_path_to(next)

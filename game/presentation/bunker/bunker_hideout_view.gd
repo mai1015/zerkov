@@ -72,9 +72,11 @@ func _room_number() -> String:
 
 const WorldScene = preload("res://game/presentation/bunker/bunker_world.tscn")
 const LIGHTING = preload("res://game/presentation/bunker/bunker_lighting.gdshader")
-const CREAM := Color("e6e3d5")
-const MUTED := Color("858e89")
-const ACCENT := Color("d1a05c")
+const Style = preload("res://ui/theme/local_journey_style.gd")
+const NAVIGATION = preload("res://ui/components/layout/navigation_chrome.tscn")
+const CREAM := Style.TEXT
+const MUTED := Style.MUTED
+const ACCENT := Style.ACCENT
 var world: ZBunkerHideoutWorld
 var surface: SubViewport
 var current_room := "workshop"
@@ -96,7 +98,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_bold = load("res://assets/fonts/ChakraPetch-SemiBold.ttf")
 	_mono = load("res://assets/fonts/IBMPlexMono-Regular.ttf")
-	box(Rect2(0, 0, 1920, 1080), Color("080c0d"))
+	box(Rect2(0, 0, 1920, 1080), Style.BG)
 	surface = SubViewport.new()
 	surface.name = "PixelWorld640x360"
 	surface.size = Vector2i(640, 360)
@@ -130,25 +132,34 @@ func _ready() -> void:
 	select_room(current_room)
 
 func _build_header() -> void:
-	box(Rect2(0, 0, 1920, 58), Color("0e1213"))
-	box(Rect2(48, 57, 1824, 1), Color("303736"))
-	label("ZERKOV", Rect2(48, 12, 180, 34), 27, CREAM, true)
-	label("/     HIDEOUT", Rect2(212, 23, 220, 20), 12, MUTED)
-	label("B1  /  SERVICE LEVEL", Rect2(780, 22, 400, 20), 12, MUTED)
-	var menu := button("ESC  MENU", Rect2(1744, 14, 128, 32))
-	menu.name = "Menu"
-	menu.pressed.connect(func():
-		if _can_interact(): menu_requested.emit())
+	if _campaign:
+		var navigation := NAVIGATION.instantiate() as ZNavigationChrome
+		navigation.name = "NavigationChrome"
+		add_child(navigation)
+		navigation.configure_local_sections("home", "bunker", "MENU")
+		navigation.navigate_requested.connect(_section_requested)
+		navigation.back_requested.connect(func():
+			if _can_interact(): menu_requested.emit())
+	else:
+		box(Rect2(0, 0, 1920, 58), Color("0e1213"))
+		box(Rect2(48, 57, 1824, 1), Color("303736"))
+		label("ZERKOV", Rect2(48, 12, 180, 34), 27, CREAM, true)
+		label("/     HIDEOUT", Rect2(212, 23, 220, 20), 12, MUTED)
+		label("B1  /  SERVICE LEVEL", Rect2(780, 22, 400, 20), 12, MUTED)
+		var menu := button("ESC  MENU", Rect2(1744, 14, 128, 32))
+		menu.name = "Menu"
+		menu.pressed.connect(func():
+			if _can_interact(): menu_requested.emit())
 	label("THE BUNKER", Rect2(48, 72, 330, 45), 36, CREAM, true)
 	label("04", Rect2(378, 75, 80, 43), 33, ACCENT, true)
-	label("A SHELTER BETWEEN RAIDS", Rect2(470, 94, 430, 20), 12, MUTED)
+	label("A SHELTER BETWEEN RAIDS", Rect2(470, 94, 530, 20), 12, MUTED)
 	_status = label("LOCAL SAVE  /  SOLO" if _campaign else "OFFLINE  /  VISUAL PREVIEW", Rect2(1552, 89, 340, 22), 12, ACCENT)
 	_status.name = "SessionStatus"
 	if _campaign:
-		for entry: Array in [["CraftingWorkspace", "WORKSHOP", &"crafting", 1070, 190],
-			["BuildWorkspace", "FACILITIES", &"build_mode", 1268, 210],
-			["SessionWorkspace", "LOCAL SESSION", &"session", 1486, 240]]:
-			var workspace := button(entry[1], Rect2(entry[3], 14, entry[4], 32))
+		for entry: Array in [["CraftingWorkspace", "WORKSHOP", &"crafting", 1034, 156],
+			["BuildWorkspace", "FACILITIES", &"build_mode", 1200, 156],
+			["SessionWorkspace", "LOCAL SESSION", &"session", 1366, 166]]:
+			var workspace := button(entry[1], Rect2(entry[3], 84, entry[4], 32))
 			workspace.name = entry[0]
 			workspace.disabled = true
 			workspace.pressed.connect(_request_action.bind(entry[2]))
@@ -162,7 +173,7 @@ func _build_inspector() -> void:
 	panel.position = Vector2(1552, 148)
 	panel.size = Vector2(320, 820)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_theme_stylebox_override("panel", style(Color("101718"), Color("303b3a")))
+	panel.add_theme_stylebox_override("panel", style(Style.PANEL, Style.LINE))
 	add_child(panel)
 	label("FACILITIES", Rect2(1576, 168, 220, 26), 16, CREAM, true)
 	label("06", Rect2(1820, 170, 36, 22), 13, MUTED)
@@ -175,7 +186,7 @@ func _build_inspector() -> void:
 		b.pressed.connect(_choose_room.bind(id))
 		_buttons[id] = b
 		index += 1
-	box(Rect2(1576, 482, 272, 1), Color("303b3a"))
+	box(Rect2(1576, 482, 272, 1), Style.LINE)
 	_number = label("", Rect2(1576, 500, 272, 20), 11, ACCENT)
 	_heading = label("", Rect2(1576, 528, 272, 64), 25, CREAM, true)
 	_heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -199,8 +210,8 @@ func _build_inspector() -> void:
 	_light_button.pressed.connect(toggle_lighting)
 
 func _build_footer() -> void:
-	box(Rect2(0, 998, 1920, 82), Color("0c1112"))
-	box(Rect2(48, 998, 1824, 1), Color("303b3a"))
+	box(Rect2(0, 998, 1920, 82), Style.BG)
+	box(Rect2(48, 998, 1824, 1), Style.LINE)
 	if _campaign:
 		label("YOUR BUNKER", Rect2(48, 1008, 320, 25), 18, CREAM, true)
 		label("Select a room, then choose its action", Rect2(48, 1043, 360, 22), 11, MUTED)
@@ -213,7 +224,7 @@ func _build_footer() -> void:
 			shortcut.name = item[0]
 			shortcut.pressed.connect(_request_action.bind(item[1]))
 			_shortcuts[item[1]] = shortcut
-		var retry := button("RETRY SAVE", Rect2(1380, 76, 150, 34))
+		var retry := button("RETRY SAVE", Rect2(1332, 118, 200, 26))
 		retry.name = "RetrySave"
 		retry.hide()
 		retry.pressed.connect(_request_action.bind(&"retry_save"))
@@ -245,7 +256,7 @@ func select_room(id: String) -> bool:
 	for key: String in _buttons:
 		var b: Button = _buttons[key]
 		b.add_theme_color_override("font_color", ACCENT if key == id else MUTED)
-		b.add_theme_stylebox_override("normal", style(Color("292820") if key == id else Color("101718"), Color("8e7145") if key == id else Color("293130")))
+		b.add_theme_stylebox_override("normal", style(Color("292820") if key == id else Style.PANEL, Color("8e7145") if key == id else Color("293130")))
 	_sync_campaign_room()
 	return true
 
@@ -299,7 +310,7 @@ func button(text: String, rect: Rect2) -> Button:
 	node.add_theme_color_override("font_color", MUTED)
 	node.add_theme_color_override("font_hover_color", CREAM)
 	node.add_theme_color_override("font_focus_color", CREAM)
-	node.add_theme_stylebox_override("normal", style(Color("141b1c"), Color("36403e")))
+	node.add_theme_stylebox_override("normal", style(Style.PANEL, Style.LINE))
 	node.add_theme_stylebox_override("hover", style(Color("303329"), ACCENT))
 	node.add_theme_stylebox_override("pressed", style(Color("383326"), ACCENT))
 	node.add_theme_stylebox_override("focus", style(Color.TRANSPARENT, ACCENT))
@@ -314,3 +325,8 @@ func style(fill: Color, border: Color) -> StyleBoxFlat:
 	s.content_margin_left = 12
 	s.content_margin_right = 12
 	return s
+
+
+func _section_requested(route: String) -> void:
+	var command: StringName = {"bunker":&"return_home", "inventory":&"loadout", "tasks":&"tasks", "maps":&"maps", "settings":&"controls"}.get(route, &"")
+	_request_action(command)
