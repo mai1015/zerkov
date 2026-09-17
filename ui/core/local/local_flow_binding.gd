@@ -176,6 +176,14 @@ func layout_home(viewport_size: Vector2) -> bool:
 func _home(frame: Dictionary) -> void:
 	if _hideout == null: return
 	_hideout.present_home(frame)
+	# Never advertise keys from a separate UI policy. Describe the same live
+	# bindings that the existing CommonUI navigation actions consume.
+	for entry: Array in [["LocalLoadout", ZerkovInputActions.UI_OPEN_INVENTORY, "STASH / LOADOUT"],
+		["LocalDeploy", ZerkovInputActions.UI_OPEN_MAP, "RAID BRIEFING"],
+		["LocalTasks", ZerkovInputActions.UI_OPEN_TASKS, "TASKS"]]:
+		var binding := _screen.app.input_service().effective_binding(entry[1], CommonUIBinding.SLOT_PRIMARY)
+		var shortcut := CommonBindingText.describe(binding)
+		(_hideout.get_node(entry[0]) as Button).text = (shortcut + "  " if not shortcut.is_empty() else "") + String(entry[2])
 	_focus("BunkerHideoutView/Select_" + _port.bunker_room(_epoch))
 
 func _deploy(frame: Dictionary) -> void:

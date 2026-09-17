@@ -5,7 +5,7 @@ Title → New Local Game / Continue → Bunker map
                                   ├ Storage → Stash / loadout → Back
                                   ├ Medical → Health → Back
                                   ├ Workshop / M → Sawmill briefing → Deploy solo
-                                  ├ T → Supply Run → Back
+                                  ├ J → Supply Run → Back
                                   └ Esc → Home menu → Controls / Resume / Main menu / Quit
 Raid → committed result → Return home → same bunker map
 ```
@@ -34,3 +34,6 @@ No new resource, building, cooking, sleep, power, economy or transport system is
 implied by the room art. Controls are labelled Controls, not a promise of a full
 settings backend. Existing domain/campaign regressions must still pass through
 the new briefing path, including extraction, death and relaunch.
+
+Shortcut captions describe the effective CommonUI bindings (default I / M / J),
+not a second hardcoded key policy. Rebinding remains owned by the Controls screen.
