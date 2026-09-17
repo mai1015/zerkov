@@ -1,7 +1,7 @@
 name: Raid handler CPU profile
 on:
   pull_request:
-    paths: ['game/**', 'tools/profile_raid_handlers.py', '.github/workflows/raid-handler-profile.yml']
+    paths: ['game/**', 'tests/combat/health_catalog*', 'tests/tooling/test_health_catalog_runner.py', 'tools/run_health_catalog_contracts.py', 'tools/profile_raid_handlers.py', '.github/workflows/raid-handler-profile.yml']
 permissions:
   contents: read
 concurrency:
@@ -39,13 +39,30 @@ jobs:
           curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
           ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
           echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Record source and unchanged runtime identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/handler-profile"
+          git rev-parse HEAD > "$RUNNER_TEMP/handler-profile/commit.txt"
+          sw_vers > "$RUNNER_TEMP/handler-profile/hardware.txt"
+          sysctl -n machdep.cpu.brand_string >> "$RUNNER_TEMP/handler-profile/hardware.txt"
+          shasum -a 256 config/toolchain.lock.json "$ZERKOV_GODOT" > "$RUNNER_TEMP/handler-profile/runtime-sha256.txt"
+          find addons -type f -name '*.dylib' -exec shasum -a 256 {} \; >> "$RUNNER_TEMP/handler-profile/runtime-sha256.txt"
+          python3 tests/tooling/test_health_catalog_runner.py
+      - name: Native health catalog differential and preflight timings
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/handler-profile"
+          python3 -u tools/run_health_catalog_contracts.py --godot "$ZERKOV_GODOT" 2>&1 | tee "$RUNNER_TEMP/handler-profile/health-catalog.log"
       - name: Control and instrumented production ticks
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/handler-profile"
           git rev-parse HEAD > "$RUNNER_TEMP/handler-profile/commit.txt"
-          python3 -u tools/profile_raid_handlers.py --godot "$ZERKOV_GODOT" --baseline-ref a6f6a1fd5af2e1eb8114ac71db2fee491223c731 2>&1 | tee "$RUNNER_TEMP/handler-profile/native.log"
+          python3 -u tools/profile_raid_handlers.py --godot "$ZERKOV_GODOT" --baseline-ref be18fc760e8eb102ee4c2747164eb00600a800d3 2>&1 | tee "$RUNNER_TEMP/handler-profile/native.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

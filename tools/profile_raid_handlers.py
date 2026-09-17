@@ -19,7 +19,7 @@ import subprocess
 import tempfile
 import uuid
 
-ERRORS = re.compile(r"SCRIPT ERROR|(?:^|\n)\s*(?:ERROR:|Parse Error:)|_TIMEOUT")
+ERRORS = re.compile(r"SCRIPT ERROR|(?:^|\n)\s*(?:ERROR:|Parse Error:)|ObjectDB instances leaked|resources still in use|_TIMEOUT")
 PROBE_PATH = "tests/local/raid_handler_profile_probe.gd"
 PROBE = r'''extends RefCounted
 static var collecting: bool = false
@@ -45,7 +45,9 @@ static func stats(samples: Array) -> Dictionary:
 	for value in sorted: total += float(value)
 	return {"count":sorted.size(), "mean_us":total / sorted.size(),
 		"median_us":sorted[sorted.size() / 2],
-		"p95_us":sorted[mini(sorted.size() - 1, int(ceil(sorted.size() * 0.95)) - 1)]}
+		"p95_us":sorted[mini(sorted.size() - 1, int(ceil(sorted.size() * 0.95)) - 1)],
+		"p99_us":sorted[mini(sorted.size() - 1, int(ceil(sorted.size() * 0.99)) - 1)],
+		"max_us":sorted[-1]}
 
 func run(game, tree: SceneTree, check: Callable) -> bool:
 	for _i in range(8):
