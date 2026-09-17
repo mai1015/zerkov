@@ -151,7 +151,7 @@ func _publish_bodies(raid: RaidAuthority, phase: int, tick: int, _intents: Array
 			ZPlayerFacing.Facing4.EAST: facing = 1
 			ZPlayerFacing.Facing4.SOUTH: facing = 2
 			ZPlayerFacing.Facing4.WEST: facing = 3
-		var actor_key := row.actor_id.canonical_key()
+		var actor_key: String = row.actor_id.canonical_key()
 		var targetable := bool(health.actor_snapshot(row.actor_id).get("alive", false))
 		var prior := _body_records.get(actor_key, {}) as Dictionary
 		if prior.is_empty() \
