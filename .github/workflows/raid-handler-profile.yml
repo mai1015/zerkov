@@ -17,6 +17,25 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
           fetch-depth: 0
+      - name: Package isolated local reproduction bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          git archive --format=zip --output="$RUNNER_TEMP/zerkov-source.zip" HEAD
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot-linux.zip"
+          {
+            git rev-parse HEAD
+            shasum -a 256 "$RUNNER_TEMP/zerkov-source.zip" "$RUNNER_TEMP/godot-linux.zip"
+          } > "$RUNNER_TEMP/local-repro-sha256.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: raid-local-repro
+          path: |
+            ${{ runner.temp }}/zerkov-source.zip
+            ${{ runner.temp }}/godot-linux.zip
+            ${{ runner.temp }}/local-repro-sha256.txt
+          retention-days: 1
       - name: Package unchanged Linux runtime for isolated reproduction
         shell: bash
         run: |
