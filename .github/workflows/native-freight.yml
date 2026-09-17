@@ -1,100 +1,92 @@
-name: Native freight source publication
+name: Native freight TileMap verification
 on:
   pull_request:
-    paths: ['tools/native_freight_stage/**', '.github/workflows/native-freight.yml']
+    paths:
+      - '.github/workflows/native-freight.yml'
+      - 'game/world/northline_native/**'
+      - 'game/presentation/northline_native/**'
+      - 'assets/world/northline_native/**'
+      - 'tests/presentation/northline_native_contract.gd'
+      - 'tests/tooling/*northline_native*'
+      - 'tools/*northline_native*'
+      - 'tools/migrate_northline_freight.gd'
+      - 'tools/register_native_freight.py'
+      - 'config/first_playable_1080_gate.json'
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: native-freight-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
-  publish-reviewed-source:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/northline-native-tilemap'
+  source-contracts:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-          persist-credentials: true
-      - name: Expand the exact reviewed text-only candidate
-        run: |
-          python3 - <<'PY'
-          import base64, hashlib, json, lzma, pathlib, subprocess
-          root=pathlib.Path.cwd()
-          chunks=[root/'tools/native_freight_stage'/('%02d.b64'%i) for i in range(6)]
-          assert all(p.is_file() and not p.is_symlink() for p in chunks)
-          encoded=''.join(p.read_text() for p in chunks)
-          assert len(encoded)==54272
-          packed=base64.b64decode(encoded,validate=True)
-          assert hashlib.sha256(packed).hexdigest()=='afde1f76d288c258a7d50159b93befc0f331584ddbb1be4b51a3fa96e7f9e6ab'
-          decoder=lzma.LZMADecompressor(memlimit=128*1024*1024)
-          raw=decoder.decompress(packed,max_length=512000)
-          assert decoder.eof and not decoder.unused_data
-          assert hashlib.sha256(raw).hexdigest()=='feca06080012246ae3c0bb224775d911f6eec446203efcdf9a99bd416dbe3d3e'
-          packet=json.loads(raw)
-          assert set(packet)=={'files','sha256'} and len(packet['files'])==49
-          assert set(packet['files'])==set(packet['sha256'])
-          prefixes=('game/world/northline_native/','game/presentation/northline_native/','assets/world/northline_native/','docs/qa/northline_native/','docs/spec/changes/migrate-northline-freight-tilemap-2026-09-16/')
-          single={'.github/workflows/native-freight.yml','tools/install_northline_native_sources.py','tools/register_native_freight.py','tools/migrate_northline_freight.gd','tests/tooling/test_northline_native_sources.py','tests/tooling/run_northline_native_gate.py','tests/presentation/northline_native_contract.gd'}
-          for name,text in packet['files'].items():
-              p=pathlib.PurePosixPath(name)
-              assert not p.is_absolute() and '..' not in p.parts and '\\' not in name
-              assert name in single or name.startswith(prefixes),name
-              assert p.suffix in {'.md','.json','.gd','.tscn','.tres','.py','.yml','.import','.uid'},name
-              assert isinstance(text,str)
-              assert hashlib.sha256(text.encode()).hexdigest()==packet['sha256'][name],name
-              target=root/name
-              assert not target.is_symlink() and all(not a.is_symlink() for a in target.parents)
-              assert name=='.github/workflows/native-freight.yml' or not target.exists(),name
-          for name,expected in [('config/first_playable_1080_gate.json','b3ff6243444e17c404a960eca1675fdbb255a1c7'),('tests/tooling/test_ui_first_playable_scope.py','a9d18b0415de4ee7e4494643798824c7cca00dcc')]:
-              assert subprocess.check_output(['git','hash-object',name],text=True).strip()==expected,name
-          # GITHUB_TOKEN may publish ordinary source, not workflow changes.
-          # The final read-only workflow is installed separately through the
-          # authorized repository connector; never elevate this job's token.
-          files={n:t for n,t in packet['files'].items() if n!='.github/workflows/native-freight.yml'}
-          for name,text in files.items():
-              target=root/name; target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(text.encode())
-          target=root/'tests/presentation/northline_native_contract.gd'
-          text=target.read_text()
-          assert hashlib.sha256(text.encode()).hexdigest()=='a864ca6bc68a432d38d02b2f541e1cbfd5c2082287a83ea134994dcb156095d6'
-          old='\tif Exact1080CaptureGuard.accepts(root,root,image):check(image.save_png(output.path_join(name_text+".png"))==OK,"native PNG "+name_text)'
-          new='\tif not Exact1080CaptureGuard.accepts(root,root,image):\n\t\treturn\n\tvar save_result := image.save_png(output.path_join(name_text+".png"))\n\tcheck(save_result==OK,"native PNG "+name_text)'
-          assert text.count(old)==1
-          text=text.replace(old,new)
-          assert hashlib.sha256(text.encode()).hexdigest()=='a675e5a7cdbd8f2842463df96db2a424b8011c3f9346b307a964be1e485fda81'
-          target.write_bytes(text.encode())
-          target=root/'tools/register_native_freight.py'
-          text=target.read_text()
-          assert hashlib.sha256(text.encode()).hexdigest()=='a459e0f87608ae4aafc1a2d7d045ac979222b384b50ad2c8baf9729b3742a285'
-          old="for group in ['active_visual_entrypoints','active_headless_entrypoints']:"
-          new="for group in ['active_visual_entrypoints','active_headless_entrypoints','sanctioned_capture_writers']:"
-          assert text.count(old)==1
-          text=text.replace(old,new)
-          assert hashlib.sha256(text.encode()).hexdigest()=='730df25d90a24cdf70083d670d35857520cc73e0ef2992e3b94288295fabcf44'
-          target.write_bytes(text.encode())
-          subprocess.run(['python3','tools/register_native_freight.py'],check=True)
-          subprocess.run(['git','add','--',*files,'config/first_playable_1080_gate.json','tests/tooling/test_ui_first_playable_scope.py'],check=True)
-          subprocess.run(['git','rm','--',*[p.relative_to(root).as_posix() for p in chunks]],check=True)
-          print('NATIVE_FREIGHT_TEXT_PUBLICATION source_files=48 original_png_uploads=0 workflow_changes=0')
-          PY
-      - name: Verify the source candidate and preserved display policy
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Validate native resources and output policy
         run: |
           python3 -m unittest discover -s tests/tooling -p test_northline_native_sources.py -v
           python3 tests/tooling/test_ui_first_playable_scope.py
           python3 tools/check_first_playable_1080.py
-          git diff --cached --check
-      - name: Retain ordinary native resources on the unchanged branch head
-        env:
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          branch=feat/northline-native-tilemap
-          actual=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
-          test "$actual" = "$EXPECTED_HEAD"
           test ! -d tools/native_freight_stage
-          git diff --exit-code HEAD -- .github/workflows
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'feat(maps): retain native freight TileMapLayers and original-sheet resources'
-          git push origin "HEAD:refs/heads/$branch"
+          git diff --check
+      - name: Retain exact source for reproducible local review
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-freight-source"
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess, zipfile
+          root=pathlib.Path.cwd()
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'native-freight-source'
+          records={}
+          text_suffixes={'.gd','.gdshader','.tscn','.tres','.godot','.py','.json','.md','.yml','.yaml','.gdextension','.cfg','.import','.uid'}
+          original_dirs=('assets/world/northline_native/','assets/world/northline_zone/')
+          with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=root/name
+                  if not name or not p.is_file() or p.is_symlink(): continue
+                  selected=p.suffix in text_suffixes or name in {'.gitignore','.gitattributes'}
+                  selected=selected or (name.startswith(original_dirs) and p.suffix in {'.webp','.png'})
+                  if not selected: continue
+                  data=p.read_bytes();z.writestr(name,data)
+                  records[name]={'sha256':hashlib.sha256(data).hexdigest(),'git_blob':hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()}
+          (out/'source.json').write_text(json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'files':records},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-freight-exact-source
+          path: ${{ runner.temp }}/native-freight-source
+          retention-days: 7
+  native-scene:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Require original art before claiming a native render
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-freight"
+          set -o pipefail
+          python3 tools/install_northline_native_sources.py --verify 2>&1 | tee "$RUNNER_TEMP/native-freight/source-preflight.log"
+      - name: Prepare the pinned renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Render twice and reopen saved editor resources
+        run: |
+          xvfb-run -a -s '-screen 0 1920x1080x24' python3 tests/tooling/run_northline_native_gate.py --godot "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" --output "$RUNNER_TEMP/native-freight/capture"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-freight-scene-results
+          path: ${{ runner.temp }}/native-freight
+          retention-days: 7
