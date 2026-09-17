@@ -1,0 +1,50 @@
+name: Equipment UI
+on:
+  pull_request:
+    paths: ['game/**', 'ui/**', 'tests/**', 'tools/**', 'config/**', '.github/workflows/equipment-ui.yml']
+permissions:
+  contents: read
+concurrency:
+  group: equipment-ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-macos:
+    name: equipment (${{ matrix.mode }})
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [headless, footage]
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Install exact locked engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Native equipment and application input contracts
+        shell: bash
+        env:
+          EQUIPMENT_MODE: ${{ matrix.mode }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/equipment"
+          git rev-parse HEAD > "$RUNNER_TEMP/equipment/commit.txt"
+          if [ "$EQUIPMENT_MODE" = footage ]; then
+            swift tools/with_macos_capture_display.swift python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" --capture-dir "$RUNNER_TEMP/equipment/footage" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
+          else
+            python3 -u tools/run_equipment_contracts.py --godot "$ZERKOV_GODOT" 2>&1 | tee "$RUNNER_TEMP/equipment/native.log"
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: equipment-${{ matrix.mode }}
+          path: ${{ runner.temp }}/equipment
+          retention-days: 3
