@@ -17,6 +17,7 @@ var _timer: ExtractionCountdown
 var _crates: Dictionary = {}
 var _generation: int = 0
 var _registration: String = ""
+var _map_id: String = "sawmill"
 var _recipient: int = 0
 var _search: Dictionary = {}
 var _searched: Dictionary = {}
@@ -35,14 +36,16 @@ var _released: bool = false
 var _combat_released: bool = false
 
 func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSession,
-	interaction: ZInteractionPolicyOwner, crates: Dictionary, limit_ticks: int, countdown_ticks: int, movement: ZPlayerLocomotion) -> bool:
+	interaction: ZInteractionPolicyOwner, crates: Dictionary, limit_ticks: int, countdown_ticks: int, movement: ZPlayerLocomotion, map_id: String = "sawmill") -> bool:
+	if not SupplyRunGraph.is_map(map_id): return _fail(&"progression_map_unknown")
+	_map_id=map_id
 	if _generation != 0 or raid == null or owner == null or combat == null or interaction == null \
 		or raid.lifecycle != RaidAuthority.Lifecycle.PREPARING or not owner.is_current_generation(owner.generation()) \
 		or combat.health == null or not combat.health.is_bound() or crates.size() != 3 \
 		or movement == null or movement.actor_id() == null or not movement.actor_id().is_equal(raid.admission().actor_id):
 		return _fail(&"progression_binding_invalid")
 	var ids: Dictionary = {}
-	for key: String in SupplyRunGraph.CRATES:
+	for key: String in SupplyRunGraph.crates_for(_map_id):
 		if typeof(crates.get(key)) != TYPE_INT or ids.has(crates[key]): return _fail(&"progression_crate_mapping_invalid")
 		var snapshot := owner.raid_authority().snapshot(int(crates[key]))
 		if snapshot == null or StringName(snapshot.get_profile_identifier()) != ZerkovInventoryCatalog.PROFILE_WORLD_CRATE:
@@ -53,7 +56,7 @@ func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSess
 	_timer = ExtractionCountdown.new()
 	if not _timer.configure(countdown_ticks,limit_ticks): return _fail(&"progression_timing_invalid")
 	_task = SupplyRunTask.new()
-	if not _task.configure(raid.raid_id().canonical_key()): return _fail(_task.last_error)
+	if not _task.configure(raid.raid_id().canonical_key(),_map_id): return _fail(_task.last_error)
 	_raid=raid;_owner=owner;_combat=combat;_interaction=interaction;_crates=crates.duplicate()
 	_generation=raid.generation();_countdown_duration=countdown_ticks;_movement=movement
 	_recipient = 1 + int(raid.raid_id().canonical_key().sha256_text().substr(0,7).hex_to_int())
@@ -95,10 +98,11 @@ func _advance_inner(tick: int, intents: Array[ZRaidIntent]) -> bool:
 			continue
 		if intent.kind == &"raid_cancel": cancel=true;continue
 		var target: String = intent.payload.target_id
-		if target == SupplyRunGraph.ROAD_GATE: start=true
-		elif requested_crate.is_empty(): requested_crate=target
+		if target == SupplyRunGraph.exit_for(_map_id): start=true
+		elif _crates.has(target) and requested_crate.is_empty(): requested_crate=target
+		else: _stats.rejected_inputs+=1
 	if not _task.update_facts(_holds_objective()): return _fail(_task.last_error)
-	var inside := _interaction.evaluate_for_actor(actor,StringName(SupplyRunGraph.ROAD_GATE),ZInteractionKind.EXTRACTION_ZONE,_generation).allowed
+	var inside := _interaction.evaluate_for_actor(actor,StringName(SupplyRunGraph.exit_for(_map_id)),ZInteractionKind.EXTRACTION_ZONE,_generation).allowed
 	# Health commits earlier in the SAME tick. Deadline/death also stop searches.
 	if not health.alive or cancel or damaged or tick >= _timer.snapshot().deadline_tick:
 		if not _cancel_search(): return false
@@ -118,7 +122,7 @@ func _advance_inner(tick: int, intents: Array[ZRaidIntent]) -> bool:
 		# Reserve an additional journal slot for the post-commit settlement record.
 		if _raid.journal.remaining_capacity() < 2: return _fail(&"progression_terminal_journal_capacity")
 		if result.outcome=="extracted":
-			if not _task.extracted(SupplyRunGraph.ROAD_GATE): return _fail(_task.last_error)
+			if not _task.extracted(SupplyRunGraph.exit_for(_map_id)): return _fail(_task.last_error)
 		elif not _task.fail_raid(_raid.journal.size()+1,tick): return _fail(_task.last_error)
 		if not _record(&"terminal",ZRaidEvent.EventKind.EXTRACTION,tick,{"outcome":String(result.outcome),"task":String(_task.snapshot().status)}): return false
 		_terminal = {"outcome":String(result.outcome),"tick":tick,"audit_available":true,
@@ -254,11 +258,11 @@ func raid_view() -> RaidView:
 	if state.outcome=="extracted": status=RaidView.ExtractionStatus.COMPLETED
 	elif state.counting: status=RaidView.ExtractionStatus.COUNTING_DOWN
 	elif _task.ready_to_extract(): status=RaidView.ExtractionStatus.AVAILABLE
-	var extraction := RaidView.Extraction.create(StringName(SupplyRunGraph.ROAD_GATE),"Road Gate",status,0,
+	var extraction := RaidView.Extraction.create(StringName(SupplyRunGraph.exit_for(_map_id)),SupplyRunGraph.exit_title(_map_id),status,0,
 		_countdown_duration-int(state.countdown_remaining) if state.started_tick>=0 else 0,_countdown_duration,
 		&"supply_run_required" if status==RaidView.ExtractionStatus.LOCKED else &"")
 	return RaidView.create(_generation,_tick,_tick,_raid.raid_id(),_raid.admission().actor_id,
-		int(_raid.lifecycle),&"zerkov.map.sawmill","Sawmill Yard",mini(_tick,int(state.deadline_tick)),
+		int(_raid.lifecycle),StringName("zerkov.map."+_map_id),SupplyRunGraph.title_for(_map_id),mini(_tick,int(state.deadline_tick)),
 		int(state.deadline_tick),null,[extraction],[])
 
 func release() -> bool:

@@ -68,7 +68,7 @@ static func search(
 		for step_value in NEIGHBOR_STEPS:
 			var step: Vector2i = step_value
 			var next := cell + step
-			if not grid.is_walkable(next):
+			if not grid.can_traverse(cell,next):
 				continue
 			var diagonal := step.x != 0 and step.y != 0
 			if diagonal and not _corner_open(grid, cell, step):

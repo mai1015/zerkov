@@ -52,7 +52,8 @@ static func valid_state(state: Dictionary) -> bool:
 	var active: Dictionary=state.active
 	if active.is_empty(): return true
 	if active.get("phase") not in ["deployed","prepared"] or active.get("resume_enabled")!=false \
-		or active.size()!=(9 if active.phase=="prepared" else 8): return false
+		or active.size()!=((9 if active.phase=="prepared" else 8)+(1 if active.has("map") else 0)): return false
+	if active.has("map") and not valid_map_descriptor(active.map): return false
 	for pair: Array in [["raid_id",&"raid"],["settlement_id",&"settlement"],["request_id",&"request"]]:
 		if typeof(active.get(pair[0]))!=TYPE_STRING or not ZIdentityRules.is_valid(active[pair[0]],pair[1]): return false
 	if not counter(active.get("start_generation"),1) \
@@ -62,14 +63,16 @@ static func valid_state(state: Dictionary) -> bool:
 		var receipt := decode(active.receipt_bytes)
 		if not valid_receipt(receipt) or receipt.raid_id!=active.raid_id \
 			or receipt.settlement_id!=active.settlement_id or receipt.deployment_request!=active.request_id \
-			or receipt.source_profile_generation!=active.start_generation: return false
+			or receipt.source_profile_generation!=active.start_generation \
+			or receipt.get("map",{})!=active.get("map",{}): return false
 	return true
 
 static func valid_receipt(receipt: Dictionary) -> bool:
-	if receipt.size()!=19 or receipt.get("schema")!="zerkov.raid.settlement.v1" \
+	if receipt.size()!=(20 if receipt.has("map") else 19) or receipt.get("schema")!="zerkov.raid.settlement.v1" \
 		or receipt.get("outcome") not in ["extracted","dead","timeout","abandoned"] \
 		or typeof(receipt.get("audit_available"))!=TYPE_BOOL \
 		or receipt.get("valuation_available")!=false or receipt.get("currency_reward")!=0: return false
+	if receipt.has("map") and not valid_map_descriptor(receipt.map): return false
 	for pair: Array in [["raid_id",&"raid"],["settlement_id",&"settlement"],["deployment_request",&"request"]]:
 		if typeof(receipt.get(pair[0]))!=TYPE_STRING or not ZIdentityRules.is_valid(receipt[pair[0]],pair[1]): return false
 	for key: String in ["input_digest","audit_digest","inventory_digest"]:
@@ -85,6 +88,13 @@ static func valid_receipt(receipt: Dictionary) -> bool:
 			if not row is Dictionary or row.size()!=2 or typeof(row.get("definition"))!=TYPE_STRING \
 				or row.definition.is_empty() or not counter(row.get("quantity"),1): return false
 	return not encode(receipt).is_empty()
+
+## Optional closed extension of existing v1 records. Empty means legacy
+## Sawmill only; an explicitly present descriptor is never silently dropped.
+static func valid_map_descriptor(value: Variant) -> bool:
+	return value is Dictionary and value.size()==3 \
+		and typeof(value.get("id"))==TYPE_STRING and value.id in ["northline","blackwater"] \
+		and counter(value.get("revision"),1) and sha(value.get("digest"))
 
 static func counter(value: Variant, minimum: int) -> bool:
 	return typeof(value)==TYPE_INT and value>=minimum and value<ProfileStore.MAX_COUNTER-4

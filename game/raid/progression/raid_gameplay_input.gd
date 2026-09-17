@@ -16,4 +16,4 @@ static func valid_payload(kind: StringName, payload: Dictionary) -> bool:
 	if kind == &"raid_cancel": return payload.is_empty()
 	return kind == &"interaction" and payload.size() == 1 \
 		and typeof(payload.get("target_id")) == TYPE_STRING \
-		and (String(payload.target_id) in SupplyRunGraph.CRATES or payload.target_id == SupplyRunGraph.ROAD_GATE)
+		and SupplyRunGraph.accepts_target(String(payload.target_id))

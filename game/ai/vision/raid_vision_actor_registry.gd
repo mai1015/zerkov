@@ -7,7 +7,7 @@ extends RefCounted
 const MAX_ACTORS: int = 128
 const MAX_OBSERVERS: int = 64
 const MAX_IDENTITIES: int = 4096
-const MAX_SEGMENTS: int = 128
+const MAX_SEGMENTS: int = 4096
 const ACTOR_KEYS: Array = ["entity_id", "revision", "position_raw", "facing_raw", "archetype", "alive"]
 
 var last_error: StringName = &""

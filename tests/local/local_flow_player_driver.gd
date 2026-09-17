@@ -13,9 +13,11 @@ var fired: int = 0
 var searched: int = 0
 var transferred: bool = false
 var _death_run: bool = false
+var _shot_boxes: Array[Rect2] = []
 
 func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_save_retry: bool = false) -> bool:
 	_game = game; _tree = tree; _check = check_callback
+	_capture_shot_geometry()
 	_started_ms = Time.get_ticks_msec()
 	var capture_contract = load("res://tests/local/runtime_capture_contract.gd").new()
 	if not capture_contract.run(_game._session.raid, _check): return false
@@ -24,8 +26,8 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	for _i in range(ZerkovCombatContent.AKM_RELOAD_TICKS + 2):
 		if not await _tick(Vector2.ZERO): return false
 	if not _assert(_game._session.hud_model.snapshot().ammo > 0, "physical reload loads real ammunition"): return false
-	for id: String in SupplyRunGraph.CRATES:
-		if not await _walk_to(_game._session.layout.cell_center(_game._session.layout.anchor(id).approach_cell)): return false
+	for id: String in _game._session.crate_keys():
+		if not await _walk_to(_game._session.target_approach(id)): return false
 		_stop()
 		for _i in range(10):
 			if not await _tick(Vector2.ZERO): return false
@@ -39,7 +41,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 		if not _assert(completed, "timed native search completes " + id): return false
 		searched += 1
 		print("LOCAL_FLOW_SEARCH tick=", ticks, " crate=", id)
-		if id == SupplyRunGraph.CRATES[0] and not await _take_objective(): return false
+		if id == _game._session.crate_keys()[0] and not await _take_objective(): return false
 	var clock_before: int = _game._session.raid.last_processed_tick
 	_key(KEY_J, true); _key(KEY_J, false)
 	if not await _wait_route("tasks"): return false
@@ -55,7 +57,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	_key(KEY_ESCAPE, true); _key(KEY_ESCAPE, false)
 	if not await _wait_route("hud"): return false
 	if not _assert(_game._session.raid.last_processed_tick == clock_before, "map pauses solo clock"): return false
-	var exit_point := _game._session.layout.cell_center(_game._session.layout.anchor(SupplyRunGraph.ROAD_GATE).approach_cell)
+	var exit_point := _game._session.target_approach(_game._session.exit_key())
 	if not await _walk_to(exit_point): return false
 	_stop()
 	for _i in range(10):
@@ -156,11 +158,18 @@ func _face_visible_threat() -> void:
 	_mouse(motion.position)
 	_last_shot = tick; fired += 1
 
+func _capture_shot_geometry() -> void:
+	# One immutable map geometry snapshot per test session. This is test aiming
+	# guidance, never a cached gameplay hit or authority verdict.
+	_shot_boxes.clear()
+	for collider: Dictionary in _game._session._obstructions():
+		var minimum:=ZWorldUnits.canonical_to_godot(collider.min_raw).vector2_value
+		var maximum:=ZWorldUnits.canonical_to_godot(collider.max_raw).vector2_value
+		var box:=Rect2(minimum,maximum-minimum)
+		_shot_boxes.append(box)
+
 func _clear_segment(start: Vector2, end: Vector2) -> bool:
-	for collider: Dictionary in _game._session.layout.structures:
-		if collider.layer != "Obstacles": continue
-		var cells: Rect2i = collider.rect
-		var box := Rect2(Vector2(cells.position) * float(ZWorldUnits.SOURCE_TILE_PIXELS), Vector2(cells.size) * float(ZWorldUnits.SOURCE_TILE_PIXELS))
+	for box:Rect2 in _shot_boxes:
 		if box.has_point(start) or box.has_point(end): return false
 		var a := box.position; var b := Vector2(box.end.x, box.position.y)
 		var c := box.end; var d := Vector2(box.position.x, box.end.y)
@@ -263,12 +272,16 @@ func _retry_pending_save() -> bool:
 
 func die_from_enemy(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool:
 	_game = game; _tree = tree; _check = check_callback
+	_capture_shot_geometry()
 	_death_run = true
 	_started_ms = Time.get_ticks_msec()
 	# Walk into the existing mutant encounter, without shooting or modifying AI,
 	# damage, position, inventory, health, clock limits or the outcome controller.
-	var anchor: Dictionary = _game._session.layout.anchor("zerkov.encounter.sawmill.mutant_verge")
-	var goal := _game._session.layout.cell_center(anchor.approach_cell + Vector2i(2, 0))
+	var goal:Vector2
+	if _game._session.native_map!=null: goal=_game._session.native_map.position("mutant")
+	else:
+		var anchor:Dictionary=_game._session.layout.anchor("zerkov.encounter.sawmill.mutant_verge")
+		goal=_game._session.layout.cell_center(anchor.approach_cell+Vector2i(2,0))
 	if not await _walk_to(goal): return false
 	_stop()
 	for _i in range(650):

@@ -58,10 +58,12 @@ static func _domain_dependencies(frame: Dictionary) -> Array:
 		"task", frame.get("summary", {}).get("task", {}))
 	var task_raid := String(progression.get(
 		"raid_id", frame.get("summary", {}).get("raid_id", "")))
+	var map_id:=String(frame.get("map_id","sawmill"))
+	var map_crates:=SupplyRunGraph.crates_for(map_id)
 	var searched_mask := 0
 	var searched := frame.get("searched_ids", []) as Array
-	for index in range(SupplyRunGraph.CRATES.size()):
-		if searched.has(SupplyRunGraph.CRATES[index]):
+	for index in range(map_crates.size()):
+		if searched.has(map_crates[index]):
 			searched_mask |= 1 << index
 	var raid_dependency: Array = [epoch, false]
 	if not progression.is_empty() and not combat.is_empty():
@@ -76,12 +78,13 @@ static func _domain_dependencies(frame: Dictionary) -> Array:
 			int(combat.get("ammo", 0)), int(combat.get("reserve", 0)),
 			float(combat.get("reload_progress", 0.0)), String(frame.get("actor_id", "")),
 			String(frame.get("weapon_id", ""))]
+	raid_dependency.append(map_id)
 	return [
 		RaidProgressionValues.freeze([epoch, bool(frame.get("has_profile", false)), mode]),
 		RaidProgressionValues.freeze(raid_dependency),
-		RaidProgressionValues.freeze([epoch, mode, task_raid, searched_mask,
+		RaidProgressionValues.freeze([epoch, mode, task_raid, map_id, searched_mask,
 			bool(task_value.get("completion_token", false))]),
-		RaidProgressionValues.freeze([epoch, frame.get("map_markers", [])]),
+		RaidProgressionValues.freeze([epoch, map_id, frame.get("map_markers", [])]),
 		RaidProgressionValues.freeze([epoch, frame.get("summary", {})]),
 	]
 
@@ -102,9 +105,9 @@ static func _build_domain(index: int, frame: Dictionary) -> ZReadOnlyView:
 			var task_raid := String(progression.get(
 				"raid_id", frame.get("summary", {}).get("raid_id", "")))
 			return _tasks(epoch, revision, tick, task_value,
-				frame.get("searched_ids", []), String(frame.get("mode", "")), task_raid)
+				frame.get("searched_ids", []), String(frame.get("mode", "")), task_raid, String(frame.get("map_id","sawmill")))
 		DOMAIN_MAP:
-			return _map(epoch, revision, tick, frame.get("map_markers", []))
+			return _map(epoch, revision, tick, frame.get("map_markers", []), String(frame.get("map_id","sawmill")))
 		DOMAIN_SUMMARY:
 			return _summary(epoch, revision, tick, frame.get("summary", {}))
 	return null
@@ -155,7 +158,7 @@ static func _raid(
 				"holds_objective", false)):
 		extraction_status = RaidView.ExtractionStatus.AVAILABLE
 	var extracts: Array[RaidView.Extraction] = [RaidView.Extraction.create(
-		StringName(SupplyRunGraph.ROAD_GATE), "Road Gate", extraction_status,
+		StringName(SupplyRunGraph.exit_for(String(frame.get("map_id","sawmill")))), String(frame.get("exit_title","Road Gate")), extraction_status,
 		int(frame.get("exit_distance", 0)),
 		LocalCampaignContent.EXTRACTION_TICKS - int(clock.get("countdown_remaining", 0)) \
 			if bool(clock.get("counting", false)) else 0,
@@ -165,7 +168,7 @@ static func _raid(
 	return RaidView.create(epoch, revision, tick,
 		ZRaidId.parse(String(progression.get("raid_id", ""))),
 		ZEntityId.parse(String(frame.get("actor_id", ""))),
-		int(frame.get("lifecycle", RaidView.Lifecycle.ACTIVE)), MAP, "Sawmill Yard",
+		int(frame.get("lifecycle", RaidView.Lifecycle.ACTIVE)), level_id(String(frame.get("map_id","sawmill"))), String(frame.get("map_title","Sawmill Yard")),
 		mini(tick, LocalCampaignContent.RAID_LIMIT_TICKS),
 		LocalCampaignContent.RAID_LIMIT_TICKS, weapon, extracts, [])
 
@@ -175,31 +178,31 @@ static func task_identity(raid_key: String = "") -> ZTaskId:
 	var suffix := "preview" if raid_key.is_empty() else "r" + raid_key.sha256_text().substr(0, 32)
 	return ZTaskId.from_parts(PackedStringArray(["supply_run", suffix]))
 
-static func _tasks(epoch: int, revision: int, tick: int, value: Dictionary, searched: Array, mode: String, raid_key: String) -> TaskView:
+static func _tasks(epoch: int, revision: int, tick: int, value: Dictionary, searched: Array, mode: String, raid_key: String, map_id: String = "sawmill") -> TaskView:
 	var objectives: Array[TaskView.Objective] = []
 	for index in range(3):
 		objectives.append(TaskView.Objective.create(StringName("zerkov.objective.local.crate%d" % index),
-			["Search Log Racks crate", "Search Saw House crate", "Search Settling Dock crate"][index],
-			1 if searched.has(SupplyRunGraph.CRATES[index]) else 0, 1))
-	objectives.append(TaskView.Objective.create(&"zerkov.objective.local.extract", "Retain supplies and extract through Road Gate",
+			"Search "+SupplyRunGraph.crate_titles(map_id)[index],
+			1 if searched.has(SupplyRunGraph.crates_for(map_id)[index]) else 0, 1))
+	objectives.append(TaskView.Objective.create(&"zerkov.objective.local.extract", "Retain supplies and extract through "+SupplyRunGraph.exit_title(map_id),
 		1 if value.get("completion_token", false) else 0, 1))
 	var status: TaskView.Status = TaskView.Status.AVAILABLE
 	if mode in ["raid", "settling", "save_error"]: status = TaskView.Status.ACTIVE
 	if mode == "summary": status = TaskView.Status.COMPLETED if value.get("completion_token", false) else TaskView.Status.FAILED
 	var entries: Array[TaskView.Entry] = [TaskView.Entry.create(task_identity(raid_key), "Supply Run",
-		"Search three marked crates, take the supply crate, and hold Road Gate for five seconds. Damage, leaving or losing supplies interrupts extraction.",
-		"Local contract", MAP, status, true, objectives, [])]
+		"Search three marked crates, take the supply crate, and hold "+SupplyRunGraph.exit_title(map_id)+" for five seconds. Damage, leaving or losing supplies interrupts extraction.",
+		"Local contract", level_id(map_id), status, true, objectives, [])]
 	return TaskView.create(epoch, revision, tick, entries, task_identity(raid_key))
 
-static func _map(epoch: int, revision: int, tick: int, points: Array) -> MapView:
-	var zones: Array[MapView.Zone] = [MapView.Zone.create(MAP, "Sawmill Yard", "Supply Run · three marked crates and Road Gate",
+static func _map(epoch: int, revision: int, tick: int, points: Array, map_id: String = "sawmill") -> MapView:
+	var zones: Array[MapView.Zone] = [MapView.Zone.create(level_id(map_id), SupplyRunGraph.title_for(map_id), "Supply Run · three marked crates and "+SupplyRunGraph.exit_title(map_id),
 		"Scav / mutant", LocalCampaignContent.RAID_LIMIT_TICKS, 1, 1, Vector2(0.5, 0.5), MapView.ZoneState.SELECTED)]
 	var markers: Array[MapView.Marker] = []
 	for point: Dictionary in points:
 		markers.append(MapView.Marker.create(StringName(point.id), MapView.MarkerKind.PLAYER if point.kind == "player" else (
 			MapView.MarkerKind.EXTRACTION if point.kind == "exit" else MapView.MarkerKind.TASK),
 			StringName(point.id), point.label, point.position, true, true))
-	return MapView.create(epoch, revision, tick, &"zerkov.map.sawmill", "Sawmill Yard", MAP, &"day", 1000, zones, markers)
+	return MapView.create(epoch, revision, tick, StringName("zerkov.map."+map_id), SupplyRunGraph.title_for(map_id), level_id(map_id), &"day", 1000, zones, markers)
 
 static func _summary(epoch: int, revision: int, tick: int, receipt: Dictionary) -> SummaryView:
 	if receipt.is_empty(): return SummaryView.unavailable(MISSING, &"settlement_not_committed", epoch, revision, tick)
@@ -231,3 +234,6 @@ static func _summary(epoch: int, revision: int, tick: int, receipt: Dictionary) 
 
 static func display_item(identifier: String) -> String:
 	return identifier.get_slice(".", identifier.get_slice_count(".") - 1).replace("_", " ").capitalize()
+
+static func level_id(map_id: String = "sawmill") -> StringName:
+	return MAP if map_id=="sawmill" else StringName("zerkov.level."+map_id)
