@@ -57,7 +57,7 @@ def cleanup_after(cleanup: Callable[[], object]) -> Iterator[None]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", type=Path, required=True)
-    parser.add_argument("--capture-dir", type=Path, help="Record native windowed AVI clips; not a real-time FPS measurement")
+    parser.add_argument("--capture-dir", type=Path, help="Record native fullscreen AVI clips; not a real-time FPS measurement")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[1]
     env = {**os.environ, "GODOT_SILENCE_ROOT_WARNING": "1"}
@@ -97,7 +97,7 @@ def main() -> int:
                     output = args.capture_dir.resolve()
                     output.mkdir(parents=True, exist_ok=True)
                     command.remove("--headless")
-                    command += ["--rendering-method", "gl_compatibility", "--write-movie", str(output / (stage + ".avi")), "--fixed-fps", "15"]
+                    command += ["--fullscreen", "--rendering-method", "gl_compatibility", "--write-movie", str(output / (stage + ".avi")), "--fixed-fps", "15"]
                     stage_env["ZERKOV_EQUIPMENT_MOVIE"] = "1"
                 log = execute(command + ["--script", "res://tests/equipment/equipment_ui_flow.gd", "--", stage, namespace] + saved,
                               stage_env, "EQUIPMENT_UI_RESULT", 240)
