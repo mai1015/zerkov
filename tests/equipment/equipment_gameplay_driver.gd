@@ -51,14 +51,26 @@ func run(driver: RefCounted, item_id: int) -> bool:
 	if not await advance_ticks(1): return false
 	if not _assert(_game._session.hud_model.snapshot().ammo == 29 and weapon_view().shot_count == shot_count + 1
 		and weapon_view().effect_count == 1, "ordinary fire consumes one round and presents one committed shot"): return false
-	await capture("Fire: 30 to 29 rounds; committed muzzle flash and resolved trace")
+	await capture("Fire: 30 to 29 rounds; source flash attached to the gun")
 	trigger()
 	if not await advance_ticks(1): return false
 	if not _assert(_game._session.hud_model.snapshot().ammo == 29 and weapon_view().shot_count == shot_count + 1,
 		"early cadence rejection creates neither another round nor another effect"): return false
 	# Sample the bright second muzzle cell from the original seven-frame strip.
 	if not await advance_ticks(2): return false
-	await capture("Original muzzle flash: source animation at the actual barrel")
+	await capture("Muzzle attachment: bright source frame at the barrel")
+	var before_move: Vector2 = _game._session.player_movement.position_px
+	_key(KEY_D, true)
+	if not await advance_ticks(2): return false
+	_key(KEY_D, false)
+	if not _assert(_game._session.player_movement.position_px != before_move, "ordinary movement changes actor position during flash"): return false
+	await capture("Moving gun: muzzle animation follows the operator")
+	aim_at(_game._session.player_movement.position_px + Vector2(-100, 0))
+	if not await advance_ticks(1): return false
+	await capture("Turning left: the same flash stays attached to the reflected barrel")
+	aim_at(_game._session.player_movement.position_px + Vector2(100, -40))
+	if not await advance_ticks(1): return false
+	await capture("Oblique aim: gun and flash share one transform")
 	# Changes are actual authored Character controls. The pause view is not
 	# allowed to mutate the world presenter or native abilities directly.
 	await driver.key(KEY_I)
@@ -74,13 +86,20 @@ func run(driver: RefCounted, item_id: int) -> bool:
 	if not _assert(weapon_view().shot_count == shot_count + 1 and _game._session.combat.weapons.snapshot(weapon_key).loaded_rounds == 29,
 		"no equipped primary means no firing and no hidden ammo loss"): return false
 	await capture("AKM unequipped: only the actual machete is held; firing is disabled")
-	await driver.key(KEY_V)
-	if not await advance_ticks(1): return false
-	if not _assert(_game._session.hud_model.confirmed_frame().melee.phase == &"windup", "ordinary melee input begins the authoritative machete timeline"): return false
-	await capture("Machete: actual melee input starts its committed swing")
-	if not await advance_ticks(10): return false
-	await capture("Original melee: source arm/body active frame with the actual machete")
-	if not await advance_ticks(30): return false
+	for direction: Vector2 in [Vector2.RIGHT, Vector2.LEFT]:
+		aim_at(_game._session.player_movement.position_px + direction * 100.0)
+		if not await advance_ticks(1): return false
+		await driver.key(KEY_V)
+		if not await advance_ticks(1): return false
+		if not _assert(_game._session.hud_model.confirmed_frame().melee.phase == &"windup", "ordinary melee input starts committed source animation"): return false
+		var start: int = _game._session.hud_model.confirmed_frame().tick
+		for index in range(6):
+			var offsets: Array[int] = [0, 4, 7, 10, 13, 22]
+			var remaining: int = start + offsets[index] - _game._session.hud_model.confirmed_frame().tick
+			if not await advance_ticks(remaining): return false
+			if not _assert(weapon_view().authored_attack and weapon_view().attack_frame == index, "real input samples original knife frame " + str(index)): return false
+			await capture("Option A / %s / source frame %d: knife and hands registered" % ["LEFT" if direction.x < 0 else "RIGHT", index])
+		if not await advance_ticks(10): return false
 	await driver.key(KEY_I)
 	if not driver.route("inventory") or not await driver.click(driver.named("InventoryContent/CharacterColumn/LegStrapSlot")): return false
 	await driver.key(KEY_ESCAPE)
@@ -199,6 +218,13 @@ func capture(label: String) -> void:
 	var frame := _game._session.hud_model.confirmed_frame()
 	var actor: LocalActorPresenter = _game._session._actors[_game._session.raid.admission().actor_id.canonical_key()]
 	var world_view := weapon_view()
+	var weapon: LocalWeaponPresenter = actor._weapon
+	if weapon._muzzle.visible:
+		_assert(weapon._muzzle.global_position.is_equal_approx(weapon._sprite.to_global(weapon.akm_art.muzzle - weapon.akm_art.grip)), "live muzzle sprite is registered to the drawn gun")
+	if world_view.authored_attack:
+		var arms: Sprite2D = actor._layers._layers[2]
+		_assert(arms.visible and weapon._sprite.transform.is_equal_approx(arms.transform), "live knife strip and hands share exact source canvas")
+		_assert((weapon._sprite.texture as AtlasTexture).region == arms.region_rect, "live knife and hands use the same source frame")
 	_assert(actor._layers._layers[2].visible != world_view.arms_overridden, "no duplicate ordinary arms under the authored holding pose")
 	if world_view.held_definition == LocalWeaponPresenter.AKM:
 		_assert(actor._weapon._sprite.texture.resource_path == "res://assets/original/ally/arms+ak.png", "live world rifle uses exact supplied holding artwork")

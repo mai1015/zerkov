@@ -1,0 +1,30 @@
+{
+  "archive_sha256": "ae2296dd78ba7310a512a2d3a9a575884dadefaf54eac8f9b3d535b31551b006",
+  "extensions": {
+    ".png": 964,
+    ".gif": 1,
+    ".xlsx": 1,
+    ".kra": 3,
+    ".jpg": 7,
+    ".psd": 13,
+    ".ai": 3
+  },
+  "rig_file_candidates": [],
+  "knife_strip": {
+    "path": "Main character/Animations/Knife Attack/knife-attack-knife.png",
+    "size": [
+      384,
+      64
+    ],
+    "frames": 6,
+    "frame_size": [
+      64,
+      64
+    ],
+    "pivot": [
+      32,
+      48
+    ]
+  },
+  "scope": "No separate skeletal rig found. PNG hand/arm frames are not bones or skin weights."
+}

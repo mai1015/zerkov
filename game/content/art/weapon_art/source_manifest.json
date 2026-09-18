@@ -292,6 +292,16 @@
         384,
         64
       ]
+    },
+    {
+      "member": "zerkov/Main character/Animations/Knife Attack/knife-attack-knife.png",
+      "path": "assets/original/Main character/Animations/Knife Attack/knife-attack-knife.png",
+      "bytes": 563,
+      "sha256": "daf7af354ff1cb912792764e436f6e5e02927912b7abfa34582381a3540bc602",
+      "size": [
+        384,
+        64
+      ]
     }
   ]
 }

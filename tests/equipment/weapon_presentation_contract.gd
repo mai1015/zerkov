@@ -105,6 +105,7 @@ func run() -> void:
 	view.release(); view.queue_free(); await process_frame
 	await source_fx_contract()
 	await actor_contract()
+	await attachment_contract()
 	print("WEAPON_PRESENTATION_RESULT checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
 
@@ -128,7 +129,7 @@ func actor_contract() -> void:
 	check(actor._weapon.snapshot().attack_frame == 3 and actor._layers._layers[2].visible and not actor._weapon.snapshot().arms_overridden, "original attack arm frame and blade frame share canonical active window")
 	for index in range(4):
 		check(actor._layers._layers[index].region_rect.position.x == 192.0, "body part uses source attack frame 3")
-	check(actor._weapon._sprite.texture == actor._weapon.machete_art.texture, "machete is not substituted by source knife")
+	check(actor._weapon._sprite.texture == actor._weapon.machete_art.attack_frames.get_frame_texture(&"attack", 3), "approved Option A uses original registered knife strip during attack")
 	var empty := frame(24); empty.weapon = {}; empty.melee_equipment = {}; ZMeleeTimeline._freeze(empty)
 	check(actor.present(Vector2.ZERO, Vector2.ZERO, Vector2.LEFT, empty) and actor._layers._layers[2].visible and not actor._weapon._sprite.visible, "empty hands restore original idle arms")
 	actor.release(); actor.queue_free(); await process_frame
@@ -149,7 +150,7 @@ func source_fx_contract() -> void:
 	value.feedback = [event]; check(present(value), "confirmed blocked shot sampled")
 	check(view._effects[0].surface == "wood", "only explicit hit obstruction chooses wood source FX")
 	var muzzle: Vector2 = Vector2(32, 32) + view._sprite.transform * (view.akm_art.muzzle - view.akm_art.grip)
-	check(view._effects[0].muzzle_world.is_equal_approx(muzzle), "muzzle originates at source barrel, not inventory icon offset")
+	check((Vector2(32, 32) + view._muzzle.global_position).is_equal_approx(muzzle), "gun-local emitter uses source barrel, not inventory offset")
 	value = frame(2); event = shot(2, "unknown-source-fx"); event.hit = false; event.blocked = true; event.obstruction_id = "unknown"; value.feedback = [event]
 	check(present(value) and view._effects[1].surface.is_empty(), "unknown obstruction cannot invent material-specific impact")
 	value = frame(3); event = shot(3, "clear-source-fx"); event.hit = false; event.blocked = false; event.obstruction_id = "wall"; value.feedback = [event]
@@ -159,3 +160,64 @@ func source_fx_contract() -> void:
 	for i in range(9):
 		check(LocalWeaponPresenter.BLOOD[i].resource_path.begins_with("res://assets/original/fx/blood particles/"), "blood is an original texture, not a drawn hit cross")
 	view.release(); view.queue_free(); await process_frame
+
+func attachment_contract() -> void:
+	# A transformed ancestor exposes accidental mixing of local/world positions.
+	var parent := Node2D.new()
+	parent.position = Vector2(81, 46); parent.rotation = 0.17; parent.scale = Vector2(2, 2)
+	root.add_child(parent)
+	var actor := LocalActorPresenter.new(); parent.add_child(actor)
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://game/content/art/local_player_manifest.json"))
+	var textures: Dictionary = {}
+	for key: String in manifest.sources: textures[key] = load(manifest.sources[key].path)
+	check(actor.configure(manifest, textures, 7), "attachment regression binds actual layered actor")
+	var value := frame(1); value.feedback = [shot(1, "attachment-shot")]; ZMeleeTimeline._freeze(value)
+	check(actor.present(Vector2(32, 48), Vector2.ZERO, Vector2.RIGHT, value), "shot binds muzzle to held gun")
+	var weapon: LocalWeaponPresenter = actor._weapon
+	check(weapon._muzzle.get_parent() == weapon._sprite, "muzzle is a gun child, not a shot-world marker")
+	var original_target: Vector2i = weapon._effects[0].event.target_raw
+	var old_muzzle: Vector2 = weapon._muzzle.global_position
+	for i in range(4):
+		var aim: Vector2 = [Vector2.RIGHT, Vector2.LEFT, Vector2(1,-1).normalized(), Vector2(-1,1).normalized()][i]
+		value = frame(2 + i); ZMeleeTimeline._freeze(value)
+		check(actor.present(Vector2(42 + i*7, 51 + i*3), Vector2(1, 0), aim, value), "move/turn accepted during existing flash")
+		var expected: Vector2 = weapon._sprite.to_global(weapon.akm_art.muzzle - weapon.akm_art.grip)
+		check(weapon._muzzle.visible and weapon._muzzle.global_position.is_equal_approx(expected), "live emitter follows translated/rotated/mirrored source barrel")
+		check(not weapon._muzzle.global_position.is_equal_approx(old_muzzle), "muzzle is not stranded at old shot position")
+		check(weapon._effects[0].event.target_raw == original_target and weapon.snapshot().shot_count == 1, "moving muzzle does not move impact or invent shots")
+		check(weapon._muzzle.global_transform.x.is_equal_approx(weapon._sprite.global_transform.x), "flash inherits gun orientation and scale exactly")
+		old_muzzle = weapon._muzzle.global_position
+	value = frame(6); value.weapon.phase = "reloading"; value.weapon.reload = {"start_tick":6,"due_tick":8}; ZMeleeTimeline._freeze(value)
+	check(actor.present(Vector2(70, 70), Vector2.ZERO, Vector2.RIGHT, value) and not weapon._muzzle.visible, "reload hides old muzzle flash")
+	# All six source frames in both directions. Body and blade are already
+	# authored poses, so oblique aim cannot independently rotate the blade.
+	var tick: int = 10
+	for left: bool in [true, false]:
+		var start: int = tick
+		for index in range(6):
+			var offsets: Array[int] = [0, 4, 7, 10, 13, 22]
+			tick = start + offsets[index]
+			value = frame(tick)
+			var aim := Vector2i(-1000000 if left else 1000000, 250000)
+			value.melee = {"phase": &"windup" if index < 3 else (&"active" if index == 3 else &"recovery"),
+				"swing": {"start_tick": start, "active_tick": start+10, "recovery_tick": start+13, "ready_tick": start+31, "aim_raw": aim}}
+			ZMeleeTimeline._freeze(value)
+			check(actor.present(Vector2(70, 70), Vector2.ZERO, Vector2(aim).normalized(), value), "source knife frame accepted")
+			var arms: Sprite2D = actor._layers._layers[2]
+			var blade: Sprite2D = weapon._sprite
+			check(weapon.snapshot().authored_attack and weapon.snapshot().attack_frame == index, "knife uses shared committed six-frame sampling")
+			check(arms.visible and not weapon.snapshot().arms_overridden, "original attack hands remain visible exactly once")
+			check(blade.transform.is_equal_approx(arms.transform) and blade.offset == Vector2.ZERO, "blade and hands share full canvas transform, not inventory offsets")
+			check(blade.scale.abs() == Vector2.ONE and blade.rotation == 0.0, "native-scale knife is not rotated separately from painted hand")
+			var atlas := blade.texture as AtlasTexture
+			check(atlas != null and atlas.region == Rect2(index*64, 0, 64, 64) and atlas.atlas.resource_path.ends_with("/knife-attack-knife.png"), "exact original source cell used")
+			check(arms.region_rect == atlas.region and not weapon._muzzle.visible, "hand/knife frame indices match and rifle flash stays hidden")
+		tick = start + 32
+		value = frame(tick); ZMeleeTimeline._freeze(value)
+		check(actor.present(Vector2(70,70), Vector2.ZERO, Vector2.LEFT if left else Vector2.RIGHT, value), "recovery restores ordinary equipment")
+		check(weapon._sprite.texture == weapon.akm_art.texture and not weapon.snapshot().authored_attack, "attack strip does not linger after recovery")
+		tick += 1
+	value = frame(tick+1); value.weapon = {}; value.melee_equipment = {}; ZMeleeTimeline._freeze(value)
+	check(actor.present(Vector2.ZERO,Vector2.ZERO,Vector2.RIGHT,value) and not weapon._sprite.visible and not weapon._muzzle.visible, "empty hands clear blade and muzzle")
+	actor.release(); check(weapon._muzzle.texture == null, "release clears muzzle resource")
+	parent.queue_free(); await process_frame

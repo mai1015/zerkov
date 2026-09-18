@@ -249,7 +249,7 @@
     }
   },
   "active_reviewed_support": {
-    "tests/equipment/equipment_gameplay_driver.gd": {"purpose": "Non-entrypoint real-input equipment gameplay driver with fail-closed native 1080p stills", "runner_inventory": true, "sha256": "11cc06a929a00f28bd2db1e0abf99330bd0025a24c6d6378e72682025d671efe"},
+    "tests/equipment/equipment_gameplay_driver.gd": {"purpose": "Non-entrypoint real-input equipment gameplay driver with fail-closed native 1080p stills", "runner_inventory": true, "sha256": "fbb93b6ea72e00704ca8ccc623831ca7e45a46c471ffbbf33c91f080b98da5d2"},
     "game/presentation/exact_1080_capture_guard.gd": {
       "purpose": "export-safe physical window, viewport, texture and raw-image final-write guard",
       "runner_inventory": false,

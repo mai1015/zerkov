@@ -14,7 +14,7 @@ spec.loader.exec_module(module)
 
 class SourceTests(unittest.TestCase):
     def test_original_selection(self):
-        self.assertEqual(module.verify(), 29)
+        self.assertEqual(module.verify(), 30)
 
     def test_corruption_is_rejected(self):
         for kind in ['missing', 'modified', 'duplicate', 'escape', 'forbidden', 'clearance', 'dimensions']:
@@ -49,4 +49,5 @@ class SourceTests(unittest.TestCase):
         self.assertIn('includes_arms = true', rifle)
         blade = (ROOT/'game/content/art/weapon_art/machete.tres').read_text()
         self.assertIn('Weapons_inventory_MACHETTE.png', blade)
-        self.assertNotIn('knife-attack-knife.png', blade)
+        self.assertIn('knife-attack-knife.png', blade)
+        self.assertIn('attack_pivot = Vector2(32, 48)', blade)

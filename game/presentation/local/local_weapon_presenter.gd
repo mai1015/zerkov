@@ -22,6 +22,7 @@ const BLOOD: Array[Texture2D] = [
 @export var akm_art: ZHeldWeaponArt = preload("res://game/content/art/weapon_art/akm.tres")
 @export var machete_art: ZHeldWeaponArt = preload("res://game/content/art/weapon_art/machete.tres")
 var _sprite: Sprite2D
+var _muzzle: Sprite2D
 var _generation: int = 0
 var _actor: String = ""
 var _tick: int = 0
@@ -50,6 +51,14 @@ func configure(generation: int, surfaces: Dictionary = {}) -> bool:
 	_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_sprite.visible = false
 	add_child(_sprite)
+	# Unlike impacts, muzzle animation belongs to the visible gun. Parenting
+	# preserves the exact barrel transform through movement/turning/reflection.
+	_muzzle = Sprite2D.new()
+	_muzzle.name = "MuzzleSourceFX"
+	_muzzle.centered = false
+	_muzzle.visible = false
+	_muzzle.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_sprite.add_child(_muzzle)
 	return true
 
 func present(pose: Vector2, facing: Vector2, frame: Dictionary, body_sample: Dictionary = {}) -> bool:
@@ -95,6 +104,17 @@ func present(pose: Vector2, facing: Vector2, frame: Dictionary, body_sample: Dic
 		_sprite.rotation = direction.angle()
 		if definition == MACHETE and swinging and art.attack_degrees.size() == 6:
 			_sprite.rotation += deg_to_rad(art.attack_degrees[attack_frame]) * (-1.0 if left else 1.0)
+	var authored_attack: bool = _sprite.visible and definition == MACHETE and swinging \
+		and art.attack_frames != null and art.attack_frames.has_animation(&"attack") \
+		and art.attack_frames.get_frame_count(&"attack") == 6
+	if authored_attack:
+		# These are already posed 64x64 source cells, not an inventory blade.
+		# Match the body's canvas registration exactly; do not aim-rotate again.
+		_sprite.texture = art.attack_frames.get_frame_texture(&"attack", attack_frame)
+		_sprite.position = Vector2(-art.attack_pivot.x if left else art.attack_pivot.x, -art.attack_pivot.y)
+		_sprite.offset = Vector2.ZERO
+		_sprite.scale = Vector2(1.0 if left else -1.0, 1.0)
+		_sprite.rotation = 0.0
 	_reload_progress = -1.0
 	if _sprite.visible and definition == AKM and primary.get("phase") == "reloading":
 		var reload: Dictionary = primary.get("reload", {})
@@ -114,17 +134,16 @@ func present(pose: Vector2, facing: Vector2, frame: Dictionary, body_sample: Dic
 			if _order.size() > MAX_SEEN_SHOTS: _seen.erase(_order.pop_front())
 			if _effects.size() == MAX_EFFECTS: _effects.pop_front()
 			var effect := {"event": event,
-				"muzzle_world": pose.round() + _sprite.transform * (akm_art.muzzle - akm_art.grip),
-				"angle": direction.angle(), "left": left,
 				"surface": String(_surfaces.get(String(event.get("obstruction_id", "")), "")) if event.blocked else ""}
 			effect.make_read_only()
 			_effects.append(effect)
 			_shot_count += 1
+	_present_muzzle(definition, primary_id)
 	_view = {"generation": _generation, "actor_id": _actor, "tick": _tick,
 		"visible": _sprite.visible, "held_instance_id": held_id if _sprite.visible else "",
 		"held_definition": definition if _sprite.visible else "", "primary_instance_id": primary_id,
 		"arms_overridden": _sprite.visible and art.includes_arms, "facing_left": left,
-		"attack_frame": attack_frame, "source_profile": art.resource_path if _sprite.visible else "",
+		"attack_frame": attack_frame, "authored_attack": authored_attack, "muzzle_visible": _muzzle.visible, "source_profile": art.resource_path if _sprite.visible else "",
 		"reloading": _reload_progress >= 0.0, "reload_progress": _reload_progress,
 		"shot_count": _shot_count, "effect_count": _effects.size(), "alive": not _dead}
 	_view.make_read_only()
@@ -145,6 +164,25 @@ static func melee_frame(frame: Dictionary) -> int:
 			return 4 + clampi(int(2.0 * (tick - start) / maxi(1, int(swing.get("ready_tick", start + 18)) - start)), 0, 1)
 	return 0
 
+func _present_muzzle(definition: String, primary_id: String) -> void:
+	_muzzle.visible = false
+	_muzzle.texture = null
+	if not _sprite.visible or definition != AKM or _reload_progress >= 0.0:
+		return
+	# One muzzle per firearm. A newer committed shot restarts that emitter;
+	# previous shots retain only their independent world-impact playback.
+	for i in range(_effects.size() - 1, -1, -1):
+		var event: Dictionary = _effects[i].event
+		if event.weapon_instance_id != primary_id: continue
+		@warning_ignore("integer_division")
+		var index: int = (_tick - int(event.tick)) / FX_FRAME_TICKS
+		if index < 0 or index >= FX.get_frame_count(&"muzzle"): continue
+		_muzzle.position = akm_art.muzzle - akm_art.grip
+		_muzzle.offset = -akm_art.muzzle_fx_origin
+		_muzzle.texture = FX.get_frame_texture(&"muzzle", index)
+		_muzzle.visible = true
+		return
+
 func snapshot() -> Dictionary:
 	return _view
 
@@ -153,6 +191,9 @@ func release() -> void:
 	if _sprite != null:
 		_sprite.visible = false
 		_sprite.texture = null
+	if _muzzle != null:
+		_muzzle.visible = false
+		_muzzle.texture = null
 	_effects.clear()
 	_seen.clear()
 	_order.clear()
@@ -197,12 +238,7 @@ func _draw() -> void:
 		var age: int = _tick - int(event.tick)
 		@warning_ignore("integer_division")
 		var index: int = age / FX_FRAME_TICKS
-		var muzzle := to_local(effect.muzzle_world)
 		var target := to_local(target_result.vector2_value)
-		if index < FX.get_frame_count(&"muzzle"):
-			draw_set_transform(muzzle, effect.angle, Vector2(-1, -1 if effect.left else 1))
-			draw_texture(FX.get_frame_texture(&"muzzle", index), -Vector2(27, 12))
-			draw_set_transform(Vector2.ZERO)
 		# An authoritative clear miss does not create an impact at max range.
 		if event.get("damage_confirmed", false) and event.hit:
 			var t: float = float(age) / EFFECT_TICKS
