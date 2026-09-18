@@ -209,8 +209,12 @@ func run(scene_tree: SceneTree) -> void:
 		await linger("Incompatible equipment rejected without mutation")
 	else:
 		check(gear(PRIMARY).item_id == weapon_id, "second relaunch keeps equipped identity")
-		await key(KEY_ESCAPE)
-		if not route("bunker") or not await click(named("BunkerHideoutView/LocalDeploy")) or not route("maps"): await finish(); return
+		# Use the production home section control. On native macOS fullscreen,
+		# Escape is also an OS-level fullscreen gesture and is not deterministic
+		# evidence of the application route; the Bunker control exercises the
+		# same production navigation contract directly.
+		if not await click(named("NavigationChrome/Bunker")) or not route("bunker") \
+			or not await click(named("BunkerHideoutView/LocalDeploy")) or not route("maps"): await finish(); return
 		if not check(game._session == null and game._mode == "home", "briefing preserves the saved loadout before deployment"): await finish(); return
 		await linger("Raid briefing: review the saved loadout")
 		if not await click(named("Deploy")) or not route("hud"): await finish(); return
