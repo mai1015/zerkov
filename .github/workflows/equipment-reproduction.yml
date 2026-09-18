@@ -1,7 +1,12 @@
 name: Equipment reproduction inputs
 on:
   pull_request:
-    paths: ['.github/workflows/equipment-reproduction.yml']
+    paths:
+      - '.github/workflows/equipment-reproduction.yml'
+      - 'game/presentation/local/local_actor_presenter.gd'
+      - 'game/presentation/local/local_weapon_presenter.gd'
+      - 'game/bootstrap/local/local_raid_session.gd'
+      - 'tests/equipment/**'
 permissions:
   contents: read
 jobs:
