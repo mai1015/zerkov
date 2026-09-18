@@ -56,7 +56,7 @@ def main() -> int:
                     arguments = [mode, namespace, fingerprints[-1] if fingerprints else ""]
                     if args.graphical:
                         arguments.append(str(output / mode))
-                    result = flow.execute(script + arguments, env, "BUNKER_FLOW_RESULT", timeout=200)
+                    result = flow.execute(script + arguments, env, "BUNKER_FLOW_RESULT", timeout=330 if args.graphical else 200)
                     (output / (mode + ".log")).write_text(result)
                     if args.suite == "journey" and "OFFLINE_JOURNEY_COMPLETE native=true" not in result:
                         raise RuntimeError("Journey driver did not complete")
@@ -72,7 +72,7 @@ def main() -> int:
             if len(set(fingerprints)) != 1:
                 raise RuntimeError("Continue changed saved campaign data")
         images = {str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.rglob("*.png"))}
-        if args.graphical and len(images) != ({"hub": 14, "workspaces": 8, "journey": 16}[args.suite]):
+        if args.graphical and len(images) != ({"hub": 14, "workspaces": 8, "journey": 22}[args.suite]):
             raise RuntimeError("Missing expected application screenshots")
         report = {"engine": pin, "checks": counts, "failures": 0, "profile_fingerprint": fingerprints[0],
                   "suite": args.suite, "graphical": args.graphical, "screenshots": images, "source_commit": os.environ.get("SOURCE_SHA", "local"),

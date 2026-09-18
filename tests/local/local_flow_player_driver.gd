@@ -13,9 +13,11 @@ var fired: int = 0
 var searched: int = 0
 var transferred: bool = false
 var _death_run: bool = false
+var _shot_boxes: Array[Rect2] = []
 
 func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_save_retry: bool = false) -> bool:
 	_game = game; _tree = tree; _check = check_callback
+	_capture_shot_geometry()
 	_started_ms = Time.get_ticks_msec()
 	var capture_contract = load("res://tests/local/runtime_capture_contract.gd").new()
 	if not capture_contract.run(_game._session.raid, _check): return false
@@ -24,8 +26,8 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	for _i in range(ZerkovCombatContent.AKM_RELOAD_TICKS + 2):
 		if not await _tick(Vector2.ZERO): return false
 	if not _assert(_game._session.hud_model.snapshot().ammo > 0, "physical reload loads real ammunition"): return false
-	for id: String in SupplyRunGraph.CRATES:
-		if not await _walk_to(_game._session.layout.cell_center(_game._session.layout.anchor(id).approach_cell)): return false
+	for id: String in _game._session.crate_keys():
+		if not await _walk_to(_game._session.target_approach(id)): return false
 		_stop()
 		for _i in range(10):
 			if not await _tick(Vector2.ZERO): return false
@@ -33,13 +35,28 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 		_key(KEY_E, true); _key(KEY_E, false)
 		await _tree.process_frame
 		var completed: bool = false
-		for _i in range(120):
+		var attempts: int = 1
+		for _i in range(360):
 			if not await _tick(Vector2.ZERO): return false
 			if _game._session.progression.was_crate_searched(id): completed = true; break
+			# Damage legitimately cancels a search. Respond like a player to the
+			# published idle state; never ignore damage, force discovery, or press
+			# Interact again while the prior search is still active.
+			if _game._session.progression.snapshot().get("searching", "").is_empty():
+				if not _assert(attempts < 3 and _game._session.nearest_target() == id, "bounded search retry remains in reach"): return false
+				if not await _stabilize_bleeding(): return false
+				attempts += 1
+				print("LOCAL_FLOW_SEARCH_RETRY crate=", id, " attempt=", attempts, " tick=", ticks)
+				_key(KEY_E, true); _key(KEY_E, false)
+				await _tree.process_frame
+		if not completed:
+			print("LOCAL_FLOW_SEARCH_STALLED target=", id, " current=", _game._session.nearest_target(),
+				" frame=", _game._session.progression.snapshot(), " stats=", _game._session.progression._stats,
+				" ammo=", _game._session.hud_model.snapshot(), " fired=", fired, " notice=", _game._notice)
 		if not _assert(completed, "timed native search completes " + id): return false
 		searched += 1
 		print("LOCAL_FLOW_SEARCH tick=", ticks, " crate=", id)
-		if id == SupplyRunGraph.CRATES[0] and not await _take_objective(): return false
+		if id == _game._session.crate_keys()[0] and not await _take_objective(): return false
 	var clock_before: int = _game._session.raid.last_processed_tick
 	_key(KEY_J, true); _key(KEY_J, false)
 	if not await _wait_route("tasks"): return false
@@ -55,11 +72,14 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	_key(KEY_ESCAPE, true); _key(KEY_ESCAPE, false)
 	if not await _wait_route("hud"): return false
 	if not _assert(_game._session.raid.last_processed_tick == clock_before, "map pauses solo clock"): return false
-	var exit_point := _game._session.layout.cell_center(_game._session.layout.anchor(SupplyRunGraph.ROAD_GATE).approach_cell)
+	var exit_point := _game._session.target_approach(_game._session.exit_key())
 	if not await _walk_to(exit_point): return false
 	_stop()
 	for _i in range(10):
 		if not await _tick(Vector2.ZERO): return false
+	# Bandaging is a real bound gameplay action. A bleed is damage, so waiting
+	# five seconds at the exit while bleeding must NOT bypass its interruption.
+	if not await _stabilize_bleeding(): return false
 	_key(KEY_E, true); _key(KEY_E, false)
 	await _tree.process_frame
 	if not await _tick(Vector2.ZERO): return false
@@ -86,6 +106,35 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 		" kills=", result.get("stats", {}).get("kills", 0), " outcome=", result.outcome)
 	return true
 
+func _stabilize_bleeding() -> bool:
+	for attempt in range(14):
+		var frame := _game._session.hud_model.confirmed_frame()
+		var bleeding: bool = false
+		for zone: Dictionary in frame.get("health", {}).get("body_parts", []):
+			bleeding = bleeding or bool(zone.get("heavy_bleed", false))
+		if not bleeding: return true
+		var before: int = _carried_bandages()
+		if not _assert(before > 0, "bleeding extraction run has a real carried bandage"): return false
+		print("LOCAL_FLOW_TREATMENT attempt=", attempt + 1, " tick=", ticks, " bandages=", before)
+		_key(KEY_Y, true); _key(KEY_Y, false)
+		for _i in range(4):
+			if not await _tick(Vector2.ZERO): return false
+		var after: int = _carried_bandages()
+		if not _assert(after == before or after == before - 1, "one heal gesture consumes at most one actual bandage"): return false
+		# Same-tick damage can invalidate the expected health revision. Retry via
+		# another physical key event with the newly published view; never edit GAS.
+		if after == before: continue
+		if not _assert(_game._session.hud_model.confirmed_frame().health.health_revision > frame.health.health_revision,
+				"consumed bandage publishes an authoritative health revision"): return false
+	return _assert(false, "bounded physical treatment stabilizes bleeding before extraction")
+
+func _carried_bandages() -> int:
+	var owner := _game._session.deployment.inventory
+	var count: int = 0
+	for item: Dictionary in owner.raid_authority().snapshot(owner.raid_player_inventory_id).get_items():
+		if StringName(item.item_definition_identifier) == ZerkovInventoryCatalog.ITEM_BANDAGE: count += int(item.quantity)
+	return count
+
 func _walk_to(goal: Vector2) -> bool:
 	var session := _game._session
 	var map_builds_before := int(_game.presentation_work_counts().map_view_builds)
@@ -94,6 +143,10 @@ func _walk_to(goal: Vector2) -> bool:
 	var path := session._navigation.request_path(start, target, session._navigation.revision())
 	if not _assert(path.is_ok(), "navigation route to " + str(target)): return false
 	for cell: Vector2i in path.cells:
+		# React to the published bleed while travelling, not only at the exit.
+		# The deliberate death scenario must never heal. Treatment still goes
+		# through the bound Y action and consumes the real carried bandage.
+		if not _death_run and not await _stabilize_bleeding(): return false
 		var waypoint := ZWorldUnits.tile_center_to_godot(cell).vector2_value
 		var reached: bool = false
 		for _i in range(160):
@@ -110,6 +163,9 @@ func _walk_to(goal: Vector2) -> bool:
 	return true
 
 func _tick(direction: Vector2) -> bool:
+	if _game._mode != "raid":
+		print("LOCAL_FLOW_TERMINAL_DIAGNOSTIC mode=", _game._mode, " ticks=", ticks, " fired=", fired, " searched=", searched,
+			" stats=", _game._session.progression._stats, " health=", _game._session.hud_model.confirmed_frame().get("health", {}))
 	if not _assert(_game._mode == "raid" and _game.can_advance(), "live input tick: " + _game._mode): return false
 	for code: Key in [KEY_W, KEY_A, KEY_S, KEY_D]:
 		var down: bool = (code == KEY_W and direction.y < 0) or (code == KEY_S and direction.y > 0) \
@@ -134,8 +190,21 @@ func _face_visible_threat() -> void:
 		var row: Dictionary = session.rows[key]
 		if row.archetype == "player" or not session.combat.health.actor_snapshot(row.actor_id).alive: continue
 		var position: Vector2 = row.movement.position_px
-		var screen := ZWorldViewportPolicy.world_to_screen(position, session.camera.global_position)
-		if Rect2(8, 8, 1904, 1064).has_point(screen) and _clear_segment(origin, position):
+		# This is white-box input automation, not a hidden damage command. Aim
+		# at the declared head rather than repeatedly hitting a zero-health limb;
+		# the real shot, obstruction, ammunition and health owners still decide.
+		var aim_point := position
+		if not _death_run:
+			var canonical := ZWorldUnits.godot_to_canonical(position)
+			var boxes := ZerkovBodyHitboxProfile.build_world_hitboxes(canonical.vector2i_value, int(row.movement.facing_4))
+			for box: Dictionary in boxes:
+				if StringName(box.hitbox_id) == ZerkovBodyHitboxProfile.HITBOX_HEAD:
+					var minimum := ZWorldUnits.canonical_to_godot(box.min_raw).vector2_value
+					var maximum := ZWorldUnits.canonical_to_godot(box.max_raw).vector2_value
+					aim_point = (minimum + maximum) / 2.0
+					break
+		var screen := ZWorldViewportPolicy.world_to_screen(aim_point, session.camera.global_position)
+		if Rect2(8, 8, 1904, 1064).has_point(screen) and _clear_segment(origin, aim_point):
 			candidates.append({"key":key,"position":position,"screen":screen,"distance":origin.distance_squared_to(position)})
 	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return a.distance < b.distance if a.distance != b.distance else a.key < b.key)
@@ -159,11 +228,18 @@ func _face_visible_threat() -> void:
 	_mouse(motion.position)
 	_last_shot = tick; fired += 1
 
+func _capture_shot_geometry() -> void:
+	# One immutable map geometry snapshot per test session. This is test aiming
+	# guidance, never a cached gameplay hit or authority verdict.
+	_shot_boxes.clear()
+	for collider: Dictionary in _game._session._obstructions():
+		var minimum:=ZWorldUnits.canonical_to_godot(collider.min_raw).vector2_value
+		var maximum:=ZWorldUnits.canonical_to_godot(collider.max_raw).vector2_value
+		var box:=Rect2(minimum,maximum-minimum)
+		_shot_boxes.append(box)
+
 func _clear_segment(start: Vector2, end: Vector2) -> bool:
-	for collider: Dictionary in _game._session.layout.structures:
-		if collider.layer != "Obstacles": continue
-		var cells: Rect2i = collider.rect
-		var box := Rect2(Vector2(cells.position) * float(ZWorldUnits.SOURCE_TILE_PIXELS), Vector2(cells.size) * float(ZWorldUnits.SOURCE_TILE_PIXELS))
+	for box:Rect2 in _shot_boxes:
 		if box.has_point(start) or box.has_point(end): return false
 		var a := box.position; var b := Vector2(box.end.x, box.position.y)
 		var c := box.end; var d := Vector2(box.position.x, box.end.y)
@@ -266,12 +342,16 @@ func _retry_pending_save() -> bool:
 
 func die_from_enemy(game: LocalGame, tree: SceneTree, check_callback: Callable) -> bool:
 	_game = game; _tree = tree; _check = check_callback
+	_capture_shot_geometry()
 	_death_run = true
 	_started_ms = Time.get_ticks_msec()
 	# Walk into the existing mutant encounter, without shooting or modifying AI,
 	# damage, position, inventory, health, clock limits or the outcome controller.
-	var anchor: Dictionary = _game._session.layout.anchor("zerkov.encounter.sawmill.mutant_verge")
-	var goal := _game._session.layout.cell_center(anchor.approach_cell + Vector2i(2, 0))
+	var goal:Vector2
+	if _game._session.native_map!=null: goal=_game._session.native_map.position("mutant")
+	else:
+		var anchor:Dictionary=_game._session.layout.anchor("zerkov.encounter.sawmill.mutant_verge")
+		goal=_game._session.layout.cell_center(anchor.approach_cell+Vector2i(2,0))
 	if not await _walk_to(goal): return false
 	_stop()
 	for _i in range(650):

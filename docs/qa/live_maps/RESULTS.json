@@ -1,0 +1,14 @@
+{
+  "baseline": "82ecaa960d9b2a09033782a78e9069911ecda32f",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "headless_checks": 21423,
+  "graphical_checks": 2373,
+  "failures": 0,
+  "scope": "functional offline integration, not frame-rate/human/export acceptance",
+  "screenshots": {
+    "northline-launch/northline-raid-1080.png": "470f72fc1967d6c52a3acb766a9d8fe62fd00e5d5194a0660c522d92ad38fb43",
+    "northline-launch/northline-briefing-1080.png": "eefefd95f8d2c4096519b62823a39f3f6252ddcdff7bbaf2cec56eba1b654bcf",
+    "blackwater-launch/blackwater-briefing-1080.png": "a8633ea7fefb8d665f99ed6b79258789c9d74365025085301f302a826dbd4ec0",
+    "blackwater-launch/blackwater-raid-1080.png": "b185538f06a801eda17ccdc033ed868a6540ec95128cfb4d6e9fb9f266504edb"
+  }
+}

@@ -53,6 +53,11 @@ func _node(path: String) -> Control:
 	return null
 
 func _bind_content() -> void:
+	# The same workspace is used at home and during raids. In raid the right
+	# pane is the existing nearby-loot projection, never the home's stash view.
+	if _local_raid_context():
+		_loot_mode = true
+		_loot_container_open = _inventory_controller != null and _inventory_controller.is_loot_container_open()
 	_grids.clear()
 	_bind_post_raid()
 	_bind_tabs()
@@ -69,6 +74,7 @@ func _bind_content() -> void:
 		_node("CharacterColumn").visible = _tab_name() == "gear"
 		_node("HealthColumn").visible = _tab_name() == "health"
 		_node("StatsColumn").visible = _tab_name() == "stats"
+	_bind_local_context()
 
 func layout_compact(view: Vector2) -> void:
 	CompactLayout.apply(self, view)
@@ -912,3 +918,79 @@ func _bind_stats() -> void:
 	# Stats are authored presentation values in this prototype. Keep the
 	# authored hierarchy stable while allowing the shared state to control the
 	# compact section and all actions around it.
+
+
+func _local_raid_context() -> bool:
+	var port := app.local_game_ui() if app != null else null
+	return _live_inventory_binding and port != null and port.snapshot().get("mode") == "raid"
+
+func _bind_local_context() -> void:
+	var port := app.local_game_ui() if app != null else null
+	if not _live_inventory_binding or port == null: return
+	var raid := _local_raid_context()
+	# This is an ordinary character page, not an always-on post-raid reward bar.
+	var post := _node("PostRaidBar") as Panel
+	post.add_theme_stylebox_override("panel", LocalJourneyStyle.panel(Color.TRANSPARENT, Color.TRANSPARENT))
+	for name: String in ["Marker", "MoveLoot", "Reinsure", "SellJunk", "LootValue"]: post.get_node(name).hide()
+	(post.get_node("Title") as Label).text = "CHARACTER / " + ("IN RAID" if raid else "AT BUNKER")
+	(post.get_node("Title") as Label).add_theme_color_override("font_color", LocalJourneyStyle.TEXT)
+	var detail := post.get_node("Details") as Label
+	detail.text = "Carried equipment and nearby loot. Your stash stays at the bunker." if raid else "Prepare your equipment. Your stash is available only at home."
+	detail.add_theme_color_override("font_color", LocalJourneyStyle.MUTED)
+	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	detail.size.x = 1000
+	var stash := _node("StashTab") as Button
+	stash.visible = not raid
+	stash.disabled = raid
+	if raid:
+		var open := _inventory_controller != null and _inventory_controller.is_loot_container_open()
+		var loot := _node("LootTab") as Button
+		loot.text = "NEARBY LOOT"
+		loot.position = stash.position
+		loot.size.x = 156
+		# Selecting the Character section is not a world interaction. Never let
+		# this tab open the controller's default (potentially unsearched) crate.
+		loot.disabled = not open
+		(_node("StashTitle") as Label).text = "LOOT"
+		_node("LootClose").visible = open
+		_node("DesktopStashScroll").visible = open
+		var search := _node("StashSearch") as LineEdit
+		search.position.x = 1420
+		search.size.x = 452
+		search.editable = open
+		for name: String in ["SortStash", "OrganizeStash"]: _node(name).hide()
+		for name: String in ["FilterAll", "FilterGuns", "FilterAmmo", "FilterArmor", "FilterCloth", "FilterFood", "FilterUtil"]:
+			_node(name).visible = open
+		var empty := _node("LocalLootEmpty") as Label
+		if empty == null:
+			empty = Label.new()
+			empty.name = "LocalLootEmpty"
+			empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			empty.position = Vector2(1280, 356)
+			empty.size = Vector2(552, 128)
+			empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			empty.add_theme_font_override("font", LocalJourneyStyle.MONO)
+			empty.add_theme_font_size_override("font_size", 16)
+			empty.add_theme_color_override("font_color", LocalJourneyStyle.MUTED)
+			_surface.add_child(empty)
+		empty.visible = not open
+		empty.text = "NO CONTAINER OPEN\n\nReturn to the raid and interact with searched loot to inspect its contents."
+		if not open:
+			(_node("StashCompatible") as Label).text = "NO CONTAINER OPEN"
+			(_node("StashSummary") as Label).text = "WORLD LOOT"
+			(_node("StashCompatible") as Label).tooltip_text = empty.text
+
+
+func _items_for(key: String) -> Array:
+	# The controller may retain projections for known world containers while
+	# none is open. Closed inventory UI must not disclose that retained content.
+	if _local_raid_context():
+		if key == "stash": return []
+		if key == "loot" and (_inventory_controller == null or not _inventory_controller.is_loot_container_open()): return []
+	return super._items_for(key)
+
+func _set_loot_mode(show_loot: bool) -> void:
+	if _local_raid_context():
+		# Opening is owned by LocalGame's admitted world interaction, not a tab.
+		if not show_loot or _inventory_controller == null or not _inventory_controller.is_loot_container_open(): return
+	super._set_loot_mode(show_loot)

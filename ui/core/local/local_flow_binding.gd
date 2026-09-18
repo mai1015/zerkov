@@ -91,7 +91,7 @@ func _menu(frame: Dictionary) -> void:
 	_card("MenuQuit", "QUIT", "Close the local application", &"quit", true)
 	_text("ContinueCard/WorldTitle", entry.title if not entry.enabled \
 		else ("LOCAL CAMPAIGN" if frame.has_profile else "NO LOCAL CAMPAIGN"))
-	_text("ContinueCard/Difficulty", "SOLO · SAWMILL")
+	_text("ContinueCard/Difficulty", "OFFLINE · SOLO")
 	_text("ContinueCard/LastPlayed", "PROFILE GENERATION %d" % frame.profile_generation)
 	_text("ContinueCard/CloudStatus", "LOCAL ONLY · NO CLOUD SAVE")
 	for path: String in ["ContinueCard/Stats", "Header/SwitchAccount", "ContinueCard/ManageSaves", "FriendsTitle", "FriendsSub", "FriendsRule", "FriendKevin", "FriendDenz", "FriendMara", "FriendCode", "PatchCard"]: _show(path, false)
@@ -188,8 +188,8 @@ func _home(frame: Dictionary) -> void:
 
 func _deploy(frame: Dictionary) -> void:
 	_text("DeployStatus", "LOCAL DEPLOYMENT")
-	_text("ZoneTitle", "SAWMILL YARD")
-	_text("MissionDetails", "SOLO · 15 MINUTES · ROAD GATE")
+	_text("ZoneTitle", String(frame.get("map_title","Sawmill Yard")).to_upper())
+	_text("MissionDetails", "SOLO · 15 MINUTES · "+String(frame.get("exit_title","Road Gate")).to_upper())
 	_text("SquadLabel", "OPERATOR")
 	_text("SquadOak", "LOCAL OPERATOR")
 	_show("SquadKevin", false); _show("SquadOyo", false)
@@ -198,8 +198,8 @@ func _deploy(frame: Dictionary) -> void:
 	_text("DeployCenter/Value", "LOCAL SAVE")
 	_show("DeployCenter/Progress", false)
 	_text("TaskCard/Name", "SUPPLY RUN")
-	_text("TaskCard/Detail", "Search three marked crates. Take supplies. Extract through Road Gate.")
-	_text("ExtractsCard/Detail", "Road Gate · 5 second hold · requires Supply Run eligibility")
+	_text("TaskCard/Detail", "Search three marked crates. Take supplies. Extract through "+String(frame.get("exit_title","Road Gate"))+".")
+	_text("ExtractsCard/Detail", String(frame.get("exit_title","Road Gate"))+" · 5 second hold · requires Supply Run eligibility")
 	_text("TipCard/Detail", "Reload from your own ammunition. Leaving or taking damage interrupts search and extraction.")
 
 func _hud(frame: Dictionary) -> void:
@@ -208,7 +208,7 @@ func _hud(frame: Dictionary) -> void:
 	var progression: Dictionary = frame.progression
 	var clock: Dictionary = progression.get("clock", {})
 	_text("TimerGroup/Timer", String(clock.get("clock_text", "—")))
-	var status := "ROAD GATE · SEARCH 3 CRATES + RETAIN SUPPLIES"
+	var status := String(frame.get("exit_title","Road Gate")).to_upper()+" · SEARCH 3 CRATES + RETAIN SUPPLIES"
 	if clock.get("counting", false): status = "EXTRACTING · %.1f s · E CANCEL" % (float(clock.countdown_remaining) / 60.0)
 	elif not progression.get("searching", {}).is_empty(): status = "SEARCHING · STAY IN REACH"
 	elif not frame.nearest_target.is_empty(): status = "E · " + ("OPEN LOOT" if frame.searched_ids.has(frame.nearest_target) else "SEARCH / EXTRACT")
@@ -218,30 +218,50 @@ func _hud(frame: Dictionary) -> void:
 	for name: String in ["Loot", "Kill"]:
 		for node in _children("FeedGroup"):
 			if String(node.name).begins_with(name) and node is CanvasItem: node.hide()
-	_text("FeedGroup/TaskText", "SUPPLY RUN · %d / 3 searched · supplies %s" % [int(progression.get("task", {}).get("searched_crates", 0)), "HELD" if progression.get("task", {}).get("holds_objective", false) else "NOT HELD"])
+	_show("FeedGroup/TaskKind",false)
+	_text("FeedGroup/TaskText", "SUPPLY %d/3 · ITEM %s" % [int(progression.get("task", {}).get("searched_crates", 0)), "HELD" if progression.get("task", {}).get("holds_objective", false) else "MISSING"])
 
 func _maps(frame: Dictionary) -> void:
 	var map := _screen.app.map_view()
-	if map != null and _map != null: _map.present(map)
-	_text("ZonesNote", "1 AVAILABLE · SOLO")
-	_text("ZoneName0", "SAWMILL YARD")
-	_text("ZoneRisk0", "SCAV / MUTANT")
-	_text("ZoneMeta0", "15:00 · SOLO · ROAD GATE")
-	_text("ZoneTaskCount0", "SUPPLY RUN")
-	for index in range(1, 5):
-		_text("ZoneRisk%d" % index, "LOCKED")
-		_text("ZoneMeta%d" % index, "NOT CONNECTED TO LIVE RAID")
-		_text("ZoneTaskCount%d" % index, "—")
+	if map != null and _map != null: _map.present(map,frame.get("map_geometry",[]),frame.get("map_id","sawmill")!="sawmill",frame.get("map_extent",Vector2.ZERO))
+	_text("ZonesNote", "3 SOLO MAPS")
+	var ids:Array[String]=["sawmill","northline","blackwater"]
+	for index in range(3):
+		var id:=ids[index]
+		var selected:bool=frame.get("map_id","sawmill")==id
+		_text("ZoneName%d"%index,SupplyRunGraph.title_for(id).to_upper())
+		_text("ZoneRisk%d"%index,"SELECTED" if selected else "SCAV / MUTANT")
+		_text("ZoneMeta%d"%index,"15:00 · SOLO · "+SupplyRunGraph.exit_title(id).to_upper())
+		_text("ZoneTaskCount%d"%index,"SUPPLY RUN")
+		_button("ZoneHit%d"%index,StringName("select_"+id),"",frame.mode=="home" and frame.error.is_empty())
+	for index in range(3,5):
+		_text("ZoneRisk%d"%index,"LOCKED")
+		_text("ZoneMeta%d"%index,"NOT CONNECTED TO LIVE RAID")
+		_text("ZoneTaskCount%d"%index,"—")
 	_text("HistoryStats", "LOCAL PROFILE GENERATION %d" % frame.profile_generation)
-	_text("RegionNote", "RAID BRIEFING · Review your loadout, objective and exit before deploying" if frame.mode == "home" else "Your position · task and exit markers")
-	var info: Array[String] = ["15:00", "1 · SOLO", "1 · ROAD GATE", "SCAV / MUTANT", "SUPPLY RUN"]
+	_text("RegionNote", "SOLO RAID BRIEFING · Check supplies and exit" if frame.mode == "home" else "Your position · task and exit markers")
+	var info: Array[String] = ["15:00", "1 · SOLO", "1 · "+String(frame.get("exit_title","Road Gate")).to_upper(), "SCAV / MUTANT", "SUPPLY RUN"]
 	for index in range(5): _text("MapInfoValue%d" % index, info[index])
 	_text("MapTaskName0", "SUPPLY RUN")
 	_text("MapTaskMeta0", "Search 3 crates · retain supplies · extract")
 	_text("MapTaskStatus0", "LIVE" if frame.mode == "raid" else "RAID-SCOPED")
 	for prefix: String in ["MapTaskPanel", "MapTaskHit", "MapTaskName", "MapTaskMeta", "MapTaskStatus"]: _show(prefix + "1", false)
+	_text("ZoneDetailsTitle", String(frame.get("map_title","Sawmill Yard")).to_upper())
+	_show("ZoneDetailsHero/HeroImage",frame.get("map_id","sawmill")=="sawmill")
 	_text("ZoneDetailsRisk", "SCAV / MUTANT")
-	_text("ZoneDetailsSummary", "Search three crates, retain supplies, then hold Road Gate for 5 seconds. Death or abandonment loses unsecured equipment.")
+	var summary_label:=_screen.get_node_or_null("ZoneDetailsSummary") as Label
+	if summary_label!=null:
+		summary_label.clip_text=true
+		summary_label.tooltip_text="Search three marked containers and retain supplies. Hold the marked exit for 5 seconds. Death or abandonment loses unsecured equipment."
+	_text("HistoryTitle", "LOCAL PROFILE · NO CLOUD SYNC")
+	for index in range(10):_show("HistoryBar%d"%index,false)
+	var chrome:=_screen.get_node_or_null("NavigationChrome") as ZNavigationChrome
+	if chrome!=null:
+		chrome.level_text="LOCAL"
+		chrome.money_text="NO ECONOMY"
+		chrome.task_count=1
+	for index in [1,2]:_show("SquadDot%d"%index,false)
+	_text("ZoneDetailsSummary", String(frame.get("map_error","")) if not String(frame.get("map_error","")).is_empty() else "3 searches · retain supplies · "+String(frame.get("exit_title","Road Gate"))+" (5s)")
 	_text("ZoneTasksTitle", "TASKS IN THIS ZONE · 1")
 	_text("SquadName3", "CO-OP UNAVAILABLE")
 	_text("SquadTitle", "SOLO SESSION")
@@ -250,7 +270,9 @@ func _maps(frame: Dictionary) -> void:
 		_text("SquadStatus%d" % index, "SOLO" if index == 0 else "")
 	_text("LoadoutValue", "REVIEW EQUIPMENT IN STASH / LOADOUT")
 	_text("UninsuredValue", "INSURANCE UNAVAILABLE")
-	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else "DEPLOY SOLO TO SAWMILL", frame.mode in ["home", "raid"] and frame.error.is_empty())
+	# Retain the established Sawmill action while making new maps explicit.
+	var deploy_text := "DEPLOY SOLO TO SAWMILL" if frame.get("map_id","sawmill") == "sawmill" else "DEPLOY SOLO · "+String(frame.get("map_title","")).to_upper()
+	_button("Deploy", &"resume" if frame.mode == "raid" else &"deploy", "RETURN TO RAID" if frame.mode == "raid" else deploy_text, frame.mode in ["home", "raid"] and frame.error.is_empty() and String(frame.get("map_error","")).is_empty())
 	_focus("Deploy")
 
 func _tasks(frame: Dictionary) -> void:
@@ -269,7 +291,7 @@ func _tasks(frame: Dictionary) -> void:
 	_text("TaskTabAvailable", "NO OTHER CONTRACTS")
 	_text("TaskTabCompleted", "COMMITTED ON EXTRACTION")
 	_text("TaskName0", task.title())
-	_text("TaskMeta0", "LOCAL CONTRACT · SAWMILL YARD")
+	_text("TaskMeta0", "LOCAL CONTRACT · "+String(frame.get("map_title","Sawmill Yard")).to_upper())
 	_text("TaskReward0", "Completion token saved locally; no currency reward")
 	var total: int = 0
 	var objectives := task.objectives()
@@ -295,7 +317,7 @@ func _summary(frame: Dictionary) -> void:
 	var final: bool = frame.mode == "summary" and view != null and view.is_ready()
 	_text("Verdict", "LOCAL RESULT · " + String(frame.summary.get("outcome", "SAVE PENDING")).to_upper())
 	_text("Subtitle", frame.notice)
-	_text("MapName", "SAWMILL YARD")
+	_text("MapName", String(frame.get("map_title","Sawmill Yard")).to_upper())
 	_text("MetricLoot/Title", "RETAINED ITEM TYPES")
 	_text("MetricLoot/Value", str(frame.summary.get("retained", []).size()) if final else "—")
 	_text("MetricLoot/Detail", "Equipment remains in your loadout")

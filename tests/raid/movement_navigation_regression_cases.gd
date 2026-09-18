@@ -39,7 +39,7 @@ func _valid_hash(value: String) -> bool:
 
 
 func _test_large_world_digests() -> void:
-	for count in [0, 1, 49, 50, 61, 62, 64, 65, 256, 512]:
+	for count in [0, 1, 49, 50, 61, 62, 64, 65, 256, 512, ZMovementWorld2D.MAX_STATIC_COLLIDERS]:
 		var a := _world()
 		var b := _world()
 		var accepted := true
@@ -69,7 +69,7 @@ func _test_large_world_digests() -> void:
 		_expect(a.resolve_actor_step(_id("a0000"), 1, Vector2(60, 0), 7).ok, "large-world movement accepted")
 		_expect(a.digest() != state_before and _valid_hash(a.digest()), "different valid states never compare as empty")
 		_expect(a.geometry_digest() == geometry, "live actor movement does not change geometry identity")
-		if count == 512:
+		if count == ZMovementWorld2D.MAX_STATIC_COLLIDERS:
 			_expect(not a.add_static_collider_px("overflow", Rect2(900, 400, 8, 8), 7)
 				and a.last_error == &"collider_limit", "capacity overflow rejected")
 			_expect(_valid_hash(a.digest()), "capacity rejection leaves a usable identity")

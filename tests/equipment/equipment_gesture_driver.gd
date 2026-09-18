@@ -7,11 +7,13 @@ var _drop_events: Array[Dictionary] = []
 func run(value: RefCounted) -> bool:
 	driver = value
 	var chrome := driver.game._ui.screen.get_node("NavigationChrome") as ZNavigationChrome
-	# Main's shared journey presenter owns the final local navigation styling.
+	# Main's shared section navigation owns the final local header values.
 	# Verify its visible values rather than the older equipment-only placeholder.
-	if not driver.check(chrome.level_text == "SOLO / LOCAL" and chrome.money_text.is_empty()
-		and (chrome.get_node("Level") as Label).text == "SOLO / LOCAL"
-		and not (chrome.get_node("Money") as CanvasItem).is_visible_in_tree(),
+	var level := chrome.get_node("Level") as Label
+	if not driver.check(level.text in ["BUNKER / LOCAL", "IN RAID / SOLO", "LOCAL GAME"]
+		and not level.text.contains("LVL")
+		and not (chrome.get_node("Money") as CanvasItem).is_visible_in_tree()
+		and not (chrome.get_node("Insurance") as CanvasItem).is_visible_in_tree(),
 		"live equipment uses the shared local header with no fixture economy or level"): return false
 	var task_view: TaskView = driver.game._ui.screen.app.task_view()
 	if not driver.check(task_view != null and task_view.is_ready() and chrome.task_count == task_view.tasks().size(),
