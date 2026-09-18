@@ -3,14 +3,21 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 
+
 class RoofedClinicSourceTests(unittest.TestCase):
-    def test_live_map_instances_roof_without_new_gameplay_geometry(self):
+    def test_live_map_instances_complete_clinic_without_hidden_gameplay_state(self):
         live = (ROOT / "game/world/live_maps/northline_live.tscn").read_text()
         self.assertIn("northline_clinic_cutaway.tscn", live)
         self.assertIn("position = Vector2(992, 1200)", live)
         clinic = (ROOT / "game/world/buildings/northline_clinic_cutaway.tscn").read_text()
-        self.assertGreaterEqual(clinic.count('type="StaticBody2D"'), 13)\n        self.assertIn('metadata/room_plan = "west_exam|central_treatment|east_ward|west_recovery|reception|east_recovery"', clinic)\n        self.assertNotIn('type="Area2D"', clinic)
-        self.assertNotIn("metadata/gameplay_id", clinic)\n        self.assertGreaterEqual(clinic.count("metadata/interior_partition = true"), 13)
+        self.assertGreaterEqual(clinic.count('type="StaticBody2D"'), 13)
+        self.assertIn(
+            'metadata/room_plan = "west_exam|central_treatment|east_ward|west_recovery|reception|east_recovery"',
+            clinic,
+        )
+        self.assertGreaterEqual(clinic.count("metadata/interior_partition = true"), 13)
+        self.assertNotIn('type="Area2D"', clinic)
+        self.assertNotIn("metadata/gameplay_id", clinic)
         self.assertNotIn("script = ", clinic)
 
     def test_roof_has_explicit_cutaway_contract_and_landmarks(self):
@@ -33,6 +40,7 @@ class RoofedClinicSourceTests(unittest.TestCase):
         self.assertIn("LocalRoofCutawayController.new()", source)
         self.assertIn("_roof_cutaway.update_position(player_movement.position_px)", source)
         self.assertIn("_roof_cutaway.release()", source)
+
 
 if __name__ == "__main__":
     unittest.main()
