@@ -97,7 +97,17 @@ func run(h, initial: Dictionary) -> bool:
 		var tick: int = game._session.raid.last_processed_tick
 		await h.key(KEY_I)
 		if not h.route("inventory") or not _sections(h, "raid", "inventory"): return false
-		h.check(game._ui.screen.get_script().resource_path == "res://ui/screens/character/character_screen.gd", "same authored Character screen is used in the raid")
+		# The authored workspace may be specialised (live equipment); a subclass of
+		# the same screen still satisfies "one Character interface", a separate
+		# raid-only inventory screen does not.
+		var screen_script: Script = game._ui.screen.get_script()
+		var authored_character := false
+		while screen_script != null:
+			if screen_script.resource_path == "res://ui/screens/character/character_screen.gd":
+				authored_character = true
+				break
+			screen_script = screen_script.get_base_script()
+		h.check(authored_character, "same authored Character screen is used in the raid")
 		h.check(not game._ui.screen.get_node("InventoryContent/StashTab").visible, "raid Character does not advertise bunker stash")
 		h.check(game._ui.screen.get_node("InventoryContent/DesktopStashScroll/StashGrid").source_id == "loot", "raid right pane uses existing nearby-loot source, never stash")
 		h.check(not game._ui.screen.get_node("InventoryContent/PostRaidBar/MoveLoot").visible, "ordinary Character has no post-raid action strip")
