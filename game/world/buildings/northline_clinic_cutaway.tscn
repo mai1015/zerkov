@@ -1,7 +1,32 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_62.png" id="1_hvac"]
 [ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_10.png" id="2_machine"]
+
+
+[sub_resource type="RectangleShape2D" id="WallH42"]
+size = Vector2(42, 4)
+
+[sub_resource type="RectangleShape2D" id="WallH92"]
+size = Vector2(92, 4)
+
+[sub_resource type="RectangleShape2D" id="WallH88"]
+size = Vector2(88, 4)
+
+[sub_resource type="RectangleShape2D" id="WallH46"]
+size = Vector2(46, 4)
+
+[sub_resource type="RectangleShape2D" id="WallH50"]
+size = Vector2(50, 4)
+
+[sub_resource type="RectangleShape2D" id="WallH80"]
+size = Vector2(80, 4)
+
+[sub_resource type="RectangleShape2D" id="WallV76"]
+size = Vector2(4, 76)
+
+[sub_resource type="RectangleShape2D" id="WallV64"]
+size = Vector2(4, 64)
 
 [node name="NorthlineClinicCutaway" type="Node2D"]
 metadata/cutaway_id = "northline.clinic.main"
@@ -48,6 +73,137 @@ default_color = Color(0.63, 0.59, 0.42, 0.72)
 points = PackedVector2Array(260, 246, 260, 272)
 width = 1.0
 default_color = Color(0.63, 0.59, 0.42, 0.72)
+
+[node name="InteriorStructure" type="Node2D" parent="."]
+z_index = 2
+metadata/room_plan = "west_exam|central_treatment|east_ward|west_recovery|reception|east_recovery"
+
+[node name="TopWallWestA" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(21, 100)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/TopWallWestA"]
+shape = SubResource("WallH42")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/TopWallWestA"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-21, -3, 21, -3, 21, 3, -21, 3)
+
+[node name="TopWallWestB" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(108, 100)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/TopWallWestB"]
+shape = SubResource("WallH92")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/TopWallWestB"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-46, -3, 46, -3, 46, 3, -46, 3)
+
+[node name="TopWallEastA" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(242, 100)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/TopWallEastA"]
+shape = SubResource("WallH88")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/TopWallEastA"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-44, -3, 44, -3, 44, 3, -44, 3)
+
+[node name="TopWallEastB" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(329, 100)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/TopWallEastB"]
+shape = SubResource("WallH46")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/TopWallEastB"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-23, -3, 23, -3, 23, 3, -23, 3)
+
+[node name="BottomWallWestA" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(25, 132)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/BottomWallWestA"]
+shape = SubResource("WallH50")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/BottomWallWestA"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-25, -3, 25, -3, 25, 3, -25, 3)
+
+[node name="BottomWallWestB" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(110, 132)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/BottomWallWestB"]
+shape = SubResource("WallH80")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/BottomWallWestB"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-40, -3, 40, -3, 40, 3, -40, 3)
+
+[node name="BottomWallEastA" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(242, 132)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/BottomWallEastA"]
+shape = SubResource("WallH80")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/BottomWallEastA"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-40, -3, 40, -3, 40, 3, -40, 3)
+
+[node name="BottomWallEastB" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(327, 132)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/BottomWallEastB"]
+shape = SubResource("WallH50")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/BottomWallEastB"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-25, -3, 25, -3, 25, 3, -25, 3)
+
+[node name="TopDividerWest" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(110, 38)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/TopDividerWest"]
+shape = SubResource("WallV76")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/TopDividerWest"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-3, -38, 3, -38, 3, 38, -3, 38)
+
+[node name="TopDividerEast" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(246, 38)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/TopDividerEast"]
+shape = SubResource("WallV76")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/TopDividerEast"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-3, -38, 3, -38, 3, 38, -3, 38)
+
+[node name="BottomDividerWest" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(130, 184)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/BottomDividerWest"]
+shape = SubResource("WallV64")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/BottomDividerWest"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-3, -32, 3, -32, 3, 32, -3, 32)
+
+[node name="BottomDividerEast" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(252, 184)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/BottomDividerEast"]
+shape = SubResource("WallV64")
+[node name="WallFace" type="Polygon2D" parent="InteriorStructure/BottomDividerEast"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(-3, -32, 3, -32, 3, 32, -3, 32)
+
+[node name="CorridorStripeNorth" type="Line2D" parent="InteriorStructure"]
+points = PackedVector2Array(0, 108, 352, 108)
+width = 1.0
+default_color = Color(0.54, 0.55, 0.49, 0.45)
+
+[node name="CorridorStripeSouth" type="Line2D" parent="InteriorStructure"]
+points = PackedVector2Array(0, 124, 352, 124)
+width = 1.0
+default_color = Color(0.54, 0.55, 0.49, 0.45)
+
+[node name="ReceptionDesk" type="StaticBody2D" parent="InteriorStructure"]
+position = Vector2(213, 176)
+metadata/interior_partition = true
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteriorStructure/ReceptionDesk"]
+shape = SubResource("WallH50")
+[node name="DeskTop" type="Polygon2D" parent="InteriorStructure/ReceptionDesk"]
+color = Color(0.32, 0.29, 0.23, 1)
+polygon = PackedVector2Array(-25, -5, 25, -5, 25, 5, -25, 5)
 
 [node name="CutawayVisuals" type="Node2D" parent="."]
 z_index = 80
