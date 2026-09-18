@@ -91,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - name: Install exact Godot and Xvfb
         run: |
@@ -202,5 +202,5 @@ func run()->void:
         if: always()
         with:
           name: roofed-clinic-native-evidence
-          path: \${{ runner.temp }}/clinic-evidence
+          path: ${{ runner.temp }}/clinic-evidence
           retention-days: 14
