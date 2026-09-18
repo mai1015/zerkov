@@ -1,0 +1,37 @@
+name: Equipment reproduction inputs
+on:
+  pull_request:
+    paths: ['.github/workflows/equipment-reproduction.yml']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Retain tracked runtime inputs for native reproduction
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,subprocess,zipfile
+          root=pathlib.Path.cwd(); out=pathlib.Path(os.environ['RUNNER_TEMP'])/'equipment-reproduction.zip'
+          suffixes={'.gd','.uid','.gdshader','.tscn','.tres','.py','.json','.md','.yml','.yaml','.godot','.cfg','.gdextension','.import','.png','.svg','.so','.ttf','.otf','.wav','.ogg'}
+          manifest={}
+          with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=root/name
+                  if not name or not p.is_file() or p.is_symlink() or p.suffix not in suffixes: continue
+                  if name.startswith('docs/qa/'): continue
+                  raw=p.read_bytes();z.writestr(name,raw);manifest[name]=hashlib.sha256(raw).hexdigest()
+              z.writestr('REPRODUCTION_COMMIT',subprocess.check_output(['git','rev-parse','HEAD']))
+              z.writestr('REPRODUCTION_HASHES.json',json.dumps(manifest,sort_keys=True))
+          print('Tracked native reproduction input bundle created; no Git metadata, credentials or local saves.')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: equipment-reproduction-inputs
+          path: ${{ runner.temp }}/equipment-reproduction.zip
+          retention-days: 1
