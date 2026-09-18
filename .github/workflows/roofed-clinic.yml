@@ -1,5 +1,7 @@
 name: Roofed clinic cutaway
 on:
+  push:
+    branches: ['feat/roofed-clinic-cutaway']
   pull_request:
     paths:
       - 'game/world/buildings/northline_clinic_cutaway.tscn'
