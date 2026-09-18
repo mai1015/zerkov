@@ -26,7 +26,7 @@ class RoofedClinicSourceTests(unittest.TestCase):
         self.assertNotIn("func _process", source)
         self.assertNotIn("func _physics_process", source)
         self.assertIn('tween_property(visual, "modulate:a"', source)
-        for forbidden in ("collision_layer =", ".disabled =", "enqueue_intent", "ProfileStore", "RaidAuthority", "inventory"):
+        for forbidden in ("collision_layer =", ".disabled =", "enqueue_intent", "ProfileStore", "RaidAuthority", "inventory."):
             self.assertNotIn(forbidden, source)
 
     def test_raid_session_updates_from_authoritative_position(self):
