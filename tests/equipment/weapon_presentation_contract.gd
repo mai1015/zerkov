@@ -42,7 +42,7 @@ func run() -> void:
 	check(present(first), "canonical primary sample")
 	check(view.snapshot().is_read_only(), "read-only diagnostic projection")
 	check(view.snapshot().visible and view.snapshot().held_instance_id == "same-akm-instance", "canonical firearm identity visible")
-	check(view._sprite.texture == view.akm_texture, "actual shipped AKM texture assigned to sprite")
+	check(view._sprite.texture == view.akm_art.texture, "actual shipped AKM texture assigned to sprite")
 	check(present(first) and view.snapshot().shot_count == 0, "identical sample is idempotent")
 	var changed := frame(1); changed.weapon.instance_id = "different"
 	check(not present(changed) and view.snapshot().held_instance_id == "same-akm-instance", "same-tick conflict cannot change gear")
@@ -68,11 +68,11 @@ func run() -> void:
 		event[key] = 3 if key == "tick" else (Vector2i(2_147_000_000, 0) if key == "target_raw" else "wrong")
 		invalid.feedback.append(event)
 	check(present(invalid) and view.snapshot().shot_count == 1, "foreign, stale, unmapped and out-of-bounds events make no shot")
-	check(present(frame(8), Vector2.LEFT) and view.snapshot().effect_count == 0, "effects expire on canonical tick")
+	check(present(frame(8), Vector2.LEFT) and view.snapshot().effect_count == 1, "original multi-frame FX remains alive within its authored tick duration")
 	check(is_equal_approx(absf(view._sprite.rotation), PI) and view._sprite.scale.y < 0.0, "left-facing gun follows aim without upside-down artwork")
 	var dry := frame(9); dry.weapon.loaded_rounds = 0
 	dry.receipts = [{"kind": &"fire", "committed": false}]
-	check(present(dry) and view.snapshot().shot_count == 1 and view.snapshot().effect_count == 0, "dry/rejected trigger cannot create successful feedback")
+	check(present(dry) and view.snapshot().shot_count == 1 and view.snapshot().effect_count == 1, "dry/rejected trigger cannot create additional successful feedback")
 	var reload := frame(10); reload.weapon.phase = "reloading"; reload.weapon.reload = {"start_tick": 10, "due_tick": 20}
 	check(present(reload) and view.snapshot().reloading and view.snapshot().reload_progress == 0.0, "reload begins from native due fields")
 	reload = frame(15); reload.weapon.phase = "reloading"; reload.weapon.reload = {"start_tick": 10, "due_tick": 20}
@@ -81,10 +81,10 @@ func run() -> void:
 	var swing := frame(21); swing.melee = {"phase": &"active", "swing": {"start_tick": 20, "ready_tick": 30}}
 	check(present(swing), "committed melee timeline displayed")
 	check(view.snapshot().held_definition == LocalWeaponPresenter.MACHETE and view.snapshot().primary_instance_id == "same-akm-instance", "temporary machete does not overwrite primary identity")
-	check(present(frame(30)) and view.snapshot().held_instance_id == "same-akm-instance", "melee recovery restores firearm")
+	check(present(frame(30)) and view.snapshot().held_instance_id == "same-akm-instance" and view.snapshot().effect_count == 0, "melee recovery restores firearm and prior source FX expires")
 	var empty := frame(31); empty.weapon = {}
 	check(present(empty) and view.snapshot().held_instance_id == "same-machete-instance", "unequipped primary falls back only to actual equipped machete")
-	check(view._sprite.texture == view.machete_texture, "machete uses its own original art")
+	check(view._sprite.texture == view.machete_art.texture, "machete uses its own original art")
 	empty = frame(32); empty.weapon = {}; empty.melee_equipment = {}
 	check(present(empty) and not view.snapshot().visible and view._sprite.texture == null, "fully empty hands have no fixture gear")
 	var unknown := frame(33); unknown.weapon.definition_id = "unsupported.weapon"
@@ -98,11 +98,12 @@ func run() -> void:
 	check(view.snapshot().is_empty() and not view._sprite.visible, "release clears immutable view and sprite")
 	check(not present(frame(37)) and not view.configure(8), "released binding cannot accept any generation")
 	view.queue_free(); await process_frame
-	view = LocalWeaponPresenter.new(); root.add_child(view); view.akm_texture = null
+	view = LocalWeaponPresenter.new(); root.add_child(view); view.akm_art = view.akm_art.duplicate(); view.akm_art.texture = null
 	check(view.configure(7), "missing art is a usable but invisible presentation binding")
 	fired = frame(1); fired.feedback = [shot(1)]
 	check(present(fired) and not view.snapshot().visible and view.snapshot().effect_count == 0, "missing art is not substituted and cannot retain muzzle FX")
 	view.release(); view.queue_free(); await process_frame
+	await source_fx_contract()
 	await actor_contract()
 	print("WEAPON_PRESENTATION_RESULT checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
@@ -118,4 +119,43 @@ func actor_contract() -> void:
 	check(actor.present(Vector2.ZERO, Vector2.ZERO, Vector2.RIGHT, value), "actual actor consumes committed melee sample")
 	var sequence: int = actor._sequence
 	check(actor.present(Vector2.ZERO, Vector2.ZERO, Vector2.RIGHT, value) and actor._sequence == sequence, "same frame cannot restart body melee animation")
+	check(not actor._layers._layers[2].visible and actor._weapon.snapshot().arms_overridden, "original combined AK arms replace dangling body arms")
+	check(actor._layers._layers[0].scale.x == -1.0, "source-left main character mirrors with right-facing holding pose")
+	var attack := frame(2)
+	attack.melee = {"phase": &"active", "swing": {"start_tick": 1, "active_tick": 2, "recovery_tick": 5, "ready_tick": 23, "aim_raw": Vector2i(-1000000, 0)}}
+	ZMeleeTimeline._freeze(attack)
+	check(actor.present(Vector2.ZERO, Vector2.ZERO, Vector2.LEFT, attack), "real layered actor samples source melee pose")
+	check(actor._weapon.snapshot().attack_frame == 3 and actor._layers._layers[2].visible and not actor._weapon.snapshot().arms_overridden, "original attack arm frame and blade frame share canonical active window")
+	for index in range(4):
+		check(actor._layers._layers[index].region_rect.position.x == 192.0, "body part uses source attack frame 3")
+	check(actor._weapon._sprite.texture == actor._weapon.machete_art.texture, "machete is not substituted by source knife")
+	var empty := frame(24); empty.weapon = {}; empty.melee_equipment = {}; ZMeleeTimeline._freeze(empty)
+	check(actor.present(Vector2.ZERO, Vector2.ZERO, Vector2.LEFT, empty) and actor._layers._layers[2].visible and not actor._weapon._sprite.visible, "empty hands restore original idle arms")
 	actor.release(); actor.queue_free(); await process_frame
+
+func source_fx_contract() -> void:
+	var fx := LocalWeaponPresenter.FX
+	for name: StringName in [&"muzzle", &"wood", &"metal", &"concrete", &"brick", &"dust"]:
+		check(fx.has_animation(name) and not fx.get_animation_loop(name), "native one-shot source effect exists: " + name)
+		check(fx.get_frame_count(name) == (7 if name == &"muzzle" else 8), "exact authored frame count: " + name)
+		for i in range(fx.get_frame_count(name)):
+			var texture := fx.get_frame_texture(name, i) as AtlasTexture
+			check(texture != null and texture.atlas.resource_path.begins_with("res://assets/original/fx/") and texture.filter_clip,
+				"effect frame directly references original sheet with edge clipping")
+	view = LocalWeaponPresenter.new(); root.add_child(view)
+	check(view.configure(7, {"wall": "wood"}), "explicit visual-only material map")
+	var value := frame(1); var event := shot(1, "blocked-source-fx")
+	event.hit = false; event.blocked = true; event.obstruction_id = "wall"; event.damage_confirmed = false
+	value.feedback = [event]; check(present(value), "confirmed blocked shot sampled")
+	check(view._effects[0].surface == "wood", "only explicit hit obstruction chooses wood source FX")
+	var muzzle: Vector2 = Vector2(32, 32) + view._sprite.transform * (view.akm_art.muzzle - view.akm_art.grip)
+	check(view._effects[0].muzzle_world.is_equal_approx(muzzle), "muzzle originates at source barrel, not inventory icon offset")
+	value = frame(2); event = shot(2, "unknown-source-fx"); event.hit = false; event.blocked = true; event.obstruction_id = "unknown"; value.feedback = [event]
+	check(present(value) and view._effects[1].surface.is_empty(), "unknown obstruction cannot invent material-specific impact")
+	value = frame(3); event = shot(3, "clear-source-fx"); event.hit = false; event.blocked = false; event.obstruction_id = "wall"; value.feedback = [event]
+	check(present(value) and view._effects[2].surface.is_empty(), "clear miss cannot use a stale surface mapping")
+	check(present(frame(27)) and view.snapshot().effect_count == 0, "all source FX retire on canonical deadline")
+	check(LocalWeaponPresenter.BLOOD.size() == 9, "all nine supplied blood particles available")
+	for i in range(9):
+		check(LocalWeaponPresenter.BLOOD[i].resource_path.begins_with("res://assets/original/fx/blood particles/"), "blood is an original texture, not a drawn hit cross")
+	view.release(); view.queue_free(); await process_frame

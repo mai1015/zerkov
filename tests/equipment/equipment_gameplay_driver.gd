@@ -20,7 +20,10 @@ func run(driver: RefCounted, item_id: int) -> bool:
 	var weapon_key: String = initial.weapon.instance_id
 	if not _assert(initial.weapon.loaded_rounds == 0, "newly deployed persisted AKM starts genuinely empty"): return false
 	if not visual(LocalWeaponPresenter.AKM, weapon_key): return false
-	await capture("Deployed: the saved AKM is visible on the world character")
+	await capture("Deployed: original AK-and-arms pose, no duplicated arms")
+	aim_at(_game._session.player_movement.position_px + Vector2(-100, 0))
+	if not await advance_ticks(1): return false
+	await capture("Original holding pose: left-facing character and attached arms")
 	var shot_count: int = weapon_view().shot_count
 	aim_at(_game._session.player_movement.position_px + Vector2(100, 0))
 	trigger()
@@ -53,6 +56,9 @@ func run(driver: RefCounted, item_id: int) -> bool:
 	if not await advance_ticks(1): return false
 	if not _assert(_game._session.hud_model.snapshot().ammo == 29 and weapon_view().shot_count == shot_count + 1,
 		"early cadence rejection creates neither another round nor another effect"): return false
+	# Sample the bright second muzzle cell from the original seven-frame strip.
+	if not await advance_ticks(2): return false
+	await capture("Original muzzle flash: source animation at the actual barrel")
 	# Changes are actual authored Character controls. The pause view is not
 	# allowed to mutate the world presenter or native abilities directly.
 	await driver.key(KEY_I)
@@ -72,7 +78,9 @@ func run(driver: RefCounted, item_id: int) -> bool:
 	if not await advance_ticks(1): return false
 	if not _assert(_game._session.hud_model.confirmed_frame().melee.phase == &"windup", "ordinary melee input begins the authoritative machete timeline"): return false
 	await capture("Machete: actual melee input starts its committed swing")
-	if not await advance_ticks(40): return false
+	if not await advance_ticks(10): return false
+	await capture("Original melee: source arm/body active frame with the actual machete")
+	if not await advance_ticks(30): return false
 	await driver.key(KEY_I)
 	if not driver.route("inventory") or not await driver.click(driver.named("InventoryContent/CharacterColumn/LegStrapSlot")): return false
 	await driver.key(KEY_ESCAPE)
@@ -189,6 +197,11 @@ func capture(label: String) -> void:
 	_assert(crosshair.get_global_rect().get_center().distance_to(_tree.root.get_mouse_position()) <= 1.0,
 		"rendered crosshair center agrees with the actual gameplay pointer")
 	var frame := _game._session.hud_model.confirmed_frame()
+	var actor: LocalActorPresenter = _game._session._actors[_game._session.raid.admission().actor_id.canonical_key()]
+	var world_view := weapon_view()
+	_assert(actor._layers._layers[2].visible != world_view.arms_overridden, "no duplicate ordinary arms under the authored holding pose")
+	if world_view.held_definition == LocalWeaponPresenter.AKM:
+		_assert(actor._weapon._sprite.texture.resource_path == "res://assets/original/ally/arms+ak.png", "live world rifle uses exact supplied holding artwork")
 	_assert(hud.get_node("WeaponGroup/PrimaryIcon").visible == (frame.health.alive and not frame.weapon.is_empty())
 		and not hud.get_node("WeaponGroup/SecondaryIcon").visible
 		and hud.get_node("WeaponGroup/MeleeIcon").visible == (frame.health.alive and not frame.melee_equipment.is_empty()),

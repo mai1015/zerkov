@@ -1,0 +1,318 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/original/fx/ak-47 mozzle flash.png" id="muzzle"]
+[ext_resource type="Texture2D" path="res://assets/original/fx/concrete impact.png" id="concrete"]
+[ext_resource type="Texture2D" path="res://assets/original/fx/wood impact.png" id="wood"]
+[ext_resource type="Texture2D" path="res://assets/original/fx/metal impact.png" id="metal"]
+[ext_resource type="Texture2D" path="res://assets/original/fx/red brick impact.png" id="brick"]
+[ext_resource type="Texture2D" path="res://assets/original/fx/dirty impact.png" id="dust"]
+
+[sub_resource type="AtlasTexture" id="muzzle_0"]
+atlas = ExtResource("muzzle")
+region = Rect2(0, 0, 28, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="muzzle_1"]
+atlas = ExtResource("muzzle")
+region = Rect2(28, 0, 28, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="muzzle_2"]
+atlas = ExtResource("muzzle")
+region = Rect2(56, 0, 28, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="muzzle_3"]
+atlas = ExtResource("muzzle")
+region = Rect2(84, 0, 28, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="muzzle_4"]
+atlas = ExtResource("muzzle")
+region = Rect2(112, 0, 28, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="muzzle_5"]
+atlas = ExtResource("muzzle")
+region = Rect2(140, 0, 28, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="muzzle_6"]
+atlas = ExtResource("muzzle")
+region = Rect2(168, 0, 28, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_0"]
+atlas = ExtResource("concrete")
+region = Rect2(0, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_1"]
+atlas = ExtResource("concrete")
+region = Rect2(33, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_2"]
+atlas = ExtResource("concrete")
+region = Rect2(66, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_3"]
+atlas = ExtResource("concrete")
+region = Rect2(99, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_4"]
+atlas = ExtResource("concrete")
+region = Rect2(132, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_5"]
+atlas = ExtResource("concrete")
+region = Rect2(165, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_6"]
+atlas = ExtResource("concrete")
+region = Rect2(198, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="concrete_7"]
+atlas = ExtResource("concrete")
+region = Rect2(231, 0, 33, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_0"]
+atlas = ExtResource("wood")
+region = Rect2(0, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_1"]
+atlas = ExtResource("wood")
+region = Rect2(37, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_2"]
+atlas = ExtResource("wood")
+region = Rect2(74, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_3"]
+atlas = ExtResource("wood")
+region = Rect2(111, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_4"]
+atlas = ExtResource("wood")
+region = Rect2(148, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_5"]
+atlas = ExtResource("wood")
+region = Rect2(185, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_6"]
+atlas = ExtResource("wood")
+region = Rect2(222, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="wood_7"]
+atlas = ExtResource("wood")
+region = Rect2(259, 0, 37, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_0"]
+atlas = ExtResource("metal")
+region = Rect2(0, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_1"]
+atlas = ExtResource("metal")
+region = Rect2(33, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_2"]
+atlas = ExtResource("metal")
+region = Rect2(66, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_3"]
+atlas = ExtResource("metal")
+region = Rect2(99, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_4"]
+atlas = ExtResource("metal")
+region = Rect2(132, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_5"]
+atlas = ExtResource("metal")
+region = Rect2(165, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_6"]
+atlas = ExtResource("metal")
+region = Rect2(198, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="metal_7"]
+atlas = ExtResource("metal")
+region = Rect2(231, 0, 33, 22)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_0"]
+atlas = ExtResource("brick")
+region = Rect2(0, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_1"]
+atlas = ExtResource("brick")
+region = Rect2(34, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_2"]
+atlas = ExtResource("brick")
+region = Rect2(68, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_3"]
+atlas = ExtResource("brick")
+region = Rect2(102, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_4"]
+atlas = ExtResource("brick")
+region = Rect2(136, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_5"]
+atlas = ExtResource("brick")
+region = Rect2(170, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_6"]
+atlas = ExtResource("brick")
+region = Rect2(204, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="brick_7"]
+atlas = ExtResource("brick")
+region = Rect2(238, 0, 34, 23)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_0"]
+atlas = ExtResource("dust")
+region = Rect2(0, 0, 28, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_1"]
+atlas = ExtResource("dust")
+region = Rect2(28, 0, 28, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_2"]
+atlas = ExtResource("dust")
+region = Rect2(56, 0, 28, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_3"]
+atlas = ExtResource("dust")
+region = Rect2(84, 0, 28, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_4"]
+atlas = ExtResource("dust")
+region = Rect2(112, 0, 28, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_5"]
+atlas = ExtResource("dust")
+region = Rect2(140, 0, 28, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_6"]
+atlas = ExtResource("dust")
+region = Rect2(168, 0, 28, 19)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="dust_7"]
+atlas = ExtResource("dust")
+region = Rect2(196, 0, 28, 19)
+filter_clip = true
+
+[resource]
+animations = [
+{
+"frames": [
+{"duration": 1.0, "texture": SubResource("muzzle_0")},
+{"duration": 1.0, "texture": SubResource("muzzle_1")},
+{"duration": 1.0, "texture": SubResource("muzzle_2")},
+{"duration": 1.0, "texture": SubResource("muzzle_3")},
+{"duration": 1.0, "texture": SubResource("muzzle_4")},
+{"duration": 1.0, "texture": SubResource("muzzle_5")},
+{"duration": 1.0, "texture": SubResource("muzzle_6")}
+], "loop": false, "name": &"muzzle", "speed": 20.0
+},
+{
+"frames": [
+{"duration": 1.0, "texture": SubResource("concrete_0")},
+{"duration": 1.0, "texture": SubResource("concrete_1")},
+{"duration": 1.0, "texture": SubResource("concrete_2")},
+{"duration": 1.0, "texture": SubResource("concrete_3")},
+{"duration": 1.0, "texture": SubResource("concrete_4")},
+{"duration": 1.0, "texture": SubResource("concrete_5")},
+{"duration": 1.0, "texture": SubResource("concrete_6")},
+{"duration": 1.0, "texture": SubResource("concrete_7")}
+], "loop": false, "name": &"concrete", "speed": 20.0
+},
+{
+"frames": [
+{"duration": 1.0, "texture": SubResource("wood_0")},
+{"duration": 1.0, "texture": SubResource("wood_1")},
+{"duration": 1.0, "texture": SubResource("wood_2")},
+{"duration": 1.0, "texture": SubResource("wood_3")},
+{"duration": 1.0, "texture": SubResource("wood_4")},
+{"duration": 1.0, "texture": SubResource("wood_5")},
+{"duration": 1.0, "texture": SubResource("wood_6")},
+{"duration": 1.0, "texture": SubResource("wood_7")}
+], "loop": false, "name": &"wood", "speed": 20.0
+},
+{
+"frames": [
+{"duration": 1.0, "texture": SubResource("metal_0")},
+{"duration": 1.0, "texture": SubResource("metal_1")},
+{"duration": 1.0, "texture": SubResource("metal_2")},
+{"duration": 1.0, "texture": SubResource("metal_3")},
+{"duration": 1.0, "texture": SubResource("metal_4")},
+{"duration": 1.0, "texture": SubResource("metal_5")},
+{"duration": 1.0, "texture": SubResource("metal_6")},
+{"duration": 1.0, "texture": SubResource("metal_7")}
+], "loop": false, "name": &"metal", "speed": 20.0
+},
+{
+"frames": [
+{"duration": 1.0, "texture": SubResource("brick_0")},
+{"duration": 1.0, "texture": SubResource("brick_1")},
+{"duration": 1.0, "texture": SubResource("brick_2")},
+{"duration": 1.0, "texture": SubResource("brick_3")},
+{"duration": 1.0, "texture": SubResource("brick_4")},
+{"duration": 1.0, "texture": SubResource("brick_5")},
+{"duration": 1.0, "texture": SubResource("brick_6")},
+{"duration": 1.0, "texture": SubResource("brick_7")}
+], "loop": false, "name": &"brick", "speed": 20.0
+},
+{
+"frames": [
+{"duration": 1.0, "texture": SubResource("dust_0")},
+{"duration": 1.0, "texture": SubResource("dust_1")},
+{"duration": 1.0, "texture": SubResource("dust_2")},
+{"duration": 1.0, "texture": SubResource("dust_3")},
+{"duration": 1.0, "texture": SubResource("dust_4")},
+{"duration": 1.0, "texture": SubResource("dust_5")},
+{"duration": 1.0, "texture": SubResource("dust_6")},
+{"duration": 1.0, "texture": SubResource("dust_7")}
+], "loop": false, "name": &"dust", "speed": 20.0
+}
+]

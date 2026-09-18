@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 
@@ -100,6 +101,7 @@ def main() -> int:
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[1]
     env = {**os.environ, "GODOT_SILENCE_ROOT_WARNING": "1"}
+    execute([sys.executable, str(source / "tools/verify_equipped_weapon_art.py")], env)
     engine = str(args.godot.expanduser().resolve(strict=True))
     required = json.loads((source / "config/toolchain.lock.json").read_text())["engine"]["required_version"]
     if execute([engine, "--version"], env).strip() != required:

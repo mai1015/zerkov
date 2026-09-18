@@ -629,7 +629,8 @@ func _resolve_pending(entry: Dictionary) -> bool:
 			"weapon_id": consequence.weapon_id,
 			"origin_raw": geometry.origin_raw,
 			"target_raw": consequence.hit_point_raw if consequence.hit or consequence.blocked else geometry.target_raw,
-			"hit": consequence.hit, "blocked": consequence.blocked})}
+			"hit": consequence.hit, "blocked": consequence.blocked,
+			"obstruction_id": consequence.obstruction_id})}
 	_last_result = consequence.duplicate(true)
 	var publication := _read_only_copy(consequence)
 	_public_signal_active = true

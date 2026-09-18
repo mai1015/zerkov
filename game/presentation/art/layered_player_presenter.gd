@@ -100,7 +100,7 @@ func configure(manifest: Dictionary, textures: Dictionary, generation: int) -> b
 	return true
 
 
-func present(sample: Dictionary, face_left: bool = false) -> bool:
+func present(sample: Dictionary, face_left: bool = false, hidden_sources: PackedStringArray = PackedStringArray()) -> bool:
 	if _binding or _clips.is_empty():
 		return false
 	for field: String in ["generation", "tick", "sequence", "frame"]:
@@ -119,10 +119,12 @@ func present(sample: Dictionary, face_left: bool = false) -> bool:
 	var frame: int = sample["frame"]
 	if frame < 0 or frame >= int(clip["frame_count"]):
 		return false
+	for id: String in hidden_sources:
+		if not _sources.has(id): return false
 	var ids: Array = clip["layers"]
 	for i: int in range(_layers.size()):
 		var sprite: Sprite2D = _layers[i]
-		sprite.visible = i < ids.size()
+		sprite.visible = i < ids.size() and not hidden_sources.has(ids[i])
 		if not sprite.visible:
 			continue
 		var id: String = ids[i]

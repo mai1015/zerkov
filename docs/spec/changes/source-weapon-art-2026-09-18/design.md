@@ -1,0 +1,7 @@
+# Design
+
+ZHeldWeaponArt resources own the image, source grip/muzzle points and small blade hand anchors. The AK source is `ally/arms+ak.png` (22x8, includes both holding arms). Generic layered character presentation can mask specific source IDs; LocalActorPresenter decides when its ordinary arm source is masked. The main character source faces left; mirroring is explicit. Original attack layers are sampled from the canonical windup/active/recovery window, never used to cause a hit.
+
+A saved SpriteFrames resource references seven 28x20 muzzle frames and eight cells per material-impact sheet. No source is resized, repacked or repainted. The weapon presenter samples these assets by authority tick, with bounded effects and identity deduplication. Health-confirmed hits can show original blood particles. Only a resolved blocking hit with an explicitly supplied visual material mapping gets a material-specific impact; clear misses and unknown surfaces do not invent impacts. Sawmill mappings are derived from its authored surface tile identifiers; native maps without material metadata remain unclassified.
+
+The existing resolved-shot sidecar carries the original obstruction ID. Its consequence/digest is unchanged. The presentation composition gets a detached visual surface map, not a world authority handle. All old equipment/ammo/real-hit tests remain, extended with original texture selection, hidden duplicate arms, left/right alignment, melee timing, original FX frames and unchanged source hashes.

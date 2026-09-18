@@ -275,6 +275,20 @@ func _obstructions() -> Array[Dictionary]:
 			"min_raw":minimum.vector2i_value,"max_raw":maximum.vector2i_value,"collision_layer":2,"enabled":true})
 	return result
 
+func _visual_impact_surfaces() -> Dictionary:
+	# Presentation classification only; never used for collision or damage.
+	# Native maps currently supply no material binding: leave them unknown.
+	var result: Dictionary = {}
+	if native_map == null:
+		var materials := {"log_wall": "wood", "fence": "metal", "rock_blocked": "concrete"}
+		for structure: Dictionary in layout.structures:
+			var tile: String = String(structure.get("tile", ""))
+			if structure.layer != "Obstacles" or not materials.has(tile): continue
+			var id := ZObstructionId.from_parts(PackedStringArray(["sawmill", String(structure.id).sha256_text().substr(0, 24)]))
+			result[id.canonical_key()] = materials[tile]
+	result.make_read_only()
+	return result
+
 func _build_visuals() -> bool:
 	_world_scene = native_map.instantiate_visuals() if native_map!=null else load("res://game/world/sawmill/sawmill_yard.tscn").instantiate() as Node2D
 	add_child(_world_scene)
@@ -308,7 +322,7 @@ func _build_visuals() -> bool:
 		var presenter := LocalActorPresenter.new()
 		if native_map!=null: _world_scene.get_node("Environment/WorldProps").add_child(presenter)
 		else: add_child(presenter)
-		if not presenter.configure(manifest, textures, _generation): return _fail(&"local_player_art_bind_failed")
+		if not presenter.configure(manifest, textures, _generation, _visual_impact_surfaces()): return _fail(&"local_player_art_bind_failed")
 		presenter.modulate = Color.WHITE if rows[key].archetype == "player" else (Color(0.85,0.57,0.50) if rows[key].archetype == "scav" else Color(0.68,0.83,0.57))
 		_actors[key] = presenter
 	return true

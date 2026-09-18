@@ -156,7 +156,7 @@
   "active_command_entrypoints": {
     "tools/run_equipment_contracts.py": {
       "purpose": "Native equipment and existing reconciliation/UI suites; isolated real profile and native fullscreen recording",
-      "sha256": "4292011f331e7631c0835b3b1ff805a5480e1c88e6668a3ec781d33da4acfc80"
+      "sha256": "530f0797013cb93f7c302b97d10da3a1956ecc1c1137c61ba79e13c75191064d"
     },
     "tools/run_live_maps_contracts.py": {"purpose": "isolated real native maps, save failure/restart and original Sawmill regression", "sha256": "a6368240475738e1ef97c1c8d9234518082f5d239f077df51a930c2a77b24b8b"},
     "tests/tooling/run_interaction_policy_headless_gate.py": {
@@ -249,7 +249,7 @@
     }
   },
   "active_reviewed_support": {
-    "tests/equipment/equipment_gameplay_driver.gd": {"purpose": "Non-entrypoint real-input equipment gameplay driver with fail-closed native 1080p stills", "runner_inventory": true, "sha256": "78b4837529d593fc08427a554a8c77dc0e86e55fac2831501ba7be4e365a239f"},
+    "tests/equipment/equipment_gameplay_driver.gd": {"purpose": "Non-entrypoint real-input equipment gameplay driver with fail-closed native 1080p stills", "runner_inventory": true, "sha256": "11cc06a929a00f28bd2db1e0abf99330bd0025a24c6d6378e72682025d671efe"},
     "game/presentation/exact_1080_capture_guard.gd": {
       "purpose": "export-safe physical window, viewport, texture and raw-image final-write guard",
       "runner_inventory": false,

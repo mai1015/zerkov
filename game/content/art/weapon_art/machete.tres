@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ZHeldWeaponArt" format=3]
+
+[ext_resource type="Script" path="res://game/presentation/art/held_weapon_art.gd" id="profile"]
+[ext_resource type="Texture2D" path="res://assets/original/Weapons Inventory/Melee/Weapons_inventory_MACHETTE.png" id="source"]
+
+[sub_resource type="AtlasTexture" id="blade"]
+atlas = ExtResource("source")
+region = Rect2(32, 12, 60, 9)
+filter_clip = true
+
+[resource]
+script = ExtResource("profile")
+definition_id = "zerkov.weapon.machete"
+texture = SubResource("blade")
+grip = Vector2(54, 4)
+shoulder = Vector2(-4, -8)
+pixel_scale = 0.25
+attack_hand = PackedVector2Array(5, -10, 8, -11, 9, -12, -2, -9, -8, -10, -7, -10)
+attack_degrees = PackedFloat32Array(-35, -45, -55, 10, 35, 35)
