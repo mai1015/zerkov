@@ -1,0 +1,218 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_62.png" id="1_hvac"]
+[ext_resource type="Texture2D" path="res://assets/world/northline_native/sources/sheet_10.png" id="2_machine"]
+
+[node name="NorthlineClinicCutaway" type="Node2D"]
+metadata/cutaway_id = "northline.clinic.main"
+metadata/cutaway_region = PackedVector2Array(0, 0, 352, 0, 352, 216, 0, 216)
+metadata/cutaway_exit_margin = 10.0
+
+[node name="ExteriorDetails" type="Node2D" parent="."]
+z_index = 18
+
+[node name="EntranceCanopyShadow" type="Polygon2D" parent="ExteriorDetails"]
+position = Vector2(0, 4)
+color = Color(0.025, 0.035, 0.033, 0.42)
+polygon = PackedVector2Array(116, 194, 236, 194, 248, 246, 104, 246)
+
+[node name="EntranceCanopy" type="Polygon2D" parent="ExteriorDetails"]
+color = Color(0.19, 0.31, 0.32, 0.94)
+polygon = PackedVector2Array(120, 194, 232, 194, 242, 240, 110, 240)
+
+[node name="CanopyGlass" type="Polygon2D" parent="ExteriorDetails"]
+color = Color(0.24, 0.46, 0.49, 0.55)
+polygon = PackedVector2Array(128, 199, 224, 199, 231, 232, 121, 232)
+
+[node name="CanopyFrameLeft" type="Line2D" parent="ExteriorDetails"]
+points = PackedVector2Array(120, 194, 110, 240)
+width = 2.0
+default_color = Color(0.56, 0.62, 0.58, 1)
+
+[node name="CanopyFrameRight" type="Line2D" parent="ExteriorDetails"]
+points = PackedVector2Array(232, 194, 242, 240)
+width = 2.0
+default_color = Color(0.56, 0.62, 0.58, 1)
+
+[node name="CanopyFrameFront" type="Line2D" parent="ExteriorDetails"]
+points = PackedVector2Array(110, 240, 242, 240)
+width = 2.0
+default_color = Color(0.56, 0.62, 0.58, 1)
+
+[node name="AmbulanceLaneLeft" type="Line2D" parent="ExteriorDetails"]
+points = PackedVector2Array(92, 246, 92, 272)
+width = 1.0
+default_color = Color(0.63, 0.59, 0.42, 0.72)
+
+[node name="AmbulanceLaneRight" type="Line2D" parent="ExteriorDetails"]
+points = PackedVector2Array(260, 246, 260, 272)
+width = 1.0
+default_color = Color(0.63, 0.59, 0.42, 0.72)
+
+[node name="CutawayVisuals" type="Node2D" parent="."]
+z_index = 80
+metadata/cutaway_visuals = true
+
+[node name="RoofShadow" type="Polygon2D" parent="CutawayVisuals"]
+position = Vector2(4, 5)
+color = Color(0.02, 0.028, 0.027, 0.48)
+polygon = PackedVector2Array(0, 0, 352, 0, 352, 216, 232, 216, 232, 198, 120, 198, 120, 216, 0, 216)
+
+[node name="RoofMain" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.145, 0.17, 0.165, 1)
+polygon = PackedVector2Array(0, 0, 352, 0, 352, 216, 232, 216, 232, 198, 120, 198, 120, 216, 0, 216)
+
+[node name="RoofInset" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.23, 0.245, 0.23, 1)
+polygon = PackedVector2Array(7, 7, 345, 7, 345, 208, 226, 208, 226, 191, 126, 191, 126, 208, 7, 208)
+
+[node name="RoofPatchWest" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.18, 0.19, 0.18, 1)
+polygon = PackedVector2Array(20, 24, 89, 19, 96, 71, 25, 77)
+
+[node name="RoofPatchEast" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.185, 0.195, 0.185, 1)
+polygon = PackedVector2Array(264, 119, 329, 114, 335, 176, 271, 183)
+
+[node name="SeamV0" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(64, 8, 64, 207)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SeamV1" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(128, 8, 128, 190)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SeamV2" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(192, 8, 192, 190)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SeamV3" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(256, 8, 256, 207)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SeamV4" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(320, 8, 320, 207)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SeamH0" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(8, 64, 344, 64)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SeamH1" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(8, 128, 344, 128)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SeamH2" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(8, 190, 120, 190, 120, 191, 232, 191, 232, 190, 344, 190)
+width = 1.0
+default_color = Color(0.34, 0.35, 0.32, 0.55)
+
+[node name="SkylightFrame" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.08, 0.095, 0.092, 1)
+polygon = PackedVector2Array(111, 74, 185, 74, 185, 130, 111, 130)
+
+[node name="SkylightGlass" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.16, 0.34, 0.39, 0.92)
+polygon = PackedVector2Array(116, 79, 180, 79, 180, 125, 116, 125)
+
+[node name="SkylightV0" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(132, 79, 132, 125)
+width = 1.0
+default_color = Color(0.46, 0.57, 0.57, 0.75)
+
+[node name="SkylightV1" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(148, 79, 148, 125)
+width = 1.0
+default_color = Color(0.46, 0.57, 0.57, 0.75)
+
+[node name="SkylightV2" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(164, 79, 164, 125)
+width = 1.0
+default_color = Color(0.46, 0.57, 0.57, 0.75)
+
+[node name="SkylightH0" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(116, 94, 180, 94)
+width = 1.0
+default_color = Color(0.46, 0.57, 0.57, 0.75)
+
+[node name="SkylightH1" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(116, 110, 180, 110)
+width = 1.0
+default_color = Color(0.46, 0.57, 0.57, 0.75)
+
+[node name="Helipad" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.28, 0.29, 0.265, 1)
+polygon = PackedVector2Array(222, 25, 319, 25, 326, 32, 326, 106, 319, 113, 222, 113, 215, 106, 215, 32)
+
+[node name="HelipadRing" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(232, 31, 309, 31, 320, 42, 320, 96, 309, 107, 232, 107, 221, 96, 221, 42, 232, 31)
+width = 2.0
+default_color = Color(0.61, 0.28, 0.24, 0.88)
+
+[node name="HelipadHLeft" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(254, 49, 254, 91)
+width = 3.0
+default_color = Color(0.72, 0.69, 0.59, 0.9)
+
+[node name="HelipadHRight" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(286, 49, 286, 91)
+width = 3.0
+default_color = Color(0.72, 0.69, 0.59, 0.9)
+
+[node name="HelipadHMid" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(254, 70, 286, 70)
+width = 3.0
+default_color = Color(0.72, 0.69, 0.59, 0.9)
+
+[node name="HVACWest" type="Sprite2D" parent="CutawayVisuals"]
+texture_filter = 1
+position = Vector2(29, 39)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("1_hvac")
+centered = false
+region_enabled = true
+region_rect = Rect2(390, 198, 84, 90)
+region_filter_clip_enabled = true
+self_modulate = Color(0.77, 0.78, 0.71, 1)
+
+[node name="HVACEast" type="Sprite2D" parent="CutawayVisuals"]
+texture_filter = 1
+position = Vector2(285, 139)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("1_hvac")
+centered = false
+region_enabled = true
+region_rect = Rect2(390, 198, 84, 90)
+region_filter_clip_enabled = true
+self_modulate = Color(0.71, 0.73, 0.67, 1)
+
+[node name="AirHandler" type="Sprite2D" parent="CutawayVisuals"]
+texture_filter = 1
+position = Vector2(53, 149)
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("2_machine")
+centered = false
+region_enabled = true
+region_rect = Rect2(198, 387, 87, 93)
+region_filter_clip_enabled = true
+self_modulate = Color(0.68, 0.7, 0.66, 1)
+
+[node name="Vent0" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.36, 0.38, 0.35, 1)
+polygon = PackedVector2Array(202, 142, 216, 142, 216, 156, 202, 156)
+
+[node name="Vent1" type="Polygon2D" parent="CutawayVisuals"]
+color = Color(0.36, 0.38, 0.35, 1)
+polygon = PackedVector2Array(86, 36, 98, 36, 98, 48, 86, 48)
+
+[node name="RoofOutline" type="Line2D" parent="CutawayVisuals"]
+points = PackedVector2Array(0, 0, 352, 0, 352, 216, 232, 216, 232, 198, 120, 198, 120, 216, 0, 216, 0, 0)
+width = 3.0
+default_color = Color(0.41, 0.43, 0.39, 1)
