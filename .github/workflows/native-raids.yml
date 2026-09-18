@@ -102,94 +102,19 @@ jobs:
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
       - name: Build isolated clinic review
+        env:
+          PROJECT_B64: "Y29uZmlnX3ZlcnNpb249NQpbYXBwbGljYXRpb25dCmNvbmZpZy9uYW1lPSJOb3J0aGxpbmUgcm9vZmVkIGNsaW5pYyBuYXRpdmUgcmV2aWV3Igpjb25maWcvZmVhdHVyZXM9UGFja2VkU3RyaW5nQXJyYXkoIjQuNyIsICJHTCBDb21wYXRpYmlsaXR5IikKW2Rpc3BsYXldCndpbmRvdy9zaXplL3ZpZXdwb3J0X3dpZHRoPTE5MjAKd2luZG93L3NpemUvdmlld3BvcnRfaGVpZ2h0PTEwODAKd2luZG93L3NpemUvd2luZG93X3dpZHRoX292ZXJyaWRlPTE5MjAKd2luZG93L3NpemUvd2luZG93X2hlaWdodF9vdmVycmlkZT0xMDgwCltyZW5kZXJpbmddCnJlbmRlcmVyL3JlbmRlcmluZ19tZXRob2Q9ImdsX2NvbXBhdGliaWxpdHkiCg=="
+          DRIVER_B64: "ZXh0ZW5kcyBTY2VuZVRyZWUKY29uc3QgQ29udHJvbGxlcj1wcmVsb2FkKCJyZXM6Ly9nYW1lL3ByZXNlbnRhdGlvbi9sb2NhbC9sb2NhbF9yb29mX2N1dGF3YXlfY29udHJvbGxlci5nZCIpCmNvbnN0IEVYQUNUOj1WZWN0b3IyaSgxOTIwLDEwODApCnZhciBjaGVja3M6PTAKdmFyIGZhaWx1cmVzOj0wCnZhciBvdXRwdXQ6PSIiCgpmdW5jIG9rKHZhbHVlOmJvb2wsbGFiZWw6U3RyaW5nKS0+dm9pZDoKICAgIGNoZWNrcys9MQogICAgaWYgbm90IHZhbHVlOgogICAgICAgIGZhaWx1cmVzKz0xCiAgICAgICAgcHVzaF9lcnJvcigiUk9PRkVEX0NMSU5JQ19BU1NFUlQ6ICIrbGFiZWwpCgpmdW5jIGZyYW1lcyhjb3VudDo9NSktPnZvaWQ6CiAgICBmb3IgX2kgaW4gcmFuZ2UoY291bnQpOgogICAgICAgIGF3YWl0IHByb2Nlc3NfZnJhbWUKICAgIGF3YWl0IFJlbmRlcmluZ1NlcnZlci5mcmFtZV9wb3N0X2RyYXcKCmZ1bmMgZmluZ2VycHJpbnQod29ybGQ6Tm9kZSktPlN0cmluZzoKICAgIHZhciByb3dzOj1QYWNrZWRTdHJpbmdBcnJheSgpCiAgICBmb3Igbm9kZTpOb2RlIGluIHdvcmxkLmZpbmRfY2hpbGRyZW4oIioiLCJTdGF0aWNCb2R5MkQiLHRydWUsZmFsc2UpOgogICAgICAgIHZhciBib2R5Oj1ub2RlIGFzIFN0YXRpY0JvZHkyRAogICAgICAgIHJvd3MuYXBwZW5kKHN0cih3b3JsZC5nZXRfcGF0aF90byhib2R5KSkrIjoiK3N0cihib2R5LmNvbGxpc2lvbl9sYXllcikrIjoiK3N0cihib2R5LmNvbGxpc2lvbl9tYXNrKSkKICAgICAgICBmb3IgY2hpbGQ6Tm9kZSBpbiBib2R5LmdldF9jaGlsZHJlbigpOgogICAgICAgICAgICBpZiBjaGlsZCBpcyBDb2xsaXNpb25TaGFwZTJEOgogICAgICAgICAgICAgICAgcm93cy5hcHBlbmQoc3RyKHdvcmxkLmdldF9wYXRoX3RvKGNoaWxkKSkrIjoiK3N0cihjaGlsZC5kaXNhYmxlZCkpCiAgICByb3dzLnNvcnQoKQogICAgcmV0dXJuICJcbiIuam9pbihyb3dzKS5zaGEyNTZfdGV4dCgpCgpmdW5jIHNuYXAobmFtZTpTdHJpbmcpLT52b2lkOgogICAgYXdhaXQgZnJhbWVzKCkKICAgIHZhciBpbWFnZTo9cm9vdC5nZXRfdGV4dHVyZSgpLmdldF9pbWFnZSgpCiAgICBvayhyb290LnNpemU9PUVYQUNULCJyb290IGV4YWN0IikKICAgIG9rKHJvb3QuZ2V0X3Zpc2libGVfcmVjdCgpLnNpemU9PVZlY3RvcjIoRVhBQ1QpLCJ2aWV3cG9ydCBleGFjdCIpCiAgICBvayhpbWFnZS5nZXRfc2l6ZSgpPT1FWEFDVCwiaW1hZ2UgZXhhY3QiKQogICAgb2soaW1hZ2Uuc2F2ZV9wbmcob3V0cHV0LnBhdGhfam9pbihuYW1lKyIucG5nIikpPT1PSywic2F2ZSAiK25hbWUpCgpmdW5jIF9pbml0aWFsaXplKCktPnZvaWQ6CiAgICBjYWxsX2RlZmVycmVkKCJydW4iKQoKZnVuYyBydW4oKS0+dm9pZDoKICAgIHJvb3Quc2l6ZT1FWEFDVAogICAgb3V0cHV0PU9TLmdldF9jbWRsaW5lX3VzZXJfYXJncygpWzBdLnRyaW1fcHJlZml4KCItLW91dHB1dD0iKQogICAgRGlyQWNjZXNzLm1ha2VfZGlyX3JlY3Vyc2l2ZV9hYnNvbHV0ZShvdXRwdXQpCiAgICB2YXIgd29ybGQ6PWxvYWQoInJlczovL2dhbWUvd29ybGQvbGl2ZV9tYXBzL25vcnRobGluZV9saXZlLnRzY24iKS5pbnN0YW50aWF0ZSgpIGFzIE5vZGUyRAogICAgcm9vdC5hZGRfY2hpbGQod29ybGQpCiAgICB2YXIgY2FtZXJhOj1DYW1lcmEyRC5uZXcoKQogICAgY2FtZXJhLnBvc2l0aW9uPVZlY3RvcjIoMTE2OCwxMzA0KQogICAgY2FtZXJhLnpvb209VmVjdG9yMigzLDMpCiAgICBjYW1lcmEuZW5hYmxlZD10cnVlCiAgICByb290LmFkZF9jaGlsZChjYW1lcmEpCiAgICBhd2FpdCBmcmFtZXMoKQogICAgdmFyIGNsaW5pYzo9d29ybGQuZ2V0X25vZGUoIkNsaW5pY0N1dGF3YXkiKSBhcyBOb2RlMkQKICAgIHZhciByb29mOj1jbGluaWMuZ2V0X25vZGUoIkN1dGF3YXlWaXN1YWxzIikgYXMgQ2FudmFzSXRlbQogICAgb2soY2xpbmljIT1udWxsIGFuZCByb29mIT1udWxsLCJjbGluaWMgbW91bnRlZCIpCiAgICBvayhjbGluaWMuZ2V0X21ldGEoImN1dGF3YXlfaWQiKT09Im5vcnRobGluZS5jbGluaWMubWFpbiIsInN0YWJsZSBpZGVudGl0eSIpCiAgICB2YXIgYmVmb3JlOj1maW5nZXJwcmludCh3b3JsZCkKICAgIHZhciBhY3Rvcjo9Tm9kZTJELm5ldygpCiAgICBhY3Rvci52aXNpYmxlPXRydWUKICAgIHdvcmxkLmFkZF9jaGlsZChhY3RvcikKICAgIHZhciBjb250cm9sbGVyOj1Db250cm9sbGVyLm5ldygpCiAgICByb290LmFkZF9jaGlsZChjb250cm9sbGVyKQogICAgb2soY29udHJvbGxlci5jb25maWd1cmUod29ybGQsVmVjdG9yMig5MDAsMTMwMCkpLCJjb25maWd1cmUiKQogICAgb2soY29udHJvbGxlci5ncm91cF9jb3VudCgpPT0xIGFuZCBub3QgY29udHJvbGxlci5pc19vcGVuKCJub3J0aGxpbmUuY2xpbmljLm1haW4iKSwic3RhcnRzIHJvb2ZlZCIpCiAgICBvayhyb29mLm1vZHVsYXRlLmE+Ljk5LCJyb29mIG9wYXF1ZSIpCiAgICBhd2FpdCBzbmFwKCJub3J0aGxpbmUtY2xpbmljLXJvb2ZlZC0xMDgwIikKICAgIGNvbnRyb2xsZXIudXBkYXRlX3Bvc2l0aW9uKFZlY3RvcjIoMTE2OCwxMzA0KSkKICAgIGF3YWl0IGNyZWF0ZV90aW1lciguMjQpLnRpbWVvdXQKICAgIGF3YWl0IGZyYW1lcygpCiAgICBvayhjb250cm9sbGVyLmlzX29wZW4oIm5vcnRobGluZS5jbGluaWMubWFpbiIpLCJlbnRlciBvcGVucyIpCiAgICBvayhyb29mLm1vZHVsYXRlLmE8LjAyLCJyb29mIGhpZGRlbiIpCiAgICBvayhhY3Rvci52aXNpYmxlLCJhY3RvciB2aXNpYmlsaXR5IHVuY2hhbmdlZCIpCiAgICBvayhmaW5nZXJwcmludCh3b3JsZCk9PWJlZm9yZSwiY29sbGlzaW9uIHVuY2hhbmdlZCBpbnNpZGUiKQogICAgYXdhaXQgc25hcCgibm9ydGhsaW5lLWNsaW5pYy1pbnRlcmlvci0xMDgwIikKICAgIHZhciB0cmFuc2l0aW9uczo9Y29udHJvbGxlci50cmFuc2l0aW9uX2NvdW50KCkKICAgIGNvbnRyb2xsZXIudXBkYXRlX3Bvc2l0aW9uKFZlY3RvcjIoMTM1MCwxMzA0KSkKICAgIGF3YWl0IGNyZWF0ZV90aW1lciguMDUpLnRpbWVvdXQKICAgIG9rKGNvbnRyb2xsZXIuaXNfb3Blbigibm9ydGhsaW5lLmNsaW5pYy5tYWluIikgYW5kIGNvbnRyb2xsZXIudHJhbnNpdGlvbl9jb3VudCgpPT10cmFuc2l0aW9ucywiZXhpdCBtYXJnaW4iKQogICAgY29udHJvbGxlci51cGRhdGVfcG9zaXRpb24oVmVjdG9yMigxMzgwLDEzMDQpKQogICAgYXdhaXQgY3JlYXRlX3RpbWVyKC4yNCkudGltZW91dAogICAgYXdhaXQgZnJhbWVzKCkKICAgIG9rKG5vdCBjb250cm9sbGVyLmlzX29wZW4oIm5vcnRobGluZS5jbGluaWMubWFpbiIpIGFuZCByb29mLm1vZHVsYXRlLmE+Ljk4LCJyb29mIHJlc3RvcmVkIikKICAgIG9rKGZpbmdlcnByaW50KHdvcmxkKT09YmVmb3JlLCJjb2xsaXNpb24gdW5jaGFuZ2VkIG91dHNpZGUiKQogICAgY29udHJvbGxlci5yZWxlYXNlKCkKICAgIG9rKHJvb2YubW9kdWxhdGUuYT4uOTksInJlbGVhc2UgcmVzdG9yZXMiKQogICAgcHJpbnQoIlJPT0ZFRF9DTElOSUNfUkVTVUxUIGNoZWNrcz0lZCBmYWlsdXJlcz0lZCIlW2NoZWNrcyxmYWlsdXJlc10pCiAgICBxdWl0KDAgaWYgZmFpbHVyZXM9PTAgZWxzZSAxKQo="
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import shutil,os
-          root=Path.cwd(); project=Path(os.environ['RUNNER_TEMP'])/'clinic-project'
-          for source in [root/'assets/world/northline_native',root/'game/world/northline_native']:
-              shutil.copytree(source,project/source.relative_to(root),dirs_exist_ok=True)
-          for name in ['game/world/live_maps/northline_live.tscn','game/world/buildings/northline_clinic_cutaway.tscn','game/presentation/local/local_roof_cutaway_controller.gd']:
-              target=project/name; target.parent.mkdir(parents=True,exist_ok=True); shutil.copyfile(root/name,target)
-          (project/'project.godot').write_text('''config_version=5
-[application]
-config/name="Northline roofed clinic native review"
-config/features=PackedStringArray("4.7", "GL Compatibility")
-[display]
-window/size/viewport_width=1920
-window/size/viewport_height=1080
-window/size/window_width_override=1920
-window/size/window_height_override=1080
-[rendering]
-renderer/rendering_method="gl_compatibility"
-''')
-          (project/'driver.gd').write_text(r'''extends SceneTree
-const Controller=preload("res://game/presentation/local/local_roof_cutaway_controller.gd")
-const EXACT:=Vector2i(1920,1080)
-var checks:=0
-var failures:=0
-var output:=""
-func ok(value:bool,label:String)->void:
-    checks+=1
-    if not value:
-        failures+=1
-        push_error("ROOFED_CLINIC_ASSERT: "+label)
-func frames(count:=5)->void:
-    for _i in range(count): await process_frame
-    await RenderingServer.frame_post_draw
-func fingerprint(world:Node)->String:
-    var rows:=PackedStringArray()
-    for node:Node in world.find_children("*","StaticBody2D",true,false):
-        var body:=node as StaticBody2D
-        rows.append(str(world.get_path_to(body))+":"+str(body.collision_layer)+":"+str(body.collision_mask))
-        for child:Node in body.get_children():
-            if child is CollisionShape2D: rows.append(str(world.get_path_to(child))+":"+str(child.disabled))
-    rows.sort()
-    return "\n".join(rows).sha256_text()
-func snap(name:String)->void:
-    await frames()
-    var image:=root.get_texture().get_image()
-    ok(root.size==EXACT,"root exact")
-    ok(root.get_visible_rect().size==Vector2(EXACT),"viewport exact")
-    ok(image.get_size()==EXACT,"image exact")
-    ok(image.save_png(output.path_join(name+".png"))==OK,"save "+name)
-func _initialize()->void: call_deferred("run")
-func run()->void:
-    root.size=EXACT
-    output=OS.get_cmdline_user_args()[0].trim_prefix("--output=")
-    DirAccess.make_dir_recursive_absolute(output)
-    var world:=load("res://game/world/live_maps/northline_live.tscn").instantiate() as Node2D
-    root.add_child(world)
-    var camera:=Camera2D.new();camera.position=Vector2(1168,1304);camera.zoom=Vector2(3,3);camera.enabled=true;root.add_child(camera)
-    await frames()
-    var clinic:=world.get_node("ClinicCutaway") as Node2D
-    var roof:=clinic.get_node("CutawayVisuals") as CanvasItem
-    ok(clinic!=null and roof!=null,"clinic mounted")
-    ok(clinic.get_meta("cutaway_id")=="northline.clinic.main","stable identity")
-    var before:=fingerprint(world)
-    var actor:=Node2D.new();actor.visible=true;world.add_child(actor)
-    var controller:=Controller.new();root.add_child(controller)
-    ok(controller.configure(world,Vector2(900,1300)),"configure")
-    ok(controller.group_count()==1 and not controller.is_open("northline.clinic.main"),"starts roofed")
-    ok(roof.modulate.a>.99,"roof opaque")
-    await snap("northline-clinic-roofed-1080")
-    controller.update_position(Vector2(1168,1304));await create_timer(.24).timeout;await frames()
-    ok(controller.is_open("northline.clinic.main"),"enter opens")
-    ok(roof.modulate.a<.02,"roof hidden")
-    ok(actor.visible,"actor visibility unchanged")
-    ok(fingerprint(world)==before,"collision unchanged inside")
-    await snap("northline-clinic-interior-1080")
-    var transitions:=controller.transition_count()
-    controller.update_position(Vector2(1350,1304));await create_timer(.05).timeout
-    ok(controller.is_open("northline.clinic.main") and controller.transition_count()==transitions,"exit margin")
-    controller.update_position(Vector2(1380,1304));await create_timer(.24).timeout;await frames()
-    ok(not controller.is_open("northline.clinic.main") and roof.modulate.a>.98,"roof restored")
-    ok(fingerprint(world)==before,"collision unchanged outside")
-    controller.release();ok(roof.modulate.a>.99,"release restores")
-    print("ROOFED_CLINIC_RESULT checks=%d failures=%d"%[checks,failures])
-    quit(0 if failures==0 else 1)
-''')
-          PY
+          PROJECT="$RUNNER_TEMP/clinic-project"
+          mkdir -p "$PROJECT/assets/world" "$PROJECT/game/world" "$PROJECT/game/world/live_maps" "$PROJECT/game/world/buildings" "$PROJECT/game/presentation/local"
+          cp -R assets/world/northline_native "$PROJECT/assets/world/"
+          cp -R game/world/northline_native "$PROJECT/game/world/"
+          cp game/world/live_maps/northline_live.tscn "$PROJECT/game/world/live_maps/"
+          cp game/world/buildings/northline_clinic_cutaway.tscn "$PROJECT/game/world/buildings/"
+          cp game/presentation/local/local_roof_cutaway_controller.gd "$PROJECT/game/presentation/local/"
+          printf '%s' "$PROJECT_B64" | base64 -d > "$PROJECT/project.godot"
+          printf '%s' "$DRIVER_B64" | base64 -d > "$PROJECT/driver.gd"
       - name: Render exterior and cutaway at native 1080
         run: |
           mkdir -p "$RUNNER_TEMP/clinic-evidence"
