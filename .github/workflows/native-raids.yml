@@ -1,7 +1,7 @@
 name: Native offline raid integration
 on:
   pull_request:
-    paths: ['.github/workflows/native-raids.yml', 'game/world/live_maps/**', 'game/world/blackwater_crossing/**', 'game/world/northline_native/**', 'game/world/movement/**', 'game/world/navigation/**', 'game/bootstrap/local/**', 'game/raid/progression/**', 'game/combat/**', 'game/ai/vision/**', 'game/presentation/local/**', 'ui/core/local/**', 'tests/raid/live_maps*', 'tests/local/local_flow_player_driver.gd', 'tests/tooling/test_live_maps_runner.py', 'tools/run_live_maps_contracts.py', 'config/first_playable_1080_gate.json']
+    paths: ['.github/workflows/native-raids.yml', 'game/world/live_maps/**', 'game/world/buildings/**', 'game/world/blackwater_crossing/**', 'game/world/northline_native/**', 'game/world/movement/**', 'game/world/navigation/**', 'game/bootstrap/local/**', 'game/raid/progression/**', 'game/combat/**', 'game/ai/vision/**', 'game/presentation/local/**', 'ui/core/local/**', 'tests/raid/live_maps*', 'tests/local/local_flow_player_driver.gd', 'tests/tooling/test_live_maps_runner.py', 'tests/tooling/test_roofed_clinic.py', 'tools/run_live_maps_contracts.py', 'config/first_playable_1080_gate.json']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +20,7 @@ jobs:
       - name: Verify source, original sheets and exact display policy
         run: |
           python3 tests/tooling/test_live_maps_runner.py
+          python3 -m unittest tests.tooling.test_roofed_clinic -v
           python3 tests/tooling/test_ui_first_playable_scope.py
           python3 tools/check_first_playable_1080.py
           python3 tools/install_northline_native_sources.py --verify
@@ -82,4 +83,124 @@ jobs:
           path: |
             ${{ runner.temp }}/native-raids
             ${{ runner.temp }}/native-identity
+          retention-days: 14
+
+  clinic-visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Install exact Godot and Xvfb
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Build isolated clinic review
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil,os
+          root=Path.cwd(); project=Path(os.environ['RUNNER_TEMP'])/'clinic-project'
+          for source in [root/'assets/world/northline_native',root/'game/world/northline_native']:
+              shutil.copytree(source,project/source.relative_to(root),dirs_exist_ok=True)
+          for name in ['game/world/live_maps/northline_live.tscn','game/world/buildings/northline_clinic_cutaway.tscn','game/presentation/local/local_roof_cutaway_controller.gd']:
+              target=project/name; target.parent.mkdir(parents=True,exist_ok=True); shutil.copyfile(root/name,target)
+          (project/'project.godot').write_text('''config_version=5
+[application]
+config/name="Northline roofed clinic native review"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+[display]
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1920
+window/size/window_height_override=1080
+[rendering]
+renderer/rendering_method="gl_compatibility"
+''')
+          (project/'driver.gd').write_text(r'''extends SceneTree
+const Controller=preload("res://game/presentation/local/local_roof_cutaway_controller.gd")
+const EXACT:=Vector2i(1920,1080)
+var checks:=0
+var failures:=0
+var output:=""
+func ok(value:bool,label:String)->void:
+    checks+=1
+    if not value:
+        failures+=1
+        push_error("ROOFED_CLINIC_ASSERT: "+label)
+func frames(count:=5)->void:
+    for _i in range(count): await process_frame
+    await RenderingServer.frame_post_draw
+func fingerprint(world:Node)->String:
+    var rows:=PackedStringArray()
+    for node:Node in world.find_children("*","StaticBody2D",true,false):
+        var body:=node as StaticBody2D
+        rows.append(str(world.get_path_to(body))+":"+str(body.collision_layer)+":"+str(body.collision_mask))
+        for child:Node in body.get_children():
+            if child is CollisionShape2D: rows.append(str(world.get_path_to(child))+":"+str(child.disabled))
+    rows.sort()
+    return "\n".join(rows).sha256_text()
+func snap(name:String)->void:
+    await frames()
+    var image:=root.get_texture().get_image()
+    ok(root.size==EXACT,"root exact")
+    ok(root.get_visible_rect().size==Vector2(EXACT),"viewport exact")
+    ok(image.get_size()==EXACT,"image exact")
+    ok(image.save_png(output.path_join(name+".png"))==OK,"save "+name)
+func _initialize()->void: call_deferred("run")
+func run()->void:
+    root.size=EXACT
+    output=OS.get_cmdline_user_args()[0].trim_prefix("--output=")
+    DirAccess.make_dir_recursive_absolute(output)
+    var world:=load("res://game/world/live_maps/northline_live.tscn").instantiate() as Node2D
+    root.add_child(world)
+    var camera:=Camera2D.new();camera.position=Vector2(1168,1304);camera.zoom=Vector2(3,3);camera.enabled=true;root.add_child(camera)
+    await frames()
+    var clinic:=world.get_node("ClinicCutaway") as Node2D
+    var roof:=clinic.get_node("CutawayVisuals") as CanvasItem
+    ok(clinic!=null and roof!=null,"clinic mounted")
+    ok(clinic.get_meta("cutaway_id")=="northline.clinic.main","stable identity")
+    var before:=fingerprint(world)
+    var actor:=Node2D.new();actor.visible=true;world.add_child(actor)
+    var controller:=Controller.new();root.add_child(controller)
+    ok(controller.configure(world,Vector2(900,1300)),"configure")
+    ok(controller.group_count()==1 and not controller.is_open("northline.clinic.main"),"starts roofed")
+    ok(roof.modulate.a>.99,"roof opaque")
+    await snap("northline-clinic-roofed-1080")
+    controller.update_position(Vector2(1168,1304));await create_timer(.24).timeout;await frames()
+    ok(controller.is_open("northline.clinic.main"),"enter opens")
+    ok(roof.modulate.a<.02,"roof hidden")
+    ok(actor.visible,"actor visibility unchanged")
+    ok(fingerprint(world)==before,"collision unchanged inside")
+    await snap("northline-clinic-interior-1080")
+    var transitions:=controller.transition_count()
+    controller.update_position(Vector2(1350,1304));await create_timer(.05).timeout
+    ok(controller.is_open("northline.clinic.main") and controller.transition_count()==transitions,"exit margin")
+    controller.update_position(Vector2(1380,1304));await create_timer(.24).timeout;await frames()
+    ok(not controller.is_open("northline.clinic.main") and roof.modulate.a>.98,"roof restored")
+    ok(fingerprint(world)==before,"collision unchanged outside")
+    controller.release();ok(roof.modulate.a>.99,"release restores")
+    print("ROOFED_CLINIC_RESULT checks=%d failures=%d"%[checks,failures])
+    quit(0 if failures==0 else 1)
+''')
+          PY
+      - name: Render exterior and cutaway at native 1080
+        run: |
+          mkdir -p "$RUNNER_TEMP/clinic-evidence"
+          GODOT="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          "$GODOT" --headless --path "$RUNNER_TEMP/clinic-project" --editor --import --quit
+          xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT" --path "$RUNNER_TEMP/clinic-project" --resolution 1920x1080 --audio-driver Dummy --script res://driver.gd -- --output="$RUNNER_TEMP/clinic-evidence" 2>&1 | tee "$RUNNER_TEMP/clinic-evidence/native.log"
+          ! grep -E 'SCRIPT ERROR|ERROR:|Parse Error|ROOFED_CLINIC_ASSERT' "$RUNNER_TEMP/clinic-evidence/native.log"
+          test "$(find "$RUNNER_TEMP/clinic-evidence" -name '*.png' | wc -l)" -eq 2
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: roofed-clinic-native-evidence
+          path: \${{ runner.temp }}/clinic-evidence
           retention-days: 14
