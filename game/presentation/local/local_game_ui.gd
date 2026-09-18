@@ -12,7 +12,7 @@ var _released: bool = false
 var _bunker_room: String = "storage"
 var _frame_freezes: int = 0
 var _immutable_subtree_reuses: int = 0
-const COMMANDS: Array[StringName] = [&"select_sawmill", &"select_northline", &"select_blackwater", &"create", &"continue", &"loadout", &"maps", &"tasks", &"deploy", &"resume", &"pause", &"interact", &"cancel", &"return_home", &"retry_save", &"quit", &"health", &"controls", &"abandon", &"close_profile", &"crafting", &"build_mode", &"session"]
+const COMMANDS: Array[StringName] = [&"select_sawmill", &"select_northline", &"select_blackwater", &"create", &"continue", &"loadout", &"maps", &"tasks", &"deploy", &"resume", &"pause", &"interact", &"inspect_nearby", &"cancel", &"return_home", &"retry_save", &"quit", &"health", &"controls", &"abandon", &"close_profile", &"crafting", &"build_mode", &"session"]
 const ROUTE_COMMANDS: Dictionary = {"bunker":&"return_home", "inventory":&"loadout", "health":&"health",
 	"maps":&"maps", "tasks":&"tasks", "hud":&"resume", "pause":&"pause", "settings":&"controls", "controls":&"controls", "crafting":&"crafting", "build_mode":&"build_mode", "session":&"session"}
 

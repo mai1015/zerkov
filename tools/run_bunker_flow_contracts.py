@@ -26,7 +26,7 @@ def main() -> int:
     parser.add_argument("--godot", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--graphical", action="store_true")
-    parser.add_argument("--suite", choices=["hub", "workspaces", "journey"], default="hub")
+    parser.add_argument("--suite", choices=["hub", "workspaces", "journey", "loot"], default="hub")
     args = parser.parse_args()
     output = args.output.resolve()
     try:
@@ -34,6 +34,7 @@ def main() -> int:
             raise ValueError("Output must be new and outside the checkout")
         output.mkdir(parents=True)
         env = {**os.environ, "GODOT_SILENCE_ROOT_WARNING": "1",
+               "ZERKOV_CONTEXTUAL_LOOT": "1" if args.suite == "loot" else "0",
                "ZERKOV_OFFLINE_JOURNEY": "1" if args.suite == "journey" else "0",
                "ZERKOV_BUNKER_WORKSPACES": "1" if args.suite == "workspaces" else "0"}
         engine = str(args.godot.resolve(strict=True))
@@ -58,6 +59,8 @@ def main() -> int:
                         arguments.append(str(output / mode))
                     result = flow.execute(script + arguments, env, "BUNKER_FLOW_RESULT", timeout=330 if args.graphical else 200)
                     (output / (mode + ".log")).write_text(result)
+                    if args.suite == "loot" and "CONTEXTUAL_LOOT_COMPLETE native=true" not in result:
+                        raise RuntimeError("Contextual loot driver did not complete")
                     if args.suite == "journey" and "OFFLINE_JOURNEY_COMPLETE native=true" not in result:
                         raise RuntimeError("Journey driver did not complete")
                     if args.suite == "workspaces" and "BUNKER_WORKSPACES_COMPLETE native=true" not in result:
@@ -72,11 +75,16 @@ def main() -> int:
             if len(set(fingerprints)) != 1:
                 raise RuntimeError("Continue changed saved campaign data")
         images = {str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.rglob("*.png"))}
-        if args.graphical and len(images) != ({"hub": 14, "workspaces": 8, "journey": 22}[args.suite]):
+        if args.graphical and len(images) != ({"hub": 14, "workspaces": 8, "journey": 22, "loot": 9}[args.suite]):
             raise RuntimeError("Missing expected application screenshots")
         report = {"engine": pin, "checks": counts, "failures": 0, "profile_fingerprint": fingerprints[0],
                   "suite": args.suite, "graphical": args.graphical, "screenshots": images, "source_commit": os.environ.get("SOURCE_SHA", "local"),
-                  "scope": "normal campaign root, real input and native persistence; " + ("preparation, deployment, actual abandoned-raid debrief and independent Continue" if args.suite == "journey" else "new + independent Continue; pre-raid UX")}
+                  "scope": "normal campaign root, real input and native persistence; " + {
+                      "journey": "preparation, deployment, actual abandoned-raid debrief and independent Continue",
+                      "loot": "raid search/open/transfer/filter/close, committed abandonment and independent Continue",
+                      "workspaces": "read-only bunker workspaces and independent Continue",
+                      "hub": "new + independent Continue; pre-raid UX",
+                  }[args.suite]}
         (output / "result.json").write_text(json.dumps(report, indent=2) + "\n")
         print("BUNKER_FLOW_RUNNER_COMPLETE", json.dumps(report))
         return 0

@@ -53,6 +53,14 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/ux-results"
           python3 tools/run_bunker_flow_contracts.py --suite journey --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/ux-results/run" 2>&1 | tee "$RUNNER_TEMP/ux-results/native.log"
+      - name: Native contextual-loot search, open, transfer and close
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ux-results"
+          python3 tools/run_bunker_flow_contracts.py --suite loot --godot "$ZERKOV_GODOT" --output "$RUNNER_TEMP/ux-results/loot" 2>&1 | tee "$RUNNER_TEMP/ux-results/loot.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

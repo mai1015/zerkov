@@ -60,6 +60,13 @@ func run() -> void:
 	if not await click("MenuPlay/Hit") or not route("bunker"): await finish(); return
 	var initial := _store.load_profile()
 	if not check(initial.ok and (initial.generation == 1 if _run_mode == "new" else initial.fingerprint == saved.fingerprint), "entry never reseeds existing progress"): await finish(); return
+	if OS.get_environment("ZERKOV_CONTEXTUAL_LOOT") == "1":
+		var driver = load("res://tests/local/contextual_loot_driver.gd").new()
+		if not await driver.run(self, initial): await finish(); return
+		print("CONTEXTUAL_LOOT_COMPLETE native=true")
+		print("BUNKER_FLOW_FINGERPRINT ", _store.load_profile().fingerprint)
+		await finish()
+		return
 	if OS.get_environment("ZERKOV_OFFLINE_JOURNEY") == "1":
 		var driver = load("res://tests/local/offline_journey_driver.gd").new()
 		if not await driver.run(self, initial): await finish(); return

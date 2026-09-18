@@ -6,6 +6,12 @@ var _nodes: Dictionary = {}
 var _bound := false
 var _compact_reflow_queued := false
 var _compact_scroll_release_queued := false
+var _local_loot_port: LocalGameUI
+var _nearby_card: Panel
+var _loot_empty: Label
+var _loot_clear: Button
+const LOOT_SURFACE := ["StashTitle", "StashSummary", "StashCompatible", "StashRule", "LootClose", "DesktopStashScroll", "StashSearch", "FilterAll", "FilterGuns", "FilterAmmo", "FilterArmor", "FilterCloth", "FilterFood", "FilterUtil"]
+const NEARBY_CARD = preload("res://ui/components/journey/nearby_loot_card.tscn")
 
 
 func _on_activated() -> void:
@@ -75,6 +81,7 @@ func _bind_content() -> void:
 		_node("HealthColumn").visible = _tab_name() == "health"
 		_node("StatsColumn").visible = _tab_name() == "stats"
 	_bind_local_context()
+	_build_focus_graph()
 
 func layout_compact(view: Vector2) -> void:
 	CompactLayout.apply(self, view)
@@ -616,8 +623,12 @@ func _build_focus_graph() -> void:
 	var focus_nodes: Array[Button] = []
 	for path in ["HealthTab", "GearTab", "StatsTab", "StashTab", "LootTab", "LootClose", "SortStash", "OrganizeStash"]:
 		var button: Button = _node(path) as Button
-		if button != null and not button.disabled:
+		if button != null and button.is_visible_in_tree() and not button.disabled:
 			focus_nodes.append(button)
+	if _nearby_card != null:
+		var action := _nearby_card.get_node("Action") as Button
+		if action.is_visible_in_tree() and not action.disabled: focus_nodes.append(action)
+	if _loot_clear != null and _loot_clear.is_visible_in_tree() and not _loot_clear.disabled: focus_nodes.append(_loot_clear)
 	if focus_nodes.is_empty():
 		return
 	for index in range(focus_nodes.size()):
@@ -935,50 +946,136 @@ func _bind_local_context() -> void:
 	(post.get_node("Title") as Label).text = "CHARACTER / " + ("IN RAID" if raid else "AT BUNKER")
 	(post.get_node("Title") as Label).add_theme_color_override("font_color", LocalJourneyStyle.TEXT)
 	var detail := post.get_node("Details") as Label
-	detail.text = "Carried equipment and nearby loot. Your stash stays at the bunker." if raid else "Prepare your equipment. Your stash is available only at home."
+	detail.text = "Manage your carried equipment." if raid else "Prepare your equipment. Your stash is available only at home."
 	detail.add_theme_color_override("font_color", LocalJourneyStyle.MUTED)
 	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail.size.x = 1000
 	var stash := _node("StashTab") as Button
 	stash.visible = not raid
 	stash.disabled = raid
-	if raid:
-		var open := _inventory_controller != null and _inventory_controller.is_loot_container_open()
-		var loot := _node("LootTab") as Button
-		loot.text = "NEARBY LOOT"
-		loot.position = stash.position
-		loot.size.x = 156
-		# Selecting the Character section is not a world interaction. Never let
-		# this tab open the controller's default (potentially unsearched) crate.
-		loot.disabled = not open
-		(_node("StashTitle") as Label).text = "LOOT"
-		_node("LootClose").visible = open
-		_node("DesktopStashScroll").visible = open
-		var search := _node("StashSearch") as LineEdit
-		search.position.x = 1420
-		search.size.x = 452
-		search.editable = open
-		for name: String in ["SortStash", "OrganizeStash"]: _node(name).hide()
-		for name: String in ["FilterAll", "FilterGuns", "FilterAmmo", "FilterArmor", "FilterCloth", "FilterFood", "FilterUtil"]:
-			_node(name).visible = open
-		var empty := _node("LocalLootEmpty") as Label
-		if empty == null:
-			empty = Label.new()
-			empty.name = "LocalLootEmpty"
-			empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			empty.position = Vector2(1280, 356)
-			empty.size = Vector2(552, 128)
-			empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			empty.add_theme_font_override("font", LocalJourneyStyle.MONO)
-			empty.add_theme_font_size_override("font_size", 16)
-			empty.add_theme_color_override("font_color", LocalJourneyStyle.MUTED)
-			_surface.add_child(empty)
-		empty.visible = not open
-		empty.text = "NO CONTAINER OPEN\n\nReturn to the raid and interact with searched loot to inspect its contents."
-		if not open:
-			(_node("StashCompatible") as Label).text = "NO CONTAINER OPEN"
-			(_node("StashSummary") as Label).text = "WORLD LOOT"
-			(_node("StashCompatible") as Label).tooltip_text = empty.text
+	# Loot is a contextual counterpart, not an always-available tab at home or
+	# in the raid. The actual pane appears only after an admitted world open.
+	_node("LootTab").hide()
+	(_node("LootTab") as Button).disabled = true
+	# Unsupported swap actions must not spill over the neighboring source pane.
+	# Leave the existing equipment-unavailable labels truthful; do not fake slots.
+	for name: String in ["RigSwap", "PackSwap"]:
+		var swap := _node(name) as Button
+		if swap.disabled: swap.hide()
+	if _local_loot_port == null:
+		_local_loot_port = port
+		port.changed.connect(_refresh_local_loot_context)
+	if raid: _refresh_local_loot_context()
+
+func _refresh_local_loot_context() -> void:
+	if not is_inside_tree() or _tearing_down or not _local_raid_context(): return
+	var open := _inventory_controller != null and _inventory_controller.is_loot_container_open()
+	var nearby: Dictionary = _local_loot_port.snapshot().get("nearby_loot", {})
+	var focus := get_viewport().gui_get_focus_owner()
+	_node("LootTab").hide()
+	(_node("LootTab") as Button).disabled = true
+	_node("StashTab").hide()
+	for path: String in LOOT_SURFACE: _node(path).visible = open
+	for path: String in ["SortStash", "OrganizeStash"]: _node(path).hide()
+	var search := _node("StashSearch") as LineEdit
+	search.editable = open
+	search.position.x = 1248
+	search.size.x = 624
+	search.placeholder_text = "Filter this container…"
+	if _nearby_card == null:
+		_nearby_card = NEARBY_CARD.instantiate() as Panel
+		_surface.add_child(_nearby_card)
+		_nearby_card.add_theme_stylebox_override("panel", LocalJourneyStyle.panel())
+		for child: Node in _nearby_card.get_children():
+			if child is Label: child.add_theme_color_override("font_color", LocalJourneyStyle.TEXT if child.name == &"Title" else LocalJourneyStyle.MUTED)
+		(_nearby_card.get_node("Kicker") as Label).add_theme_color_override("font_color", LocalJourneyStyle.ACCENT)
+		var action := _nearby_card.get_node("Action") as Button
+		LocalJourneyStyle.button(action)
+		action.pressed.connect(_inspect_nearby_loot)
+	_nearby_card.visible = not open and not nearby.is_empty()
+	if _nearby_card.visible:
+		(_nearby_card.get_node("Title") as Label).text = String(nearby.get("label", "Container")).to_upper()
+		var searching: bool = nearby.get("searching", false)
+		var searched: bool = nearby.get("searched", false)
+		(_nearby_card.get_node("Detail") as Label).text = "Search in progress. Return to the raid to continue." if searching else ("Searched container. Open to inspect its contents." if searched else "Unsearched container. Contents are unknown.")
+		(_nearby_card.get_node("Action") as Button).text = "RESUME SEARCH" if searching else ("OPEN CONTAINER" if searched else "SEARCH CONTAINER")
+		(_nearby_card.get_node("Action") as Button).disabled = not String(_local_loot_port.snapshot().get("error", "")).is_empty()
+	if _loot_empty == null:
+		_loot_empty = Label.new()
+		_loot_empty.name = "OpenLootEmpty"
+		_loot_empty.position = Vector2(1368, 342)
+		_loot_empty.size = Vector2(480, 68)
+		_loot_empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_loot_empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_loot_empty.add_theme_font_override("font", LocalJourneyStyle.MONO)
+		_loot_empty.add_theme_font_size_override("font_size", 16)
+		_loot_empty.add_theme_color_override("font_color", LocalJourneyStyle.MUTED)
+		_surface.add_child(_loot_empty)
+		_loot_clear = Button.new()
+		_loot_clear.name = "ClearLootFilters"
+		_loot_clear.text = "CLEAR FILTERS"
+		_loot_clear.position = Vector2(1368, 424)
+		_loot_clear.size = Vector2(260, 38)
+		LocalJourneyStyle.button(_loot_clear)
+		_loot_clear.pressed.connect(_clear_loot_filters, CONNECT_DEFERRED)
+		_surface.add_child(_loot_clear)
+	_loot_empty.hide()
+	_loot_clear.hide()
+	if open:
+		var title := _node("StashTitle") as Label
+		title.clip_text = true
+		title.position.x = 1248
+		title.size.x = 346
+		var descriptor := _inventory_controller.descriptor(&"loot")
+		title.text = String(nearby.get("label", "Container")).to_upper() if descriptor.get("inventory_id") == nearby.get("inventory_id") else String(_inventory_controller.loot_container()).to_upper()
+		title.tooltip_text = title.text
+		var summary := _node("StashSummary") as Label
+		summary.position.x = 1604
+		summary.size.x = 162
+		var status := _node("StashCompatible") as Label
+		status.position = Vector2(1248, 958)
+		status.size = Vector2(624, 40)
+		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		status.add_theme_font_size_override("font_size", 12)
+		if _inventory_controller.is_bound() and _inventory_controller.loot_container_state() == InventoryPresentationModel.STATE_NORMAL:
+			var items := _items_for("loot")
+			summary.text = "%d ITEM STACK%s" % [items.size(), "" if items.size() == 1 else "S"]
+			status.text = "CTRL + CLICK / QUICK TRANSFER" if _inventory_controller.quick_transfer_available(&"loot") else "INSPECT ONLY"
+			status.add_theme_color_override("font_color", LocalJourneyStyle.MUTED)
+			_loot_empty.visible = _filtered_items(items).is_empty()
+			_loot_empty.text = "CONTAINER EMPTY" if items.is_empty() else "NO MATCHING ITEMS"
+			_loot_clear.visible = not items.is_empty() and _loot_empty.visible
+		else:
+			summary.text = ""
+			status.text = _inventory_controller.loot_status_text()
+			status.tooltip_text = _inventory_controller.loot_status_detail()
+	# Hiding a pane retires its focus, not the current Character/health selection.
+	if focus != null and not focus.is_visible_in_tree():
+		var target := _node("GearTab") as Control
+		if target.is_visible_in_tree(): target.grab_focus.call_deferred()
+	_build_focus_graph()
+
+func _inspect_nearby_loot() -> void:
+	if accepts_input() and _local_raid_context() and _local_loot_port == app.local_game_ui():
+		_local_loot_port.request(&"inspect_nearby", app.local_epoch())
+
+func _clear_loot_filters() -> void:
+	if not accepts_input(): return
+	_current_filter = "all"
+	_search_query = ""
+	_refresh_body()
+	(_node("StashSearch") as Control).grab_focus.call_deferred()
+
+func _on_search_changed(text: String) -> void:
+	super._on_search_changed(text)
+	if _local_raid_context(): _refresh_local_loot_context()
+
+func _close_loot_container(refresh: bool = true) -> void:
+	super._close_loot_container(refresh)
+	if refresh and _local_raid_context():
+		_selected_live_item = {}
+		_selected_live_source = ""
+		(_node("GearTab") as Control).grab_focus.call_deferred()
 
 
 func _items_for(key: String) -> Array:

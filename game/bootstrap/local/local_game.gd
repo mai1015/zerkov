@@ -139,9 +139,12 @@ func advance() -> bool:
 	return true
 
 func _request(command: StringName, epoch: int) -> void:
-	_consume.call_deferred(command, epoch)
+	# Freeze the public target the player saw, not whatever becomes nearest
+	# before this deferred intent is consumed.
+	var target := String(_ui_port.snapshot().get("nearby_loot", {}).get("target_id", "")) if command == &"inspect_nearby" else ""
+	_consume.call_deferred(command, epoch, target)
 
-func _consume(command: StringName, epoch: int) -> void:
+func _consume(command: StringName, epoch: int, nearby_target: String = "") -> void:
 	if _closed or epoch != _epoch or _busy: return
 	match command:
 		&"select_sawmill", &"select_northline", &"select_blackwater":
@@ -176,6 +179,8 @@ func _consume(command: StringName, epoch: int) -> void:
 			elif _mode == "menu": _navigate("main_menu", false)
 		&"interact":
 			if can_advance(): _interact()
+		&"inspect_nearby":
+			_inspect_nearby(nearby_target)
 		&"cancel":
 			if can_advance(): _session.cancel_interaction()
 		&"return_home":
@@ -282,6 +287,11 @@ func _start_raid() -> void:
 
 func _route_changed(route: String, _screen: Control) -> void:
 	_release_input()
+	if _mode == "raid" and _last_route in CHARACTER_ROUTES and route not in CHARACTER_ROUTES:
+		# Returning to the world retires only the view context. Health/Gear/Stats
+		# detours keep the same open container; gameplay never retains an old one.
+		var controller := _character.inventory_controller()
+		if controller != null and controller.is_loot_container_open(): controller.close_loot_container()
 	if _mode == "home":
 		if route in CHARACTER_ROUTES:
 			if _last_route not in CHARACTER_ROUTES:
@@ -319,6 +329,26 @@ func _handle_interact(event: Dictionary) -> int:
 	if not can_advance(): return CommonUIRuntime.ROUTE_UNHANDLED
 	if event.get("phase") == CommonUIRuntime.PHASE_PRESSED: _consume.call_deferred(&"interact", _epoch)
 	return CommonUIRuntime.ROUTE_HANDLED
+
+
+func _inspect_nearby(expected_target: String) -> void:
+	# A convenience entry to the SAME world interaction, not a remote-loot
+	# permission. Recheck at consumption time, after any deferred UI changes.
+	if _mode != "raid" or _session == null or _ui == null or _ui.current_route not in CHARACTER_ROUTES \
+		or is_instance_valid(_ui.modal) or is_instance_valid(_ui.picker): return
+	var target := _session.nearest_target()
+	if expected_target.is_empty() or target != expected_target or not _session.crate_ids.has(target):
+		_publish()
+		return
+	if _session.progression.was_crate_searched(target):
+		_interact() # Reuses open_world_loot and its authoritative range/access policy.
+	elif not _session.progression.snapshot().get("searching", {}).is_empty():
+		_navigate("hud", false) # Resume the existing search; never enqueue a second one.
+	elif _session.interact(target):
+		_navigate("hud", false) # Search advances only on ordinary canonical ticks.
+	else:
+		_notice = "Container is no longer within reach."
+		_publish()
 
 func _interact() -> void:
 	var target := _session.nearest_target()
@@ -367,7 +397,7 @@ func _publish() -> void:
 	var frame := {"epoch":_epoch,"serial":_serial,"mode":_mode,"has_profile":_campaign.has_profile(),
 		"can_create":_campaign.loaded.get("reason") == &"profile_missing" and _campaign.last_error.is_empty(),
 		"profile_generation":int(_campaign.loaded.get("generation", 0)),"notice":_notice,"error":String(last_error),
-		"summary":_summary,"progression":{},"combat":{},"tick":0,"map_markers":[],"searched_ids":[],"nearest_target":"",
+		"summary":_summary,"progression":{},"combat":{},"tick":0,"map_markers":[],"searched_ids":[],"nearest_target":"","nearby_loot":{},
 		"save_location":_save_location,"preparation_return":_preparation_return,"home_equipment":{},"home_available":_mode == "home" and _home != null and _home.is_current_generation(_home.generation())}
 	if frame.home_available:
 		frame.home_equipment = LocalPreparationView.equipment_from_snapshot(
@@ -379,6 +409,14 @@ func _publish() -> void:
 		frame.tick = int(frame.progression.get("tick", 0))
 		frame.searched_ids = frame.progression.get("searched_ids", [])
 		frame.nearest_target = _session.nearest_target() if _mode == "raid" else ""
+		if not String(frame.nearest_target).is_empty() and _session.crate_ids.has(frame.nearest_target):
+			# Public identity and interaction state only. Never inspect an unopened
+			# native inventory merely to populate a vicinity UI.
+			frame.nearby_loot = {"target_id":frame.nearest_target,
+				"inventory_id":int(_session.crate_ids[frame.nearest_target]),
+				"label":SupplyRunGraph.crate_titles(_session.map_id)[_session.crate_keys().find(frame.nearest_target)],
+				"searched":_session.progression.was_crate_searched(frame.nearest_target),
+				"searching":not frame.progression.get("searching", {}).is_empty()}
 		if _session.hud_model != null:
 			frame.combat = _session.hud_model.snapshot()
 			frame.actor_id = _session.raid.admission().actor_id.canonical_key()
