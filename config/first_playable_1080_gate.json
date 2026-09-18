@@ -553,7 +553,7 @@
         "root.get_visible_rect().size != Vector2(1920, 1080)",
         "image.get_size() != Vector2i(1920, 1080)",
         "world.size = Vector2i(640, 360)",
-        "image_rect.texture_filter = Control.TEXTURE_FILTER_NEAREST",
+        "image_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST",
         "image_rect.size = Vector2(1920, 1080)"
       ]
     },
