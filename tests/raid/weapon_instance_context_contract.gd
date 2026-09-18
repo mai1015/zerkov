@@ -289,6 +289,11 @@ func run() -> void:
 		"consumer context is recursively read-only")
 	check(_duplicate_pose_proved and _conflicting_pose_rejected,
 		"movement pose publication is idempotent and conflicting same-tick pose fails closed")
+	var first_work := _instance_adapter.work_counts()
+	check(int(first_work.get("reconciliation_attempts", -1)) == 1
+		and int(first_work.get("reconciliation_skips", -1)) == 0
+		and not bool(first_work.get("equipment_dirty", true)),
+		"first equipment phase reconciles once and leaves the adapter clean")
 	check(_instance_adapter.authority_context(_weapon_id, 1).get("reason")
 		== &"weapon_context_phase_invalid",
 		"late context reads cannot reuse a completed tick pose")
@@ -312,6 +317,11 @@ func run() -> void:
 	for _index in 72:
 		check(_raid_authority.advance_one(_raid_authority.generation()),
 			"reload progression tick advances")
+	var idle_equipment_work := _instance_adapter.work_counts()
+	check(int(idle_equipment_work.get("reconciliation_attempts", -1)) == 1
+		and int(idle_equipment_work.get("reconciliation_skips", -1)) == 72
+		and not bool(idle_equipment_work.get("equipment_dirty", true)),
+		"unchanged equipment skips 72 full reconciliations across reload and ammo changes")
 	var loaded_state := _weapon_authority.snapshot(_weapon_id)
 	check(int(loaded_state.get("loaded_rounds", -1)) == ZerkovCombatContent.AKM_CAPACITY
 		and String(loaded_state.get("phase", "")) == "ready",
@@ -320,6 +330,11 @@ func run() -> void:
 	_fire_modes[74] = &"matching"
 	check(_raid_authority.advance_one(_raid_authority.generation()),
 		"loaded fire tick advances")
+	var post_reload_work := _instance_adapter.work_counts()
+	check(int(post_reload_work.get("reconciliation_attempts", -1)) == 1
+		and int(post_reload_work.get("reconciliation_skips", -1)) == 73
+		and not bool(post_reload_work.get("equipment_dirty", true)),
+		"ammo-only revisions do not wake equipment reconciliation on the next phase")
 	var accepted_fire := _fire_outcomes.get(74, {}) as Dictionary
 	var accepted_shot := accepted_fire.get("shot", {}) as Dictionary
 	check(bool(accepted_fire.get("accepted", false))
@@ -348,6 +363,11 @@ func run() -> void:
 		and int(_weapon_authority.snapshot(_weapon_id).get("revision", -1))
 			== post_fire_revision,
 		"unequipped-but-owned instance stays dormant without losing mechanics")
+	var post_unequip_work := _instance_adapter.work_counts()
+	check(int(post_unequip_work.get("reconciliation_attempts", -1)) == 2
+		and int(post_unequip_work.get("reconciliation_skips", -1)) == 73
+		and not bool(post_unequip_work.get("equipment_dirty", true)),
+		"an actual equipment mutation wakes exactly one reconciliation")
 	check(_diagnostic(_fire_outcomes.get(75, {}) as Dictionary) == 77,
 		"native fire rejects dormant weapon from canonical equipment=false context")
 

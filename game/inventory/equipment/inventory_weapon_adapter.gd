@@ -86,6 +86,10 @@ var _recovery_details: Dictionary = {}
 var _recovery_signal_emitted: bool = false
 var _inventory_unloaded_callback: Callable
 var _inventory_generation_callback: Callable
+var _available_rounds_revision: int = -1
+var _available_rounds_cache: int = 0
+var _available_rounds_snapshot_builds: int = 0
+var _available_rounds_cache_hits: int = 0
 
 
 func bind_owner(
@@ -171,10 +175,36 @@ func recovery_details() -> Dictionary:
 
 
 ## Read-only ammo projection through the SAME eligible source policy as reload.
+## The native inventory revision is the cache identity; unchanged HUD publishes
+## therefore avoid rebuilding a complete InventorySnapshot every authority tick.
 func available_rounds() -> int:
 	if not is_bound(): return 0
+	var revision := _inventory_authority.inventory_revision(_inventory_id)
+	if revision < 0:
+		return 0
+	if revision == _available_rounds_revision:
+		_available_rounds_cache_hits += 1
+		return _available_rounds_cache
 	var snapshot := _inventory_authority.snapshot(_inventory_id)
-	return _available_ammunition(snapshot) if snapshot != null else 0
+	_available_rounds_snapshot_builds += 1
+	_available_rounds_revision = revision
+	_available_rounds_cache = _available_ammunition(snapshot) \
+		if snapshot != null else 0
+	return _available_rounds_cache
+
+
+func projection_work_counts() -> Dictionary:
+	var result := {
+		"available_rounds_revision": _available_rounds_revision,
+		"available_rounds_snapshot_builds": _available_rounds_snapshot_builds,
+		"available_rounds_cache_hits": _available_rounds_cache_hits,
+	}
+	result.make_read_only()
+	return result
+
+
+func pending_reload_count() -> int:
+	return _pending_by_reservation.size()
 
 
 func pending_reloads() -> Array[Dictionary]:
@@ -1806,6 +1836,10 @@ func _reset_unbound_state() -> void:
 	_recovery_signal_emitted = false
 	_inventory_unloaded_callback = Callable()
 	_inventory_generation_callback = Callable()
+	_available_rounds_revision = -1
+	_available_rounds_cache = 0
+	_available_rounds_snapshot_builds = 0
+	_available_rounds_cache_hits = 0
 
 
 func _exit_tree() -> void:

@@ -149,7 +149,7 @@ func bind_authority(
 	_last_tick = initial_tick
 	_journal_cursor = journal_records.size()
 	var callback := _phase_callback(next_generation)
-	if not authority.register_phase_handler(
+	if not authority.register_phase_handler_without_intents(
 			RaidAuthority.TickPhase.ABILITIES_AND_DUE_WORK,
 			PHASE_HANDLER_ID, callback, expected_generation,
 			PHASE_HANDLER_PRIORITY):

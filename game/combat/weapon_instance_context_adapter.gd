@@ -59,10 +59,15 @@ var _last_outcome: Dictionary = {}
 var _recovery_details: Dictionary = {}
 var _public_signal_active: bool = false
 var _reconciler_invalidated_callback: Callable
+var _reconciler_published_callback: Callable
 var _inventory_authority: InventoryAuthority
 var _inventory_authority_instance_id: int = 0
 var _inventory_transaction_callback: Callable
 var _phase_registered: bool = false
+var _equipment_dirty: bool = false
+var _last_reconciled_revision: int = -1
+var _reconciliation_attempts: int = 0
+var _reconciliation_skips: int = 0
 
 
 static func consumer_phase_dependencies() -> PackedStringArray:
@@ -160,7 +165,7 @@ func bind_owner(
 	_reload_adapter_instance_id = reload_adapter.get_instance_id()
 	_inventory_authority = owner.raid_authority()
 	_inventory_authority_instance_id = _inventory_authority.get_instance_id()
-	if not raid_authority.register_phase_handler(
+	if not raid_authority.register_phase_handler_without_intents(
 		RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS,
 		_instance_handler_id,
 		Callable(self, "_on_weapon_phase").bind(next_binding_generation),
@@ -175,8 +180,13 @@ func bind_owner(
 	_generation_counter = next_binding_generation
 	_binding_generation = next_binding_generation
 	lifecycle = Lifecycle.BOUND
+	_equipment_dirty = true
+	_last_reconciled_revision = -1
 	_reconciler_invalidated_callback = Callable(self, "_on_reconciler_invalidated")
+	_reconciler_published_callback = Callable(self, "_on_equipment_reconciliation_published").bind(
+		_reconciler_instance_id, _owner_generation, _binding_generation)
 	_reconciler.binding_invalidated.connect(_reconciler_invalidated_callback)
+	_reconciler.reconciliation_published.connect(_reconciler_published_callback)
 	_inventory_transaction_callback = Callable(
 		self, "_on_inventory_transaction_committed").bind(
 		_inventory_authority_instance_id, _owner_generation, _binding_generation)
@@ -198,6 +208,21 @@ func current_outcome() -> Dictionary:
 
 func recovery_details() -> Dictionary:
 	return _recovery_details.duplicate(true)
+
+
+## Diagnostic-only evidence for event-driven equipment processing. These counts
+## never participate in gameplay decisions.
+func work_counts() -> Dictionary:
+	var result := {
+		"reconciliation_attempts": _reconciliation_attempts,
+		"reconciliation_skips": _reconciliation_skips,
+		"equipment_dirty": _equipment_dirty,
+		"last_reconciled_revision": _last_reconciled_revision,
+		"current_equipment_revision": _reconciler.current_revision() \
+			if _reconciler != null and is_instance_valid(_reconciler) else -1,
+	}
+	result.make_read_only()
+	return result
 
 
 func instance_records() -> Array[Dictionary]:
@@ -334,12 +359,23 @@ func _on_weapon_phase(
 	if authority != _raid_authority \
 			or phase != RaidAuthority.TickPhase.INTERACTIONS_AND_WEAPONS:
 		return _reject(&"weapon_phase_context_invalid")
+	if lifecycle != Lifecycle.BOUND or not _binding_is_current():
+		return _reject(&"weapon_context_binding_stale")
+	if not _equipment_dirty:
+		_reconciliation_skips += 1
+		return true
+	var current_revision := _reconciler.current_revision()
 	var outcome := _reconcile_current(tick)
+	if bool(outcome.get("accepted", false)):
+		_last_reconciled_revision = int(outcome.get(
+			"inventory_revision", current_revision))
+		_equipment_dirty = false
 	return bool(outcome.get("accepted", false))
 
 
 func _reconcile_current(tick: int) -> Dictionary:
 	last_error = &""
+	_reconciliation_attempts += 1
 	if lifecycle != Lifecycle.BOUND or not _binding_is_current():
 		return _reconciliation_rejection(&"weapon_context_binding_stale")
 	var snapshot := _owner.raid_authority().snapshot(_owner.raid_player_inventory_id)
@@ -834,6 +870,26 @@ func _binding_is_current() -> bool:
 		and _reload_adapter.weapon_port_identity_token() == _weapon_port.identity_token()
 
 
+
+
+func _on_equipment_reconciliation_published(
+	outcome: Dictionary,
+	expected_reconciler_instance_id: int,
+	expected_owner_generation: int,
+	expected_binding_generation: int
+) -> void:
+	if lifecycle != Lifecycle.BOUND \
+			or expected_binding_generation != _binding_generation \
+			or expected_owner_generation != _owner_generation \
+			or _reconciler == null or not is_instance_valid(_reconciler) \
+			or _reconciler.get_instance_id() != expected_reconciler_instance_id \
+			or not bool(outcome.get("accepted", false)) \
+			or bool(outcome.get("invalidated", false)):
+		return
+	if bool(outcome.get("changed", false)):
+		_equipment_dirty = true
+
+
 func _on_reconciler_invalidated(reason: StringName) -> void:
 	if lifecycle != Lifecycle.BOUND and lifecycle != Lifecycle.RECOVERY_REQUIRED:
 		return
@@ -882,18 +938,19 @@ func _on_inventory_transaction_committed(
 	var events := result.get("events", []) as Array
 	for event_value in events:
 		var event := event_value as Dictionary
-		var event_kind := int(event.get("kind", -1))
-		if event_kind != INVENTORY_EVENT_REMOVED \
-				and event_kind != INVENTORY_EVENT_DROPPED:
-			continue
 		var native_item_id := int(event.get("item", 0))
 		if native_item_id <= 0:
 			continue
 		for record_value in _records.values():
 			var record := record_value as Dictionary
-			if int(record.get("native_item_id", 0)) == native_item_id:
+			if int(record.get("native_item_id", 0)) != native_item_id:
+				continue
+			_equipment_dirty = true
+			var event_kind := int(event.get("kind", -1))
+			if event_kind == INVENTORY_EVENT_REMOVED \
+					or event_kind == INVENTORY_EVENT_DROPPED:
 				_retired_item_ids[native_item_id] = true
-				break
+			break
 
 
 func _reconciliation_rejection(reason: StringName) -> Dictionary:
@@ -934,12 +991,17 @@ func _emit_invalidation(reason: StringName) -> void:
 
 
 func _disconnect_reconciler() -> void:
-	if _reconciler != null and is_instance_valid(_reconciler) \
-			and _reconciler_invalidated_callback.is_valid() \
-			and _reconciler.binding_invalidated.is_connected(
-				_reconciler_invalidated_callback):
-		_reconciler.binding_invalidated.disconnect(_reconciler_invalidated_callback)
+	if _reconciler != null and is_instance_valid(_reconciler):
+		if _reconciler_invalidated_callback.is_valid() \
+				and _reconciler.binding_invalidated.is_connected(
+					_reconciler_invalidated_callback):
+			_reconciler.binding_invalidated.disconnect(_reconciler_invalidated_callback)
+		if _reconciler_published_callback.is_valid() \
+				and _reconciler.reconciliation_published.is_connected(
+					_reconciler_published_callback):
+			_reconciler.reconciliation_published.disconnect(_reconciler_published_callback)
 	_reconciler_invalidated_callback = Callable()
+	_reconciler_published_callback = Callable()
 
 
 func _disconnect_inventory_transactions() -> void:
@@ -1011,6 +1073,8 @@ func _reset_unbound_state() -> void:
 	_recovery_details.clear()
 	_public_signal_active = false
 	_phase_registered = false
+	_equipment_dirty = false
+	_last_reconciled_revision = -1
 
 
 func _make_deep_read_only(value: Variant) -> void:

@@ -137,10 +137,24 @@ func run() -> void:
 		await finish(); return
 	var presentation_before := _game.presentation_work_counts()
 	var health_work_before := _game._session.combat.health.work_counts()
+	var fire_work_before := _game._session.combat.fire.work_counts()
+	var execution_work_before := _game._session.combat.execution.work_counts()
+	var dispatch_work_before: Dictionary = _game._session.raid.dispatch_work_counts() \
+		if _game._session.raid.has_method("dispatch_work_counts") else {}
+	var progression_work_before := _game._session.progression.work_counts()
+	var world_work_before := _game._session.combat.world_publication_work_counts()
+	var hitbox_work_before := _game._session.combat.hitboxes.publication_work_counts()
 	for _i in range(70):
 		if not check(_game.advance(), "all native phases and after-tick closeout"): await finish(); return
 	var presentation_after := _game.presentation_work_counts()
 	var health_work_after := _game._session.combat.health.work_counts()
+	var fire_work_after := _game._session.combat.fire.work_counts()
+	var execution_work_after := _game._session.combat.execution.work_counts()
+	var dispatch_work_after: Dictionary = _game._session.raid.dispatch_work_counts() \
+		if _game._session.raid.has_method("dispatch_work_counts") else {}
+	var progression_work_after := _game._session.progression.work_counts()
+	var world_work_after := _game._session.combat.world_publication_work_counts()
+	var hitbox_work_after := _game._session.combat.hitboxes.publication_work_counts()
 	check(int(presentation_after.raid_view_builds) == int(presentation_before.raid_view_builds) + 70
 		and int(presentation_after.bunker_view_builds) == int(presentation_before.bunker_view_builds)
 		and int(presentation_after.task_view_builds) == int(presentation_before.task_view_builds)
@@ -153,6 +167,72 @@ func run() -> void:
 		and int(health_work_after.snapshot_builds) == int(health_work_before.snapshot_builds)
 		and int(health_work_after.runtime_guards) == int(health_work_before.runtime_guards) + 210,
 		"three idle actors use bounded guards without full audits or snapshot rebuilds")
+	check(int(fire_work_after.phase_entries) == int(fire_work_before.phase_entries) + 70
+		and int(fire_work_after.idle_phase_skips)
+			== int(fire_work_before.idle_phase_skips) + 70
+		and int(fire_work_after.resolution_batches)
+			== int(fire_work_before.resolution_batches),
+		"idle weapon consequence phases skip all binding and spatial resolution work")
+	check(int(execution_work_after.contact_phase_entries)
+			== int(execution_work_before.contact_phase_entries) + 70
+		and int(execution_work_after.contact_idle_skips)
+			== int(execution_work_before.contact_idle_skips) + 70
+		and int(execution_work_after.contact_actor_advances)
+			== int(execution_work_before.contact_actor_advances),
+		"idle melee contact phases skip equipment, health, and timeline work")
+	check(int(execution_work_after.due_phase_entries)
+			== int(execution_work_before.due_phase_entries) + 70
+		and int(execution_work_after.due_idle_skips)
+			== int(execution_work_before.due_idle_skips) + 70
+		and int(execution_work_after.reload_due_scans)
+			== int(execution_work_before.reload_due_scans),
+		"idle due-work phases skip reload and pending-action scans")
+	# Historical profile baselines predate dispatch work counters. Keep the
+	# functional flow source-compatible while requiring the candidate runtime to
+	# prove sealed callback reuse and selective intent delivery.
+	if not dispatch_work_before.is_empty() and not dispatch_work_after.is_empty():
+		check(int(dispatch_work_after.callback_identity_builds)
+				== int(dispatch_work_before.callback_identity_builds),
+			"sealed Vision provenance avoids rebuilding immutable callback identities")
+		var relay_dispatch_delta := int(dispatch_work_after.relay_dispatches) \
+			- int(dispatch_work_before.relay_dispatches)
+		var intent_snapshot_delta := int(dispatch_work_after.intent_snapshot_builds) \
+			- int(dispatch_work_before.intent_snapshot_builds)
+		check(intent_snapshot_delta > 0 and intent_snapshot_delta * 2 < relay_dispatch_delta,
+			"only intent-consuming handlers receive isolated admitted-intent snapshots")
+	check(int(progression_work_after.objective_snapshot_reads)
+			== int(progression_work_before.objective_snapshot_reads)
+		and int(progression_work_after.task_fact_updates)
+			== int(progression_work_before.task_fact_updates)
+		and int(progression_work_after.task_summary_reads)
+			== int(progression_work_before.task_summary_reads),
+		"unchanged inventory and task state perform no native progression rebuilds")
+	var world_delta_builds := int(world_work_after.snapshot_deltas) \
+		- int(world_work_before.snapshot_deltas)
+	var world_tick_refreshes := int(world_work_after.tick_refreshes) \
+		- int(world_work_before.tick_refreshes)
+	var body_upserts := int(world_work_after.body_upserts) \
+		- int(world_work_before.body_upserts)
+	check(int(world_work_after.snapshot_builds) == int(world_work_before.snapshot_builds)
+		and world_delta_builds + world_tick_refreshes == 70
+		and world_delta_builds > 0 and body_upserts >= world_delta_builds,
+		"movement phase uses one initial world snapshot then body deltas or tick-only refreshes")
+	check(int(hitbox_work_after.full_snapshot_builds)
+			== int(hitbox_work_before.full_snapshot_builds)
+		and int(hitbox_work_after.delta_snapshot_builds)
+			- int(hitbox_work_before.delta_snapshot_builds) == world_delta_builds
+		and int(hitbox_work_after.tick_refreshes)
+			- int(hitbox_work_before.tick_refreshes) == world_tick_refreshes,
+		"hitbox world consumes the same bounded delta/refresh publication schedule")
+	check(int(hitbox_work_after.body_normalizations)
+			- int(hitbox_work_before.body_normalizations) == body_upserts
+		and int(hitbox_work_after.body_fragment_builds)
+			- int(hitbox_work_before.body_fragment_builds) == body_upserts
+		and int(hitbox_work_after.obstruction_normalizations)
+			== int(hitbox_work_before.obstruction_normalizations)
+		and int(hitbox_work_after.obstruction_fragment_builds)
+			== int(hitbox_work_before.obstruction_fragment_builds),
+		"body deltas rebuild only changed actors and reuse all static obstruction geometry")
 	var timer: String = (_game._ui.screen.get_node("TimerGroup/Timer") as Label).text
 	check(timer != "—" and timer != "15:00", "HUD clock derives from completed canonical ticks")
 	var prior_tick: int = _game._session.raid.last_processed_tick

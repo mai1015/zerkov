@@ -61,6 +61,9 @@ var _binding_generation: int = 0
 var _phase_registered: bool = false
 var _phase_registration_id: String = ""
 var _context_invalidated_callback: Callable
+var _phase_entries: int = 0
+var _idle_phase_skips: int = 0
+var _resolution_batches: int = 0
 var _pending_order: Array[String] = []
 var _pending_by_identity: Dictionary = {}
 var _resolved_by_identity: Dictionary = {}
@@ -143,7 +146,7 @@ func bind_context(
 	_body_mask = body_mask
 	_obstruction_mask = obstruction_mask
 	var phase_callback := _phase_callback(next_generation)
-	if not authority.register_phase_handler(
+	if not authority.register_phase_handler_without_intents(
 		RaidAuthority.TickPhase.WORLD_CONSEQUENCES,
 		PHASE_HANDLER_ID, phase_callback, expected_raid_generation,
 		PHASE_HANDLER_PRIORITY):
@@ -222,6 +225,16 @@ func last_result() -> Dictionary:
 func resolved_consequence(weapon_consequence_id: String) -> Dictionary:
 	var entry := _resolved_by_identity.get(weapon_consequence_id, {}) as Dictionary
 	return _read_only_copy(entry.get("result", {}) as Dictionary)
+
+
+## Read-only evidence for event-driven scheduling contracts.
+func work_counts() -> Dictionary:
+	return _read_only_copy({
+		"phase_entries": _phase_entries,
+		"idle_phase_skips": _idle_phase_skips,
+		"resolution_batches": _resolution_batches,
+		"pending_count": _pending_order.size(),
+	})
 
 
 func resolved_consequences() -> Array[Dictionary]:
@@ -433,10 +446,18 @@ func _on_world_consequence_phase(
 				_phase_callback(expected_binding_generation), phase, tick,
 				_raid_generation):
 		return _reject(&"combat_phase_dispatch_invalid")
+	_phase_entries += 1
+	# A world-consequence phase with no committed shot has no spatial or native
+	# work. The exact authority registration above remains the per-tick proof;
+	# dependency provenance is revalidated when a shot is actually pending.
+	if _pending_order.is_empty():
+		_idle_phase_skips += 1
+		return true
 	if not _binding_is_current() \
 			or not _delegated_hitbox_binding_is_current(tick):
 		return _reject(&"combat_binding_stale")
 	_world_resolution_active = true
+	_resolution_batches += 1
 	var resolved := _resolve_pending_batch(tick)
 	_world_resolution_active = false
 	return resolved

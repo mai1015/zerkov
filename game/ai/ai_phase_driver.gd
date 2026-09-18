@@ -45,7 +45,10 @@ func bind(raid: RefCounted, generation: int, runtime: RaidAIRuntime,
 		[TASKS_AND_AUDIT, HANDLERS[2], Callable(self, "_noise"), audit_priority, audit_after],
 	]
 	for row: Array in rows:
-		if not bool(raid.call("register_phase_handler", row[0], row[1], row[2], generation, row[3], row[4])):
+		var register_method := &"register_phase_handler_without_intents" \
+			if raid.has_method("register_phase_handler_without_intents") \
+			else &"register_phase_handler"
+		if not bool(raid.call(register_method, row[0], row[1], row[2], generation, row[3], row[4])):
 			var reason: StringName = raid.get("last_error")
 			if not release(generation):
 				return _reject(&"ai_phase_registration_rollback_failed")

@@ -261,6 +261,16 @@ func _run_real_addon_flow() -> void:
 		"mapping IDs must exactly re-derive from the equipped inventory item context")
 	var registered := adapter.register_weapon(mapping, 1)
 	check(bool(registered.get("accepted", false)), "equipped AKM mapping registers")
+	var projection_before := adapter.projection_work_counts()
+	var projected_rounds := adapter.available_rounds()
+	check(projected_rounds == 35 and adapter.available_rounds() == projected_rounds,
+		"unchanged ammunition projection returns the same eligible reserve quantity")
+	var projection_after := adapter.projection_work_counts()
+	check(int(projection_after.available_rounds_snapshot_builds)
+			== int(projection_before.available_rounds_snapshot_builds) + 1
+		and int(projection_after.available_rounds_cache_hits)
+			== int(projection_before.available_rounds_cache_hits) + 1,
+		"unchanged ammunition projection builds one snapshot then reuses its revision cache")
 
 	var native_order: Array[String] = []
 	var coherent_at_inventory_publish: Array[bool] = []
@@ -405,6 +415,13 @@ func _run_real_addon_flow() -> void:
 	check(_ammo_quantity(owner) == ammo_before - 30 \
 		and int(weapon_authority.snapshot(weapon_id).get("loaded_rounds", -1)) == 30,
 		"real due commit consumes exactly once and loads exactly once")
+	var projection_after_commit := adapter.projection_work_counts()
+	check(adapter.available_rounds() == 5,
+		"inventory revision change refreshes the cached eligible reserve quantity")
+	var projection_refreshed := adapter.projection_work_counts()
+	check(int(projection_refreshed.available_rounds_snapshot_builds)
+			== int(projection_after_commit.available_rounds_snapshot_builds) + 1,
+		"changed inventory revision rebuilds the ammunition projection exactly once")
 	check(_item_quantity(owner, int(fixture["magazine_ammo_item"])) == 0
 		and _item_quantity(owner, int(fixture["rig_ammo_item"])) == 0
 		and _item_quantity(owner, int(fixture["pockets_ammo_item"])) == 5,

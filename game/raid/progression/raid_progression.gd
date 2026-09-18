@@ -34,6 +34,12 @@ var _countdown_duration: int = 0
 var _inside: bool = false
 var _released: bool = false
 var _combat_released: bool = false
+var _objective_inventory_revision: int = -2
+var _holds_objective_cached: bool = false
+var _task_fact_initialized: bool = false
+var _objective_snapshot_reads: int = 0
+var _task_fact_updates: int = 0
+var _journal_record_reads: int = 0
 
 func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSession,
 	interaction: ZInteractionPolicyOwner, crates: Dictionary, limit_ticks: int, countdown_ticks: int, movement: ZPlayerLocomotion, map_id: String = "sawmill") -> bool:
@@ -101,7 +107,7 @@ func _advance_inner(tick: int, intents: Array[ZRaidIntent]) -> bool:
 		if target == SupplyRunGraph.exit_for(_map_id): start=true
 		elif _crates.has(target) and requested_crate.is_empty(): requested_crate=target
 		else: _stats.rejected_inputs+=1
-	if not _task.update_facts(_holds_objective()): return _fail(_task.last_error)
+	if not _refresh_objective_fact(): return false
 	var inside := _interaction.evaluate_for_actor(actor,StringName(SupplyRunGraph.exit_for(_map_id)),ZInteractionKind.EXTRACTION_ZONE,_generation).allowed
 	# Health commits earlier in the SAME tick. Deadline/death also stop searches.
 	if not health.alive or cancel or damaged or tick >= _timer.snapshot().deadline_tick:
@@ -171,21 +177,40 @@ func _cancel_search() -> bool:
 	_search={}
 	return true
 
-func _holds_objective() -> bool:
-	var snapshot := _owner.raid_authority().snapshot(_owner.raid_player_inventory_id)
-	if snapshot==null: return false
-	for item: Dictionary in snapshot.get_items():
-		if item.item_definition_identifier==String(ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE) and int(item.quantity)>0: return true
-	return false
+func _refresh_objective_fact() -> bool:
+	var authority := _owner.raid_authority()
+	var revision := authority.inventory_revision(_owner.raid_player_inventory_id)
+	if _task_fact_initialized and revision == _objective_inventory_revision:
+		return true
+	var holds_objective := false
+	var snapshot := authority.snapshot(_owner.raid_player_inventory_id)
+	_objective_snapshot_reads += 1
+	if snapshot != null:
+		for item: Dictionary in snapshot.get_items():
+			if item.item_definition_identifier \
+					== String(ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE) \
+					and int(item.quantity) > 0:
+				holds_objective = true
+				break
+	if not _task_fact_initialized or holds_objective != _holds_objective_cached:
+		if not _task.update_facts(holds_objective):
+			return _fail(_task.last_error)
+		_task_fact_updates += 1
+	_holds_objective_cached = holds_objective
+	_objective_inventory_revision = revision
+	_task_fact_initialized = true
+	return true
 
 ## Audit damage lookups join the committed health receipts; repeated injury and
 ## death records for one operation are counted once, not once per emitted event.
 func _consume_audit() -> bool:
 	var damaged: bool = false
-	var records := _raid.journal.records()
+	var journal_size := _raid.journal.size()
 	var actor_key := _raid.admission().actor_id.canonical_key()
-	while _audit_cursor < records.size():
-		var event: Dictionary = records[_audit_cursor];_audit_cursor+=1
+	while _audit_cursor < journal_size:
+		var event := _raid.journal.record_at(_audit_cursor)
+		_audit_cursor += 1
+		_journal_record_reads += 1
 		if event.kind=="kill" and event.actor_id==actor_key: _stats.kills+=1
 		var operation: String = String(event.payload.get("operation_id",event.event_id))
 		if _damage_seen.has(operation): continue
@@ -239,6 +264,17 @@ func finish(service: RaidSettlementService) -> Dictionary:
 	if not _raid.transition(RaidAuthority.Lifecycle.COMPLETED,_generation):
 		return {"ok":false,"committed":true,"reason":_raid.last_error,"receipt":committed.receipt}
 	return committed
+
+func work_counts() -> Dictionary:
+	var task_work := _task.work_counts() if _task != null else {}
+	return RaidProgressionValues.freeze({
+		"objective_snapshot_reads": _objective_snapshot_reads,
+		"task_fact_updates": _task_fact_updates,
+		"journal_record_reads": _journal_record_reads,
+		"audit_cursor": _audit_cursor,
+		"task_summary_reads": int(task_work.get("summary_reads", 0)),
+		"task_snapshot_reuses": int(task_work.get("snapshot_reuses", 0)),
+	})
 
 func snapshot() -> Dictionary:
 	return _frame
