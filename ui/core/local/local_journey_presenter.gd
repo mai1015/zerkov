@@ -85,11 +85,11 @@ func refresh() -> void:
 		"deploying":
 			_text("ZoneTitle", _operation_name().to_upper())
 			_text("DeployStatus", "DEPLOYMENT / 02")
-			_text("MissionDetails", "SUPPLY RUN  /  SOLO  /  ROAD GATE")
+			_text("MissionDetails", "SUPPLY RUN  /  SOLO  /  " + String(frame.get("exit_title", "Road Gate")).to_upper())
 			_text("DeployCenter/Phase", "PREPARING YOUR RAID")
 			_text("DeployCenter/Waiting", "Saving deployment and loading the operation.")
 			_text("DeployCenter/Value", "")
-			_text("TipCard/Detail", "Bring supplies back through Road Gate. Death or abandonment loses unsecured equipment.")
+			_text("TipCard/Detail", "Bring supplies back through " + String(frame.get("exit_title", "Road Gate")) + ". Death or abandonment loses unsecured equipment.")
 		"summary_solo": _refresh_result(frame)
 		"pause":
 			_text("ActionsPanel/Subtitle", "RAID PAUSED" if frame.mode == "raid" else "BUNKER MENU")
@@ -122,6 +122,11 @@ func _layout_briefing() -> void:
 	_place("ZonesNote", Rect2(312, 94, 136, 24), 11)
 	_place("ZoneName0", Rect2(64, 146, 368, 28), 22)
 	_place("ZoneMeta0", Rect2(64, 178, 368, 24), 13)
+	# Reuse the three live-map intent controls rather than revive the discarded
+	# sample-zone column. Keep preparation and Edit Loadout focus unchanged.
+	for index in range(3):
+		_place("ZoneHit%d" % index, Rect2(64 + index * 122, 210, 116, 32), 12)
+		(_screen.get_node("ZoneHit%d" % index) as Button).show()
 	_place("RegionTitle", Rect2(488, 86, 520, 36), 24)
 	_place("RegionNote", Rect2(1128, 94, 224, 24), 11)
 	_place("RegionCanvas", Rect2(488, 134, 864, 834))
@@ -164,9 +169,21 @@ func _refresh_briefing(frame: Dictionary) -> void:
 	_text("RegionTitle", _operation_name().to_upper())
 	_text("RegionNote", "TACTICAL OVERVIEW")
 	_text("ZoneDetailsTitle", "SUPPLY RUN")
-	_text("ZoneDetailsSummary", "Search the three marked crates, retain the supplies and extract through Road Gate.")
+	var map_id := String(frame.get("map_id", "sawmill"))
+	var exit_title := String(frame.get("exit_title", "Road Gate"))
+	_text("ZoneName0", _operation_name().to_upper())
+	_text("ZoneMeta0", "15:00 / SOLO / " + exit_title.to_upper())
+	var map_ids := ["sawmill", "northline", "blackwater"]
+	for index in range(map_ids.size()):
+		var button := _screen.get_node("ZoneHit%d" % index) as Button
+		button.text = String(map_ids[index]).to_upper()
+		button.tooltip_text = SupplyRunGraph.title_for(map_ids[index])
+		button.disabled = frame.mode != "home" or not String(frame.get("error", "")).is_empty()
+		Style.button(button, map_id == map_ids[index])
+		button.add_theme_font_size_override("font_size", 12)
+	_text("ZoneDetailsSummary", "Search the three marked crates, retain the supplies and extract through " + exit_title + ".")
 	_text("MapInfoLabel4", "OBJECTIVE")
-	_text("MapTaskMeta0", "Log Racks / Saw House / Settling Dock\n\nHold Road Gate for 5 seconds with the supplies.")
+	_text("MapTaskMeta0", "Search 3 marked caches; retain supplies.\nHold " + exit_title + " for 5 seconds.")
 	# The original binding updates these values before this callback, so hide
 	# retired sections again without rebuilding controls or stealing focus.
 	for path: String in ["SquadTitle", "SquadPanel", "MapTaskStatus0", "LoadoutValue", "UninsuredValue"]: _hide(path)
@@ -187,9 +204,11 @@ func _refresh_briefing(frame: Dictionary) -> void:
 		var warnings := PackedStringArray(preparation.warnings)
 		_set_label(_card, "Advisory", "\n".join(warnings) if not warnings.is_empty() else "Reserve rounds exclude loaded ammunition. Medical supplies include your secure storage.")
 		(_card.get_node("Advisory") as Label).add_theme_color_override("font_color", Style.ACCENT if not warnings.is_empty() else Style.MUTED)
+	var map_error := String(frame.get("map_error", ""))
 	var error := String(frame.get("error", ""))
+	if not map_error.is_empty(): error = "Map unavailable: " + map_error
 	if not error.is_empty():
-		_set_label(_card, "Advisory", "Your loadout could not be saved. Return to the bunker to retry.\n\n" + error)
+		_set_label(_card, "Advisory", ("Map preflight failed. Your gear has not been deployed.\n\n" if not map_error.is_empty() else "Your loadout could not be saved. Return to the bunker to retry.\n\n") + error)
 		(_card.get_node("Advisory") as Label).add_theme_color_override("font_color", Style.DANGER)
 		_last_preparation = {} # Refresh normal guidance after a successful retry.
 	for name: String in ["EditLoadout", "InspectHealth"]:

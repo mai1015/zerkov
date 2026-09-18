@@ -32,6 +32,11 @@ var _preparation_return: String = "bunker"
 const CHARACTER_ROUTES: Array[String] = ["inventory", "health", "stats"]
 var _quit_pending: bool = false
 var _map_layout: ZSawmillYardLayout
+var _selected_map: String = "sawmill"
+var _native_map: NativeRaidMap
+var _map_error: String = ""
+var _map_geometry: Array = []
+var _marker_map_id: String = ""
 var _save_location: String = ""
 var _view_cache: Array[ZReadOnlyView] = []
 var _view_dependencies: Array = []
@@ -139,6 +144,9 @@ func _request(command: StringName, epoch: int) -> void:
 func _consume(command: StringName, epoch: int) -> void:
 	if _closed or epoch != _epoch or _busy: return
 	match command:
+		&"select_sawmill", &"select_northline", &"select_blackwater":
+			if _mode == "home" and _ui != null and _ui.current_route == "maps":
+				_select_map(String(command).trim_prefix("select_"))
 		&"create":
 			if _mode != "menu" or not _campaign.create(self):
 				_error(_campaign.last_error if not _campaign.last_error.is_empty() else &"local_create_wrong_phase")
@@ -231,6 +239,9 @@ func _close_profile() -> void:
 
 
 func _deploy() -> void:
+	# Revalidate actual edited resources immediately before saving home/escrow.
+	# An unavailable map never tears down the home session or changes its file.
+	if not _select_map(_selected_map): return
 	_preparation_return = "bunker"
 	_busy = true
 	if not _campaign.save_home(_home): _busy = false; _error(_campaign.last_error); return
@@ -238,17 +249,18 @@ func _deploy() -> void:
 	if not _home.teardown(_home.generation()): _busy = false; _error(&"local_home_teardown_failed"); return
 	_home.queue_free(); _home = null
 	_mode = "deploying"; _epoch += 1
-	_notice = "Recording deployment identity and loading Sawmill. Interrupted loading is recovered as an abandoned raid."
+	_notice = "Recording deployment identity and loading " + SupplyRunGraph.title_for(_selected_map) + ". Interrupted loading is recovered as an abandoned raid."
 	_publish()
 	_navigate("deploying", false)
 
 func _start_raid() -> void:
 	if _closed or _mode != "deploying" or _session != null: return
+	_world.size=Vector2i(1920,1080) if _selected_map!="sawmill" else ZWorldViewportPolicy.BASE_SURFACE_SIZE
 	_session = LocalRaidSession.new()
 	_world.add_child(_session)
 	var sequence: int = _campaign.loaded.payload.project.get(RaidProgressionValues.STATE_KEY, RaidProgressionValues.initial_state()).next_sequence
 	var request := ZRequestId.from_parts(PackedStringArray(["local", "deploy", "g" + str(_campaign.loaded.generation), "r" + str(sequence)]))
-	if not _session.start(_campaign.store, request.canonical_key(), _campaign.loaded.generation, sequence):
+	if not _session.start(_campaign.store, request.canonical_key(), _campaign.loaded.generation, sequence, _selected_map, _native_map):
 		_busy = false; _error(_session.last_error); return
 	var policy := LocalInventoryWorldPolicy.new()
 	policy.configure(_session)
@@ -310,12 +322,12 @@ func _handle_interact(event: Dictionary) -> int:
 
 func _interact() -> void:
 	var target := _session.nearest_target()
-	if target.is_empty(): _notice = "Move within reach of a marked crate or Road Gate."; _publish(); return
+	if target.is_empty(): _notice = "Move within reach of a marked crate or " + SupplyRunGraph.exit_title(_session.map_id) + "."; _publish(); return
 	if _session.crate_ids.has(target) and _session.progression.was_crate_searched(target):
 		if not _character.open_world_loot(InventoryPresentationController.SOURCE_CRATE, _session.crate_ids[target]):
 			_error(&"local_loot_workspace_failed"); return
 		_navigate("inventory")
-	elif target == SupplyRunGraph.ROAD_GATE and _session.progression.snapshot().get("clock", {}).get("counting", false):
+	elif target == _session.exit_key() and _session.progression.snapshot().get("clock", {}).get("counting", false):
 		_session.cancel_interaction()
 	else:
 		if not _session.interact(target): _notice = "Interaction was not admitted. Move closer and retry."
@@ -363,7 +375,7 @@ func _publish() -> void:
 	if _session != null and _session.progression != null:
 		frame.progression = _session.progression.snapshot()
 		frame.lifecycle = int(_session.raid.lifecycle)
-		frame.exit_distance = roundi(_session.player_movement.position_px.distance_to(_session.layout.cell_center(_session.layout.anchor(SupplyRunGraph.ROAD_GATE).cell)) / ZWorldUnits.GODOT_PIXELS_PER_WORLD_UNIT)
+		frame.exit_distance = roundi(_session.player_movement.position_px.distance_to(_session.target_position(_session.exit_key())) / ZWorldUnits.GODOT_PIXELS_PER_WORLD_UNIT)
 		frame.tick = int(frame.progression.get("tick", 0))
 		frame.searched_ids = frame.progression.get("searched_ids", [])
 		frame.nearest_target = _session.nearest_target() if _mode == "raid" else ""
@@ -371,6 +383,12 @@ func _publish() -> void:
 			frame.combat = _session.hud_model.snapshot()
 			frame.actor_id = _session.raid.admission().actor_id.canonical_key()
 			frame.weapon_id = String(_session.hud_model.confirmed_frame().get("weapon", {}).get("instance_id", ""))
+	frame["map_id"] = _display_map_id()
+	frame["map_title"] = SupplyRunGraph.title_for(frame.map_id)
+	frame["exit_title"] = SupplyRunGraph.exit_title(frame.map_id)
+	frame["map_error"] = _map_error
+	frame["map_geometry"] = _map_geometry if frame.map_id==_selected_map else []
+	frame["map_extent"] = _native_map.bounds().size if _native_map != null and _native_map.id() == frame.map_id else Vector2.ZERO
 	frame.map_markers = _map_markers_for_frame(String(frame.get(
 		"actor_id", "zerkov.entity.local.player")), _last_route == "maps")
 	var projection := LocalGameViews.build_incremental(
@@ -429,51 +447,68 @@ func _remember_health_projection(snapshot: Dictionary) -> void:
 
 
 func _map_markers_for_frame(actor_key: String, refresh_player: bool) -> Array:
-	if _map_layout == null:
-		_map_layout = load(
-			"res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
-	var layout := _map_layout
-	if layout == null:
-		return []
+	var map_id:=_display_map_id()
+	if _marker_map_id!=map_id:
+		_marker_map_id=map_id
+		_static_map_markers=[];_map_markers=[]
+	if map_id!="sawmill" and (_native_map==null or _native_map.id()!=map_id): return []
+	if _map_layout==null:
+		_map_layout=load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
+	var extent:=_native_map.bounds().size if map_id!="sawmill" else _map_layout.world_bounds().size
+	var keys:=SupplyRunGraph.crates_for(map_id)
+	var exit_id:=SupplyRunGraph.exit_for(map_id)
 	if _static_map_markers.is_empty():
-		for id: String in SupplyRunGraph.CRATES + [SupplyRunGraph.ROAD_GATE]:
-			_static_map_markers.append(RaidProgressionValues.freeze({
-				"id": id,
-				"label": LocalGameViews.display_item(id),
-				"kind": "exit" if id == SupplyRunGraph.ROAD_GATE else "crate",
-				"position": layout.cell_center(layout.anchor(id).cell) \
-					/ layout.world_bounds().size,
-			}))
+		for id:String in keys+[exit_id]:
+			var at:=_native_map.position(id) if map_id!="sawmill" else _map_layout.cell_center(_map_layout.anchor(id).cell)
+			_static_map_markers.append(RaidProgressionValues.freeze({"id":id,
+				"label":SupplyRunGraph.exit_title(map_id) if id==exit_id else SupplyRunGraph.crate_titles(map_id)[keys.find(id)],
+				"kind":"exit" if id==exit_id else "crate","position":at/extent}))
 		_static_map_markers.make_read_only()
-	# The map route pauses the solo authority clock. Preserve its last immutable
-	# projection while hidden instead of rebuilding a screen nobody can see on
-	# every movement tick; opening the map refreshes the player marker first.
-	if not refresh_player and not _map_markers.is_empty():
+	if not refresh_player and not _map_markers.is_empty():return _map_markers
+	var player_position:=Vector2(1.0e30,1.0e30)
+	var player_actor:=""
+	if _session!=null and _session.player_movement!=null:
+		player_actor=actor_key
+		player_position=_session.player_movement.position_px/extent
+	if not _map_markers.is_empty() and player_actor==_map_marker_actor and player_position==_map_marker_position:
 		return _map_markers
-	var player_position := Vector2(1.0e30, 1.0e30)
-	var player_actor := ""
-	if _session != null and _session.player_movement != null:
-		player_actor = actor_key
-		player_position = _session.player_movement.position_px \
-			/ layout.world_bounds().size
-	if not _map_markers.is_empty() and player_actor == _map_marker_actor \
-			and player_position == _map_marker_position:
-		return _map_markers
-	var markers: Array = []
-	for marker in _static_map_markers:
-		markers.append(marker)
-	if not player_actor.is_empty():
-		markers.append(RaidProgressionValues.freeze({
-			"id": player_actor,
-			"label": "You",
-			"kind": "player",
-			"position": player_position,
-		}))
-	markers.make_read_only()
-	_map_markers = markers
-	_map_marker_actor = player_actor
-	_map_marker_position = player_position
+	var markers:Array=_static_map_markers.duplicate()
+	if not player_actor.is_empty():markers.append(RaidProgressionValues.freeze({"id":player_actor,"label":"You","kind":"player","position":player_position}))
+	markers.make_read_only();_map_markers=markers
+	_map_marker_actor=player_actor;_map_marker_position=player_position
 	return _map_markers
+
+
+func _display_map_id() -> String:
+	if _mode=="summary":return String(_summary.get("map",{}).get("id","sawmill"))
+	if _session!=null and _mode in ["raid","settling","save_error","error"]:return _session.map_id
+	return _selected_map
+
+
+func _select_map(map_id: String) -> bool:
+	if not SupplyRunGraph.is_map(map_id) or _mode!="home": return false
+	var candidate:NativeRaidMap=null
+	if map_id!="sawmill":
+		candidate=NativeRaidMap.open(map_id)
+		if candidate==null:
+			_map_error=String(NativeRaidMap.last_error)
+			_notice="Map unavailable: "+_map_error+". Your loadout and saved profile were not changed."
+			_publish();return false
+	_selected_map=map_id;_native_map=candidate;_map_error=""
+	_marker_map_id="";_map_geometry=[]
+	if candidate!=null:
+		for solid:Dictionary in candidate.solids():
+			if solid.has("rect"):
+				var rect:Rect2=solid.rect
+				_map_geometry.append({"rect":Rect2(rect.position/candidate.bounds().size,rect.size/candidate.bounds().size),"water":solid.walking_only})
+			else:
+				var points:Array=[]
+				for at:Vector2 in solid.polygon:points.append(at/candidate.bounds().size)
+				_map_geometry.append({"polygon":points,"water":true})
+	_map_geometry=RaidProgressionValues.freeze(_map_geometry)
+	_notice=SupplyRunGraph.title_for(map_id)+" selected. Review the marked crates and "+SupplyRunGraph.exit_title(map_id)+" extraction."
+	_publish()
+	return true
 
 
 func _navigate(route: String, record: bool = true) -> void:

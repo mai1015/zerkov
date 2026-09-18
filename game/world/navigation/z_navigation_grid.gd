@@ -37,6 +37,10 @@ var _size_cells: Vector2i = Vector2i.ZERO
 var _revision: int = -1
 var _blocked: Dictionary = {}  # Vector2i -> true; never iterated for output
 var _source_digest: String = ""
+var _edge_masks: Dictionary = {}
+var _swept_edges: bool = false
+var _body_margin_px: float = 0.0
+const STEPS := [Vector2i(1,0),Vector2i(-1,0),Vector2i(0,1),Vector2i(0,-1),Vector2i(1,1),Vector2i(1,-1),Vector2i(-1,1),Vector2i(-1,-1)]
 
 
 ## Bakes the grid from authored Sawmill layout data. The blocking truth is
@@ -86,7 +90,9 @@ static func bake_from_movement_world(
 	world: ZMovementWorld2D,
 	size_cells: Vector2i,
 	navigation_revision: int,
-	level_id: String = ""
+	level_id: String = "",
+	sweep_edges: bool = false,
+	body_margin_px: float = 0.0
 ) -> ZNavigationGrid:
 	last_error = &""
 	if world == null:
@@ -107,7 +113,12 @@ static func bake_from_movement_world(
 	if not world.bounds_px().grow(0.01).encloses(grid_rect):
 		last_error = &"grid_exceeds_collision_bounds"
 		return null
+	if not is_finite(body_margin_px) or body_margin_px<0 or body_margin_px>8:
+		last_error=&"navigation_margin_invalid"
+		return null
+	var half:=NAVIGATION_BODY_HALF_EXTENTS_PX+Vector2.ONE*body_margin_px
 	var grid := ZNavigationGrid.new()
+	grid._body_margin_px=body_margin_px
 	grid._size_cells = size_cells
 	grid._revision = navigation_revision
 	grid._level_id = level_id
@@ -119,11 +130,29 @@ static func bake_from_movement_world(
 	for y in size_cells.y:
 		for x in size_cells.x:
 			var cell := Vector2i(x, y)
-			var probe := _probe_cell(world, cell)
+			var probe := _probe_cell(world, cell, half)
 			if probe == PROBE_ERROR:
 				return null
 			if probe == PROBE_BLOCKED:
 				grid._blocked[cell] = true
+	if sweep_edges:
+		grid._swept_edges=true
+		# Off-grid thin walls can lie between two free cell centres. Validate the
+		# whole centre-to-centre corridor through the SAME collision owner. The
+		# bounding box is exact for cardinal steps, conservative for diagonals.
+		for y in size_cells.y:
+			for x in size_cells.x:
+				var cell:=Vector2i(x,y)
+				if not grid.is_walkable(cell):continue
+				var mask:int=0
+				var a:=ZWorldUnits.tile_center_to_godot(cell).vector2_value
+				for i in STEPS.size():
+					var next:Vector2i=cell+STEPS[i]
+					if not grid.is_walkable(next):continue
+					var b:=ZWorldUnits.tile_center_to_godot(next).vector2_value
+					var query:=world.query_placement_px((a+b)/2,half+(b-a).abs()/2)
+					if query.ok:mask|=(1<<i)
+				grid._edge_masks[cell]=mask
 	return grid
 
 
@@ -161,6 +190,19 @@ func is_walkable(cell: Vector2i) -> bool:
 	return has_cell(cell) and not _blocked.has(cell)
 
 
+func can_traverse(a: Vector2i, b: Vector2i) -> bool:
+	if not is_walkable(a) or not is_walkable(b):return false
+	var index:int=STEPS.find(b-a)
+	return index>=0 and (not _swept_edges or (int(_edge_masks.get(a,0)) & (1<<index))!=0)
+
+func _edge_digest() -> String:
+	var context:=HashingContext.new()
+	if context.start(HashingContext.HASH_SHA256)!=OK:return ""
+	for y in _size_cells.y:
+		for x in _size_cells.x:
+			if context.update(("%d,"%int(_edge_masks.get(Vector2i(x,y),0))).to_utf8_buffer())!=OK:return ""
+	return context.finish().hex_encode()
+
 func blocked_cell_count() -> int:
 	return _blocked.size()
 
@@ -189,7 +231,7 @@ static func sort_cells(cells: Array[Vector2i]) -> void:
 ## Advisory inspection record, NOT canonical raid state. Nothing in the raid
 ## digest consumes this value; it exists so a bake can be audited and pinned.
 func canonical_record() -> Dictionary:
-	return {
+	var record := {
 		"blocked_cell_count": _blocked.size(),
 		"blocked_cells_digest": digest_cell_array(blocked_cells()),
 		"level_id": _level_id,
@@ -198,6 +240,9 @@ func canonical_record() -> Dictionary:
 		"source_digest": _source_digest,
 	}
 
+	if _swept_edges:record["swept_edges"]=_edge_digest()
+	if _body_margin_px>0:record["body_margin_micro"]=roundi(_body_margin_px*ZMovementWorld2D.MICRO_PER_PX)
+	return record
 
 func digest() -> String:
 	return ZCanonicalValue.sha256(canonical_record())
@@ -224,13 +269,13 @@ static func digest_cell_array(cells: Array[Vector2i]) -> String:
 
 ## One blocking question answered by the collision world's read-only query.
 ## Expected placement denials mark blocked cells; other failures fail closed.
-static func _probe_cell(world: ZMovementWorld2D, cell: Vector2i) -> int:
+static func _probe_cell(world: ZMovementWorld2D, cell: Vector2i, half:Vector2=NAVIGATION_BODY_HALF_EXTENTS_PX) -> int:
 	var center := ZWorldUnits.tile_center_to_godot(cell)
 	if not center.ok:
 		last_error = &"cell_center_invalid"
 		return PROBE_ERROR
 	var placement := world.query_placement_px(
-		center.vector2_value, NAVIGATION_BODY_HALF_EXTENTS_PX
+		center.vector2_value, half
 	)
 	if bool(placement["ok"]):
 		return PROBE_WALKABLE

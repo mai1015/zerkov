@@ -9,14 +9,14 @@ var deployment: Dictionary = {}
 var last_error: StringName = &""
 var _attempted: bool = false
 
-func begin(parent: Node, store: ProfileStore, request_id: String, profile_generation: int, seed: int) -> bool:
+func begin(parent: Node, store: ProfileStore, request_id: String, profile_generation: int, seed: int, map_descriptor: Dictionary = {}) -> bool:
 	if _attempted or parent == null or store == null or not store.is_configured(): return _fail(&"deployment_configuration_invalid")
 	_attempted = true
 	var native := NativeSettlementInventory.new()
 	if not native.configure(): return _fail(&"deployment_catalog_unavailable")
 	settlement = RaidSettlementService.new()
 	if not settlement.configure(store,native): return _fail(&"deployment_store_unavailable")
-	var committed := settlement.deploy(request_id,profile_generation)
+	var committed := settlement.deploy(request_id,profile_generation,map_descriptor)
 	if committed.get("ok") != true: return _fail(StringName(committed.get("reason",&"deployment_commit_failed")))
 	if committed.get("can_instantiate") != true: return _fail(&"deployment_replayed_resume_disabled")
 	deployment = RaidProgressionValues.freeze(committed.deployment)
