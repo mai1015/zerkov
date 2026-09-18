@@ -348,7 +348,19 @@ func die_from_enemy(game: LocalGame, tree: SceneTree, check_callback: Callable) 
 	# Walk into the existing mutant encounter, without shooting or modifying AI,
 	# damage, position, inventory, health, clock limits or the outcome controller.
 	var goal:Vector2
-	if _game._session.native_map!=null: goal=_game._session.native_map.position("mutant")
+	if _game._session.native_map!=null:
+		var attacker:Vector2=_game._session.native_map.position("mutant")
+		goal=attacker
+		# Do not stop on top of the AI. Choose a real walkable/visible melee lane,
+		# then reach it through the same keyboard-driven navigation used elsewhere.
+		# The native AI, combat, health and outcome owners still decide whether and
+		# when the player dies; this only makes the input scenario non-degenerate.
+		for offset:Vector2 in [Vector2(28,0),Vector2(-28,0),Vector2(0,28),Vector2(0,-28),Vector2(24,24),Vector2(-24,24),Vector2(24,-24),Vector2(-24,-24)]:
+			var candidate:=attacker+offset
+			if _game._session.movement_world.query_placement_px(candidate,Vector2(8,8)).get("ok",false) and _clear_segment(candidate,attacker):
+				goal=candidate
+				break
+		print("LOCAL_FLOW_DEATH_APPROACH attacker=",attacker," goal=",goal," distance=",goal.distance_to(attacker))
 	else:
 		var anchor:Dictionary=_game._session.layout.anchor("zerkov.encounter.sawmill.mutant_verge")
 		goal=_game._session.layout.cell_center(anchor.approach_cell+Vector2i(2,0))
