@@ -78,6 +78,15 @@ func _test_swept_navigation() -> void:
 	for i:int in range(1,path.cells.size()):check(open_grid.can_traverse(path.cells[i-1],path.cells[i]),"every returned segment is collision-verified")
 	var again:=ZNavigationGrid.bake_from_movement_world(door,Vector2i(5,5),1,"door",true)
 	check(again.digest()==open_grid.digest(),"swept edge identity deterministic")
+	var cache_record:=open_grid.baked_cache_record()
+	var restored:=ZNavigationGrid.restore_baked_cache(cache_record,door,Vector2i(5,5),1,"door",true,0.0)
+	check(restored!=null and restored.digest()==open_grid.digest(),"verified navigation cache restores exact derived grid")
+	var stale:=cache_record.duplicate(true);stale.source_digest="0".repeat(64)
+	check(ZNavigationGrid.restore_baked_cache(stale,door,Vector2i(5,5),1,"door",true,0.0)==null \
+		and ZNavigationGrid.last_error==&"navigation_cache_source_mismatch","cache from different collision geometry rejected")
+	var corrupted:=cache_record.duplicate(true);corrupted.grid_digest="f".repeat(64)
+	check(ZNavigationGrid.restore_baked_cache(corrupted,door,Vector2i(5,5),1,"door",true,0.0)==null \
+		and ZNavigationGrid.last_error==&"navigation_cache_digest_mismatch","tampered derived-grid digest rejected")
 
 func _test_capacity() -> void:
 	var world:=ZMovementWorld2D.new();world.configure(Rect2(0,0,4096,4096),1)
@@ -106,10 +115,27 @@ func _test_session_start_admission() -> void:
 func _test_map_preflight() -> void:
 	check(NativeRaidMap.open("../northline")==null,"map catalog rejects arbitrary path")
 	for id:String in ["northline","blackwater"]:
+		var before:=NativeRaidMap.loading_work_counts()
+		var preview:=NativeRaidMap.preview(id)
+		var after_preview:=NativeRaidMap.loading_work_counts()
+		check(not preview.is_empty() and preview.map_id==id and preview.bounds.position==Vector2.ZERO,
+			"briefing preview is lightweight closed map metadata "+id)
+		check(preview.geometry.size()==(681 if id=="northline" else 189) \
+			and preview.anchors.size()==4 and String(preview.descriptor_digest).length()==64,
+			"preview contains exact tactical geometry and public objective anchors")
+		check(int(after_preview.open_attempts)==int(before.open_attempts),
+			"briefing preview never instantiates or preflights the native scene")
 		var map:=NativeRaidMap.open(id)
+		var after_open:=NativeRaidMap.loading_work_counts()
 		check(map!=null,"authored production-sized-player map preflight "+id)
 		if map==null:continue
+		check(int(after_open.open_attempts)==int(after_preview.open_attempts)+1 \
+			and int(after_open.grid_cache_hits)==int(after_preview.grid_cache_hits)+1 \
+			and int(after_open.grid_bakes)==int(after_preview.grid_bakes),
+			"deployment preflight restores verified navigation instead of rebaking it")
 		check(V.valid_map_descriptor(map.descriptor()) and map.descriptor().is_read_only(),"immutable closed descriptor")
+		check(String(preview.descriptor_digest)==String(map.descriptor().digest),
+			"committed preview was generated from the current authoritative map descriptor")
 		check(map.solids().size()==(681 if id=="northline" else 189),"every authored solid accounted")
 		check(map.occluders().size()<RaidVisionActorRegistry.MAX_SEGMENTS and map.obstructions().size()<BodyHitboxWorld2D.MAX_OBSTRUCTIONS,"all sight/shot geometry within explicit budgets")
 		check(map.anchors().size()==7 and map.grid().is_baked(),"explicit finite gameplay anchor set")

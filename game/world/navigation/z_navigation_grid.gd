@@ -25,6 +25,8 @@ const PROBE_WORLD_GENERATION: int = 0
 ## Cells hashed per bounded canonical chunk, so digests never depend on
 ## Dictionary iteration order and never exceed ZCanonicalValue bounds.
 const DIGEST_CHUNK_CELLS: int = 48
+const BAKED_CACHE_VERSION: int = 1
+const MAX_BAKED_CACHE_CELLS: int = 16_384
 
 const PROBE_WALKABLE: int = 0
 const PROBE_BLOCKED: int = 1
@@ -246,6 +248,131 @@ func canonical_record() -> Dictionary:
 
 func digest() -> String:
 	return ZCanonicalValue.sha256(canonical_record())
+
+
+## Compact derived-data record for authored-map runtime caches. The collision
+## geometry digest remains the authority: a cache is accepted only when it was
+## baked from the exact movement world supplied by the caller.
+func baked_cache_record() -> Dictionary:
+	if not is_baked():
+		return {}
+	var cell_count: int = _size_cells.x * _size_cells.y
+	var blocked_bits := PackedByteArray()
+	blocked_bits.resize((cell_count + 7) >> 3)
+	var edge_masks := PackedByteArray()
+	edge_masks.resize(cell_count)
+	for y: int in _size_cells.y:
+		for x: int in _size_cells.x:
+			var index: int = y * _size_cells.x + x
+			var cell := Vector2i(x, y)
+			if _blocked.has(cell):
+				blocked_bits[index >> 3] = blocked_bits[index >> 3] | (1 << (index & 7))
+			edge_masks[index] = int(_edge_masks.get(cell, 0))
+	return {
+		"version": BAKED_CACHE_VERSION,
+		"revision": _revision,
+		"level_id": _level_id,
+		"size": [_size_cells.x, _size_cells.y],
+		"source_digest": _source_digest,
+		"grid_digest": digest(),
+		"swept_edges": _swept_edges,
+		"body_margin_px": _body_margin_px,
+		"blocked_bits": Marshalls.raw_to_base64(blocked_bits),
+		"edge_masks": Marshalls.raw_to_base64(edge_masks),
+	}
+
+
+## Restores a grid only when every identity field, bitmap, edge relation, and
+## final digest agrees with the exact authoritative movement geometry. Invalid
+## or stale caches fail closed; callers may choose to perform a fresh bake.
+static func restore_baked_cache(
+	record: Dictionary,
+	world: ZMovementWorld2D,
+	size_cells: Vector2i,
+	navigation_revision: int,
+	level_id: String,
+	sweep_edges: bool,
+	body_margin_px: float
+) -> ZNavigationGrid:
+	last_error = &""
+	if world == null or not world.is_configured():
+		last_error = &"movement_world_unconfigured"
+		return null
+	if size_cells.x <= 0 or size_cells.y <= 0 \
+			or size_cells.x * size_cells.y > MAX_BAKED_CACHE_CELLS:
+		last_error = &"navigation_cache_size_invalid"
+		return null
+	var size_value: Variant = record.get("size")
+	if int(record.get("version", -1)) != BAKED_CACHE_VERSION \
+			or not size_value is Array or size_value.size() != 2 \
+			or Vector2i(int(size_value[0]), int(size_value[1])) != size_cells \
+			or int(record.get("revision", -1)) != navigation_revision \
+			or String(record.get("level_id", "")) != level_id \
+			or bool(record.get("swept_edges", false)) != sweep_edges \
+			or not is_equal_approx(float(record.get("body_margin_px", -1.0)), body_margin_px):
+		last_error = &"navigation_cache_identity_invalid"
+		return null
+	var source_digest := String(record.get("source_digest", ""))
+	var expected_grid_digest := String(record.get("grid_digest", ""))
+	if source_digest.length() != 64 or expected_grid_digest.length() != 64 \
+			or source_digest != world.geometry_digest():
+		last_error = &"navigation_cache_source_mismatch"
+		return null
+	var blocked_bits := Marshalls.base64_to_raw(String(record.get("blocked_bits", "")))
+	var edge_masks := Marshalls.base64_to_raw(String(record.get("edge_masks", "")))
+	var cell_count: int = size_cells.x * size_cells.y
+	if blocked_bits.size() != ((cell_count + 7) >> 3) or edge_masks.size() != cell_count:
+		last_error = &"navigation_cache_payload_invalid"
+		return null
+	if (cell_count & 7) != 0:
+		var used_bits: int = cell_count & 7
+		var padding_mask: int = 0xff ^ ((1 << used_bits) - 1)
+		if (int(blocked_bits[-1]) & padding_mask) != 0:
+			last_error = &"navigation_cache_padding_invalid"
+			return null
+	var grid := ZNavigationGrid.new()
+	grid._size_cells = size_cells
+	grid._revision = navigation_revision
+	grid._level_id = level_id
+	grid._source_digest = source_digest
+	grid._swept_edges = sweep_edges
+	grid._body_margin_px = body_margin_px
+	for y: int in size_cells.y:
+		for x: int in size_cells.x:
+			var index: int = y * size_cells.x + x
+			var cell := Vector2i(x, y)
+			var blocked: bool = (int(blocked_bits[index >> 3]) & (1 << (index & 7))) != 0
+			var mask: int = int(edge_masks[index])
+			if blocked:
+				if mask != 0:
+					last_error = &"navigation_cache_blocked_edge"
+					return null
+				grid._blocked[cell] = true
+			elif sweep_edges:
+				grid._edge_masks[cell] = mask
+			elif mask != 0:
+				last_error = &"navigation_cache_unexpected_edges"
+				return null
+	if sweep_edges:
+		for y: int in size_cells.y:
+			for x: int in size_cells.x:
+				var cell := Vector2i(x, y)
+				if grid._blocked.has(cell):
+					continue
+				var mask: int = int(grid._edge_masks.get(cell, 0))
+				for step_index: int in STEPS.size():
+					if (mask & (1 << step_index)) == 0:
+						continue
+					var next: Vector2i = cell + STEPS[step_index]
+					var reverse_index: int = STEPS.find(-STEPS[step_index])
+					if not grid.is_walkable(next) or reverse_index < 0 \
+							or (int(grid._edge_masks.get(next, 0)) & (1 << reverse_index)) == 0:
+						last_error = &"navigation_cache_edge_invalid"
+						return null
+	if grid.digest() != expected_grid_digest:
+		last_error = &"navigation_cache_digest_mismatch"
+		return null
+	return grid
 
 
 ## Deterministic bounded digest for cell arrays of any length: cells are

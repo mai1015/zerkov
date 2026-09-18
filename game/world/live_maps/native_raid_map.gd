@@ -8,9 +8,19 @@ const PATHS := {
 	"northline":"res://game/world/live_maps/northline_live.tscn",
 	"blackwater":"res://game/world/live_maps/blackwater_live.tscn",
 }
+const CACHE_PATHS := {
+	"northline":"res://game/world/live_maps/cache/northline.json",
+	"blackwater":"res://game/world/live_maps/cache/blackwater.json",
+}
+const CACHE_VERSION: int = 1
 const MAX_NODES: int = 30_000
 const MAX_RESOURCES: int = 256
 static var last_error: StringName = &""
+static var _cache_entries: Dictionary = {}
+static var _open_attempts: int = 0
+static var _preview_file_loads: int = 0
+static var _grid_cache_hits: int = 0
+static var _grid_bakes: int = 0
 var _id: String = ""
 var _bounds := Rect2()
 var _revision: int = 1
@@ -23,11 +33,50 @@ var _files: Dictionary = {}
 
 static func open(map_id: String) -> NativeRaidMap:
 	last_error = &""
+	_open_attempts += 1
 	if not PATHS.has(map_id): last_error=&"map_unknown"; return null
 	var map := NativeRaidMap.new()
 	map._id=map_id
-	if not map._load(): return null
+	if not map._load(true): return null
 	return map
+
+
+## Authoring/CI path. It deliberately ignores the committed navigation cache,
+## performs a fresh bake from current authoritative collision, and returns the
+## exact derived record that should be committed. Normal gameplay never calls it.
+static func rebuild_cache_record(map_id: String) -> Dictionary:
+	last_error = &""
+	if not PATHS.has(map_id):
+		last_error = &"map_unknown"
+		return {}
+	var map := NativeRaidMap.new()
+	map._id = map_id
+	if not map._load(false):
+		return {}
+	return map.runtime_cache_record()
+
+
+## Lightweight briefing projection. It contains only derived presentation data
+## and the validated baked-navigation payload; it never instantiates the map.
+static func preview(map_id: String) -> Dictionary:
+	last_error = &""
+	if not PATHS.has(map_id):
+		last_error = &"map_unknown"
+		return {}
+	var entry := _cache_for(map_id)
+	if entry.is_empty():
+		last_error = &"map_runtime_cache_invalid"
+		return {}
+	return entry.preview
+
+
+static func loading_work_counts() -> Dictionary:
+	return RaidProgressionValues.freeze({
+		"open_attempts": _open_attempts,
+		"preview_file_loads": _preview_file_loads,
+		"grid_cache_hits": _grid_cache_hits,
+		"grid_bakes": _grid_bakes,
+	})
 
 func id() -> String: return _id
 func revision() -> int: return _revision
@@ -40,7 +89,43 @@ func anchors() -> Dictionary: return RaidProgressionValues.freeze(_anchors)
 func solids() -> Array: return RaidProgressionValues.freeze(_solids)
 func instantiate_visuals() -> Node2D: return _scene.instantiate() as Node2D
 
-func _load() -> bool:
+
+## Authoring output for tools/build_live_map_cache.gd. This is derived data;
+## deployment still validates source hashes and geometry before accepting it.
+func runtime_cache_record() -> Dictionary:
+	if _grid == null or not _grid.is_baked() or _descriptor.is_empty():
+		return {}
+	var geometry: Array = []
+	for solid: Dictionary in _solids:
+		if solid.has("rect"):
+			var rect: Rect2 = solid.rect
+			geometry.append({
+				"rect": [rect.position.x, rect.position.y, rect.size.x, rect.size.y],
+				"water": bool(solid.walking_only),
+			})
+		else:
+			var points: Array = []
+			for point: Vector2 in solid.polygon:
+				points.append([point.x, point.y])
+			geometry.append({"polygon": points, "water": true})
+	var anchors: Dictionary = {}
+	var keys: Array[String] = SupplyRunGraph.crates_for(_id)
+	keys.append(SupplyRunGraph.exit_for(_id))
+	for key: String in keys:
+		var at := position(key)
+		anchors[key] = [at.x, at.y]
+	return {
+		"version": CACHE_VERSION,
+		"map_id": _id,
+		"bounds": [_bounds.size.x, _bounds.size.y],
+		"descriptor_digest": String(_descriptor.digest),
+		"geometry": geometry,
+		"anchors": anchors,
+		"navigation": _grid.baked_cache_record(),
+	}
+
+
+func _load(use_navigation_cache: bool = true) -> bool:
 	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(SOURCE_MANIFEST))
 	if not manifest is Dictionary or not manifest.get("sources") is Array: return _fail(&"map_original_manifest_invalid")
 	for row: Dictionary in manifest.sources:
@@ -58,7 +143,18 @@ func _load() -> bool:
 	var probe := build_movement(0)
 	if probe == null: return false
 	var cells := Vector2i(_bounds.size/float(ZWorldUnits.SOURCE_TILE_PIXELS))
-	_grid=ZNavigationGrid.bake_from_movement_world(probe,cells,_revision,"zerkov.level."+_id,true,4.0)
+	_grid = null
+	if use_navigation_cache:
+		var cache_entry := _cache_for(_id)
+		var navigation: Dictionary = cache_entry.get("navigation", {})
+		_grid = ZNavigationGrid.restore_baked_cache(
+			navigation, probe, cells, _revision, "zerkov.level." + _id, true, 4.0)
+		if _grid != null:
+			_grid_cache_hits += 1
+	if _grid == null:
+		_grid_bakes += 1
+		_grid = ZNavigationGrid.bake_from_movement_world(
+			probe, cells, _revision, "zerkov.level." + _id, true, 4.0)
 	if _grid == null: return _fail(ZNavigationGrid.last_error)
 	var path_service:=ZNavigationPathService.new()
 	if not path_service.configure(_grid,_revision): return _fail(path_service.last_error)
@@ -207,6 +303,101 @@ func obstructions() -> Array[Dictionary]:
 		result.append({"obstruction_id":id.canonical_key(),"geometry_revision":_revision,"min_raw":ZWorldUnits.godot_to_canonical(r.position).vector2i_value,
 			"max_raw":ZWorldUnits.godot_to_canonical(r.end).vector2i_value,"collision_layer":2,"enabled":true})
 	return result
+
+static func _cache_for(map_id: String) -> Dictionary:
+	if _cache_entries.has(map_id):
+		return _cache_entries[map_id]
+	if not CACHE_PATHS.has(map_id):
+		return {}
+	_preview_file_loads += 1
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(CACHE_PATHS[map_id]))
+	if not parsed is Dictionary:
+		return {}
+	var decoded := _decode_cache(map_id, parsed)
+	if decoded.is_empty():
+		return {}
+	_cache_entries[map_id] = decoded
+	return decoded
+
+
+static func _decode_cache(map_id: String, record: Dictionary) -> Dictionary:
+	var bounds_value: Variant = record.get("bounds")
+	var geometry_value: Variant = record.get("geometry")
+	var anchors_value: Variant = record.get("anchors")
+	var navigation_value: Variant = record.get("navigation")
+	if int(record.get("version", -1)) != CACHE_VERSION \
+			or String(record.get("map_id", "")) != map_id \
+			or not bounds_value is Array or bounds_value.size() != 2 \
+			or not geometry_value is Array or not anchors_value is Dictionary \
+			or not navigation_value is Dictionary:
+		return {}
+	var extent := Vector2(float(bounds_value[0]), float(bounds_value[1]))
+	var bounds := Rect2(Vector2.ZERO, extent)
+	if not extent.is_finite() or extent.x <= 0 or extent.y <= 0 \
+			or extent.x > 4096 or extent.y > 4096 \
+			or Vector2(Vector2i(extent / 32.0) * 32) != extent:
+		return {}
+	if geometry_value.is_empty() or geometry_value.size() > ZMovementWorld2D.MAX_STATIC_COLLIDERS:
+		return {}
+	var geometry: Array = []
+	for value: Variant in geometry_value:
+		if not value is Dictionary:
+			return {}
+		var row: Dictionary = value
+		if not row.get("water") is bool:
+			return {}
+		if row.has("rect"):
+			var raw_rect: Variant = row.rect
+			if not raw_rect is Array or raw_rect.size() != 4:
+				return {}
+			var rect := Rect2(float(raw_rect[0]), float(raw_rect[1]), float(raw_rect[2]), float(raw_rect[3]))
+			if not rect.position.is_finite() or not rect.size.is_finite() \
+					or not rect.has_area() or not bounds.grow(64).encloses(rect):
+				return {}
+			geometry.append({
+				"rect": Rect2(rect.position / extent, rect.size / extent),
+				"water": bool(row.water),
+			})
+		elif row.has("polygon"):
+			var raw_polygon: Variant = row.polygon
+			if not raw_polygon is Array or raw_polygon.size() < 3 or raw_polygon.size() > 64:
+				return {}
+			var points: Array[Vector2] = []
+			for raw_point: Variant in raw_polygon:
+				if not raw_point is Array or raw_point.size() != 2:
+					return {}
+				var point := Vector2(float(raw_point[0]), float(raw_point[1]))
+				if not point.is_finite() or not bounds.grow(64).has_point(point):
+					return {}
+				points.append(point / extent)
+			geometry.append({"polygon": points, "water": true})
+		else:
+			return {}
+	var required: Array[String] = SupplyRunGraph.crates_for(map_id)
+	required.append(SupplyRunGraph.exit_for(map_id))
+	if anchors_value.size() != required.size():
+		return {}
+	var anchors: Dictionary = {}
+	for key: String in required:
+		var raw_anchor: Variant = anchors_value.get(key)
+		if not raw_anchor is Array or raw_anchor.size() != 2:
+			return {}
+		var at := Vector2(float(raw_anchor[0]), float(raw_anchor[1]))
+		if not at.is_finite() or not bounds.has_point(at):
+			return {}
+		anchors[key] = at
+	var descriptor_digest := String(record.get("descriptor_digest", ""))
+	if descriptor_digest.length() != 64:
+		return {}
+	var preview: Dictionary = RaidProgressionValues.freeze({
+		"map_id": map_id,
+		"bounds": bounds,
+		"geometry": geometry,
+		"anchors": anchors,
+		"descriptor_digest": descriptor_digest,
+	})
+	return {"preview": preview, "navigation": navigation_value.duplicate(true)}
+
 
 static func _transform_to(root: Node2D, node: Node2D) -> Transform2D:
 	var result:=Transform2D.IDENTITY

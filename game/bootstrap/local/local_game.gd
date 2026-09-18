@@ -36,6 +36,7 @@ var _selected_map: String = "sawmill"
 var _native_map: NativeRaidMap
 var _map_error: String = ""
 var _map_geometry: Array = []
+var _map_extent := Vector2.ZERO
 var _marker_map_id: String = ""
 var _save_location: String = ""
 var _view_cache: Array[ZReadOnlyView] = []
@@ -207,6 +208,10 @@ func _open_home() -> void:
 	if _session != null:
 		if not _session.release(): _busy = false; _error(_session.last_error); return
 		_session.queue_free(); _session = null
+	_native_map = null
+	if not _load_map_preview(_selected_map):
+		_selected_map = "sawmill"
+		_load_map_preview(_selected_map)
 	if _home != null:
 		_home.teardown(_home.generation()); _home.queue_free(); _home = null
 	if not _campaign.reload(): _busy = false; _error(_campaign.last_error); return
@@ -244,22 +249,73 @@ func _close_profile() -> void:
 
 
 func _deploy() -> void:
-	# Revalidate actual edited resources immediately before saving home/escrow.
-	# An unavailable map never tears down the home session or changes its file.
-	if not _select_map(_selected_map): return
+	# Selection is presentation-only. Enter the real loading route before map
+	# integrity, scene, collision, and navigation preflight begin. Home remains
+	# mounted and unsaved until that authoritative preflight succeeds.
 	_preparation_return = "bunker"
 	_busy = true
-	if not _campaign.save_home(_home): _busy = false; _error(_campaign.last_error); return
-	_release_character()
-	if not _home.teardown(_home.generation()): _busy = false; _error(&"local_home_teardown_failed"); return
-	_home.queue_free(); _home = null
 	_mode = "deploying"; _epoch += 1
-	_notice = "Recording deployment identity and loading " + SupplyRunGraph.title_for(_selected_map) + ". Interrupted loading is recovered as an abandoned raid."
+	_notice = "Loading and validating " + SupplyRunGraph.title_for(_selected_map) \
+		+ ". Your saved home remains unchanged until deployment is ready."
 	_publish()
 	_navigate("deploying", false)
 
+
+func _prepare_deployment() -> void:
+	if _closed or _mode != "deploying" or _session != null:
+		return
+	var candidate: NativeRaidMap = null
+	if _selected_map != "sawmill":
+		candidate = NativeRaidMap.open(_selected_map)
+		if candidate == null:
+			_reject_map_deployment(NativeRaidMap.last_error)
+			return
+	if _home == null or not _home.is_current_generation(_home.generation()):
+		_error(&"local_home_missing")
+		return
+	if not _campaign.save_home(_home):
+		_reject_save_deployment(_campaign.last_error)
+		return
+	_release_character()
+	if not _home.teardown(_home.generation()):
+		_busy = false
+		_error(&"local_home_teardown_failed")
+		return
+	_home.queue_free(); _home = null
+	_native_map = candidate
+	_install_runtime_map_projection(candidate)
+	_start_raid()
+
+
+func _reject_map_deployment(reason: StringName) -> void:
+	_native_map = null
+	_busy = false
+	_mode = "home"; _epoch += 1
+	last_error = &""
+	_map_error = String(reason)
+	_notice = "Map unavailable: " + _map_error \
+		+ ". Your loadout and saved profile were not changed."
+	_publish()
+	_navigate("maps", false)
+
+
+func _reject_save_deployment(reason: StringName) -> void:
+	_native_map = null
+	_busy = false
+	_mode = "home"; _epoch += 1
+	last_error = reason
+	_notice = "Local save failed: " + String(reason) \
+		+ ". The map was not deployed and your open home remains available."
+	_publish()
+	_navigate("maps", false)
+
+
 func _start_raid() -> void:
 	if _closed or _mode != "deploying" or _session != null: return
+	if _selected_map != "sawmill" and _native_map == null:
+		_busy = false
+		_error(&"map_preflight_missing")
+		return
 	_world.size=Vector2i(1920,1080) if _selected_map!="sawmill" else ZWorldViewportPolicy.BASE_SURFACE_SIZE
 	_session = LocalRaidSession.new()
 	_world.add_child(_session)
@@ -313,13 +369,14 @@ func _route_changed(route: String, _screen: Control) -> void:
 	_publish()
 	if _mode == "deploying" and route == "deploying": _present_deployment.call_deferred()
 
-## Give the real loading screen one rendered frame before synchronous raid setup.
-## No cosmetic timer or manufactured percentage delays a ready operation.
+## Give the real loading screen one rendered frame before map preflight. The
+## deployment route is truthful: no profile write or escrow exists at this point.
 func _present_deployment() -> void:
 	await get_tree().process_frame
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
-	if not _closed and _mode == "deploying": _start_raid.call_deferred()
+	if not _closed and _mode == "deploying":
+		_prepare_deployment.call_deferred()
 
 func _home_inventory_changed(_scope: StringName, _view: InventoryView) -> void:
 	if not _closed and not _busy and _mode == "home": _publish()
@@ -426,7 +483,7 @@ func _publish() -> void:
 	frame["exit_title"] = SupplyRunGraph.exit_title(frame.map_id)
 	frame["map_error"] = _map_error
 	frame["map_geometry"] = _map_geometry if frame.map_id==_selected_map else []
-	frame["map_extent"] = _native_map.bounds().size if _native_map != null and _native_map.id() == frame.map_id else Vector2.ZERO
+	frame["map_extent"] = _map_extent if frame.map_id==_selected_map else Vector2.ZERO
 	frame.map_markers = _map_markers_for_frame(String(frame.get(
 		"actor_id", "zerkov.entity.local.player")), _last_route == "maps")
 	var projection := LocalGameViews.build_incremental(
@@ -489,15 +546,23 @@ func _map_markers_for_frame(actor_key: String, refresh_player: bool) -> Array:
 	if _marker_map_id!=map_id:
 		_marker_map_id=map_id
 		_static_map_markers=[];_map_markers=[]
-	if map_id!="sawmill" and (_native_map==null or _native_map.id()!=map_id): return []
 	if _map_layout==null:
 		_map_layout=load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
-	var extent:=_native_map.bounds().size if map_id!="sawmill" else _map_layout.world_bounds().size
+	var preview: Dictionary = {}
+	var live_native: bool = map_id!="sawmill" and _native_map!=null and _native_map.id()==map_id
+	if map_id!="sawmill" and not live_native:
+		preview=NativeRaidMap.preview(map_id)
+		if preview.is_empty(): return []
+	var extent: Vector2 = (
+		_native_map.bounds().size if live_native else (
+			preview.bounds.size if map_id!="sawmill" else _map_layout.world_bounds().size))
 	var keys:=SupplyRunGraph.crates_for(map_id)
 	var exit_id:=SupplyRunGraph.exit_for(map_id)
 	if _static_map_markers.is_empty():
 		for id:String in keys+[exit_id]:
-			var at:=_native_map.position(id) if map_id!="sawmill" else _map_layout.cell_center(_map_layout.anchor(id).cell)
+			var at: Vector2 = (
+				_native_map.position(id) if live_native else (
+					preview.anchors[id] if map_id!="sawmill" else _map_layout.cell_center(_map_layout.anchor(id).cell)))
 			_static_map_markers.append(RaidProgressionValues.freeze({"id":id,
 				"label":SupplyRunGraph.exit_title(map_id) if id==exit_id else SupplyRunGraph.crate_titles(map_id)[keys.find(id)],
 				"kind":"exit" if id==exit_id else "crate","position":at/extent}))
@@ -525,28 +590,66 @@ func _display_map_id() -> String:
 
 func _select_map(map_id: String) -> bool:
 	if not SupplyRunGraph.is_map(map_id) or _mode!="home": return false
-	var candidate:NativeRaidMap=null
-	if map_id!="sawmill":
-		candidate=NativeRaidMap.open(map_id)
-		if candidate==null:
+	var preview: Dictionary = {}
+	if map_id != "sawmill":
+		preview = NativeRaidMap.preview(map_id)
+		if preview.is_empty():
 			_map_error=String(NativeRaidMap.last_error)
-			_notice="Map unavailable: "+_map_error+". Your loadout and saved profile were not changed."
-			_publish();return false
-	_selected_map=map_id;_native_map=candidate;_map_error=""
-	_marker_map_id="";_map_geometry=[]
-	if candidate!=null:
-		for solid:Dictionary in candidate.solids():
-			if solid.has("rect"):
-				var rect:Rect2=solid.rect
-				_map_geometry.append({"rect":Rect2(rect.position/candidate.bounds().size,rect.size/candidate.bounds().size),"water":solid.walking_only})
-			else:
-				var points:Array=[]
-				for at:Vector2 in solid.polygon:points.append(at/candidate.bounds().size)
-				_map_geometry.append({"polygon":points,"water":true})
-	_map_geometry=RaidProgressionValues.freeze(_map_geometry)
+			_notice="Map preview unavailable: "+_map_error+". No raid content was loaded."
+			_publish()
+			return false
+	_selected_map=map_id
+	_native_map=null
+	_map_error=""
+	_apply_map_preview(map_id, preview)
 	_notice=SupplyRunGraph.title_for(map_id)+" selected. Review the marked crates and "+SupplyRunGraph.exit_title(map_id)+" extraction."
 	_publish()
 	return true
+
+
+func _load_map_preview(map_id: String) -> bool:
+	var preview: Dictionary = {}
+	if map_id != "sawmill":
+		preview = NativeRaidMap.preview(map_id)
+		if preview.is_empty():
+			return false
+	_apply_map_preview(map_id, preview)
+	return true
+
+
+func _apply_map_preview(map_id: String, preview: Dictionary) -> void:
+	_marker_map_id=""
+	_static_map_markers=[];_map_markers=[]
+	_map_geometry=[]
+	_map_extent=Vector2.ZERO
+	if map_id=="sawmill":
+		_map_geometry=RaidProgressionValues.freeze([])
+		return
+	_map_geometry=preview.geometry
+	_map_extent=preview.bounds.size
+
+
+func _install_runtime_map_projection(map: NativeRaidMap) -> void:
+	_marker_map_id=""
+	_static_map_markers=[];_map_markers=[]
+	if map==null:
+		_load_map_preview("sawmill")
+		return
+	_map_extent=map.bounds().size
+	var preview:=NativeRaidMap.preview(map.id())
+	if not preview.is_empty() and String(preview.descriptor_digest)==String(map.descriptor().digest):
+		_map_geometry=preview.geometry
+		return
+	var geometry:Array=[]
+	for solid:Dictionary in map.solids():
+		if solid.has("rect"):
+			var rect:Rect2=solid.rect
+			geometry.append({"rect":Rect2(rect.position/_map_extent,rect.size/_map_extent),"water":solid.walking_only})
+		else:
+			var points:Array=[]
+			for at:Vector2 in solid.polygon:points.append(at/_map_extent)
+			geometry.append({"polygon":points,"water":true})
+	_map_geometry=RaidProgressionValues.freeze(geometry)
 
 
 func _navigate(route: String, record: bool = true) -> void:

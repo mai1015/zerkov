@@ -2,9 +2,9 @@ extends "res://ui/screens/frontflow/frontflow_actions.gd"
 
 ## Authored deployment loading screen controller.
 ##
-## The visual hierarchy is authored in deploying.tscn. This script only binds
-## the inherited progress state, starts its timer callback, and queues the
-## existing compact reflow from frontflow.gd.
+## The visual hierarchy is authored in deploying.tscn. Production progress is
+## owned by LocalGame; the legacy timer remains available only to explicit UI
+## fixtures and can never advance a live local deployment.
 
 func build() -> void:
 	reset_adaptive_layout()
@@ -15,8 +15,12 @@ func build() -> void:
 	deploy_bar = get_node("DeployCenter/Progress") as ProgressBar
 	deploy_value_label = get_node("DeployCenter/Value") as Label
 	_install_authored_scale_safe_styles()
-	_initialize_deployment_state()
-	_wire_deployment_timer()
+	if app.has_fixture_provider():
+		_initialize_deployment_state()
+		_wire_deployment_timer()
+	else:
+		deploy_bar.value = 0.0
+		deploy_value_label.text = ""
 	queue_adaptive_layout()
 
 
