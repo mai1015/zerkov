@@ -77,9 +77,14 @@ func _test_registry() -> void:
 	var geometry := _registry()
 	var segment := {"id": 1, "a": {"x": 0, "y": 0}, "b": {"x": 0, "y": 1000000}, "mask": 1, "two_sided": true}
 	check(geometry.stage_frame(1, 1, actors, 1, [segment]), "explicit occluder accepted")
-	check(geometry.apply_staged(F.VisionDouble.new(), 1, 1), "explicit occluder applied")
+	var geometry_native := F.VisionDouble.new()
+	check(geometry.apply_staged(geometry_native, 1, 1), "explicit occluder applied")
+	check(geometry.stage_frame(1, 2, actors, 1, []),
+		"unchanged geometry revision accepts an omitted payload")
+	check(geometry.apply_staged(geometry_native, 1, 2),
+		"omitted unchanged geometry performs no native replacement")
 	segment.b.y = 2000000
-	check(not geometry.stage_frame(1, 2, actors, 1, [segment]), "same geometry revision conflict")
+	check(not geometry.stage_frame(1, 3, actors, 1, [segment]), "same geometry revision conflict")
 	check(not _registry().stage_frame(1, 1, [actors[0], actors[0]], 1, []), "duplicate actor rejected")
 	var extreme: Dictionary = F.actor(F.SCAV, "scav", Vector2i(0, ZAIValues.LIMIT))
 	check(not _registry().stage_frame(1, 1, [extreme], 1, []), "sample sum overflow preflight")

@@ -120,6 +120,7 @@ var _body_history: Dictionary = {}
 var _obstruction_history: Dictionary = {}
 var _body_digest_fragments: Dictionary = {}
 var _obstruction_digest_fragments: Dictionary = {}
+var _obstruction_digest_stream: PackedByteArray = PackedByteArray()
 var _query_ledger: Dictionary = {}
 var _full_snapshot_builds: int = 0
 var _delta_snapshot_builds: int = 0
@@ -128,6 +129,8 @@ var _body_normalizations: int = 0
 var _obstruction_normalizations: int = 0
 var _body_fragment_builds: int = 0
 var _obstruction_fragment_builds: int = 0
+var _obstruction_stream_builds: int = 0
+var _obstruction_stream_reuses: int = 0
 var _body_upserts: int = 0
 var _body_removals: int = 0
 var _phase_consumers: Dictionary = {}
@@ -532,6 +535,8 @@ func publication_work_counts() -> Dictionary:
 		"obstruction_normalizations": _obstruction_normalizations,
 		"body_fragment_builds": _body_fragment_builds,
 		"obstruction_fragment_builds": _obstruction_fragment_builds,
+		"obstruction_stream_builds": _obstruction_stream_builds,
+		"obstruction_stream_reuses": _obstruction_stream_reuses,
 		"body_upserts": _body_upserts,
 		"body_removals": _body_removals,
 	})
@@ -744,6 +749,8 @@ func _publish_snapshot_after_binding(
 	_obstruction_history = build["obstruction_history"] as Dictionary
 	_body_digest_fragments = build["body_fragments"] as Dictionary
 	_obstruction_digest_fragments = build["obstruction_fragments"] as Dictionary
+	_obstruction_digest_stream = build["obstruction_stream"] as PackedByteArray
+	_obstruction_stream_builds += 1
 	_snapshot_tick = tick
 	_snapshot_revision = world_revision
 	_snapshot_digest = next_digest
@@ -936,8 +943,12 @@ func _build_snapshot(bodies: Array, obstructions: Array) -> Dictionary:
 			or obstruction_fragments.size() != next_obstructions.size():
 		last_error = &"snapshot_digest_invalid"
 		return {}
+	var obstruction_stream := _fragment_stream(obstruction_fragments)
+	if not obstruction_fragments.is_empty() and obstruction_stream.is_empty():
+		last_error = &"snapshot_digest_invalid"
+		return {}
 	var digest := _digest_snapshot_fragments(
-		body_fragments, obstruction_fragments,
+		body_fragments, obstruction_stream,
 		next_bodies.size(), next_obstructions.size())
 	if digest.is_empty():
 		last_error = &"snapshot_digest_invalid"
@@ -950,6 +961,7 @@ func _build_snapshot(bodies: Array, obstructions: Array) -> Dictionary:
 		"obstruction_history": obstruction_history_result["history"],
 		"body_fragments": body_fragments,
 		"obstruction_fragments": obstruction_fragments,
+		"obstruction_stream": obstruction_stream,
 		"digest": digest,
 	}
 
@@ -1198,8 +1210,9 @@ func _build_body_delta(upserts: Array, removals: Array) -> Dictionary:
 		last_error = &"body_capacity_exceeded"
 		return {}
 	var digest := _digest_snapshot_fragments(
-		next_fragments, _obstruction_digest_fragments,
+		next_fragments, _obstruction_digest_stream,
 		next_bodies.size(), _obstructions_by_id.size())
+	_obstruction_stream_reuses += 1
 	if digest.is_empty():
 		last_error = &"snapshot_digest_invalid"
 		return {}
@@ -1238,7 +1251,7 @@ func _snapshot_record_fragment(record: Dictionary, body: bool) -> PackedByteArra
 
 func _digest_snapshot_fragments(
 	body_fragments: Dictionary,
-	obstruction_fragments: Dictionary,
+	obstruction_stream: PackedByteArray,
 	body_count: int,
 	obstruction_count: int
 ) -> String:
@@ -1258,13 +1271,19 @@ func _digest_snapshot_fragments(
 	for entity_id in body_ids:
 		if context.update(body_fragments[entity_id] as PackedByteArray) != OK:
 			return ""
-	var obstruction_ids := PackedStringArray(obstruction_fragments.keys())
-	obstruction_ids.sort()
-	for obstruction_id in obstruction_ids:
-		if context.update(
-			obstruction_fragments[obstruction_id] as PackedByteArray) != OK:
+	if obstruction_count > 0:
+		if obstruction_stream.is_empty() or context.update(obstruction_stream) != OK:
 			return ""
 	return context.finish().hex_encode()
+
+
+func _fragment_stream(fragments: Dictionary) -> PackedByteArray:
+	var result := PackedByteArray()
+	var ids := PackedStringArray(fragments.keys())
+	ids.sort()
+	for id in ids:
+		result.append_array(fragments[id] as PackedByteArray)
+	return result
 
 
 func _normalize_ray_query(query_value: Variant) -> Dictionary:
