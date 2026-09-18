@@ -23,6 +23,9 @@ var map_id: String
 var scenario: String
 var output: String
 var aborted: bool = false
+var loading_route_seen: bool = false
+var loading_home_preserved: bool = false
+var loading_started_before_preflight: bool = false
 
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, note: String) -> bool:
@@ -57,6 +60,15 @@ func capture(label: String) -> void:
 		return
 	var saved:=image.save_png(output.path_join(map_id+"-"+label+"-1080.png"))
 	check(saved==OK,"raw renderer PNG")
+
+func observe_loading(frame: Dictionary, expected_home_id: int, open_attempts: int) -> void:
+	if frame.get("mode") != "deploying" or game == null or game._ui == null \
+			or game._ui.current_route != "deploying":
+		return
+	loading_route_seen = true
+	loading_home_preserved = game._home != null \
+		and game._home.get_instance_id() == expected_home_id and game._session == null
+	loading_started_before_preflight = int(NativeRaidMap.loading_work_counts().open_attempts) == open_attempts
 
 func _valid_test_namespace(value: String) -> bool:
 	if not value.begins_with("livemaps_") or value.length()<12 or value.length()>64:return false
@@ -97,13 +109,37 @@ func run() -> void:
 	if not await click("BunkerHideoutView/LocalDeploy") or not route("maps"):await finish();return
 	var generation:int=store.load_profile().generation
 	var index:int=["sawmill","northline","blackwater"].find(map_id)
+	var selection_work:=NativeRaidMap.loading_work_counts()
 	if not await click("ZoneHit"+str(index)):await finish();return
+	var selected_work:=NativeRaidMap.loading_work_counts()
 	if not check(game._selected_map==map_id and game._map_error.is_empty(),"actual briefing map selection: "+game._map_error):await finish();return
-	check(store.load_profile().generation==generation,"map preflight did not reserve or rewrite gear")
+	check(game._native_map==null and int(selected_work.open_attempts)==int(selection_work.open_attempts),
+		"briefing selection never instantiates or preflights the native map")
+	if map_id!="sawmill":
+		check(not game._map_geometry.is_empty() and game._map_extent.x>0 and game._map_extent.y>0,
+			"native briefing uses committed lightweight tactical preview")
+	check(store.load_profile().generation==generation,"briefing selection did not reserve or rewrite gear")
 	check(game._ui_port.snapshot().map_id==map_id,"map-scoped UI frame")
 	await capture("briefing")
 	var home_epoch:=game._epoch
+	var home_id:int=game._home.get_instance_id()
+	var preflight_work:=NativeRaidMap.loading_work_counts()
+	var loading_observer:=observe_loading.bind(home_id,int(preflight_work.open_attempts))
+	game.published.connect(loading_observer)
 	if not await click("Deploy") or not route("hud"):await finish();return
+	if game.published.is_connected(loading_observer):
+		game.published.disconnect(loading_observer)
+	check(loading_route_seen and loading_home_preserved and loading_started_before_preflight,
+		"real loading screen renders before map preflight, save, teardown, or escrow")
+	var deployed_work:=NativeRaidMap.loading_work_counts()
+	if map_id=="sawmill":
+		check(int(deployed_work.open_attempts)==int(preflight_work.open_attempts),
+			"Sawmill deployment requires no native-map preflight")
+	else:
+		check(int(deployed_work.open_attempts)==int(preflight_work.open_attempts)+1 \
+			and int(deployed_work.grid_cache_hits)==int(preflight_work.grid_cache_hits)+1 \
+			and int(deployed_work.grid_bakes)==int(preflight_work.grid_bakes),
+			"deployment loads once behind the loading screen and restores the verified navigation cache")
 	check(game._session.map_id==map_id and game._session.ai!=null,"real map-bound raid and AI")
 	check(game._world.size==(EXACT if map_id!="sawmill" else Vector2i(640,360)),"source-preserving render target")
 	check(game._session._world_scene.find_children("*","CharacterBody2D",true,false).is_empty(),"no inspection walker")

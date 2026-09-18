@@ -182,10 +182,13 @@ func _briefing(h) -> bool:
 	return h.failures == 0
 
 func _capture_loading(route: String, _screen: Control, h) -> void:
-	if route != "deploying" or h._capture_dir.is_empty(): return
+	if route != "deploying": return
 	await h.process_frame
-	await RenderingServer.frame_post_draw
 	if not h.check(h._game._ui.current_route == "deploying", "loading is visible before actual raid startup"): return
+	var timer := h._game._ui.screen.get_node_or_null("FrontflowDeployTimer") as Timer
+	h.check(timer == null or timer.is_stopped(), "production loading never uses the fixture auto-advance timer")
+	if h._capture_dir.is_empty(): return
+	await RenderingServer.frame_post_draw
 	await h.capture("07-deploying.png", false)
 	_loading_capture_done = true
 

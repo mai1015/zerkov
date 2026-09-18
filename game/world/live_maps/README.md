@@ -49,10 +49,30 @@ unsupported collision shapes, blocked/unreachable approaches or budget overflow
 reject preflight before deployment. The finite collider limits are 1,024 movement,
 1,024 shot obstacles and 4,096 sight segments. There is no silent truncation.
 
-Preflight currently performs synchronous integrity/geometry/navigation checks.
-Large-map loading time and steady-state performance still need target-hardware
-qualification. Tests that advance canonical ticks explicitly do not prove 60 or
-120 displayed FPS. No scenery is downscaled to improve a reported timing result.
+Selecting a native map in the briefing reads only its committed, derived tactical
+preview. It does not instantiate the authored world, inspect collision, bake
+navigation, reserve gear or write the profile. The real deployment action first
+renders the existing loading route, then performs source/dependency integrity,
+scene, collision and anchor preflight while the home owner is still intact. Only a
+successful preflight may save/retire home and create escrow. A failure returns to
+the briefing without changing the saved loadout.
+
+Large-map navigation grids are committed as derived caches under `cache/`. Runtime
+accepts one only when its map identity, bounds, collision-geometry digest, payload
+shape, reciprocal edge relations and final grid digest validate. Missing/stale
+cache data falls back to a fresh authoritative bake behind the loading screen.
+Regenerate or verify the committed records explicitly; normal startup never writes
+project files:
+
+```sh
+"$ZERKOV_GODOT" --headless --path . --script res://tools/build_live_map_cache.gd -- --write
+"$ZERKOV_GODOT" --headless --path . --script res://tools/build_live_map_cache.gd -- --check
+```
+
+Preflight remains synchronous after the loading screen is visible. Large-map load
+time and steady-state rendering still need target-hardware qualification. Tests
+that advance canonical ticks explicitly do not prove 60 or 120 displayed FPS. No
+scenery is downscaled to improve a reported timing result.
 
 ## Persistence and ownership
 
