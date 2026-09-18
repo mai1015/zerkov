@@ -14,6 +14,7 @@ var map_id: String = "sawmill"
 var native_map: NativeRaidMap
 var _map_lights: Array[PointLight2D] = []
 var _last_light_camera := Vector2.INF
+var _roof_cutaway: LocalRoofCutawayController
 var player_movement: ZPlayerLocomotion
 var player_input: RaidGameplayInput
 var player_router: ZCombatActionRouter
@@ -156,6 +157,8 @@ func advance() -> bool:
 	if not hud_model.publish(frame): return _fail(&"local_hud_frame_invalid")
 	camera.follow_locomotion(player_movement)
 	_update_map_lights()
+	if _roof_cutaway != null:
+		_roof_cutaway.update_position(player_movement.position_px)
 	for key: String in _actors:
 		var row: Dictionary = rows[key]
 		if not _actors[key].present(row.movement.position_px, row.movement.velocity_px,
@@ -203,6 +206,8 @@ func release() -> bool:
 	if player_router != null: player_router.release()
 	for router: ZCombatActionRouter in _routers.values(): router.release()
 	if hud_model != null: hud_model.release()
+	if _roof_cutaway != null:
+		_roof_cutaway.release()
 	for presenter: LocalActorPresenter in _actors.values(): presenter.release()
 	if raid != null and raid.lifecycle in [RaidAuthority.Lifecycle.ACTIVE, RaidAuthority.Lifecycle.EXTRACTING, RaidAuthority.Lifecycle.PREPARING]:
 		if not raid.transition(RaidAuthority.Lifecycle.FAILED, _generation): return _fail(raid.last_error)
@@ -284,6 +289,10 @@ func _build_visuals() -> bool:
 	camera.configure(world_bounds(), player_movement.position_px)
 	if native_map!=null:
 		camera.zoom=Vector2(3,3)
+		_roof_cutaway = LocalRoofCutawayController.new()
+		add_child(_roof_cutaway)
+		if not _roof_cutaway.configure(_world_scene, player_movement.position_px):
+			return _fail(&"local_roof_cutaway_invalid")
 		for light:Node in _world_scene.find_children("*","PointLight2D",true,false): _map_lights.append(light)
 		for key:String in crate_keys()+[exit_key()]:
 			var label:=Label.new()

@@ -110,7 +110,7 @@ func _test_map_preflight() -> void:
 		check(map!=null,"authored production-sized-player map preflight "+id)
 		if map==null:continue
 		check(V.valid_map_descriptor(map.descriptor()) and map.descriptor().is_read_only(),"immutable closed descriptor")
-		check(map.solids().size()==(681 if id=="northline" else 189),"every authored solid accounted")
+		check(map.solids().size()==(694 if id=="northline" else 189),"every authored solid accounted")
 		check(map.occluders().size()<RaidVisionActorRegistry.MAX_SEGMENTS and map.obstructions().size()<BodyHitboxWorld2D.MAX_OBSTRUCTIONS,"all sight/shot geometry within explicit budgets")
 		check(map.anchors().size()==7 and map.grid().is_baked(),"explicit finite gameplay anchor set")
 		var world:=map.build_movement(3)

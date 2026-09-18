@@ -1,7 +1,7 @@
 name: Native offline raid integration
 on:
   pull_request:
-    paths: ['.github/workflows/native-raids.yml', 'game/world/live_maps/**', 'game/world/blackwater_crossing/**', 'game/world/northline_native/**', 'game/world/movement/**', 'game/world/navigation/**', 'game/bootstrap/local/**', 'game/raid/progression/**', 'game/combat/**', 'game/ai/vision/**', 'game/presentation/local/**', 'ui/core/local/**', 'tests/raid/live_maps*', 'tests/local/local_flow_player_driver.gd', 'tests/tooling/test_live_maps_runner.py', 'tools/run_live_maps_contracts.py', 'config/first_playable_1080_gate.json']
+    paths: ['.github/workflows/native-raids.yml', 'game/world/live_maps/**', 'game/world/buildings/**', 'game/world/blackwater_crossing/**', 'game/world/northline_native/**', 'game/world/movement/**', 'game/world/navigation/**', 'game/bootstrap/local/**', 'game/raid/progression/**', 'game/combat/**', 'game/ai/vision/**', 'game/presentation/local/**', 'ui/core/local/**', 'tests/raid/live_maps*', 'tests/local/local_flow_player_driver.gd', 'tests/tooling/test_live_maps_runner.py', 'tests/tooling/test_roofed_clinic.py', 'tools/run_live_maps_contracts.py', 'config/first_playable_1080_gate.json']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +20,7 @@ jobs:
       - name: Verify source, original sheets and exact display policy
         run: |
           python3 tests/tooling/test_live_maps_runner.py
+          python3 -m unittest tests.tooling.test_roofed_clinic -v
           python3 tests/tooling/test_ui_first_playable_scope.py
           python3 tools/check_first_playable_1080.py
           python3 tools/install_northline_native_sources.py --verify
@@ -82,4 +83,49 @@ jobs:
           path: |
             ${{ runner.temp }}/native-raids
             ${{ runner.temp }}/native-identity
+          retention-days: 14
+
+  clinic-visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Install exact Godot and Xvfb
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri
+          curl --fail --location --retry 3 https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+      - name: Build isolated clinic review
+        env:
+          PROJECT_B64: "Y29uZmlnX3ZlcnNpb249NQpbYXBwbGljYXRpb25dCmNvbmZpZy9uYW1lPSJOb3J0aGxpbmUgcm9vZmVkIGNsaW5pYyBuYXRpdmUgcmV2aWV3Igpjb25maWcvZmVhdHVyZXM9UGFja2VkU3RyaW5nQXJyYXkoIjQuNyIsICJHTCBDb21wYXRpYmlsaXR5IikKW2Rpc3BsYXldCndpbmRvdy9zaXplL3ZpZXdwb3J0X3dpZHRoPTE5MjAKd2luZG93L3NpemUvdmlld3BvcnRfaGVpZ2h0PTEwODAKd2luZG93L3NpemUvd2luZG93X3dpZHRoX292ZXJyaWRlPTE5MjAKd2luZG93L3NpemUvd2luZG93X2hlaWdodF9vdmVycmlkZT0xMDgwCltyZW5kZXJpbmddCnJlbmRlcmVyL3JlbmRlcmluZ19tZXRob2Q9ImdsX2NvbXBhdGliaWxpdHkiCg=="
+          DRIVER_B64: "ZXh0ZW5kcyBTY2VuZVRyZWUKY29uc3QgQ29udHJvbGxlcj1wcmVsb2FkKCJyZXM6Ly9nYW1lL3ByZXNlbnRhdGlvbi9sb2NhbC9sb2NhbF9yb29mX2N1dGF3YXlfY29udHJvbGxlci5nZCIpCmNvbnN0IEVYQUNUOj1WZWN0b3IyaSgxOTIwLDEwODApCnZhciBjaGVja3M6PTAKdmFyIGZhaWx1cmVzOj0wCnZhciBvdXRwdXQ6PSIiCgpmdW5jIG9rKHZhbHVlOmJvb2wsbGFiZWw6U3RyaW5nKS0+dm9pZDoKICAgIGNoZWNrcys9MQogICAgaWYgbm90IHZhbHVlOgogICAgICAgIGZhaWx1cmVzKz0xCiAgICAgICAgcHVzaF9lcnJvcigiUk9PRkVEX0NMSU5JQ19BU1NFUlQ6ICIrbGFiZWwpCgpmdW5jIGZyYW1lcyhjb3VudDo9NSktPnZvaWQ6CiAgICBmb3IgX2kgaW4gcmFuZ2UoY291bnQpOgogICAgICAgIGF3YWl0IHByb2Nlc3NfZnJhbWUKICAgIGF3YWl0IFJlbmRlcmluZ1NlcnZlci5mcmFtZV9wb3N0X2RyYXcKCmZ1bmMgZmluZ2VycHJpbnQod29ybGQ6Tm9kZSktPlN0cmluZzoKICAgIHZhciByb3dzOj1QYWNrZWRTdHJpbmdBcnJheSgpCiAgICBmb3Igbm9kZTpOb2RlIGluIHdvcmxkLmZpbmRfY2hpbGRyZW4oIioiLCJTdGF0aWNCb2R5MkQiLHRydWUsZmFsc2UpOgogICAgICAgIHZhciBib2R5Oj1ub2RlIGFzIFN0YXRpY0JvZHkyRAogICAgICAgIHJvd3MuYXBwZW5kKHN0cih3b3JsZC5nZXRfcGF0aF90byhib2R5KSkrIjoiK3N0cihib2R5LmNvbGxpc2lvbl9sYXllcikrIjoiK3N0cihib2R5LmNvbGxpc2lvbl9tYXNrKSkKICAgICAgICBmb3IgY2hpbGQ6Tm9kZSBpbiBib2R5LmdldF9jaGlsZHJlbigpOgogICAgICAgICAgICBpZiBjaGlsZCBpcyBDb2xsaXNpb25TaGFwZTJEOgogICAgICAgICAgICAgICAgcm93cy5hcHBlbmQoc3RyKHdvcmxkLmdldF9wYXRoX3RvKGNoaWxkKSkrIjoiK3N0cihjaGlsZC5kaXNhYmxlZCkpCiAgICByb3dzLnNvcnQoKQogICAgcmV0dXJuICJcbiIuam9pbihyb3dzKS5zaGEyNTZfdGV4dCgpCgpmdW5jIHNuYXAobmFtZTpTdHJpbmcpLT52b2lkOgogICAgYXdhaXQgZnJhbWVzKCkKICAgIHZhciBpbWFnZTo9cm9vdC5nZXRfdGV4dHVyZSgpLmdldF9pbWFnZSgpCiAgICBvayhyb290LnNpemU9PUVYQUNULCJyb290IGV4YWN0IikKICAgIG9rKHJvb3QuZ2V0X3Zpc2libGVfcmVjdCgpLnNpemU9PVZlY3RvcjIoRVhBQ1QpLCJ2aWV3cG9ydCBleGFjdCIpCiAgICBvayhpbWFnZS5nZXRfc2l6ZSgpPT1FWEFDVCwiaW1hZ2UgZXhhY3QiKQogICAgb2soaW1hZ2Uuc2F2ZV9wbmcob3V0cHV0LnBhdGhfam9pbihuYW1lKyIucG5nIikpPT1PSywic2F2ZSAiK25hbWUpCgpmdW5jIF9pbml0aWFsaXplKCktPnZvaWQ6CiAgICBjYWxsX2RlZmVycmVkKCJydW4iKQoKZnVuYyBydW4oKS0+dm9pZDoKICAgIHJvb3Quc2l6ZT1FWEFDVAogICAgb3V0cHV0PU9TLmdldF9jbWRsaW5lX3VzZXJfYXJncygpWzBdLnRyaW1fcHJlZml4KCItLW91dHB1dD0iKQogICAgRGlyQWNjZXNzLm1ha2VfZGlyX3JlY3Vyc2l2ZV9hYnNvbHV0ZShvdXRwdXQpCiAgICB2YXIgd29ybGQ6PWxvYWQoInJlczovL2dhbWUvd29ybGQvbGl2ZV9tYXBzL25vcnRobGluZV9saXZlLnRzY24iKS5pbnN0YW50aWF0ZSgpIGFzIE5vZGUyRAogICAgcm9vdC5hZGRfY2hpbGQod29ybGQpCiAgICB2YXIgY2FtZXJhOj1DYW1lcmEyRC5uZXcoKQogICAgY2FtZXJhLnBvc2l0aW9uPVZlY3RvcjIoMTE2OCwxMzA0KQogICAgY2FtZXJhLnpvb209VmVjdG9yMigzLDMpCiAgICBjYW1lcmEuZW5hYmxlZD10cnVlCiAgICByb290LmFkZF9jaGlsZChjYW1lcmEpCiAgICBhd2FpdCBmcmFtZXMoKQogICAgdmFyIGNsaW5pYzo9d29ybGQuZ2V0X25vZGUoIkNsaW5pY0N1dGF3YXkiKSBhcyBOb2RlMkQKICAgIHZhciByb29mOj1jbGluaWMuZ2V0X25vZGUoIkN1dGF3YXlWaXN1YWxzIikgYXMgQ2FudmFzSXRlbQogICAgb2soY2xpbmljIT1udWxsIGFuZCByb29mIT1udWxsLCJjbGluaWMgbW91bnRlZCIpCiAgICBvayhjbGluaWMuZ2V0X21ldGEoImN1dGF3YXlfaWQiKT09Im5vcnRobGluZS5jbGluaWMubWFpbiIsInN0YWJsZSBpZGVudGl0eSIpCiAgICB2YXIgYmVmb3JlOj1maW5nZXJwcmludCh3b3JsZCkKICAgIHZhciBhY3Rvcjo9Tm9kZTJELm5ldygpCiAgICBhY3Rvci52aXNpYmxlPXRydWUKICAgIHdvcmxkLmFkZF9jaGlsZChhY3RvcikKICAgIHZhciBjb250cm9sbGVyOj1Db250cm9sbGVyLm5ldygpCiAgICByb290LmFkZF9jaGlsZChjb250cm9sbGVyKQogICAgb2soY29udHJvbGxlci5jb25maWd1cmUod29ybGQsVmVjdG9yMig5MDAsMTMwMCkpLCJjb25maWd1cmUiKQogICAgb2soY29udHJvbGxlci5ncm91cF9jb3VudCgpPT0xIGFuZCBub3QgY29udHJvbGxlci5pc19vcGVuKCJub3J0aGxpbmUuY2xpbmljLm1haW4iKSwic3RhcnRzIHJvb2ZlZCIpCiAgICBvayhyb29mLm1vZHVsYXRlLmE+Ljk5LCJyb29mIG9wYXF1ZSIpCiAgICBhd2FpdCBzbmFwKCJub3J0aGxpbmUtY2xpbmljLXJvb2ZlZC0xMDgwIikKICAgIGNvbnRyb2xsZXIudXBkYXRlX3Bvc2l0aW9uKFZlY3RvcjIoMTE2OCwxMzA0KSkKICAgIGF3YWl0IGNyZWF0ZV90aW1lciguMjQpLnRpbWVvdXQKICAgIGF3YWl0IGZyYW1lcygpCiAgICBvayhjb250cm9sbGVyLmlzX29wZW4oIm5vcnRobGluZS5jbGluaWMubWFpbiIpLCJlbnRlciBvcGVucyIpCiAgICBvayhyb29mLm1vZHVsYXRlLmE8LjAyLCJyb29mIGhpZGRlbiIpCiAgICBvayhhY3Rvci52aXNpYmxlLCJhY3RvciB2aXNpYmlsaXR5IHVuY2hhbmdlZCIpCiAgICBvayhmaW5nZXJwcmludCh3b3JsZCk9PWJlZm9yZSwiY29sbGlzaW9uIHVuY2hhbmdlZCBpbnNpZGUiKQogICAgYXdhaXQgc25hcCgibm9ydGhsaW5lLWNsaW5pYy1pbnRlcmlvci0xMDgwIikKICAgIHZhciB0cmFuc2l0aW9uczo9Y29udHJvbGxlci50cmFuc2l0aW9uX2NvdW50KCkKICAgIGNvbnRyb2xsZXIudXBkYXRlX3Bvc2l0aW9uKFZlY3RvcjIoMTM1MCwxMzA0KSkKICAgIGF3YWl0IGNyZWF0ZV90aW1lciguMDUpLnRpbWVvdXQKICAgIG9rKGNvbnRyb2xsZXIuaXNfb3Blbigibm9ydGhsaW5lLmNsaW5pYy5tYWluIikgYW5kIGNvbnRyb2xsZXIudHJhbnNpdGlvbl9jb3VudCgpPT10cmFuc2l0aW9ucywiZXhpdCBtYXJnaW4iKQogICAgY29udHJvbGxlci51cGRhdGVfcG9zaXRpb24oVmVjdG9yMigxMzgwLDEzMDQpKQogICAgYXdhaXQgY3JlYXRlX3RpbWVyKC4yNCkudGltZW91dAogICAgYXdhaXQgZnJhbWVzKCkKICAgIG9rKG5vdCBjb250cm9sbGVyLmlzX29wZW4oIm5vcnRobGluZS5jbGluaWMubWFpbiIpIGFuZCByb29mLm1vZHVsYXRlLmE+Ljk4LCJyb29mIHJlc3RvcmVkIikKICAgIG9rKGZpbmdlcnByaW50KHdvcmxkKT09YmVmb3JlLCJjb2xsaXNpb24gdW5jaGFuZ2VkIG91dHNpZGUiKQogICAgY29udHJvbGxlci5yZWxlYXNlKCkKICAgIG9rKHJvb2YubW9kdWxhdGUuYT4uOTksInJlbGVhc2UgcmVzdG9yZXMiKQogICAgcHJpbnQoIlJPT0ZFRF9DTElOSUNfUkVTVUxUIGNoZWNrcz0lZCBmYWlsdXJlcz0lZCIlW2NoZWNrcyxmYWlsdXJlc10pCiAgICBxdWl0KDAgaWYgZmFpbHVyZXM9PTAgZWxzZSAxKQo="
+        run: |
+          PROJECT="$RUNNER_TEMP/clinic-project"
+          mkdir -p "$PROJECT/assets/world" "$PROJECT/game/world" "$PROJECT/game/world/live_maps" "$PROJECT/game/world/buildings" "$PROJECT/game/presentation/local"
+          cp -R assets/world/northline_native "$PROJECT/assets/world/"
+          cp -R game/world/northline_native "$PROJECT/game/world/"
+          cp game/world/live_maps/northline_live.tscn "$PROJECT/game/world/live_maps/"
+          cp game/world/buildings/northline_clinic_cutaway.tscn "$PROJECT/game/world/buildings/"
+          cp game/presentation/local/local_roof_cutaway_controller.gd "$PROJECT/game/presentation/local/"
+          printf '%s' "$PROJECT_B64" | base64 -d > "$PROJECT/project.godot"
+          printf '%s' "$DRIVER_B64" | base64 -d > "$PROJECT/driver.gd"
+      - name: Render exterior and cutaway at native 1080
+        run: |
+          mkdir -p "$RUNNER_TEMP/clinic-evidence"
+          GODOT="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          "$GODOT" --headless --path "$RUNNER_TEMP/clinic-project" --editor --import --quit
+          xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT" --path "$RUNNER_TEMP/clinic-project" --resolution 1920x1080 --audio-driver Dummy --script res://driver.gd -- --output="$RUNNER_TEMP/clinic-evidence" 2>&1 | tee "$RUNNER_TEMP/clinic-evidence/native.log"
+          ! grep -E 'SCRIPT ERROR|ERROR:|Parse Error|ROOFED_CLINIC_ASSERT' "$RUNNER_TEMP/clinic-evidence/native.log"
+          test "$(find "$RUNNER_TEMP/clinic-evidence" -name '*.png' | wc -l)" -eq 2
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: roofed-clinic-native-evidence
+          path: ${{ runner.temp }}/clinic-evidence
           retention-days: 14
