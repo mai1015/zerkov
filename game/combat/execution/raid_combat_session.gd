@@ -53,7 +53,8 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 	weapons = WeaponAuthority.new()
 	add_child(weapons)
 	if not ZerkovCombatContent.configure_authority(weapons).get("ok", false): return _fail(&"combat_catalog_failed")
-	health = HealthConsequenceAdapter.new()
+	var equipment_health := EquipmentHealthConsequenceAdapter.new()
+	health = equipment_health
 	if not health.bind_authority(raid, _generation): return _fail(health.last_error)
 	var contexts := PackedStringArray()
 	var movements := PackedStringArray()
@@ -115,7 +116,18 @@ func start(raid: RaidAuthority, roster: Array[Dictionary], obstructions: Array[D
 			or not medical.configure(owner, admission, identity, owner.generation()) \
 			or not health.attach_medical_inventory(row.actor_id, medical, reload): return _fail(&"combat_medical_binding_failed")
 		row["medical"] = medical
-		if row.actor_id.is_equal(raid.admission().actor_id): local_context = context
+		if row.actor_id.is_equal(raid.admission().actor_id):
+			local_context = context
+			# The equipment adapter is admission-bound to the local player. Reuse
+			# its existing phase-7 grant/revoke contract; widgets never own GAS.
+			var equipment_port := GameplayAbilityEquipmentPort.new()
+			var equipment_abilities := InventoryAbilityAdapter.new()
+			row["equipment_abilities"] = equipment_abilities
+			if not equipment_port.configure(component) or not equipment_abilities.bind_owner(
+				owner, admission, identity, equipment_port, raid, owner.generation()):
+				return _fail(&"combat_equipment_abilities_bind_failed")
+			if not equipment_health.bind_equipment_source(row.actor_id, equipment_abilities):
+				return _fail(&"combat_equipment_health_scope_failed")
 	if local_context == null: return _fail(&"combat_local_inventory_required")
 	hitboxes = BodyHitboxWorld2D.new()
 	var capability := hitboxes.bind_raid_authority(raid, raid.admission().actor_id, ZRaidIntent.Source.PLAYER, _generation)
@@ -230,6 +242,12 @@ func release() -> bool:
 			if not row.context.release_binding(&"teardown", _raid.last_processed_tick): return _fail(row.context.last_error)
 		if row.has("reload") and row.reload.lifecycle in [InventoryWeaponAdapter.Lifecycle.BOUND, InventoryWeaponAdapter.Lifecycle.RECOVERY_REQUIRED]:
 			if not row.reload.release_binding(&"teardown", _raid.last_processed_tick): return _fail(row.reload.last_error)
+		if row.has("equipment_abilities"):
+			var equipment_abilities := row.equipment_abilities as InventoryAbilityAdapter
+			if equipment_abilities.lifecycle != InventoryAbilityAdapter.Lifecycle.UNBOUND:
+				equipment_abilities.release_binding(&"combat_teardown", _raid.last_processed_tick)
+				if equipment_abilities.lifecycle != InventoryAbilityAdapter.Lifecycle.INVALIDATED or not equipment_abilities.current_sources().is_empty():
+					return _fail(&"combat_equipment_abilities_release_failed")
 		if row.has("reconciler"): row.reconciler.release_binding()
 		if row.has("bridge"): row.bridge.release_binding()
 	if health != null and health.lifecycle in [HealthConsequenceAdapter.Lifecycle.BOUND, HealthConsequenceAdapter.Lifecycle.RECOVERY_REQUIRED, HealthConsequenceAdapter.Lifecycle.INVALIDATED]:

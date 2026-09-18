@@ -18,7 +18,7 @@ const SCOPE_RAID: StringName = &"raid"
 
 var last_error: StringName = &""
 
-var _controller := InventoryPresentationController.new()
+var _controller: InventoryPresentationController = InventoryEquipmentController.new()
 var _admission: ZSessionAdmission
 var _profile_view: InventoryView
 var _raid_view: InventoryView

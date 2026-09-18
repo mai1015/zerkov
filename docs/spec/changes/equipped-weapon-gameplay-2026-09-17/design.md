@@ -1,0 +1,7 @@
+# Design
+
+Extend the existing LocalActorPresenter with a bounded presentation-only weapon layer using the shipped item artwork and explicit hand/muzzle anchors. Weapon identity and visibility come from the actor's immutable combat frame, never a fixture or a UI selection. Death and unequip hide the weapon. The current melee action is a temporary melee presentation; it must not overwrite the equipped firearm identity.
+
+Enrich committed shot feedback with value-only origin, endpoint, weapon identity and confirmed consequence data taken from the existing firearm resolver. The presenter must not perform a second collision query, cause damage, decrement ammunition or infer a hit from a ray illustration. Duplicate/stale frames do not replay effects. Rejected/dry shots produce no successful-shot visual. Missing/unsupported weapon artwork does not substitute an AKM. Retain lifecycle/generation isolation.
+
+Tests begin in the actual local campaign and use ordinary UI equip/unequip plus gameplay input. They compare carried item identity, mapped weapon identity, loaded/reserve ammunition, shot receipt, health consequence and rendered weapon state. Use a normal map route to a real enemy for a damage assertion; no test teleports, direct damage, injected weapon state or fabricated successful feedback. Separately test presentation-only adversaries with detached frames. Record 1920x1080 gameplay; fixed movie time is not displayed-FPS acceptance.
