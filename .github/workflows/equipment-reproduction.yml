@@ -23,7 +23,7 @@ jobs:
           python3 - <<'PY'
           import hashlib,json,os,pathlib,subprocess,zipfile
           root=pathlib.Path.cwd(); out=pathlib.Path(os.environ['RUNNER_TEMP'])/'equipment-reproduction.zip'
-          suffixes={'.gd','.uid','.gdshader','.tscn','.tres','.py','.json','.md','.yml','.yaml','.godot','.cfg','.gdextension','.import','.png','.svg','.webp','.jpg','.jpeg','.so','.ttf','.otf','.wav','.ogg'}
+          suffixes={'.gd','.uid','.gdshader','.tscn','.tres','.py','.json','.md','.yml','.yaml','.godot','.cfg','.gdextension','.import','.png','.svg','.webp','.jpg','.jpeg','.so','.dylib','.dll','.ttf','.otf','.wav','.ogg'}
           manifest={}
           with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
               for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
