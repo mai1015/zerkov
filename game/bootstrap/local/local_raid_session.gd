@@ -10,12 +10,16 @@ var progression: RaidProgression
 var interaction: ZInteractionPolicyOwner
 var movement_world: ZMovementWorld2D
 var layout: ZSawmillYardLayout
+var map_id: String = "sawmill"
+var native_map: NativeRaidMap
+var _map_lights: Array[PointLight2D] = []
+var _last_light_camera := Vector2.INF
 var player_movement: ZPlayerLocomotion
 var player_input: RaidGameplayInput
 var player_router: ZCombatActionRouter
 var hud_model: ZCombatHudModel
 var ai: RaidAIRuntime
-var camera := ZWorldCamera2D.new()
+var camera: ZWorldCamera2D
 var crate_ids: Dictionary = {}
 var rows: Dictionary = {}
 var _routers: Dictionary = {}
@@ -33,23 +37,43 @@ var _inside: bool = false
 var _closing: bool = false
 var _world_scene: Node2D
 
-func start(store: ProfileStore, request_id: String, profile_generation: int, seed: int) -> bool:
+func start(store: ProfileStore, request_id: String, profile_generation: int, seed: int, selected_map: String = "sawmill", preflight: NativeRaidMap = null) -> bool:
+	# Admission precedes preflight and assignment. A duplicate start must never
+	# switch an active session's map identity or replace its detached geometry.
 	if _started or not is_inside_tree(): return _fail(&"local_raid_already_started")
+	if not SupplyRunGraph.is_map(selected_map): return _fail(&"local_map_unknown")
+	var candidate: NativeRaidMap = null
+	if selected_map != "sawmill":
+		candidate=preflight if preflight!=null else NativeRaidMap.open(selected_map)
+		if candidate==null or candidate.id()!=selected_map or not RaidProgressionValues.valid_map_descriptor(candidate.descriptor()):
+			return _fail(NativeRaidMap.last_error if candidate==null else &"local_map_preflight_invalid")
+	map_id=selected_map
+	native_map=candidate
 	_started = true
 	deployment = RaidDeployment.new()
-	if not deployment.begin(self, store, request_id, profile_generation, seed): return _fail(deployment.last_error)
+	if not deployment.begin(self, store, request_id, profile_generation, seed, native_map.descriptor() if native_map!=null else {}): return _fail(deployment.last_error)
 	raid = deployment.raid
 	_generation = raid.generation()
 	_inventory_owners.append(deployment.inventory)
-	layout = load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
-	if layout == null: return _fail(&"local_sawmill_missing")
-	movement_world = ZMovementWorldBuilder.build_from_sawmill_layout(layout, _generation)
-	if movement_world == null: return _fail(ZMovementWorldBuilder.last_error)
-	var nav := ZNavigationGrid.bake_from_movement_world(movement_world, layout.size_cells, layout.revision, layout.level_id)
+	var nav: ZNavigationGrid
+	var targets: Dictionary
+	var bake: Dictionary
+	if native_map != null:
+		movement_world=native_map.build_movement(_generation)
+		nav=native_map.grid()
+		targets={"ok":true,"targets":native_map.interaction_targets()}
+		bake={"ok":true,"segments":native_map.occluders()}
+	else:
+		layout = load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
+		if layout == null: return _fail(&"local_sawmill_missing")
+		movement_world = ZMovementWorldBuilder.build_from_sawmill_layout(layout, _generation)
+		if movement_world == null: return _fail(ZMovementWorldBuilder.last_error)
+		nav=ZNavigationGrid.bake_from_movement_world(movement_world, layout.size_cells, layout.revision, layout.level_id)
+		targets=ZInteractionTargetIndex.build_from_sawmill_layout(layout)
+		bake=ZOccluderBake.bake(layout.structures, layout.size_cells)
+	if movement_world == null: return _fail(&"local_map_movement_failed")
 	_navigation = ZNavigationPathService.new()
-	if nav == null or not _navigation.configure(nav, layout.revision): return _fail(&"local_navigation_failed")
-	var targets := ZInteractionTargetIndex.build_from_sawmill_layout(layout)
-	var bake := ZOccluderBake.bake(layout.structures, layout.size_cells)
+	if nav == null or not _navigation.configure(nav, geometry_revision()): return _fail(&"local_navigation_failed")
 	if not targets.ok or not bake.ok: return _fail(&"local_world_data_invalid")
 	interaction = ZInteractionPolicyOwner.new()
 	if not interaction.configure(_generation, targets.targets, bake.segments) \
@@ -75,7 +99,7 @@ func start(store: ProfileStore, request_id: String, profile_generation: int, see
 	if not _create_crates(): return false
 	progression = RaidProgression.new()
 	if not progression.bind(raid, deployment.inventory, combat, interaction, crate_ids,
-		LocalCampaignContent.RAID_LIMIT_TICKS, LocalCampaignContent.EXTRACTION_TICKS, player_movement):
+		LocalCampaignContent.RAID_LIMIT_TICKS, LocalCampaignContent.EXTRACTION_TICKS, player_movement, map_id):
 		return _fail(progression.last_error)
 	for key: String in rows:
 		var encoder: ZCombatInputAdapter = RaidGameplayInput.new() if rows[key].archetype == "player" else ZCombatInputAdapter.new()
@@ -105,7 +129,7 @@ func start(store: ProfileStore, request_id: String, profile_generation: int, see
 		segments.append({"id":index + 1,"a":ZAIValues.encode_point(segment.a),
 			"b":ZAIValues.encode_point(segment.b),"mask":segment.mask,"two_sided":true})
 	_ai_port = LocalRaidAIWorldPort.new()
-	if not _ai_port.configure(raid, combat, rows, _routers, _navigation, layout.revision, segments): return _fail(&"local_ai_port_failed")
+	if not _ai_port.configure(raid, combat, rows, _routers, _navigation, geometry_revision(), segments): return _fail(&"local_ai_port_failed")
 	ai = RaidAIRuntime.new()
 	if not ai.configure(raid.raid_id().canonical_key(), _generation, seed, _ai_port, registry, scav, mutant): return _fail(ai.last_error)
 	_ai_driver = RaidAIPhaseDriver.new()
@@ -131,6 +155,7 @@ func advance() -> bool:
 	var frame := combat.execution.frame_for(raid.admission().actor_id.canonical_key())
 	if not hud_model.publish(frame): return _fail(&"local_hud_frame_invalid")
 	camera.follow_locomotion(player_movement)
+	_update_map_lights()
 	for key: String in _actors:
 		var row: Dictionary = rows[key]
 		if not _actors[key].present(row.movement.position_px, row.movement.velocity_px,
@@ -140,15 +165,15 @@ func advance() -> bool:
 
 func nearest_target() -> String:
 	if raid == null or _released: return ""
-	var candidates: Array[String] = SupplyRunGraph.CRATES.duplicate()
-	candidates.append(SupplyRunGraph.ROAD_GATE)
+	var candidates: Array[String] = crate_keys()
+	candidates.append(exit_key())
 	var selected: String = ""
 	var distance: float = INF
 	for key: String in candidates:
-		var kind: StringName = ZInteractionKind.EXTRACTION_ZONE if key == SupplyRunGraph.ROAD_GATE else ZInteractionKind.CRATE
+		var kind: StringName = ZInteractionKind.EXTRACTION_ZONE if key == exit_key() else ZInteractionKind.CRATE
 		var result := interaction.evaluate_for_actor(raid.admission().actor_id, StringName(key), kind, _generation)
 		if not result.allowed: continue
-		var d := player_movement.position_px.distance_squared_to(layout.cell_center(layout.anchor(key).cell))
+		var d := player_movement.position_px.distance_squared_to(target_position(key))
 		if d < distance: distance = d; selected = key
 	return selected
 
@@ -200,12 +225,16 @@ func _release_ai() -> bool:
 	return true
 
 func _add_actor(id: ZEntityId, archetype: String, anchor_id: String, owner: RaidInventoryOwner) -> bool:
-	var anchor := layout.anchor(anchor_id)
-	if anchor.is_empty(): return _fail(&"local_spawn_anchor_missing")
+	var at: Vector2
+	if native_map!=null: at=native_map.position(archetype)
+	else:
+		var anchor:=layout.anchor(anchor_id)
+		if anchor.is_empty(): return _fail(&"local_spawn_anchor_missing")
+		at=layout.cell_center(anchor.approach_cell)
 	var move := ZPlayerLocomotion.new()
 	var source: ZRaidIntent.Source = ZRaidIntent.Source.PLAYER if archetype == "player" else ZRaidIntent.Source.AI
 	var handler := StringName("local_move_" + archetype)
-	move.configure(id, layout.cell_center(anchor.approach_cell), ZPlayerFacing.Facing4.EAST, source, handler)
+	move.configure(id, at, ZPlayerFacing.Facing4.EAST, source, handler)
 	if not move.attach_movement_world(movement_world) or not move.register_with_authority(raid, _generation): return _fail(move.last_error)
 	var point := ZWorldUnits.godot_to_canonical(move.position_px).vector2i_value
 	rows[id.canonical_key()] = {"actor_id":id,"source":int(source),"movement":move,"movement_handler":handler,
@@ -220,7 +249,7 @@ func _create_crates() -> bool:
 	for index in range(3):
 		var id: int = owner.world_crate_inventory_id if index == 0 else native.create_inventory(String(ZerkovInventoryCatalog.PROFILE_WORLD_CRATE))
 		if id < 1: return _fail(&"local_crate_creation_failed")
-		crate_ids[SupplyRunGraph.CRATES[index]] = id
+		crate_ids[crate_keys()[index]] = id
 		var container: int = native.snapshot(id).get_containers()[0].id
 		var contents: Array = [[ZerkovInventoryCatalog.ITEM_AMMO_762, 60, 3, 0], [ZerkovInventoryCatalog.ITEM_BANDAGE, 2, 4, 0]]
 		if index == 0:
@@ -234,6 +263,7 @@ func _create_crates() -> bool:
 	return true
 
 func _obstructions() -> Array[Dictionary]:
+	if native_map!=null: return native_map.obstructions()
 	var result: Array[Dictionary] = []
 	for structure: Dictionary in layout.structures:
 		if structure.layer != "Obstacles": continue
@@ -246,10 +276,24 @@ func _obstructions() -> Array[Dictionary]:
 	return result
 
 func _build_visuals() -> bool:
-	_world_scene = load("res://game/world/sawmill/sawmill_yard.tscn").instantiate() as Node2D
+	_world_scene = native_map.instantiate_visuals() if native_map!=null else load("res://game/world/sawmill/sawmill_yard.tscn").instantiate() as Node2D
 	add_child(_world_scene)
+	# Allocate with its scene-tree owner, not during rejected/unused sessions.
+	camera = ZWorldCamera2D.new()
 	add_child(camera)
-	camera.configure(layout.world_bounds(), player_movement.position_px)
+	camera.configure(world_bounds(), player_movement.position_px)
+	if native_map!=null:
+		camera.zoom=Vector2(3,3)
+		for light:Node in _world_scene.find_children("*","PointLight2D",true,false): _map_lights.append(light)
+		for key:String in crate_keys()+[exit_key()]:
+			var label:=Label.new()
+			label.text=SupplyRunGraph.exit_title(map_id) if key==exit_key() else SupplyRunGraph.crate_titles(map_id)[crate_keys().find(key)]
+			label.position=target_position(key)+Vector2(-25,5)
+			label.scale=Vector2.ONE/3.0
+			label.add_theme_font_size_override("font_size",21)
+			label.add_theme_color_override("font_color",Color("efbf74"))
+			label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+			_world_scene.add_child(label)
 	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://game/content/art/local_player_manifest.json"))
 	if not value is Dictionary: return _fail(&"local_player_art_manifest_missing")
 	var manifest: Dictionary = value
@@ -262,7 +306,8 @@ func _build_visuals() -> bool:
 		textures[key] = texture
 	for key: String in rows:
 		var presenter := LocalActorPresenter.new()
-		add_child(presenter)
+		if native_map!=null: _world_scene.get_node("Environment/WorldProps").add_child(presenter)
+		else: add_child(presenter)
 		if not presenter.configure(manifest, textures, _generation): return _fail(&"local_player_art_bind_failed")
 		presenter.modulate = Color.WHITE if rows[key].archetype == "player" else (Color(0.85,0.57,0.50) if rows[key].archetype == "scav" else Color(0.68,0.83,0.57))
 		_actors[key] = presenter
@@ -271,3 +316,29 @@ func _build_visuals() -> bool:
 func _fail(reason: StringName) -> bool:
 	last_error = reason
 	return false
+
+func geometry_revision() -> int:
+	return native_map.revision() if native_map!=null else layout.revision
+
+func world_bounds() -> Rect2:
+	return native_map.bounds() if native_map!=null else layout.world_bounds()
+
+func crate_keys() -> Array[String]:
+	return SupplyRunGraph.crates_for(map_id)
+
+func exit_key() -> String:
+	return SupplyRunGraph.exit_for(map_id)
+
+func target_position(key: String) -> Vector2:
+	return native_map.position(key) if native_map!=null else layout.cell_center(layout.anchor(key).cell)
+
+func target_approach(key: String) -> Vector2:
+	return native_map.approach(key) if native_map!=null else layout.cell_center(layout.anchor(key).approach_cell)
+
+func _update_map_lights() -> void:
+	if _map_lights.is_empty() or _last_light_camera==camera.position: return
+	_last_light_camera=camera.position
+	var bounds:=Rect2(camera.position-Vector2(320,180),Vector2(640,360))
+	for light:PointLight2D in _map_lights:
+		var radius:=light.texture.get_width()*light.texture_scale/2.0
+		light.enabled=bounds.grow(radius).has_point(light.global_position)

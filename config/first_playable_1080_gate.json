@@ -15,6 +15,7 @@
     "window/size/window_height_override": 1080
   },
   "active_visual_entrypoints": {
+    "tests/raid/live_maps_flow.gd": {"purpose": "normal offline map selection, native gameplay and guarded exact-1080 captures", "sha256": "8d1b5dad36aff413808ce084e10e64291b86513916d5f95cc981039ebf11a384"},
     "tests/border_render_smoke.gd": {
       "purpose": "native UI border contract",
       "sha256": "17d489c83f39a4bfaa7613d4be445be2b5ff5dd8cfc3539a267062ba200410c9"
@@ -137,7 +138,7 @@
     },
     "tests/local/native_bunker_flow_contract.gd": {
       "purpose": "full native campaign bunker flow with actual input and optional exact guarded captures",
-      "sha256": "fd7781c4c5f0bcd9b439cb3a67e904fa468056d10d72db76c5b15802c27c5988"
+      "sha256": "c4c3b8a14fecfa9e306f96196df4bbe206fe5438b60343646a993cbb981d1a8e"
     },
     "tests/presentation/northline_native_zone_contract.gd": {
       "purpose": "original-PNG nine-district native TileMapLayer map and guarded 1080 capture",
@@ -149,6 +150,7 @@
     }
   },
   "active_command_entrypoints": {
+    "tools/run_live_maps_contracts.py": {"purpose": "isolated real native maps, save failure/restart and original Sawmill regression", "sha256": "ad33734bc80883428e26b96c2f7dedc7f4bf96cfa429eda2f41322ca31a59fd9"},
     "tests/tooling/run_interaction_policy_headless_gate.py": {
       "purpose": "exact headless interaction policy driver",
       "sha256": "a080fe27aa70df44588b433fdd2d963cea4833a3e24770e6670788c2428d73f8"
@@ -223,7 +225,7 @@
     },
     "tools/run_bunker_flow_contracts.py": {
       "purpose": "full application native bunker new/continue input and screenshot driver in a temporary copy",
-      "sha256": "edef3c73b97c7e963813ff0b6d882e2824abec427ddd7c6d91cc19858c9450ba"
+      "sha256": "93b1a480e76665e5a3f3c30f32a9a2f8079ec3fa556450992451a40e38e946f6"
     },
     "tools/run_health_catalog_contracts.py": {
       "purpose": "headless native health-catalog differential and preflight benchmark; no captures or FPS claims",
@@ -256,6 +258,7 @@
     }
   },
   "active_headless_entrypoints": [
+    "tests/raid/live_maps_contract.gd",
     "tools/migrate_northline_freight.gd",
     "tools/migrate_northline_zone_native.gd",
     "tests/combat/health_catalog_performance_contract.gd",
@@ -435,6 +438,7 @@
     ]
   },
   "sanctioned_capture_writers": {
+    "tests/raid/live_maps_flow.gd": {"physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)", "guard_anchors": ["const EXACT := Vector2i(1920,1080)", "root.borderless=true;root.size=EXACT"]},
     "tests/presentation/feature_gates_8_9_contract.gd": {
       "physical_guard_call": "Exact1080CaptureGuard.accepts(root, production_render_target, image)",
       "guard_anchors": [

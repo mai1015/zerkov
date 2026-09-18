@@ -22,3 +22,25 @@ Briefing equipment SHALL use current authorized projections and distinguish empt
 #### Scenario: Unavailable state
 - WHEN an equipment projection or final save receipt is unavailable
 - THEN presentation explains that state without substituting a sample kit or successful outcome
+
+
+### Requirement: Shared sections and page-local details
+The local application SHALL use the same section-navigation component across bunker,
+Character, Tasks, Map/Briefing and Settings. Controls and character subpages SHALL
+remain within page content. The raid SHALL NOT expose a Bunker navigation entry.
+
+#### Scenario: Browse raid sections
+- WHEN a player opens Character during a raid and visits Tasks, Map and Settings
+- THEN the same section header and current-section state are retained
+- AND Escape cancels active key capture before it can leave Settings
+- AND closing the menu returns to the raid under the existing solo pause policy
+
+### Requirement: Raid Character cannot open or disclose unrequested loot
+The reused Character workspace SHALL NOT expose the home stash during a raid or
+render retained world-container content when no container is explicitly open.
+Opening world loot SHALL remain owned by the existing admitted interaction path.
+
+#### Scenario: Character opened without a loot interaction
+- WHEN the player opens Character with no world container open
+- THEN the loot pane is empty and its tab cannot open a default container
+- AND after a valid world interaction the normal opened-loot transfer remains available

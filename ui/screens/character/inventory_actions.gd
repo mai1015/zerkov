@@ -435,7 +435,7 @@ func _close_loot_container(refresh: bool = true) -> void:
     if refresh:
         _refresh_body()
         var stash_tab: Button = call("_node", "StashTab") as Button if has_method("_node") else null
-        if stash_tab != null:
+        if stash_tab != null and stash_tab.is_visible_in_tree() and not stash_tab.disabled:
             stash_tab.call_deferred("grab_focus")
 
 

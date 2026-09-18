@@ -22,7 +22,7 @@ const SECONDS_PER_TICK: float = 1.0 / float(RaidClock.TICK_RATE)
 const MICRO_PER_PX: float = float(ZWorldUnits.VISION_MICROUNITS_PER_WORLD_UNIT) \
 		/ float(ZWorldUnits.GODOT_PIXELS_PER_WORLD_UNIT)
 const MAX_CORRECTION_RECORDS: int = 64
-const MAX_STATIC_COLLIDERS: int = 512
+const MAX_STATIC_COLLIDERS: int = 1024
 const DIGEST_SCHEMA: String = "movement-world-v2"
 
 var last_error: StringName = &""
@@ -146,6 +146,25 @@ func add_static_collider_px(
 	if not min_conversion.ok or not max_conversion.ok:
 		return _fail(&"collider_rect_invalid")
 	return _insert_collider(collider_id, min_conversion.vector2i_value, max_conversion.vector2i_value)
+
+
+## Bounded convex geometry for the saved river-bank polygons. Same generation,
+## identity, ordering, placement and axis-resolution owner as rectangular solids.
+func add_static_polygon_px(collider_id: String, points: PackedVector2Array,
+	expected_generation: int) -> bool:
+	if not _is_mutable_generation(expected_generation): return _fail(&"stale_generation")
+	if collider_id.is_empty() or not ZCanonicalValue.is_bounded(collider_id): return _fail(&"collider_id_invalid")
+	if _collider_ids.has(collider_id): return _fail(&"collider_id_duplicate")
+	if _colliders.size() >= MAX_STATIC_COLLIDERS: return _fail(&"collider_limit")
+	var record := ZConvexCollider.compile_px(points)
+	if record.is_empty(): return _fail(&"collider_polygon_invalid")
+	record["id"] = collider_id
+	var index := _colliders.size()
+	for i in _colliders.size():
+		if String(_colliders[i].id) > collider_id: index=i; break
+	_colliders.insert(index,record)
+	_collider_ids[collider_id]=true
+	return true
 
 
 ## Injects one static blocking rect authored in level cells (1 cell = 1 tile =
@@ -427,6 +446,8 @@ func canonical_record() -> Dictionary:
 			"min": collider["min"],
 			"max": collider["max"],
 		})
+		if collider.has("vertices"):
+			collider_records.back()["vertices"] = collider.vertices.duplicate()
 	var body_records: Array = []
 	var body_keys := _bodies.keys()
 	body_keys.sort()
@@ -558,6 +579,18 @@ func _resolve_axis_move(body: Dictionary, axis_is_x: bool, displacement: int) ->
 			blocking_ids.append(_bounds_collider_id)
 
 	for collider in _colliders:
+		if collider.has("planes"):
+			var interval := ZConvexCollider.axis_limits(collider, position, half, axis_is_x)
+			if interval.is_empty(): continue
+			var requested := start+displacement
+			var limit: int = interval[0] if displacement > 0 else interval[1]
+			var contact: bool = (displacement > 0 and start <= limit and requested > limit) \
+				or (displacement < 0 and start >= limit and requested < limit)
+			if contact:
+				if (displacement > 0 and limit < candidate) or (displacement < 0 and limit > candidate):
+					candidate=limit; blocking_ids.clear()
+				if limit == candidate: blocked=true; blocking_ids.append(String(collider.id))
+			continue
 		var collider_min: Vector2i = collider["min"]
 		var collider_max: Vector2i = collider["max"]
 		if axis_is_x:
@@ -625,6 +658,9 @@ func _body_inside_bounds(position_micro: Vector2i, half_micro: Vector2i) -> bool
 
 func _body_overlaps_any_collider(position_micro: Vector2i, half_micro: Vector2i) -> bool:
 	for collider in _colliders:
+		if collider.has("planes"):
+			if ZConvexCollider.overlaps(collider,position_micro,half_micro): return true
+			continue
 		var collider_min: Vector2i = collider["min"]
 		var collider_max: Vector2i = collider["max"]
 		if position_micro.x - half_micro.x < collider_max.x \

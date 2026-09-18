@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://game/world/northline_native/zone/northline_world.tscn" id="1"]
+
+[node name="NativeRaidMap" type="Node2D"]
+metadata/map_id = "northline"
+metadata/world_bounds = Rect2(0, 0, 2688, 1792)
+metadata/movement_only = PackedStringArray("BoundaryAndFences/BoundarySegment007", "BoundaryAndFences/BoundarySegment008")
+
+[node name="Environment" parent="." instance=ExtResource("1")]
+
+[node name="GameplayAnchors" type="Node2D" parent="."]
+
+[node name="player" type="Marker2D" parent="GameplayAnchors"]
+position = Vector2(144, 816)
+metadata/gameplay_id = "player"
+
+[node name="scav" type="Marker2D" parent="GameplayAnchors"]
+position = Vector2(944, 784)
+metadata/gameplay_id = "scav"
+
+[node name="mutant" type="Marker2D" parent="GameplayAnchors"]
+position = Vector2(816, 464)
+metadata/gameplay_id = "mutant"
+
+[node name="road_gate" type="Marker2D" parent="GameplayAnchors"]
+position = Vector2(48, 816)
+metadata/gameplay_id = "zerkov.extract.northline.road_gate"
+metadata/zone_cells = Rect2i(1, 24, 2, 3)
+
+[node name="SupplyRunTarget" type="Marker2D" parent="Environment/WorldProps/Checkpoint/northline_zone_prop_0005"]
+position = Vector2(0, 1)
+metadata/gameplay_id = "zerkov.loot.northline.crate.a"
+
+[node name="Approach" type="Marker2D" parent="Environment/WorldProps/Checkpoint/northline_zone_prop_0005/SupplyRunTarget"]
+position = Vector2(-14, 27)
+
+[node name="SupplyRunTarget" type="Marker2D" parent="Environment/WorldProps/Freight/northline_zone_prop_0053"]
+position = Vector2(0, 1)
+metadata/gameplay_id = "zerkov.loot.northline.crate.b"
+
+[node name="Approach" type="Marker2D" parent="Environment/WorldProps/Freight/northline_zone_prop_0053/SupplyRunTarget"]
+position = Vector2(16, 29)
+
+[node name="SupplyRunTarget" type="Marker2D" parent="Environment/WorldProps/Rail/northline_zone_prop_0040"]
+position = Vector2(0, 1)
+metadata/gameplay_id = "zerkov.loot.northline.crate.c"
+
+[node name="Approach" type="Marker2D" parent="Environment/WorldProps/Rail/northline_zone_prop_0040/SupplyRunTarget"]
+position = Vector2(-8, 27)
+
+[editable path="Environment"]

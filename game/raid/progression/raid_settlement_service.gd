@@ -16,13 +16,14 @@ func configure(store: ProfileStore, inventory: SettlementInventoryPort) -> bool:
 
 ## The selected loadout already belongs to this immutable profile generation.
 ## No fixture items are created. All profile mutations must honor active escrow.
-func deploy(request_id: String, expected_generation: int) -> Dictionary:
+func deploy(request_id: String, expected_generation: int, map_descriptor: Dictionary = {}) -> Dictionary:
 	if not _enter(): return V.failure(&"settlement_service_unavailable_or_busy")
-	var result := _deploy(request_id, expected_generation)
+	var result := _deploy(request_id, expected_generation, map_descriptor)
 	_busy = false
 	return V.freeze(result)
 
-func _deploy(request_id: String, expected_generation: int) -> Dictionary:
+func _deploy(request_id: String, expected_generation: int, map_descriptor: Dictionary = {}) -> Dictionary:
+	if not map_descriptor.is_empty() and not V.valid_map_descriptor(map_descriptor): return V.failure(&"deployment_map_invalid")
 	if not ZIdentityRules.is_valid(request_id, &"request"): return V.failure(&"deployment_request_invalid")
 	var current := _read()
 	if not current.ok: return current
@@ -33,9 +34,11 @@ func _deploy(request_id: String, expected_generation: int) -> Dictionary:
 		if not bytes is PackedByteArray: return V.failure(&"settlement_history_invalid")
 		var receipt := V.decode(bytes)
 		if receipt.get("deployment_request") == request_id:
+			if receipt.get("map",{}) != map_descriptor: return V.failure(&"deployment_map_conflict")
 			return {"ok": true, "status": &"already_settled", "receipt": receipt, "committed": true, "replayed": true}
 	if not state.active.is_empty():
 		if state.active.get("request_id") == request_id and state.active.get("start_generation") == expected_generation:
+			if state.active.get("map",{}) != map_descriptor: return V.failure(&"deployment_map_conflict")
 			return _deployment_result(current, true)
 		return V.failure(&"profile_has_active_raid")
 	if current.generation != expected_generation: return V.failure(&"profile_generation_stale")
@@ -52,6 +55,7 @@ func _deploy(request_id: String, expected_generation: int) -> Dictionary:
 		"start_generation": expected_generation, "start_fingerprint": current.fingerprint,
 		"escrow_digest": domains[V.LOADOUT].hex_encode().sha256_text(),
 		"resume_enabled": false}
+	if not map_descriptor.is_empty(): state.active["map"]=map_descriptor.duplicate(true)
 	next.project[V.STATE_KEY] = state
 	var saved := _save(next, current.generation)
 	if not saved.ok: return saved
@@ -79,7 +83,10 @@ func _prepare(raid_id: String, terminal: Dictionary, loadout: PackedByteArray) -
 	if not current.ok: return current
 	var state: Dictionary = current.payload.project.get(V.STATE_KEY, {})
 	if not V.valid_state(state): return V.failure(&"raid_profile_schema_invalid")
-	var input_digest := V.digest({"terminal": terminal, "loadout": loadout})
+	var input: Dictionary = {"terminal": terminal, "loadout": loadout}
+	var pinned: Dictionary = V.decode(state.history[raid_id]) if state.history.has(raid_id) else state.active
+	if pinned.has("map"): input["map"]=pinned.map
+	var input_digest := V.digest(input)
 	if input_digest.is_empty(): return V.failure(&"settlement_input_unbounded")
 	if state.history.has(raid_id):
 		var receipt := V.decode(state.history[raid_id])
@@ -106,6 +113,7 @@ func _prepare(raid_id: String, terminal: Dictionary, loadout: PackedByteArray) -
 		"valuation_available": false, "currency_reward": 0,
 		"inventory_digest": plan.record.hex_encode().sha256_text(),
 		"profile_generation": int(current.generation) + 2}
+	if active.has("map"): receipt["map"]=active.map.duplicate(true)
 	var encoded := V.encode(receipt)
 	if encoded.is_empty(): return V.failure(&"settlement_receipt_unbounded")
 	var next: Dictionary = current.payload.duplicate(true)
