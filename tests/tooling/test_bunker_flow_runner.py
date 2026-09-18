@@ -144,5 +144,29 @@ class RunnerTests(unittest.TestCase):
         with patch.dict(runner.os.environ, {"ZERKOV_OFFLINE_JOURNEY": "1"}):
             self.assertEqual(0, self.run_main(execute))
 
+    def test_loot_requires_its_own_completion(self):
+        self.assertEqual(1, self.run_main(suite="loot"))
+        self.assertIn("cleanup", self.calls[-1])
+        self.assertFalse((self.out / "result.json").exists())
+
+    def test_loot_is_exclusive_and_recorded(self):
+        def execute(command, env, *args, **kwargs):
+            self.assertEqual("1", env["ZERKOV_CONTEXTUAL_LOOT"])
+            self.assertEqual("0", env["ZERKOV_OFFLINE_JOURNEY"])
+            self.assertEqual("0", env["ZERKOV_BUNKER_WORKSPACES"])
+            value = self.result(command, env, *args, **kwargs)
+            if "new" in command or "continue" in command:
+                value += "CONTEXTUAL_LOOT_COMPLETE native=true\n"
+            return value
+        self.assertEqual(0, self.run_main(execute, suite="loot"))
+        self.assertEqual("loot", json.loads((self.out / "result.json").read_text())["suite"])
+
+    def test_hub_does_not_inherit_loot_environment(self):
+        def execute(command, env, *args, **kwargs):
+            self.assertEqual("0", env["ZERKOV_CONTEXTUAL_LOOT"])
+            return self.result(command, env, *args, **kwargs)
+        with patch.dict(runner.os.environ, {"ZERKOV_CONTEXTUAL_LOOT": "1"}):
+            self.assertEqual(0, self.run_main(execute))
+
 if __name__ == "__main__":
     unittest.main()
