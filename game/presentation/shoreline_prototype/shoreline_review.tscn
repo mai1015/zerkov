@@ -1,0 +1,41 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/review/review.gd" id="1_kicwe"]
+[ext_resource type="PackedScene" path="res://game/presentation/shoreline_prototype/scenes/coastal_compound.tscn" id="2_42v5o"]
+[ext_resource type="PackedScene" path="res://game/presentation/shoreline_prototype/review/player.tscn" id="3_ry2p8"]
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/review/player.gd" id="4_j5n75"]
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/review/hud.gd" id="5_p3k7q"]
+
+[node name="PinecrestReview" type="Node2D" unique_id=955403827]
+texture_filter = 1
+script = ExtResource("1_kicwe")
+
+[node name="World" type="Node2D" parent="." unique_id=1390450485 instance=ExtResource("2_42v5o")]
+y_sort_enabled = true
+texture_filter = 1
+
+[node name="Player" type="CharacterBody2D" parent="World" unique_id=1446282798 instance=ExtResource("3_ry2p8")]
+position = Vector2(1015, 505)
+collision_layer = 2
+script = ExtResource("4_j5n75")
+
+[node name="Camera" type="Camera2D" parent="." unique_id=351045483]
+position = Vector2(896, 512)
+zoom = Vector2(1.0714, 1.0714)
+limit_left = 0
+limit_top = 0
+limit_right = 1792
+limit_bottom = 1024
+
+[node name="AmbientTone" type="CanvasModulate" parent="." unique_id=981609610]
+color = Color(0.98, 0.97, 0.93, 1)
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1934021223]
+
+[node name="Overlay" type="Control" parent="HUD" unique_id=789946472]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("5_p3k7q")

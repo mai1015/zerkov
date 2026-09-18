@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_o3hl8"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_1qbnj"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/props/wood_crate_stack.tres" id="3_clpba"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_dysuo"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/wood_crate_stack_shadow.tres" id="5_ufocc"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_xwrdk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_scxt4"]
+size = Vector2(36.5, 14.04)
+
+[node name="WoodCrateStack" type="Node2D" unique_id=771116195]
+script = ExtResource("1_o3hl8")
+sun_profile = ExtResource("2_1qbnj")
+asset_id = "wood_crate_stack"
+silhouette_height = 52.0
+physical_height = 33.800000000000004
+ground_size = Vector2(36.5, 14.04)
+search_label = "wood crate stack"
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=144278344]
+texture_filter = 1
+texture = ExtResource("3_clpba")
+offset = Vector2(0, -26)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=958053222]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_dysuo")
+scale = Vector2(1, -0.49399996)
+skew = -0.8901179
+texture = ExtResource("5_ufocc")
+offset = Vector2(0, -26)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=36476181]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_dysuo")
+position = Vector2(0, -7.02)
+scale = Vector2(0.6273437, 0.2413125)
+texture = ExtResource("6_xwrdk")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=818300014]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=1666529713]
+position = Vector2(0, -7.02)
+shape = SubResource("RectangleShape2D_scxt4")

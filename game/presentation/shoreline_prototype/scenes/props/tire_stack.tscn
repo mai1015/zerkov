@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_uvbsx"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_8s5et"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/props/tire_stack.tres" id="3_inomc"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_uqft5"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/tire_stack_shadow.tres" id="5_b7yl0"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_e0pnr"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4o5uq"]
+size = Vector2(30.66, 9.18)
+
+[node name="TireStack" type="Node2D" unique_id=1130117479]
+script = ExtResource("1_uvbsx")
+sun_profile = ExtResource("2_8s5et")
+asset_id = "tire_stack"
+silhouette_height = 34.0
+physical_height = 22.1
+ground_size = Vector2(30.66, 9.18)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=353501124]
+texture_filter = 1
+texture = ExtResource("3_inomc")
+offset = Vector2(0, -17)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=1814270617]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_uqft5")
+scale = Vector2(1, -0.49399996)
+skew = -0.8901179
+texture = ExtResource("5_b7yl0")
+offset = Vector2(0, -17)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=1577388646]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_uqft5")
+position = Vector2(0, -4.59)
+scale = Vector2(0.5269688, 0.15778126)
+texture = ExtResource("6_e0pnr")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=365709426]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=1639945937]
+position = Vector2(0, -4.59)
+shape = SubResource("RectangleShape2D_4o5uq")
