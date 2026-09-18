@@ -9,9 +9,8 @@ class RoofedClinicSourceTests(unittest.TestCase):
         self.assertIn("northline_clinic_cutaway.tscn", live)
         self.assertIn("position = Vector2(992, 1200)", live)
         clinic = (ROOT / "game/world/buildings/northline_clinic_cutaway.tscn").read_text()
-        self.assertNotIn('type="StaticBody2D"', clinic)
-        self.assertNotIn('type="Area2D"', clinic)
-        self.assertNotIn("metadata/gameplay_id", clinic)
+        self.assertGreaterEqual(clinic.count('type="StaticBody2D"'), 13)\n        self.assertIn('metadata/room_plan = "west_exam|central_treatment|east_ward|west_recovery|reception|east_recovery"', clinic)\n        self.assertNotIn('type="Area2D"', clinic)
+        self.assertNotIn("metadata/gameplay_id", clinic)\n        self.assertGreaterEqual(clinic.count("metadata/interior_partition = true"), 13)
         self.assertNotIn("script = ", clinic)
 
     def test_roof_has_explicit_cutaway_contract_and_landmarks(self):
