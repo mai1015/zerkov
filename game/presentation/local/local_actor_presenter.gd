@@ -4,6 +4,8 @@ extends Node2D
 ## sampled after successful raid closeout. Never authorizes a gameplay outcome.
 var _state := ZPlayerAnimationState.new()
 var _layers := ZLayeredPlayerPresenter.new()
+var _weapon: LocalWeaponPresenter
+var _last_frame: Dictionary = {}
 var _sequence: int = 0
 var _generation: int = 0
 var _dead: bool = false
@@ -13,11 +15,18 @@ func configure(manifest: Dictionary, textures: Dictionary, generation: int) -> b
 	if _generation != 0 or not _state.configure(manifest.get("clips", {}), generation): return false
 	add_child(_layers)
 	if not _layers.configure(manifest, textures, generation): return false
+	_weapon = LocalWeaponPresenter.new()
+	add_child(_weapon)
+	if not _weapon.configure(generation): return false
 	_generation = generation
 	return true
 
 func present(pose: Vector2, velocity: Vector2, facing: Vector2, frame: Dictionary) -> bool:
 	if _generation == 0 or frame.is_empty() or frame.get("generation") != _generation: return false
+	if not _weapon.present(pose, facing, frame): return false
+	# Re-presenting a closed tick must not restart its committed melee clip.
+	if not _last_frame.is_empty() and frame.tick == _last_frame.tick: return frame == _last_frame
+	_last_frame = frame
 	var tick: int = frame.tick
 	if not _state.advance_to(tick): return false
 	position = pose.round()
@@ -45,6 +54,9 @@ func present(pose: Vector2, velocity: Vector2, facing: Vector2, frame: Dictionar
 func release() -> void:
 	_state.release()
 	_layers.release()
+	if _weapon != null: _weapon.release()
+	_last_frame = {}
+	_generation = 0
 
 func _event(kind: String, tick: int) -> bool:
 	_sequence += 1

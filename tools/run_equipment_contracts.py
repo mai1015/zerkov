@@ -116,10 +116,13 @@ def main() -> int:
             "tests/equipment/equipment_ui_flow.gd",
             "tests/equipment/equipment_gesture_driver.gd",
             "tests/equipment/equipment_deploy_driver.gd",
+            "tests/equipment/equipment_gameplay_driver.gd",
         ):
             execute(base + ["--check-only", "--script", "res://" + path], env, timeout=30)
         for path, marker in [
             ("tests/equipment/equipment_contract.gd", "EQUIPMENT_CONTRACT_RESULT"),
+            ("tests/equipment/weapon_presentation_contract.gd", "WEAPON_PRESENTATION_RESULT"),
+            ("tests/combat/native_combat_execution_contract.gd", "NATIVE_COMBAT_EXECUTION_RESULT"),
             ("tests/raid/equipped_item_reconciliation_contract.gd", "EQUIPPED_ITEM_RECONCILIATION_RESULT"),
             ("tests/raid/inventory_ability_reconciliation_contract.gd", "INVENTORY_ABILITY_RECONCILIATION_RESULT"),
             ("tests/presentation/character_ui_binding_8_6_contract.gd", "CHARACTER_UI_BINDING_8_6_RESULT"),
@@ -139,7 +142,7 @@ def main() -> int:
                     command += ["--fullscreen", "--rendering-method", "gl_compatibility", "--write-movie", str(output / (stage + ".avi")), "--fixed-fps", "15"]
                     stage_env["ZERKOV_EQUIPMENT_MOVIE"] = "1"
                 log = execute(command + ["--script", "res://tests/equipment/equipment_ui_flow.gd", "--", stage, namespace] + saved,
-                              stage_env, "EQUIPMENT_UI_RESULT", 240)
+                              stage_env, "EQUIPMENT_UI_RESULT", 660 if args.capture_dir else 240)
                 match = re.search(r"(?m)^EQUIPMENT_UI_SAVE item=([1-9][0-9]*) fingerprint=([0-9a-f]{64})$", log)
                 if not match:
                     raise RuntimeError("Missing exact saved identity/fingerprint")

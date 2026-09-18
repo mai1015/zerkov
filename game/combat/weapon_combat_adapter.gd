@@ -227,6 +227,13 @@ func resolved_consequence(weapon_consequence_id: String) -> Dictionary:
 	return _read_only_copy(entry.get("result", {}) as Dictionary)
 
 
+## Value-only presentation of the already-resolved ray. This sidecar is not a
+## second query and does not alter the authoritative consequence or its digest.
+func resolved_presentation(weapon_consequence_id: String) -> Dictionary:
+	var entry := _resolved_by_identity.get(weapon_consequence_id, {}) as Dictionary
+	return _read_only_copy(entry.get("presentation", {}) as Dictionary)
+
+
 ## Read-only evidence for event-driven scheduling contracts.
 func work_counts() -> Dictionary:
 	return _read_only_copy({
@@ -614,7 +621,15 @@ func _resolve_pending(entry: Dictionary) -> bool:
 		consequence, _raid_generation):
 		return _reject(_authority.last_error)
 	_resolved_by_identity[identity] = {
-		"fingerprint": fingerprint, "result": consequence.duplicate(true)}
+		"fingerprint": fingerprint, "result": consequence.duplicate(true),
+		"presentation": _read_only_copy({
+			"id": consequence.consequence_id, "kind": &"shot",
+			"actor_id": consequence.actor_id, "tick": tick,
+			"weapon_instance_id": consequence.weapon_instance_id,
+			"weapon_id": consequence.weapon_id,
+			"origin_raw": geometry.origin_raw,
+			"target_raw": consequence.hit_point_raw if consequence.hit or consequence.blocked else geometry.target_raw,
+			"hit": consequence.hit, "blocked": consequence.blocked})}
 	_last_result = consequence.duplicate(true)
 	var publication := _read_only_copy(consequence)
 	_public_signal_active = true

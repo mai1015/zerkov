@@ -56,6 +56,13 @@ func _apply_combat_view(view: Dictionary) -> void:
 	(get_node("WeaponGroup/AmmoReserve") as Label).text = "/ " + str(view.reserve) if available else ""
 	(get_node("WeaponGroup/WeaponName") as Label).text = "AKM · 7.62×39" if available and view.has_weapon else "NO FIREARM"
 	(get_node("WeaponGroup/FireMode") as Label).text = "SEMI" if available and view.has_weapon else ""
+	# Authored preview slots are not proof of equipped gameplay items.
+	var primary: bool = available and view.alive and view.has_weapon
+	var melee: bool = available and view.alive and view.get("has_melee", false)
+	for suffix: String in ["Icon", "Slot"]:
+		get_node("WeaponGroup/Primary" + suffix).visible = primary
+		get_node("WeaponGroup/Secondary" + suffix).visible = false
+		get_node("WeaponGroup/Melee" + suffix).visible = melee
 	# Task 7 owns these projections; suppress authored demonstration claims.
 	(get_node("TimerGroup/Timer") as Label).text = "—"
 	(get_node("TimerGroup/Extract") as Label).text = "RAID PROGRESSION UNAVAILABLE"

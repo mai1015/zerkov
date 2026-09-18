@@ -58,6 +58,16 @@ func _route_state() -> String:
 		game._mode, game._ui.navigator.has_work(), String(game.last_error)]
 
 func key(code: Key) -> void:
+	# Native tooltips legitimately consume Escape before global Back. Move
+	# through ordinary pointer input to neutral content, then test one Escape.
+	# This is not a route retry, direct dismissal or relaxed input precedence.
+	if code == KEY_ESCAPE:
+		var neutral := Vector2(940, 78)
+		if filming: root.warp_mouse(neutral)
+		var motion := InputEventMouseMotion.new()
+		motion.position = neutral; motion.global_position = neutral
+		Input.parse_input_event(motion); Input.flush_buffered_events()
+		if cursor != null: cursor.position = neutral
 	await settle()
 	if failures > 0: return
 	var before := _route_state()
@@ -80,14 +90,19 @@ func linger(label: String) -> void:
 func click(control: Control) -> bool:
 	if not check(control != null and control.is_visible_in_tree(), "visible real input target"): return false
 	var point := control.get_global_rect().get_center()
+	# Native hover/drag reads the OS pointer as well as injected events. Keep
+	# both on the clicked control; never force navigation after an input.
+	if filming: root.warp_mouse(point)
 	var motion := InputEventMouseMotion.new()
 	motion.position = point; motion.global_position = point
-	root.push_input(motion)
+	Input.parse_input_event(motion)
+	Input.flush_buffered_events()
 	if cursor != null: cursor.position = point
 	for down: bool in [true, false]:
 		var event := InputEventMouseButton.new()
-		event.position = point; event.button_index = MOUSE_BUTTON_LEFT; event.pressed = down
-		root.push_input(event)
+		event.position = point; event.global_position = point; event.button_index = MOUSE_BUTTON_LEFT; event.pressed = down
+		Input.parse_input_event(event)
+		Input.flush_buffered_events()
 	await settle()
 	return failures == 0
 
@@ -229,6 +244,8 @@ func run(scene_tree: SceneTree) -> void:
 		await linger("Raid receives the same saved primary")
 		var deployed = load("res://tests/equipment/equipment_deploy_driver.gd").new()
 		if not await deployed.run(self, weapon_id): await finish(); return
+		var gameplay = load("res://tests/equipment/equipment_gameplay_driver.gd").new()
+		if not await gameplay.run(self, weapon_id): await finish(); return
 	if args[0] != "deploy":
 		await key(KEY_ESCAPE)
 		check(route("bunker"), "normal workspace exit saves loadout")

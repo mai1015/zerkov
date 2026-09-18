@@ -64,6 +64,7 @@ func publish(frame: Dictionary) -> bool:
 	_view = _frozen({"available": true, "actor_id": _actor, "generation": _generation, "tick": _tick,
 		"alive": frame.health.alive, "ammo": int(weapon.get("loaded_rounds", 0)),
 		"has_weapon": not weapon.is_empty(), "reserve": int(frame.reserve_rounds),
+		"has_melee": frame.get("melee_equipment", {}).get("definition_id") == "zerkov.weapon.machete",
 		"health_micros": hp, "max_health_micros": max_hp,
 		"health_ratio": float(hp) / maxi(1, max_hp), "body_parts": frame.health.body_parts,
 		"stamina_ratio": clampf(float(frame.health.stamina_micros) / maxi(1, int(frame.health.max_stamina_micros)), 0.0, 1.0),
