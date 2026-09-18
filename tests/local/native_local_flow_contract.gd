@@ -144,6 +144,7 @@ func run() -> void:
 	var progression_work_before := _game._session.progression.work_counts()
 	var world_work_before := _game._session.combat.world_publication_work_counts()
 	var hitbox_work_before := _game._session.combat.hitboxes.publication_work_counts()
+	var ai_world_work_before := _game._session._ai_port.work_counts()
 	for _i in range(70):
 		if not check(_game.advance(), "all native phases and after-tick closeout"): await finish(); return
 	var presentation_after := _game.presentation_work_counts()
@@ -155,6 +156,7 @@ func run() -> void:
 	var progression_work_after := _game._session.progression.work_counts()
 	var world_work_after := _game._session.combat.world_publication_work_counts()
 	var hitbox_work_after := _game._session.combat.hitboxes.publication_work_counts()
+	var ai_world_work_after := _game._session._ai_port.work_counts()
 	check(int(presentation_after.raid_view_builds) == int(presentation_before.raid_view_builds) + 70
 		and int(presentation_after.bunker_view_builds) == int(presentation_before.bunker_view_builds)
 		and int(presentation_after.task_view_builds) == int(presentation_before.task_view_builds)
@@ -200,6 +202,12 @@ func run() -> void:
 			- int(dispatch_work_before.intent_snapshot_builds)
 		check(intent_snapshot_delta > 0 and intent_snapshot_delta * 2 < relay_dispatch_delta,
 			"only intent-consuming handlers receive isolated admitted-intent snapshots")
+	check(int(ai_world_work_after.vision_frame_captures)
+			== int(ai_world_work_before.vision_frame_captures) + 70
+		and int(ai_world_work_after.geometry_payload_publications)
+			== int(ai_world_work_before.geometry_payload_publications)
+		and int(ai_world_work_after.geometry_payload_publications) == 1,
+		"static Vision geometry publishes once while actor frames continue every tick")
 	check(int(progression_work_after.objective_snapshot_reads)
 			== int(progression_work_before.objective_snapshot_reads)
 		and int(progression_work_after.task_fact_updates)
@@ -233,6 +241,11 @@ func run() -> void:
 		and int(hitbox_work_after.obstruction_fragment_builds)
 			== int(hitbox_work_before.obstruction_fragment_builds),
 		"body deltas rebuild only changed actors and reuse all static obstruction geometry")
+	check(int(hitbox_work_after.obstruction_stream_builds)
+			== int(hitbox_work_before.obstruction_stream_builds)
+		and int(hitbox_work_after.obstruction_stream_reuses)
+			- int(hitbox_work_before.obstruction_stream_reuses) == world_delta_builds,
+		"body-only deltas hash one cached static-obstruction stream instead of walking every map collider")
 	var timer: String = (_game._ui.screen.get_node("TimerGroup/Timer") as Label).text
 	check(timer != "—" and timer != "15:00", "HUD clock derives from completed canonical ticks")
 	var prior_tick: int = _game._session.raid.last_processed_tick

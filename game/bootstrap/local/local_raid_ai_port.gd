@@ -11,6 +11,9 @@ var _routers: Dictionary = {}
 var _navigation: ZNavigationPathService
 var _revision: int = 0
 var _segments: Array = []
+var _geometry_payload_pending: bool = true
+var _vision_frame_captures: int = 0
+var _geometry_payload_publications: int = 0
 var _paths: Dictionary = {}
 var _pending: Dictionary = {}
 var _aim: Dictionary = {}
@@ -42,6 +45,7 @@ func is_ready(generation: int) -> bool:
 
 func capture_vision_frame(generation: int, tick: int) -> Dictionary:
 	if not is_ready(generation): return {}
+	_vision_frame_captures += 1
 	var actors: Array = []
 	var keys := _rows.keys()
 	keys.sort()
@@ -59,7 +63,19 @@ func capture_vision_frame(generation: int, tick: int) -> Dictionary:
 		if facing == Vector2i.ZERO: facing = Vector2i(ZAIValues.UNIT, 0)
 		actors.append({"entity_id": key, "revision": tick, "position_raw": position.vector2i_value,
 			"facing_raw": facing, "archetype": row.archetype, "alive": bool(health.alive)})
-	return {"actors": actors, "geometry_revision": _revision, "segments": _segments}
+	var geometry_payload: Array = _segments if _geometry_payload_pending else []
+	if _geometry_payload_pending:
+		_geometry_payload_publications += 1
+	_geometry_payload_pending = false
+	return {"actors": actors, "geometry_revision": _revision, "segments": geometry_payload}
+
+
+func work_counts() -> Dictionary:
+	return {
+		"vision_frame_captures": _vision_frame_captures,
+		"geometry_payload_publications": _geometry_payload_publications,
+		"geometry_segment_count": _segments.size(),
+	}
 
 func self_state(generation: int, tick: int, actor_id: String) -> Dictionary:
 	if not is_ready(generation) or not _rows.has(actor_id): return {}

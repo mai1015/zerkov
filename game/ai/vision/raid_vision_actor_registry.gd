@@ -46,12 +46,24 @@ func stage_frame(generation: int, tick: int, actors: Array,
 		or tick >= ZAIValues.MAX_TICK:
 		return _reject(&"vision_actor_frame_order_invalid")
 	if actors.size() > MAX_ACTORS or geometry_revision < 1 \
-		or geometry_revision < _geometry_revision or not _valid_segments(segments):
+		or geometry_revision < _geometry_revision:
 		return _reject(&"vision_actor_frame_invalid")
-	var sorted_segments := segments.duplicate(true)
-	sorted_segments.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id)
-	if geometry_revision == _geometry_revision and sorted_segments != _segments:
-		return _reject(&"vision_geometry_revision_conflict")
+	var sorted_segments: Array = _segments
+	if geometry_revision > _geometry_revision:
+		if not _valid_segments(segments):
+			return _reject(&"vision_actor_frame_invalid")
+		sorted_segments = segments.duplicate(true)
+		sorted_segments.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id)
+	elif not segments.is_empty():
+		# Backward-compatible diagnostic callers may still resend geometry. The
+		# production port sends an empty payload after the revision was accepted,
+		# avoiding an O(total-map-geometry) copy/validation/sort every authority tick.
+		if not _valid_segments(segments):
+			return _reject(&"vision_actor_frame_invalid")
+		var repeated_segments := segments.duplicate(true)
+		repeated_segments.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id)
+		if repeated_segments != _segments:
+			return _reject(&"vision_geometry_revision_conflict")
 	var incoming: Dictionary = {}
 	var observer_count: int = 0
 	for value: Variant in actors:
