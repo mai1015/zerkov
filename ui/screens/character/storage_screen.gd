@@ -19,7 +19,7 @@ func _apply_queued_compact_reflow() -> void:
 	_arrange_storage()
 
 func _bind_grid(grid: Control, columns: int, rows: int, source: String, data: String) -> void:
-	if _live_inventory_binding and _inventory_controller is LocalInventoryController and source in ["rig", "backpack"]:
+	if _live_inventory_binding and _inventory_controller is LocalInventoryController and source in ["rig", "backpack", "secure"]:
 		var guard := _guard_grid.bind(grid, StringName(source))
 		if not grid.visibility_changed.is_connected(guard): grid.visibility_changed.connect(guard)
 		if _inventory_controller.grid_size(StringName(source)) == Vector2i.ZERO:
@@ -40,7 +40,7 @@ func _guard_grid(grid: Control, source: StringName) -> void:
 func _arrange_storage() -> void:
 	if not _live_inventory_binding or not _inventory_controller is LocalInventoryController or _surface == null: return
 	AuthoredQuickUse.pin_character(self)
-	for entry: Array in [["RigGrid", &"rig"], ["PackGrid", &"backpack"]]: _guard_grid(_node(entry[0]), entry[1])
+	for entry: Array in [["RigGrid", &"rig"], ["PackGrid", &"backpack"], ["SecureGrid", &"secure"]]: _guard_grid(_node(entry[0]), entry[1])
 	# Safety holds at every size; the approved full-column composition remains
 	# exact 1920x1080, not a new compact/responsive acceptance claim.
 	if get_viewport_rect().size != Vector2(1920, 1080): return
@@ -109,18 +109,44 @@ func _arrange_storage() -> void:
 				LocalJourneyStyle.button(recover)
 				_place_storage(recover, Rect2(0, cursor, 620, 36))
 				cursor += 44
+	if _secure_grid != null and _secure_swap != null:
+		var secure := _inventory_controller.storage_state(&"secure")
+		_place_storage(_secure_title, Rect2(0, cursor, 620, 26))
+		_secure_title.text = "SECURE CONTAINER"
+		cursor += 32
+		_place_storage(_secure_swap, Rect2(0, cursor, 620, 36))
+		_secure_swap.text = String(_equipment_slots.get(WearableStoragePolicy.PROVIDERS["secure"].slot, {}).get("name", "EMPTY · EQUIP SECURE CONTAINER"))
+		LocalJourneyStyle.button(_secure_swap)
+		cursor += 44
+		if secure.equipped:
+			_secure_title.text += " · %d × %d" % [secure.size.x, secure.size.y]
+			_place_storage(_secure_grid, Rect2(Vector2(0, cursor), _secure_grid.custom_minimum_size))
+			cursor += _secure_grid.custom_minimum_size.y + 18
+		else:
+			_secure_grid.hide()
+			for item: Dictionary in _inventory_controller.items_for(&"secure"):
+				var key := "secure:%d" % int(item.item_id)
+				active_recovery[key] = true
+				_recovery_items[key] = item.duplicate(true)
+				var recover := _recovery_buttons.get(key) as Button
+				if recover == null:
+					recover = Button.new()
+					recover.name = "SecureRecovery_" + str(item.item_id)
+					_storage_content.add_child(recover)
+					recover.pressed.connect(_capture_recovery.bind(&"secure", key))
+					_recovery_buttons[key] = recover
+				recover.text = "RECOVER %s ×%d TO STORAGE" % [String(item.name).to_upper(), int(item.quantity)]
+				recover.tooltip_text = "Saved secure item without its container. Move it to ordinary carried storage before equipping another secure container."
+				recover.disabled = not _inventory_controller.mutation_available(&"secure")
+				LocalJourneyStyle.button(recover)
+				_place_storage(recover, Rect2(0, cursor, 620, 36))
+				cursor += 44
 	for key: String in _recovery_buttons.keys():
 		if active_recovery.has(key): continue
 		var old: Button = _recovery_buttons[key]
 		if old.has_focus(): (_node("RigSwap") as Button).grab_focus()
 		old.hide(); old.queue_free()
 		_recovery_buttons.erase(key); _recovery_items.erase(key)
-	if _secure_grid != null:
-		_place_storage(_secure_title, Rect2(0, cursor, 620, 26))
-		_secure_title.text = "SECURE CONTAINER · %d × %d" % [_secure_grid.grid_columns, _secure_grid.grid_rows]
-		cursor += 32
-		_place_storage(_secure_grid, Rect2(Vector2(0, cursor), _secure_grid.custom_minimum_size))
-		cursor += _secure_grid.custom_minimum_size.y + 18
 	_storage_content.custom_minimum_size = Vector2(620, cursor)
 	_storage_content.size = _storage_content.custom_minimum_size
 	var character := _node("CharacterColumn")

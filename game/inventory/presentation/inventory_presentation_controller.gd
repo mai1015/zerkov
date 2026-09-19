@@ -118,6 +118,7 @@ const _PRESENTATION := {
 	"zerkov.item.junk.scrap_metal": {"name": "Scrap Metal", "kind": "material", "category": "material"},
 	"zerkov.item.gear.rig_basic": {"name": "Rig", "kind": "container", "category": "rig"},
 	"zerkov.item.gear.backpack_daypack": {"name": "Backpack", "kind": "container", "category": "backpack"},
+	"zerkov.item.gear.secure_container_basic": {"name": "Secure Container", "kind": "container", "category": "secure"},
 }
 
 ## Presentation-only artwork registry.  Canonical inventory rows carry stable
@@ -145,6 +146,7 @@ const _ICON_REGISTRY := {
 	"zerkov.item.junk.scrap_metal": "res://assets/original/inventory items/Metal.png",
 	"zerkov.item.gear.rig_basic": "res://assets/handoff/item_rig.png",
 	"zerkov.item.gear.backpack_daypack": "res://assets/handoff/ph_backpack.png",
+	"zerkov.item.gear.secure_container_basic": "res://assets/original/Bunker Items/Leather Pouch.png",
 }
 const _ICON_FALLBACK := "res://assets/handoff/item_box.png"
 

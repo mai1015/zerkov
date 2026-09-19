@@ -8,10 +8,10 @@ func _routed_fact_validation(operation: StringName, payload: Dictionary, shape: 
 	var result := super._routed_fact_validation(operation, payload, shape, actor)
 	if not StringName(result.reason).is_empty(): return result
 	# Removing a provider must use its explicit equip/move path. Native quick
-	# transfer may choose its own root or detach a filled bag across inventories.
+	# transfer may otherwise choose a root that is currently unavailable.
 	if operation == INTENT_KIND_QUICK_TRANSFER:
 		var source := _authority.snapshot(int(shape.source_inventory_id))
-		for key: StringName in [&"rig", &"backpack"]:
+		for key: StringName in WearableStoragePolicy.PROVIDER_SOURCES:
 			var storage := _storage.state(source, key)
 			if storage.equipped and int(shape.primary_item_id) == int(storage.provider_item_id):
 				result.reason = &"empty_storage_before_unequip" if storage.recovery_count > 0 else &"storage_provider_requires_explicit_move"
@@ -25,16 +25,16 @@ func _routed_fact_validation(operation: StringName, payload: Dictionary, shape: 
 func _complete_transfer_rejection(payload: Dictionary) -> StringName:
 	var target := _authority.snapshot(int(payload.destination_inventory_id))
 	if target == null or target.get_profile_identifier() != String(ZerkovInventoryCatalog.PROFILE_PLAYER_RAID): return &""
-	if _storage.state(target, &"rig").equipped and _storage.state(target, &"backpack").equipped: return &""
 	return &"" if not _storage.quick_location(_authority.snapshot(int(payload.source_inventory_id)), target, int(payload.item_id)).is_empty() else &"no_equipped_storage_space"
 
 func _invoke_complete_transfer(payload: Dictionary, actor: int, command_id: int) -> Dictionary:
 	var target := _authority.snapshot(int(payload.destination_inventory_id))
-	if target == null or target.get_profile_identifier() != String(ZerkovInventoryCatalog.PROFILE_PLAYER_RAID) or (_storage.state(target, &"rig").equipped and _storage.state(target, &"backpack").equipped):
+	if target == null or target.get_profile_identifier() != String(ZerkovInventoryCatalog.PROFILE_PLAYER_RAID):
 		return super._invoke_complete_transfer(payload, actor, command_id)
 	var location := _storage.quick_location(_authority.snapshot(int(payload.source_inventory_id)), target, int(payload.item_id))
-	# One existing atomic native transfer; never mutate then roll back a hidden
-	# destination. No partial success or private fake-native receipt is returned.
+	# One existing atomic native transfer with an explicit ordinary-storage
+	# destination. This prevents native auto-placement from silently using an
+	# unavailable provider root or the protected secure container.
 	return _authority.loot_item(int(payload.source_inventory_id), int(payload.destination_inventory_id), int(payload.item_id), location, actor, command_id)
 
 func _invoke_routed_native(operation: StringName, payload: Dictionary, actor: int, command_id: int) -> Dictionary:

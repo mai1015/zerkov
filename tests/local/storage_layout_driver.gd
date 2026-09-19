@@ -18,6 +18,8 @@ func run(harness, initial: Dictionary) -> bool:
 	var id := owner.raid_player_inventory_id
 	check(controller.grid_size(&"rig") == Vector2i.ZERO and controller.grid_size(&"backpack") == Vector2i.ZERO, "empty named gear slots provide no visible capacity")
 	check(not node("RigGrid").is_visible_in_tree() and not node("PackGrid").is_visible_in_tree(), "no rig/backpack means no grid")
+	check(controller.storage_state(&"secure").equipped and controller.grid_size(&"secure") == Vector2i(2, 3), "new operator starts with equipped 2x3 secure container")
+	check(screen._secure_grid.is_visible_in_tree() and screen._secure_grid.grid_columns == 2 and screen._secure_grid.grid_rows == 3, "starter secure grid is visible at canonical size")
 	var scroll := screen.get_node("InventoryContent/StorageScroll") as ScrollContainer
 	check(node("PocketsGrid").get_parent() == scroll.get_child(0) and screen._secure_grid.get_parent() == scroll.get_child(0), "pockets and secure share one scroll content")
 	for name: String in ["DesktopPocketsScroll", "DesktopRigScroll", "DesktopPackScroll"]:
@@ -46,7 +48,7 @@ func run(harness, initial: Dictionary) -> bool:
 	check(raw_before == native.snapshot(id).canonical_bytes(), "rejected hidden destination has zero mutation")
 	var replay := game._character_binding._adapter.receipt_for_request(ZRequestId.parse(String(denied.request_id)))
 	check(not replay.accepted and replay.reason == &"storage_not_equipped", "rejection is retained by existing receipt owner")
-	# Equipment fixtures, NOT a changed starter kit. IDs are allocated natively.
+	# Rig/backpack fixtures only; the secure provider is real starter gear. IDs are allocated natively.
 	var equipment := LocalCampaignContent.container_id(native.snapshot(id), C.CONTAINER_EQUIPMENT)
 	var fixture_ids: Array[int] = []
 	for entry: Array in [[C.ITEM_RIG_BASIC, "zerkov.slot.rig"], [C.ITEM_BACKPACK_DAYPACK, "zerkov.slot.backpack"]]:
@@ -69,6 +71,40 @@ func run(harness, initial: Dictionary) -> bool:
 	check(controller.submit_equip(&"backpack", rig_item, &"zerkov.slot.rig").accepted, "same native rig restores its capacity on equip")
 	await h.settle()
 	check(controller.storage_state(&"rig").equipped and node("RigGrid").is_visible_in_tree(), "reequipped rig grid restored without duplication")
+	# Secure is an equipped provider too. A filled container cannot be removed;
+	# once emptied, removing it hides/protects the root and re-equipping the same
+	# canonical item restores access without manufacturing a new container.
+	var secure_slot: Dictionary = {}
+	for slot: Dictionary in controller.equipment_view().slots:
+		if slot.slot_id == "zerkov.slot.secure": secure_slot = slot.item
+	if not check(secure_slot.definition_id == String(C.ITEM_SECURE_CONTAINER_BASIC), "starter secure provider occupies named slot"): return false
+	var secure_root := LocalCampaignContent.container_id(native.snapshot(id), C.CONTAINER_SECURE)
+	var secure_before: PackedByteArray = native.snapshot(id).canonical_bytes()
+	var secure_rejected := raw_move(int(secure_slot.item_id), pockets, Vector2i(2, 0), true)
+	check(not secure_rejected.accepted and secure_rejected.reason == &"empty_storage_before_unequip" and secure_before == native.snapshot(id).canonical_bytes(), "filled secure provider cannot orphan protected contents")
+	var protected_item: Dictionary = controller.items_for(&"secure")[0]
+	check(controller.submit_drop(&"secure", &"backpack", protected_item, Vector2i.ZERO).accepted, "secure contents can be deliberately moved to ordinary storage before swap")
+	await h.settle()
+	secure_slot = {}
+	for slot: Dictionary in controller.equipment_view().slots:
+		if slot.slot_id == "zerkov.slot.secure": secure_slot = slot.item
+	check(controller.submit_unequip(secure_slot, &"backpack", Vector2i(2, 0)).accepted, "empty secure provider can be unequipped explicitly")
+	await h.settle()
+	check(not controller.storage_state(&"secure").equipped and controller.grid_size(&"secure") == Vector2i.ZERO and not screen._secure_grid.is_visible_in_tree(), "no secure provider means no protected grid")
+	secure_before = native.snapshot(id).canonical_bytes()
+	secure_rejected = raw_move(int(ammo.item_id), secure_root, Vector2i.ZERO)
+	check(not secure_rejected.accepted and secure_rejected.reason == &"storage_not_equipped" and secure_before == native.snapshot(id).canonical_bytes(), "hidden secure root rejects current-epoch admission")
+	var stored_secure: Dictionary = {}
+	for item: Dictionary in controller.items_for(&"backpack"):
+		if item.definition_id == String(C.ITEM_SECURE_CONTAINER_BASIC): stored_secure = item
+	check(controller.submit_equip(&"backpack", stored_secure, &"zerkov.slot.secure").accepted, "same secure provider re-equips from ordinary storage")
+	await h.settle()
+	protected_item = {}
+	for item: Dictionary in controller.items_for(&"backpack"):
+		if item.definition_id == String(C.ITEM_SPLINT): protected_item = item
+	check(controller.submit_drop(&"backpack", &"secure", protected_item, Vector2i.ZERO).accepted, "re-equipped secure container accepts explicit protected item")
+	await h.settle()
+	check(controller.storage_state(&"secure").equipped and controller.grid_size(&"secure") == Vector2i(2, 3) and screen._secure_grid.is_visible_in_tree(), "secure grid restores only with its provider")
 	var own_position := node("CharacterColumn").position
 	await h.capture("03-equipped-native-fixture.png")
 	var wheel := InputEventMouseButton.new()
@@ -135,6 +171,9 @@ func run(harness, initial: Dictionary) -> bool:
 	await h.key(KEY_I)
 	if not h.route("inventory"): return false
 	check(not node("RigGrid").is_visible_in_tree() and not node("PackGrid").is_visible_in_tree(), "same gear-dependent storage in raid")
+	var raid_screen: Control = game._ui.screen
+	var raid_controller: LocalInventoryController = game._character.inventory_controller()
+	check(raid_screen._secure_grid.is_visible_in_tree() and raid_controller.grid_size(&"secure") == Vector2i(2, 3), "equipped starter secure container persists into raid Character")
 	check_original_quick_use(game._ui.screen)
 	await h.capture("06-raid-character.png")
 	# End through the real root and recover interruption on next campaign open;

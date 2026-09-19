@@ -39,7 +39,7 @@ func run(h, initial: Dictionary) -> bool:
 	if h._run_mode == "new":
 		h.check(projected.equipment.has("AKM") and projected.loose_rounds == 60 and projected.medical_items == 4, "explicit new campaign has actual known kit, loose rounds exclude loaded ammo")
 	else:
-		h.check(projected.equipment.is_empty(), "Continue after abandonment shows the real empty equipment, not the starter kit")
+		h.check(projected.equipment == ["Secure Container"], "Continue after abandonment retains only the protected secure container, not lost starter combat gear")
 		h.check(projected.warnings.has("No rifle equipped. You can still deploy."), "empty rifle warning is advisory, not a new deployment rule")
 	h.check(game._ui.character_runtime_for_route("maps", ZUIRouteIntent.Origin.REVIEW) == null, "review-origin briefing cannot acquire campaign runtime")
 	await h.capture("03-briefing.png")
@@ -160,7 +160,7 @@ func run(h, initial: Dictionary) -> bool:
 		await h.key(KEY_M)
 		if not h.route("maps"): return false
 		var empty := LocalPreparationView.from_views(game._character.inventory_view(&"raid"), game._character.health_view(), game._ui_port.snapshot().home_equipment)
-		h.check(empty.equipment_ready and empty.equipment.is_empty(), "post-loss preparation accurately shows no equipped weapon")
+		h.check(empty.equipment_ready and empty.equipment == ["Secure Container"], "post-loss preparation shows retained secure container without recreating lost weapons")
 		h.check(not (game._ui.screen.get_node("Deploy") as Button).disabled, "unarmed loadout remains an advisory, no invented restriction")
 		await h.key(KEY_ESCAPE)
 		if not h.route("bunker"): return false

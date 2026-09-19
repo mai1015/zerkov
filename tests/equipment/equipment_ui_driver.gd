@@ -3,7 +3,8 @@ extends RefCounted
 ## an isolated test namespace and manual raid pacing. Three fresh processes
 ## prove changed gear survives relaunch and is used by deployment.
 ## Create equips one explicit native daypack test fixture: storage must exist
-## before the 5x2 rifle can be unequipped. The production starter kit is unchanged.
+## before the 5x2 rifle can be unequipped. The starter loadout now also owns the
+## canonical 2x3 secure-container provider; daypack/rig fixtures remain test-only.
 const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const EXACT_SIZE := Vector2i(1920, 1080)
 const PRIMARY: StringName = &"zerkov.slot.weapon_primary"
@@ -133,9 +134,10 @@ func assert_live() -> bool:
 	var secure: Control = screen.call("_grid_for_source", "secure")
 	check(secure != null and secure.is_visible_in_tree(), "secure contents are reachable")
 	if secure != null:
-		check(secure.get_global_rect().end.y <= 1030 and secure.grid_columns == 3 and secure.grid_rows == 2,
+		check(secure.get_global_rect().end.y <= 1030 and secure.grid_columns == 2 and secure.grid_rows == 3,
 			"secure grid fits exact canvas at native cell size")
 		check(secure.items.size() == 1 and secure.items[0].definition_id == String(ZerkovInventoryCatalog.ITEM_SPLINT), "secure splints, not fixture")
+	check(gear(&"zerkov.slot.secure").definition_id == String(ZerkovInventoryCatalog.ITEM_SECURE_CONTAINER_BASIC), "starter 2x3 secure container is real equipped gear")
 	for pair: Array in [["BackSlot", "BackDetail"], ["HolsterSlot", "HolsterDetail"], ["ArmorSlot", "ArmorDetail"]]:
 		var button := named("InventoryContent/CharacterColumn/" + pair[0]) as Button
 		check(button.disabled and button.get_node(pair[1]).text == "UNAVAILABLE", "unsupported gear not fabricated")

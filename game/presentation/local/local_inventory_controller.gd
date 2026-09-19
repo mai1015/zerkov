@@ -30,7 +30,7 @@ func storage_state(source: StringName) -> Dictionary:
 
 func descriptor(source: StringName) -> Dictionary:
 	var result := super.descriptor(source)
-	if source not in [SOURCE_RIG, SOURCE_BACKPACK] or not result.available: return result
+	if source not in [SOURCE_RIG, SOURCE_BACKPACK, SOURCE_SECURE] or not result.available: return result
 	var storage := storage_state(source)
 	result["recovery_only"] = not storage.equipped and storage.recovery_count > 0
 	if not storage.equipped and storage.recovery_count == 0:
@@ -41,13 +41,13 @@ func descriptor(source: StringName) -> Dictionary:
 	return result
 
 func grid_size(source: StringName) -> Vector2i:
-	if source in [SOURCE_RIG, SOURCE_BACKPACK]:
+	if source in [SOURCE_RIG, SOURCE_BACKPACK, SOURCE_SECURE]:
 		var storage := storage_state(source)
 		return storage.size if storage.equipped else Vector2i.ZERO
 	return super.grid_size(source)
 
 func _fits_target(source: StringName, item: Dictionary, position: Vector2i, ignore: int) -> bool:
-	if source in [SOURCE_RIG, SOURCE_BACKPACK]:
+	if source in [SOURCE_RIG, SOURCE_BACKPACK, SOURCE_SECURE]:
 		var storage := storage_state(source)
 		if not storage.equipped or int(item.get("item_id", 0)) == int(storage.provider_item_id): return false
 	return super._fits_target(source, item, position, ignore)
@@ -56,7 +56,7 @@ func _fits_target(source: StringName, item: Dictionary, position: Vector2i, igno
 ## Recover an older V1 item without exposing an unequipped storage grid. The
 ## ordinary submission seam still revalidates source, revision and identity.
 func recover_unassigned(source: StringName, item: Dictionary) -> Dictionary:
-	if not _binding_is_current() or source not in [SOURCE_RIG, SOURCE_BACKPACK]:
+	if not _binding_is_current() or source not in [SOURCE_RIG, SOURCE_BACKPACK, SOURCE_SECURE]:
 		return _rejection_result(&"storage_recovery_unavailable", OP_MOVE)
 	var storage := storage_state(source)
 	if storage.equipped or storage.recovery_count == 0:

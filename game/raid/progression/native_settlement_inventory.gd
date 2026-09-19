@@ -46,13 +46,21 @@ func plan(record: PackedByteArray, outcome: String) -> Dictionary:
 		authority.free()
 		return {"ok": true, "record": record.duplicate(), "retained": _group(before_items), "lost": []}
 	var containers: Dictionary = {}
-	for row: Dictionary in before.get_containers(): containers[int(row.id)] = row
+	var equipment_container := 0
+	for row: Dictionary in before.get_containers():
+		containers[int(row.id)] = row
+		if int(row.provider_item) == 0 and row.container_definition_identifier == String(ZerkovInventoryCatalog.CONTAINER_EQUIPMENT):
+			equipment_container = int(row.id)
 	var entries: Array = []
 	for item: Dictionary in before_items:
 		var container: Dictionary = containers.get(int(item.location.container), {})
 		if container.is_empty(): authority.free(); return {"ok": false}
 		if int(container.provider_item) != 0: continue # Process the native subtree once, at its owning root.
-		var secure: bool = container.container_definition_identifier == String(ZerkovInventoryCatalog.CONTAINER_SECURE)
+		var equipped_secure_provider := String(item.item_definition_identifier) == String(ZerkovInventoryCatalog.ITEM_SECURE_CONTAINER_BASIC) \
+			and item.location.get("kind") == "slot" and int(item.location.get("container", 0)) == equipment_container \
+			and StringName(item.location.get("slot_identifier", "")) == &"zerkov.slot.secure"
+		var secure: bool = container.container_definition_identifier == String(ZerkovInventoryCatalog.CONTAINER_SECURE) \
+			or equipped_secure_provider
 		entries.append({"item": int(item.id), "disposition": "retain"} if secure \
 			else {"item": int(item.id), "disposition": "release_to", "external_owner": 7_100_001})
 	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.item < b.item)
