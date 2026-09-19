@@ -56,7 +56,7 @@ func plan(record: PackedByteArray, outcome: String) -> Dictionary:
 		var container: Dictionary = containers.get(int(item.location.container), {})
 		if container.is_empty(): authority.free(); return {"ok": false}
 		if int(container.provider_item) != 0: continue # Process the native subtree once, at its owning root.
-		var equipped_secure_provider := String(item.item_definition_identifier) == String(ZerkovInventoryCatalog.ITEM_SECURE_CONTAINER_BASIC) \
+		var equipped_secure_provider: bool = String(item.item_definition_identifier) == String(ZerkovInventoryCatalog.ITEM_SECURE_CONTAINER_BASIC) \
 			and item.location.get("kind") == "slot" and int(item.location.get("container", 0)) == equipment_container \
 			and StringName(item.location.get("slot_identifier", "")) == &"zerkov.slot.secure"
 		var secure: bool = container.container_definition_identifier == String(ZerkovInventoryCatalog.CONTAINER_SECURE) \
