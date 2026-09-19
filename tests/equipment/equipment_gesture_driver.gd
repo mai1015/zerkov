@@ -21,7 +21,7 @@ func run(value: RefCounted) -> bool:
 	var sling := driver.named("InventoryContent/CharacterColumn/SlingSlot") as Button
 	var grid: Control = driver.game._ui.screen.call("_grid_for_source", "backpack")
 	var id: int = driver.gear(driver.PRIMARY).item_id
-	if not await drag(sling, grid.get_global_rect().position + Vector2(37, 37)): return false
+	if not await drag(sling, Vector2(37, 37), grid): return false
 	if not driver.check(driver.gear(driver.PRIMARY).is_empty(), "real drag unequips primary to storage"): return false
 	var item: Control = driver.item_slot("backpack", String(ZerkovInventoryCatalog.ITEM_AKM))
 	if not driver.check(item != null and item.get("item").item_id == id, "drag keeps the same native item"): return false
@@ -37,18 +37,19 @@ func run(value: RefCounted) -> bool:
 	var splint: Control = driver.item_slot("secure", String(ZerkovInventoryCatalog.ITEM_SPLINT))
 	var splint_id: int = splint.get("item").item_id
 	var pockets: Control = driver.game._ui.screen.call("_grid_for_source", "pockets")
-	if not await drag(splint, pockets.get_global_rect().position + Vector2(185, 37)): return false
+	if not await drag(splint, Vector2(185, 37), pockets): return false
 	if not driver.check(driver.item_slot("secure", String(ZerkovInventoryCatalog.ITEM_SPLINT)) == null, "secure item actually leaves its container"): return false
 	splint = driver.item_slot("pockets", String(ZerkovInventoryCatalog.ITEM_SPLINT))
 	if not driver.check(splint != null and splint.get("item").item_id == splint_id, "secure transfer retains item identity"): return false
 	var secure: Control = driver.game._ui.screen.call("_grid_for_source", "secure")
-	if not await drag(splint, secure.get_global_rect().position + Vector2(37, 37)): return false
+	if not await drag(splint, Vector2(37, 37), secure): return false
 	splint = driver.item_slot("secure", String(ZerkovInventoryCatalog.ITEM_SPLINT))
 	if not driver.check(splint != null and splint.get("item").quantity == 2 and splint.get("item").item_id == splint_id, "secure transfer conserves identity and quantity"): return false
 	await driver.linger("Secure-container contents move through inventory intents")
 	return true
 
 func activate(control: Control) -> bool:
+	if control != null: await driver.reveal(control)
 	if not driver.check(control != null and control.is_visible_in_tree(), "keyboard target exists"): return false
 	control.grab_focus()
 	await driver.process_frame
@@ -56,7 +57,8 @@ func activate(control: Control) -> bool:
 	await driver.key(KEY_SPACE)
 	return driver.failures == 0
 
-func drag(source: Control, destination: Vector2) -> bool:
+func drag(source: Control, destination: Vector2, target: Control = null) -> bool:
+	if source != null: await driver.reveal(source)
 	if not driver.check(source != null and source.is_visible_in_tree(), "drag source visible"): return false
 	_drop_events.clear()
 	var observed: Array[Control] = []
@@ -69,7 +71,14 @@ func drag(source: Control, destination: Vector2) -> bool:
 	await driver.process_frame
 	button(start, true)
 	await driver.process_frame
-	var previous := start
+	# Begin a real drag before revealing an offscreen destination in the same
+	# scrolling section. No forced payload or canonical mutation is used.
+	motion(start + Vector2(20, 0), Vector2(20, 0), true)
+	await driver.process_frame
+	if target != null:
+		await driver.reveal(target)
+		destination += target.get_global_rect().position
+	var previous := start + Vector2(20, 0)
 	for index in range(1, 17):
 		var point := start.lerp(destination, float(index) / 16.0)
 		motion(point, point - previous, true)

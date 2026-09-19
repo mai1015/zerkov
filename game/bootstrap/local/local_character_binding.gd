@@ -18,7 +18,7 @@ func bind(runtime: CharacterUIRuntime, owner: RaidInventoryOwner, admission: ZSe
 	_bridge = InventoryProjectionBridge.new()
 	add_child(_bridge)
 	if not _bridge.bind_owner(owner, owner.generation()): return _fail(&"local_character_projection_failed")
-	_adapter = InventoryIntentAdapter.new()
+	_adapter = WearableStorageIntentAdapter.new()
 	if not _adapter.configure(owner, admission, _identity, policy, 3 * ZAIValues.UNIT): return _fail(_adapter.last_error)
 	if not runtime.configure(owner, _bridge, _adapter, admission, health): return _fail(runtime.last_error)
 	return true

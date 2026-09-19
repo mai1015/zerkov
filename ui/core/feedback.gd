@@ -13,6 +13,7 @@ var common_ui_root: CommonUIScreenRoot
 var picker: CommonActivatableScreen
 var modal: ZerkovDialog
 var _developer_authorization: RefCounted
+var _bottom_overlay_height: float = 0.0
 
 func configure(owner_host: Control, screen_root: CommonUIScreenRoot) -> void:
 	host = owner_host
@@ -22,12 +23,17 @@ func _ready() -> void:
 	ZThemeAdapter.apply_controls(toast_label)
 	toast_timer.timeout.connect(toast_label.hide)
 
+## The same feedback owner avoids covering fixed authored bottom controls.
+func set_bottom_overlay_height(height: float) -> void:
+	_bottom_overlay_height = maxf(0.0, height)
+	resize_to_view(get_viewport_rect().size)
+
 func resize_to_view(view: Vector2) -> void:
 	if is_instance_valid(modal): modal.resize_to_view(view)
 	if is_instance_valid(picker): picker.resize_to_view(view)
 	if is_instance_valid(toast_label):
 		toast_label.size.x = minf(880, view.x - 48)
-		toast_label.position = Vector2((view.x - toast_label.size.x) / 2, view.y - 136)
+		toast_label.position = Vector2((view.x - toast_label.size.x) / 2, view.y - maxf(136.0, _bottom_overlay_height + 12.0 + toast_label.size.y))
 
 func toast(message: String) -> void:
 	toast_label.text = message

@@ -168,5 +168,24 @@ class RunnerTests(unittest.TestCase):
         with patch.dict(runner.os.environ, {"ZERKOV_CONTEXTUAL_LOOT": "1"}):
             self.assertEqual(0, self.run_main(execute))
 
+# The mocked runner checks below never claim to exercise native storage.
+    def test_storage_requires_its_own_completion(self):
+        self.assertEqual(1, self.run_main(suite="storage"))
+        self.assertIn("cleanup", self.calls[-1])
+        self.assertFalse((self.out / "result.json").exists())
+
+    def test_storage_is_exclusive_and_recorded(self):
+        def execute(command, env, *args, **kwargs):
+            self.assertEqual("1", env["ZERKOV_STORAGE_LAYOUT"])
+            for key in ["ZERKOV_CONTEXTUAL_LOOT", "ZERKOV_OFFLINE_JOURNEY", "ZERKOV_BUNKER_WORKSPACES"]:
+                self.assertEqual("0", env[key])
+            value = self.result(command, env, *args, **kwargs)
+            if "new" in command or "continue" in command:
+                value += "STORAGE_LAYOUT_COMPLETE native=true\n"
+            return value
+        self.assertEqual(0, self.run_main(execute, suite="storage"))
+        self.assertEqual("storage", json.loads((self.out / "result.json").read_text())["suite"])
+
+
 if __name__ == "__main__":
     unittest.main()

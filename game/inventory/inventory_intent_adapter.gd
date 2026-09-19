@@ -574,15 +574,11 @@ func _submit_intent_once(intent: ZRaidIntent) -> Dictionary:
 
 	# Complete-only, synchronous, and explicitly idempotent in the native
 	# command domain. Zero/auto allocation is forbidden at this boundary.
+	var storage_reason := _complete_transfer_rejection(payload)
+	if not storage_reason.is_empty():
+		return _complete_rejection(request_key, fingerprint, storage_reason, inventory_command_id)
 	_native_call_active = true
-	var native_result: Dictionary = _authority.quick_transfer_item(
-		source_inventory_id,
-		destination_inventory_id,
-		item_id,
-		false,
-		native_actor_id,
-		inventory_command_id
-	)
+	var native_result: Dictionary = _invoke_complete_transfer(payload, native_actor_id, inventory_command_id)
 	_native_call_active = false
 	if not _native_result_shape_valid(native_result):
 		return _complete_native_result(
@@ -1682,3 +1678,11 @@ func _result(
 func _reject_configuration(reason: StringName) -> bool:
 	last_error = reason
 	return false
+
+
+## Optional game-owned destination policy; legacy generic adapters are unchanged.
+func _complete_transfer_rejection(_payload: Dictionary) -> StringName:
+	return &""
+
+func _invoke_complete_transfer(payload: Dictionary, actor: int, command_id: int) -> Dictionary:
+	return _authority.quick_transfer_item(int(payload.source_inventory_id), int(payload.destination_inventory_id), int(payload.item_id), false, actor, command_id)
