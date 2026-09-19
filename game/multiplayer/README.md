@@ -23,3 +23,39 @@ only canonical gameplay mutation owner.
 Offline startup remains the default. `SessionCoordinator.new()` still installs
 `OfflineSessionIngress`, and local profile bytes are not authentication or
 online inventory authority.
+
+
+## Phase B composition and remote-command boundary
+
+The next bounded slice adds three explicit scene roots under
+`game/multiplayer/compositions/`:
+
+- `dedicated_server.tscn` owns the canonical `RaidAuthority`, authenticated
+  remote-session registry and remote-command gate;
+- `owning_client.tscn` owns only a bounded confirmed-state replica store;
+- `observer_client.tscn` owns only an independent bounded confirmed-state
+  replica store.
+
+These scenes are not referenced by startup and create no ENet or Steam peer.
+They are composition boundaries only.
+
+Remote commands are translated rather than forwarded. The game-owned transport
+adapter must supply the actual received byte count and decoded command record to
+`ZRemoteCommandGate`. The gate checks, in order, size, rate, exact shape,
+active session, negotiated compatibility, actor ownership, relevance, remote
+sequence, current revision and command semantics. Sequence preflight is
+non-consuming; revision or semantic rejection does not burn the caller's next
+sequence. After all checks pass, the registry atomically consumes that remote
+sequence.
+
+The accepted remote session ID and authority epoch are never inserted into
+`RaidAuthority`. Instead the gate stamps a new internal `ZRaidIntent` with the
+server-owned authority session/epoch, the authenticated remote actor, trusted
+server timing and a separate monotonic per-actor internal sequence. A reconnect
+may therefore restart its remote replay namespace at one without colliding with
+the raid's canonical intent history.
+
+`ZRemoteCommandPolicyPort` defaults relevance, revision and semantics to
+fail-closed behavior. Later visibility/relevance work may derive those answers
+from authoritative Common Vision state; clients do not get authority from that
+policy seam.
