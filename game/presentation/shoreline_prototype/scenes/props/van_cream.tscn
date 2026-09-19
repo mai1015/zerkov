@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_klpqe"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_vi253"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/vehicles/van_cream.tres" id="3_m3bqf"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_kavri"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/van_cream_shadow.tres" id="5_tqh7k"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_33sxh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d5xyq"]
+size = Vector2(42.84, 97.2)
+
+[node name="VanCream" type="Node2D" unique_id=1123154665]
+script = ExtResource("1_klpqe")
+sun_profile = ExtResource("2_vi253")
+asset_id = "van_cream"
+silhouette_height = 108.0
+physical_height = 20.0
+flat_footprint = true
+ground_size = Vector2(42.84, 97.2)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=344308138]
+texture_filter = 1
+texture = ExtResource("3_m3bqf")
+offset = Vector2(0, -54)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=1323388863]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_kavri")
+position = Vector2(11.812618, 9.56567)
+texture = ExtResource("5_tqh7k")
+offset = Vector2(0, -54)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=589130401]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_kavri")
+position = Vector2(0, -48.6)
+scale = Vector2(0.73631245, 1.6706249)
+texture = ExtResource("6_33sxh")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=1786403189]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=2017317854]
+position = Vector2(0, -48.6)
+shape = SubResource("RectangleShape2D_d5xyq")

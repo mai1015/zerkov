@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_4dqrx"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_6um3o"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/vehicles/box_truck.tres" id="3_k0rsx"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_3l5w4"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/box_truck_shadow.tres" id="5_eo1or"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_ngg6n"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_isjnc"]
+size = Vector2(43.68, 97.2)
+
+[node name="BoxTruck" type="Node2D" unique_id=1393546209]
+script = ExtResource("1_4dqrx")
+sun_profile = ExtResource("2_6um3o")
+asset_id = "box_truck"
+silhouette_height = 108.0
+physical_height = 20.0
+flat_footprint = true
+ground_size = Vector2(43.68, 97.2)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=538472372]
+texture_filter = 1
+texture = ExtResource("3_k0rsx")
+offset = Vector2(0, -54)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=760254481]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_3l5w4")
+position = Vector2(11.812618, 9.56567)
+texture = ExtResource("5_eo1or")
+offset = Vector2(0, -54)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=497643158]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_3l5w4")
+position = Vector2(0, -48.6)
+scale = Vector2(0.75075, 1.6706249)
+texture = ExtResource("6_ngg6n")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=916205984]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=1011266782]
+position = Vector2(0, -48.6)
+shape = SubResource("RectangleShape2D_isjnc")

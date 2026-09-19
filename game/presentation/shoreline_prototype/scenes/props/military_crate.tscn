@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_ulmbs"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_58bqj"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/props/military_crate.tres" id="3_k1vfw"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_ceoqh"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/military_crate_shadow.tres" id="5_dupb0"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_5j0j6"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jrqdo"]
+size = Vector2(33.58, 13.77)
+
+[node name="MilitaryCrate" type="Node2D" unique_id=42685853]
+script = ExtResource("1_ulmbs")
+sun_profile = ExtResource("2_58bqj")
+asset_id = "military_crate"
+silhouette_height = 51.0
+physical_height = 33.15
+ground_size = Vector2(33.58, 13.77)
+search_label = "military crate"
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=823082880]
+texture_filter = 1
+texture = ExtResource("3_k1vfw")
+offset = Vector2(0, -25.5)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=166150407]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_ceoqh")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_dupb0")
+offset = Vector2(0, -25.5)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=510762258]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_ceoqh")
+position = Vector2(0, -6.885)
+scale = Vector2(0.57715625, 0.23667188)
+texture = ExtResource("6_5j0j6")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=2024691493]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=397621245]
+position = Vector2(0, -6.885)
+shape = SubResource("RectangleShape2D_jrqdo")

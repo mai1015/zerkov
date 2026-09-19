@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_6itjy"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_8qm7q"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/vegetation/forest_deadwood_cluster.tres" id="3_s27av"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_d831r"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/forest_deadwood_cluster_shadow.tres" id="5_mikhj"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_aipng"]
+
+[node name="ForestDeadwoodCluster" type="Node2D" unique_id=1612444116]
+script = ExtResource("1_6itjy")
+sun_profile = ExtResource("2_8qm7q")
+asset_id = "forest_deadwood_cluster"
+silhouette_height = 67.0
+physical_height = 43.550000000000004
+ground_size = Vector2(120.45, 18.09)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1384793764]
+texture_filter = 1
+texture = ExtResource("3_s27av")
+offset = Vector2(0, -33.5)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=2065834193]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_d831r")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_mikhj")
+offset = Vector2(0, -33.5)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=882962425]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_d831r")
+position = Vector2(0, -9.045)
+scale = Vector2(2.0702343, 0.31092188)
+texture = ExtResource("6_aipng")

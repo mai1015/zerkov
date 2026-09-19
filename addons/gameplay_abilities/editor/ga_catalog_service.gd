@@ -82,12 +82,39 @@ static func project_default_path() -> String:
 	return String(ProjectSettings.get_setting(DEFAULT_CATALOG_SETTING, ""))
 
 
+## Reads the declared type from the first line of a text resource without
+## instantiating it or any external dependencies. Binary .res resources
+## intentionally fall back to the normal ResourceLoader path.
+static func _tres_declared_resource_type(path: String) -> String:
+	if not path.ends_with(".tres"):
+		return ""
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return ""
+	var header := file.get_line()
+	var marker := "type=\""
+	var start := header.find(marker)
+	if start < 0:
+		return ""
+	start += marker.length()
+	var finish := header.find("\"", start)
+	if finish < 0:
+		return ""
+	return header.substr(start, finish - start)
+
+
 ## Loads and returns the catalog at [param path], or null for an empty path,
 ## a missing file, or a resource that fails to load/is not actually a
 ## catalog. Never throws -- a stale/deleted project-default setting degrades
 ## to "no catalog selected" rather than blocking the dashboard from opening.
 static func load_catalog(path: String) -> Resource:
 	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	# find_catalog_paths() may receive every saved resource in res:// during
+	# editor startup. Avoid loading unrelated text resources just to discover
+	# they are not catalogs: on a fresh import their image dependencies may not
+	# exist yet, producing diagnostics unrelated to GameplayAbilities.
+	if path.ends_with(".tres") and _tres_declared_resource_type(path) != "GameplayDefinitionCatalog":
 		return null
 	var resource: Resource = ResourceLoader.load(path)
 	if not (resource is GameplayDefinitionCatalog):

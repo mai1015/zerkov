@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_xfvv7"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_we87f"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/furniture/metal_shelf.tres" id="3_mjhnl"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_wswhv"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/metal_shelf_shadow.tres" id="5_62k7h"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_icxvo"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ca0n0"]
+size = Vector2(42.34, 14.58)
+
+[node name="MetalShelf" type="Node2D" unique_id=1325815138]
+script = ExtResource("1_xfvv7")
+sun_profile = ExtResource("2_we87f")
+asset_id = "metal_shelf"
+silhouette_height = 54.0
+physical_height = 35.1
+ground_size = Vector2(42.34, 14.58)
+search_label = "metal shelf"
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=2000325131]
+texture_filter = 1
+texture = ExtResource("3_mjhnl")
+offset = Vector2(0, -27)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=1800480428]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_wswhv")
+scale = Vector2(1, -0.49400002)
+skew = -0.890118
+texture = ExtResource("5_62k7h")
+offset = Vector2(0, -27)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=1132287924]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_wswhv")
+position = Vector2(0, -7.29)
+scale = Vector2(0.7277188, 0.25059375)
+texture = ExtResource("6_icxvo")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=1112263630]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=650063636]
+position = Vector2(0, -7.29)
+shape = SubResource("RectangleShape2D_ca0n0")

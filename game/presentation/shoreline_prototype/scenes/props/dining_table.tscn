@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_fuagw"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_i40pn"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/furniture/dining_table.tres" id="3_cx246"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_dj72d"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/dining_table_shadow.tres" id="5_fcanh"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_7w14m"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cpuan"]
+size = Vector2(40.88, 11.07)
+
+[node name="DiningTable" type="Node2D" unique_id=1070482617]
+script = ExtResource("1_fuagw")
+sun_profile = ExtResource("2_i40pn")
+asset_id = "dining_table"
+silhouette_height = 41.0
+physical_height = 26.650000000000002
+ground_size = Vector2(40.88, 11.07)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1695498425]
+texture_filter = 1
+texture = ExtResource("3_cx246")
+offset = Vector2(0, -20.5)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=2054361378]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_dj72d")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_fcanh")
+offset = Vector2(0, -20.5)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=1597904207]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_dj72d")
+position = Vector2(0, -5.535)
+scale = Vector2(0.70262504, 0.19026561)
+texture = ExtResource("6_7w14m")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=1641427200]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=1948726380]
+position = Vector2(0, -5.535)
+shape = SubResource("RectangleShape2D_cpuan")

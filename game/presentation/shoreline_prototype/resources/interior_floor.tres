@@ -1,0 +1,15 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/resources/interior_wood.tres" id="1_8vg4j"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_x10dk"]
+texture = ExtResource("1_8vg4j")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+
+[resource]
+tile_size = Vector2i(32, 32)
+sources/0 = SubResource("TileSetAtlasSource_x10dk")
