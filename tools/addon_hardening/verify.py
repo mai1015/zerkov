@@ -29,7 +29,14 @@ def execute(args):
 def require_pass(output):
     matches = re.findall(r'(?m)^ADDON_HARDENING_RESULT checks=([1-9]\d*) failures=0 real_enet_peers=3 native=true$', output)
     if len(matches) != 1:
-        raise RuntimeError('Missing unique nonempty native pass marker')
+        raise RuntimeError('Missing unique nonempty native Weapon pass marker')
+    return int(matches[0])
+
+
+def require_gas_pass(output):
+    matches = re.findall(r'(?m)^GAS_HARDENING_RESULT checks=([1-9]\d*) failures=0 real_enet_peers=3 native=true$', output)
+    if len(matches) != 1:
+        raise RuntimeError('Missing unique nonempty native Gameplay Abilities pass marker')
     return int(matches[0])
 
 
@@ -84,8 +91,10 @@ def main():
         out = project / path
         out.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(root / path, out)
-    test_source = root / 'tools/addon_hardening/tests/bridge_contract.gd.in'
-    (project / 'contract.gd').write_bytes(test_source.read_bytes())
+    weapon_test_source = root / 'tools/addon_hardening/tests/bridge_contract.gd.in'
+    gas_test_source = root / 'tools/addon_hardening/tests/gas_bridge_contract.gd.in'
+    (project / 'contract.gd').write_bytes(weapon_test_source.read_bytes())
+    (project / 'gas_contract.gd').write_bytes(gas_test_source.read_bytes())
     (project / 'project.godot').write_text('config_version=5\n[application]\nconfig/name="Native addon candidate security contract"\n[display]\nwindow/size/viewport_width=1920\nwindow/size/viewport_height=1080\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
     # Start with explicit known extensions. This is not a cached import, a retry,
     # or suppression of nonzero engine exit codes. No script/import cache copied.
@@ -94,15 +103,23 @@ def main():
     base = [str(godot), '--headless', '--resolution', '1920x1080', '--max-fps', '120',
             '--path', str(project), '--audio-driver', 'Dummy']
     execute(base + ['--editor', '--import', '--quit'])
-    outputs = []
+    weapon_outputs, gas_outputs = [], []
     for _ in range(2):
         output = execute(base + ['--script', 'res://contract.gd'])
         require_pass(output)
-        outputs.append(output)
+        weapon_outputs.append(output)
+    for _ in range(2):
+        output = execute(base + ['--script', 'res://gas_contract.gd'])
+        require_gas_pass(output)
+        gas_outputs.append(output)
     report = {'candidate_source': provenance, 'platform': a.platform, 'arch': a.arch,
               'configuration': a.target, 'engine': lock['engine']['required_version'],
-              'artifacts': artifacts, 'test_source_sha256': digest(test_source),
-              'native_outputs': outputs, 'runs': 2,
+              'artifacts': artifacts,
+              'test_source_sha256': digest(weapon_test_source),
+              'gas_test_source_sha256': digest(gas_test_source),
+              'native_outputs': weapon_outputs,
+              'gas_native_outputs': gas_outputs,
+              'runs_per_contract': 2,
               'extension_loading': 'explicit_startup_registration',
               'automatic_editor_discovery_tested': False,
               'upstream_signoff': False, 'installed': False, 'export_tested': False}
