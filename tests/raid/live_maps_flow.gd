@@ -141,6 +141,15 @@ func run() -> void:
 			and int(deployed_work.grid_bakes)==int(preflight_work.grid_bakes),
 			"deployment loads once behind the loading screen and restores the verified navigation cache")
 	check(game._session.map_id==map_id and game._session.ai!=null,"real map-bound raid and AI")
+	check(RaidPopulationValues.valid_plan(game._session.population_plan),"valid deterministic raid population")
+	check(game._session.population_descriptor()==game._session.deployment.deployment.get("population",{}),
+		"deployment pins exact population descriptor")
+	check(game._session.objective_crate_ids.size()==3 and game._session.crate_ids.size()==5,
+		"three guaranteed objective crates plus two optional containers")
+	check(game._session._optional_presenters.size()==2,"selected optional containers receive visual presenters")
+	for presenter: LocalLootContainerPresenter in game._session._optional_presenters:
+		check(presenter.find_children("*","PhysicsBody2D",true,false).is_empty(),
+			"optional presenter adds no engine physics authority")
 	check(game._world.size==(EXACT if map_id!="sawmill" else Vector2i(640,360)),"source-preserving render target")
 	check(game._session._world_scene.find_children("*","CharacterBody2D",true,false).is_empty(),"no inspection walker")
 	check(not game._ui_port.request(&"select_sawmill",home_epoch),"stale home epoch cannot change raid map")

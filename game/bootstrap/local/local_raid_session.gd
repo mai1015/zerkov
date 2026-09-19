@@ -21,6 +21,11 @@ var hud_model: ZCombatHudModel
 var ai: RaidAIRuntime
 var camera: ZWorldCamera2D
 var crate_ids: Dictionary = {}
+var objective_crate_ids: Dictionary = {}
+var population_plan: Dictionary = {}
+var _container_positions: Dictionary = {}
+var _container_labels: Dictionary = {}
+var _optional_presenters: Array[LocalLootContainerPresenter] = []
 var rows: Dictionary = {}
 var _routers: Dictionary = {}
 var _inventory_owners: Array[RaidInventoryOwner] = []
@@ -49,9 +54,22 @@ func start(store: ProfileStore, request_id: String, profile_generation: int, see
 			return _fail(NativeRaidMap.last_error if candidate==null else &"local_map_preflight_invalid")
 	map_id=selected_map
 	native_map=candidate
+	if native_map == null:
+		layout = load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
+		if layout == null: return _fail(&"local_sawmill_missing")
+	var map_identity := String(native_map.descriptor().digest) if native_map != null else RaidProgressionValues.digest({
+		"id": layout.level_id, "revision": layout.revision, "size": [layout.size_cells.x, layout.size_cells.y]})
+	population_plan = RaidPopulationGenerator.generate(map_id, map_identity, seed,
+		_objective_population_points(), RaidPopulationCatalog.candidates(map_id))
+	if not RaidPopulationValues.valid_plan(population_plan): return _fail(&"local_population_plan_invalid")
+	var population_descriptor := RaidPopulationValues.descriptor(population_plan)
+	if not RaidProgressionValues.valid_population_descriptor(population_descriptor):
+		return _fail(&"local_population_descriptor_invalid")
 	_started = true
 	deployment = RaidDeployment.new()
-	if not deployment.begin(self, store, request_id, profile_generation, seed, native_map.descriptor() if native_map!=null else {}): return _fail(deployment.last_error)
+	if not deployment.begin(self, store, request_id, profile_generation, seed,
+		native_map.descriptor() if native_map!=null else {}, population_descriptor):
+		return _fail(deployment.last_error)
 	raid = deployment.raid
 	_generation = raid.generation()
 	_inventory_owners.append(deployment.inventory)
@@ -64,14 +82,13 @@ func start(store: ProfileStore, request_id: String, profile_generation: int, see
 		targets={"ok":true,"targets":native_map.interaction_targets()}
 		bake={"ok":true,"segments":native_map.occluders()}
 	else:
-		layout = load("res://game/world/sawmill/sawmill_yard_layout.tres") as ZSawmillYardLayout
-		if layout == null: return _fail(&"local_sawmill_missing")
 		movement_world = ZMovementWorldBuilder.build_from_sawmill_layout(layout, _generation)
 		if movement_world == null: return _fail(ZMovementWorldBuilder.last_error)
 		nav=ZNavigationGrid.bake_from_movement_world(movement_world, layout.size_cells, layout.revision, layout.level_id)
 		targets=ZInteractionTargetIndex.build_from_sawmill_layout(layout)
 		bake=ZOccluderBake.bake(layout.structures, layout.size_cells)
 	if movement_world == null: return _fail(&"local_map_movement_failed")
+	if not _install_population_targets(targets): return false
 	_navigation = ZNavigationPathService.new()
 	if nav == null or not _navigation.configure(nav, geometry_revision()): return _fail(&"local_navigation_failed")
 	if not targets.ok or not bake.ok: return _fail(&"local_world_data_invalid")
@@ -98,8 +115,8 @@ func start(store: ProfileStore, request_id: String, profile_generation: int, see
 	if not combat.start(raid, roster, _obstructions()): return _fail(combat.last_error)
 	if not _create_crates(): return false
 	progression = RaidProgression.new()
-	if not progression.bind(raid, deployment.inventory, combat, interaction, crate_ids,
-		LocalCampaignContent.RAID_LIMIT_TICKS, LocalCampaignContent.EXTRACTION_TICKS, player_movement, map_id):
+	if not progression.bind(raid, deployment.inventory, combat, interaction, objective_crate_ids,
+		LocalCampaignContent.RAID_LIMIT_TICKS, LocalCampaignContent.EXTRACTION_TICKS, player_movement, map_id, crate_ids):
 		return _fail(progression.last_error)
 	for key: String in rows:
 		var encoder: ZCombatInputAdapter = RaidGameplayInput.new() if rows[key].archetype == "player" else ZCombatInputAdapter.new()
@@ -165,7 +182,7 @@ func advance() -> bool:
 
 func nearest_target() -> String:
 	if raid == null or _released: return ""
-	var candidates: Array[String] = crate_keys()
+	var candidates: Array[String] = container_keys()
 	candidates.append(exit_key())
 	var selected: String = ""
 	var distance: float = INF
@@ -243,24 +260,60 @@ func _add_actor(id: ZEntityId, archetype: String, anchor_id: String, owner: Raid
 	if archetype == "player": player_movement = move
 	return true
 
+func _objective_population_points() -> Array:
+	var result: Array = []
+	var keys := SupplyRunGraph.crates_for(map_id)
+	var labels := SupplyRunGraph.crate_titles(map_id)
+	var table := "northline" if map_id == "northline" else ("blackwater" if map_id == "blackwater" else "industrial")
+	for index: int in keys.size():
+		var key := keys[index]
+		var at := native_map.position(key) if native_map != null else layout.cell_center(layout.anchor(key).cell)
+		result.append({"id":key,"label":labels[index],"position":at,
+			"table":table,"visual":"wood_supply_crate"})
+	return result
+
+func _install_population_targets(targets: Dictionary) -> bool:
+	if targets.get("ok") != true or not targets.get("targets") is Dictionary:
+		return _fail(&"local_population_target_index_invalid")
+	var index: Dictionary = targets.targets
+	for row: Dictionary in population_plan.optional_containers:
+		var key := String(row.id)
+		var at := _population_position(row)
+		if index.has(key) or not world_bounds().has_point(at) \
+				or not movement_world.query_placement_px(at, Vector2(12,12)).get("ok",false):
+			return _fail(&"local_population_candidate_invalid")
+		index[key] = ZInteractionTargetState.create_point(StringName(key), ZInteractionKind.CRATE, at)
+	return true
+
+static func _population_position(row: Dictionary) -> Vector2:
+	var value: Array = row.get("position", [])
+	return Vector2(float(value[0]), float(value[1])) if value.size() == 2 else Vector2.INF
+
 func _create_crates() -> bool:
 	var owner := deployment.inventory
 	var native := owner.raid_authority()
-	for index in range(3):
+	var rows: Array = []
+	rows.append_array(population_plan.objective_containers)
+	rows.append_array(population_plan.optional_containers)
+	for index: int in rows.size():
+		var row: Dictionary = rows[index]
 		var id: int = owner.world_crate_inventory_id if index == 0 else native.create_inventory(String(ZerkovInventoryCatalog.PROFILE_WORLD_CRATE))
 		if id < 1: return _fail(&"local_crate_creation_failed")
-		crate_ids[crate_keys()[index]] = id
-		var container: int = native.snapshot(id).get_containers()[0].id
-		var contents: Array = [[ZerkovInventoryCatalog.ITEM_AMMO_762, 60, 3, 0], [ZerkovInventoryCatalog.ITEM_BANDAGE, 2, 4, 0]]
-		if index == 0:
-			contents.append([ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE, 1, 0, 0])
-			contents.append([ZerkovInventoryCatalog.ITEM_AKM, 1, 0, 2])
-			contents.append([ZerkovInventoryCatalog.ITEM_MACHETE, 1, 0, 4])
-		for row: Array in contents:
-			if native.insert_item(id, String(row[0]), row[1], {"kind":"spatial","container":container,
-				"x":row[2],"y":row[3],"rotated":false}, LocalCampaignContent.CONTENT_ACTOR).get("accepted") != true:
+		var key := String(row.id)
+		crate_ids[key] = id
+		if bool(row.objective): objective_crate_ids[key] = id
+		_container_positions[key] = _population_position(row)
+		_container_labels[key] = String(row.label)
+		var snapshot := native.snapshot(id)
+		if snapshot == null or snapshot.get_containers().size() != 1:
+			return _fail(&"local_crate_shell_missing")
+		var container: int = snapshot.get_containers()[0].id
+		for item: Dictionary in row.items:
+			if native.insert_item(id, String(item.definition), int(item.quantity),
+				{"kind":"spatial","container":container,"x":int(item.x),"y":int(item.y),
+					"rotated":bool(item.rotated)}, LocalCampaignContent.CONTENT_ACTOR).get("accepted") != true:
 				return _fail(&"local_crate_content_failed")
-	return true
+	return objective_crate_ids.size() == 3 and crate_ids.size() == 5
 
 func _obstructions() -> Array[Dictionary]:
 	if native_map!=null: return native_map.obstructions()
@@ -285,15 +338,23 @@ func _build_visuals() -> bool:
 	if native_map!=null:
 		camera.zoom=Vector2(3,3)
 		for light:Node in _world_scene.find_children("*","PointLight2D",true,false): _map_lights.append(light)
-		for key:String in crate_keys()+[exit_key()]:
+		for key:String in container_keys()+[exit_key()]:
 			var label:=Label.new()
-			label.text=SupplyRunGraph.exit_title(map_id) if key==exit_key() else SupplyRunGraph.crate_titles(map_id)[crate_keys().find(key)]
+			label.text=SupplyRunGraph.exit_title(map_id) if key==exit_key() else container_label(key)
 			label.position=target_position(key)+Vector2(-25,5)
 			label.scale=Vector2.ONE/3.0
 			label.add_theme_font_size_override("font_size",21)
 			label.add_theme_color_override("font_color",Color("efbf74"))
 			label.mouse_filter=Control.MOUSE_FILTER_IGNORE
 			_world_scene.add_child(label)
+	var optional_parent: Node = _world_scene.get_node("Environment/WorldProps") if native_map!=null else self
+	for row: Dictionary in population_plan.optional_containers:
+		var presenter := LocalLootContainerPresenter.new()
+		optional_parent.add_child(presenter)
+		if not presenter.configure(StringName(row.visual), String(row.label), _generation):
+			return _fail(&"local_optional_container_visual_failed")
+		presenter.position = _population_position(row)
+		_optional_presenters.append(presenter)
 	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://game/content/art/local_player_manifest.json"))
 	if not value is Dictionary: return _fail(&"local_player_art_manifest_missing")
 	var manifest: Dictionary = value
@@ -326,13 +387,27 @@ func world_bounds() -> Rect2:
 func crate_keys() -> Array[String]:
 	return SupplyRunGraph.crates_for(map_id)
 
+func container_keys() -> Array[String]:
+	var result: Array[String] = []
+	for key: String in crate_ids: result.append(key)
+	result.sort()
+	return result
+
+func container_label(key: String) -> String:
+	return String(_container_labels.get(key, key))
+
+func population_descriptor() -> Dictionary:
+	return RaidPopulationValues.descriptor(population_plan)
+
 func exit_key() -> String:
 	return SupplyRunGraph.exit_for(map_id)
 
 func target_position(key: String) -> Vector2:
+	if _container_positions.has(key): return _container_positions[key]
 	return native_map.position(key) if native_map!=null else layout.cell_center(layout.anchor(key).cell)
 
 func target_approach(key: String) -> Vector2:
+	if _container_positions.has(key): return _container_positions[key]
 	return native_map.approach(key) if native_map!=null else layout.cell_center(layout.anchor(key).approach_cell)
 
 func _update_map_lights() -> void:

@@ -15,6 +15,7 @@ var _interaction: ZInteractionPolicyOwner
 var _task: SupplyRunTask
 var _timer: ExtractionCountdown
 var _crates: Dictionary = {}
+var _objective_crates: Dictionary = {}
 var _generation: int = 0
 var _registration: String = ""
 var _map_id: String = "sawmill"
@@ -42,7 +43,8 @@ var _task_fact_updates: int = 0
 var _journal_record_reads: int = 0
 
 func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSession,
-	interaction: ZInteractionPolicyOwner, crates: Dictionary, limit_ticks: int, countdown_ticks: int, movement: ZPlayerLocomotion, map_id: String = "sawmill") -> bool:
+	interaction: ZInteractionPolicyOwner, crates: Dictionary, limit_ticks: int, countdown_ticks: int,
+	movement: ZPlayerLocomotion, map_id: String = "sawmill", searchable_containers: Dictionary = {}) -> bool:
 	if not SupplyRunGraph.is_map(map_id): return _fail(&"progression_map_unknown")
 	_map_id=map_id
 	if _generation != 0 or raid == null or owner == null or combat == null or interaction == null \
@@ -50,20 +52,29 @@ func bind(raid: RaidAuthority, owner: RaidInventoryOwner, combat: RaidCombatSess
 		or combat.health == null or not combat.health.is_bound() or crates.size() != 3 \
 		or movement == null or movement.actor_id() == null or not movement.actor_id().is_equal(raid.admission().actor_id):
 		return _fail(&"progression_binding_invalid")
+	var containers := crates if searchable_containers.is_empty() else searchable_containers
+	if containers.size() < 3 or containers.size() > RaidPopulationValues.MAX_CONTAINERS:
+		return _fail(&"progression_container_mapping_invalid")
 	var ids: Dictionary = {}
-	for key: String in SupplyRunGraph.crates_for(_map_id):
-		if typeof(crates.get(key)) != TYPE_INT or ids.has(crates[key]): return _fail(&"progression_crate_mapping_invalid")
-		var snapshot := owner.raid_authority().snapshot(int(crates[key]))
+	for key: String in containers:
+		if (not SupplyRunGraph.crates_for(_map_id).has(key) \
+				and not RaidPopulationCatalog.accepts_target_for_map(_map_id, key)) \
+				or typeof(containers.get(key)) != TYPE_INT or ids.has(containers[key]):
+			return _fail(&"progression_container_mapping_invalid")
+		var snapshot := owner.raid_authority().snapshot(int(containers[key]))
 		if snapshot == null or StringName(snapshot.get_profile_identifier()) != ZerkovInventoryCatalog.PROFILE_WORLD_CRATE:
 			return _fail(&"progression_crate_profile_invalid")
-		ids[crates[key]] = true
+		ids[containers[key]] = true
+	for key: String in SupplyRunGraph.crates_for(_map_id):
+		if typeof(crates.get(key)) != TYPE_INT or containers.get(key) != crates.get(key):
+			return _fail(&"progression_crate_mapping_invalid")
 	if not raid.has_phase_handler(ZInteractionPolicyOwner.DEFAULT_PHASE_HANDLER_ID,raid.generation()):
 		return _fail(&"progression_interaction_owner_missing")
 	_timer = ExtractionCountdown.new()
 	if not _timer.configure(countdown_ticks,limit_ticks): return _fail(&"progression_timing_invalid")
 	_task = SupplyRunTask.new()
 	if not _task.configure(raid.raid_id().canonical_key(),_map_id): return _fail(_task.last_error)
-	_raid=raid;_owner=owner;_combat=combat;_interaction=interaction;_crates=crates.duplicate()
+	_raid=raid;_owner=owner;_combat=combat;_interaction=interaction;_objective_crates=crates.duplicate();_crates=containers.duplicate()
 	_generation=raid.generation();_countdown_duration=countdown_ticks;_movement=movement
 	_recipient = 1 + int(raid.raid_id().canonical_key().sha256_text().substr(0,7).hex_to_int())
 	var accepted := owner.raid_authority().register_discovery_recipient(_recipient,_recipient)
@@ -156,7 +167,8 @@ func _advance_search(tick: int) -> bool:
 	var key: String = _search.crate
 	var inventory := _owner.raid_authority().snapshot(int(_search.inventory_id))
 	if inventory==null: return _fail(&"progression_search_inventory_removed")
-	var payload := {"verb":"crate_searched","crate_id":key,"inventory_id":int(_search.inventory_id),"inventory_revision":inventory.get_revision()}
+	var payload := {"verb":"crate_searched","crate_id":key,"inventory_id":int(_search.inventory_id),
+		"inventory_revision":inventory.get_revision(),"objective":_objective_crates.has(key)}
 	var id := _event_id(key)
 	if not _raid.can_record_event(ZRaidEvent.EventKind.LOOT,id,tick,_raid.admission().actor_id,payload,_generation): return _fail(_raid.last_error)
 	var elapsed: int = tick-int(_search.start_tick)
@@ -166,8 +178,13 @@ func _advance_search(tick: int) -> bool:
 	if result==null or not result.is_accepted(): return _fail(&"progression_search_advance_rejected")
 	if result.is_completed():
 		if not _raid.record_event(ZRaidEvent.EventKind.LOOT,id,tick,_raid.admission().actor_id,payload,_generation): return _fail(_raid.last_error)
-		if not _task.crate_committed(key,_raid.journal.size(),tick): return _fail(_task.last_error)
-		_searched[key]=true;_search={};_stats.searched_crates=_searched.size()
+		if _objective_crates.has(key) and not _task.crate_committed(key,_raid.journal.size(),tick):
+			return _fail(_task.last_error)
+		_searched[key]=true;_search={}
+		var objective_count: int = 0
+		for searched_key: String in _searched:
+			if _objective_crates.has(searched_key): objective_count += 1
+		_stats.searched_crates=objective_count
 	return true
 
 func _cancel_search() -> bool:
