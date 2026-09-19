@@ -27,8 +27,8 @@ func apply_snapshot(channel: StringName, revision: int, payload: Dictionary) -> 
 	return true
 
 func state(channel: StringName) -> Dictionary:
-	var current := _state_by_channel.get(channel, {})
-	return (current as Dictionary).duplicate(true)
+	var current: Dictionary = _state_by_channel.get(channel, {}) as Dictionary
+	return current.duplicate(true)
 
 func revision(channel: StringName) -> int:
 	return int(_revision_by_channel.get(channel, -1))
