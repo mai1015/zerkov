@@ -1,0 +1,511 @@
+extends SceneTree
+## Real Gameplay Abilities server, owner client, and observer client over ENet.
+## The game still owns authentication/relevance decisions; this verifies the
+## native bridge enforces those decisions instead of inventing authority.
+
+const PORT: int = 24874
+const ENTITY_ID: int = 9001
+const TARGET_ID: int = 9002
+const PRIMARY_ABILITY: StringName = &"test.ability.targeted"
+const SECONDARY_ABILITY: StringName = &"test.ability.secondary"
+const TARGET_SCHEMA: StringName = &"test.target.entity"
+
+var checks: int = 0
+var failures: int = 0
+var tick: int = 1
+var shutting_down: bool = false
+
+var scopes: Array = []
+var apis: Array = []
+var peers: Array = []
+var components: Array = []
+var bridges: Array = []
+
+var handshakes: Dictionary = {}
+var acknowledgements: Dictionary = {}
+var rejections: Dictionary = {}
+var state_syncs: Dictionary = {}
+var public_states: Dictionary = {}
+var authorization_contexts: Array[Dictionary] = []
+var authorization_mode: int = 0
+var committed_activations: int = 0
+var primary_spec: int = 0
+
+
+func _initialize() -> void:
+	run.call_deferred()
+
+
+func check(condition: bool, message: String) -> void:
+	checks += 1
+	if not condition:
+		failures += 1
+		push_error("GAS_HARDENING: " + message)
+
+
+func run() -> void:
+	create_timer(60.0).timeout.connect(func() -> void:
+		push_error("GAS_HARDENING timeout")
+		quit(1)
+	)
+	if (
+		not ClassDB.class_exists("GameplayAbilityNetworkBridge")
+		or not ClassDB.class_exists("GameplayAbilityComponent")
+		or not ClassDB.class_exists("GameplayDefinitionCatalog")
+	):
+		push_error("GAS_HARDENING missing native Gameplay Abilities classes")
+		quit(2)
+		return
+
+	for index in range(3):
+		var scope := Node.new()
+		scope.name = "GasNet%d" % index
+		root.add_child(scope)
+		scopes.append(scope)
+
+		var api := SceneMultiplayer.new()
+		set_multiplayer(api, scope.get_path())
+		apis.append(api)
+		var peer := ENetMultiplayerPeer.new()
+		var peer_error := (
+			peer.create_server(PORT, 8)
+			if index == 0
+			else peer.create_client("127.0.0.1", PORT)
+		)
+		check(peer_error == OK, "real ENet endpoint %d starts" % index)
+		api.multiplayer_peer = peer
+		peers.append(peer)
+
+		var component := GameplayAbilityComponent.new()
+		component.name = "Abilities"
+		component.role = (
+			GameplayAbilityComponent.ROLE_SERVER_AUTHORITY
+			if index == 0
+			else GameplayAbilityComponent.ROLE_NETWORK_CLIENT
+		)
+		component.entity_id = ENTITY_ID
+		component.tick_rate = 60
+		component.definition_catalog = _catalog()
+		scope.add_child(component)
+		var findings: Array = component.configure()
+		check(
+			GameplayDefinitionValidator.is_ok(findings) and component.is_configured(),
+			"component %d configures an identical sealed catalog" % index
+		)
+		components.append(component)
+
+		var bridge := GameplayAbilityNetworkBridge.new()
+		bridge.name = "Bridge"
+		bridge.set_component_path(NodePath("../Abilities"))
+		bridge.set_owner_view(index == 1)
+		bridge.handshake_completed.connect(
+			Callable(self, "_on_handshake").bind(index)
+		)
+		bridge.command_acknowledged.connect(
+			Callable(self, "_on_acknowledged").bind(index)
+		)
+		bridge.command_rejected.connect(
+			Callable(self, "_on_rejected").bind(index)
+		)
+		bridge.state_synced.connect(
+			Callable(self, "_on_state_synced").bind(index)
+		)
+		bridge.public_state_updated.connect(
+			Callable(self, "_on_public_state").bind(index)
+		)
+		scope.add_child(bridge)
+		bridges.append(bridge)
+
+	components[0].activation_committed.connect(_on_server_activation_committed)
+	check(
+		bridges[0].get_require_target_authorization(),
+		"target authorization defaults fail closed"
+	)
+	check(
+		bridges[0].get_no_relevant_peers(),
+		"replication audience defaults to nobody"
+	)
+
+	var granted: Dictionary = components[0].grant_ability(
+		String(PRIMARY_ABILITY), 1, "test.input.targeted", 0
+	)
+	primary_spec = int(granted.get("spec", 0))
+	check(
+		_status_ok(granted) and primary_spec > 0,
+		"authority grants the targeted fixture ability"
+	)
+
+	await frames(45)
+	var peer_one: int = apis[1].get_unique_id()
+	var peer_two: int = apis[2].get_unique_id()
+	check(
+		peer_one > 1 and peer_two > 1 and peer_one != peer_two,
+		"two distinct real remote senders connect"
+	)
+	check(
+		_handshake_compatible(1) and _handshake_compatible(2),
+		"both clients complete exact native compatibility handshakes"
+	)
+
+	var server = bridges[0]
+	server.begin_session(peer_one, 201)
+	server.begin_session(peer_two, 202)
+	check(
+		server.authorize_control(peer_one, ENTITY_ID),
+		"host explicitly grants the owning client control"
+	)
+
+	# The default empty audience must not fall through to broadcast.
+	await frames(12)
+	check(
+		components[1].granted_specs().is_empty(),
+		"owner receives no state before relevance is granted"
+	)
+	check(
+		_event_count(public_states, 2) == 0,
+		"observer receives no public state before relevance is granted"
+	)
+
+	server.set_relevant_peers(PackedInt32Array([peer_one]))
+	check(not server.get_no_relevant_peers(), "explicit relevance grant opens one recipient")
+	await frames(30)
+	var owner_specs: PackedInt64Array = components[1].granted_specs()
+	check(
+		owner_specs.size() == 1 and int(owner_specs[0]) == primary_spec,
+		"only the owning client receives the full grant snapshot"
+	)
+	check(
+		_event_count(state_syncs, 1) > 0,
+		"owner applies an authoritative native snapshot"
+	)
+	check(
+		_event_count(public_states, 2) == 0,
+		"excluded observer still receives no state"
+	)
+
+	# No callback is installed. Because authorization is required by default,
+	# the command must be rejected before gameplay mutation.
+	var owner_rejects_before := _event_count(rejections, 1)
+	var absent_result: Dictionary = bridges[1].request_activation_networked(
+		_activation_request(primary_spec, 1, 1001), tick
+	)
+	check(bool(absent_result.get("sent", false)), "owner transmits targeted intent")
+	await frames(15)
+	check(
+		_event_count(rejections, 1) == owner_rejects_before + 1,
+		"missing target policy produces an explicit rejection"
+	)
+	check(
+		committed_activations == 0 and authorization_contexts.is_empty(),
+		"missing policy cannot reach authority execution"
+	)
+
+	server.set_target_authorization_callback(
+		Callable(self, "_authorize_target")
+	)
+	# A wired policy receives the complete authenticated context and may deny.
+	authorization_mode = 1
+	owner_rejects_before = _event_count(rejections, 1)
+	var denied_result: Dictionary = bridges[1].request_activation_networked(
+		_activation_request(primary_spec, 2, 1002), tick
+	)
+	check(bool(denied_result.get("sent", false)), "policy-denied command reaches transport")
+	await frames(15)
+	check(
+		_event_count(rejections, 1) == owner_rejects_before + 1,
+		"explicit target-policy denial is returned to the owner"
+	)
+	check(
+		authorization_contexts.size() == 1,
+		"target policy is invoked exactly once for the denied command"
+	)
+	if authorization_contexts.size() == 1:
+		var denied_context := authorization_contexts[0]
+		var denied_targets: PackedInt64Array = denied_context.get(
+			"targets", PackedInt64Array()
+		)
+		check(
+			int(denied_context.get("peer", 0)) == peer_one
+				and int(denied_context.get("session", 0)) == 201
+				and int(denied_context.get("component", 0)) == ENTITY_ID
+				and int(denied_context.get("spec", 0)) == primary_spec
+				and StringName(denied_context.get("ability_identifier", &""))
+					== PRIMARY_ABILITY
+				and denied_targets == PackedInt64Array([TARGET_ID])
+				and int(denied_context.get("command_sequence", 0)) == 2
+				and int(denied_context.get("prediction_key", 0)) == 1002,
+			"policy receives exact peer/session/ability/target/sequence context"
+		)
+	check(committed_activations == 0, "denial remains mutation-free")
+
+	# The identical policy may allow the exact authenticated request.
+	authorization_mode = 2
+	var owner_acks_before := _event_count(acknowledgements, 1)
+	var allowed_result: Dictionary = bridges[1].request_activation_networked(
+		_activation_request(primary_spec, 3, 1003), tick
+	)
+	check(bool(allowed_result.get("sent", false)), "authorized command reaches transport")
+	await frames(18)
+	check(
+		_event_count(acknowledgements, 1) == owner_acks_before + 1,
+		"authorized command receives a native acknowledgement"
+	)
+	check(
+		authorization_contexts.size() == 2 and committed_activations == 1,
+		"authorized command commits exactly once"
+	)
+
+	# An exact replay may return a cached result, but it must never re-run the
+	# game policy or execution.
+	var result_count_before := _event_count(acknowledgements, 1) \
+		+ _event_count(rejections, 1)
+	var policy_calls_before := authorization_contexts.size()
+	var commits_before := committed_activations
+	var replay_result: Dictionary = bridges[1].request_activation_networked(
+		_activation_request(primary_spec, 3, 1003), tick
+	)
+	check(bool(replay_result.get("sent", false)), "duplicate command reaches native replay gate")
+	await frames(12)
+	check(
+		_event_count(acknowledgements, 1) + _event_count(rejections, 1)
+			== result_count_before + 1,
+		"duplicate command receives one bounded terminal result"
+	)
+	check(
+		authorization_contexts.size() == policy_calls_before
+			and committed_activations == commits_before,
+		"duplicate command cannot reauthorize or execute twice"
+	)
+
+	# A compatible but unowned observer cannot attach itself to the entity.
+	var observer_results_before := _event_count(acknowledgements, 2) \
+		+ _event_count(rejections, 2)
+	policy_calls_before = authorization_contexts.size()
+	commits_before = committed_activations
+	var observer_attack: Dictionary = bridges[2].request_activation_networked(
+		_activation_request(primary_spec, 1, 2001), tick
+	)
+	check(bool(observer_attack.get("sent", false)), "observer hostile command reaches transport")
+	await frames(12)
+	check(
+		_event_count(acknowledgements, 2) + _event_count(rejections, 2)
+			== observer_results_before + 1,
+		"observer receives one terminal rejection"
+	)
+	check(
+		authorization_contexts.size() == policy_calls_before
+			and committed_activations == commits_before,
+		"ownership rejection occurs before target policy or execution"
+	)
+
+	# Add the observer explicitly. It gets only the PUBLIC projection, not a
+	# restored owner component.
+	server.set_relevant_peers(PackedInt32Array([peer_one, peer_two]))
+	await frames(30)
+	check(
+		_event_count(public_states, 2) > 0,
+		"explicitly relevant observer receives a public baseline"
+	)
+	var observer_state := _latest_event(public_states, 2)
+	check(
+		_state_has_ability(observer_state, PRIMARY_ABILITY),
+		"public baseline contains the observable ability identifier"
+	)
+	check(
+		components[2].granted_specs().is_empty(),
+		"observer projection never restores owner grants into its component"
+	)
+
+	# Emptying the allowlist revokes all egress. A later authoritative change
+	# must remain hidden until recipients are explicitly re-added.
+	var owner_syncs_before := _event_count(state_syncs, 1)
+	var observer_updates_before := _event_count(public_states, 2)
+	server.set_relevant_peers(PackedInt32Array())
+	check(server.get_no_relevant_peers(), "empty relevance list revokes instead of broadcasting")
+	var secondary_grant: Dictionary = components[0].grant_ability(
+		String(SECONDARY_ABILITY), 1, "test.input.secondary", tick
+	)
+	check(_status_ok(secondary_grant), "authority commits a second public grant")
+	await frames(20)
+	check(
+		_event_count(state_syncs, 1) == owner_syncs_before
+			and components[1].granted_specs().size() == 1,
+		"revoked owner receives no hidden update"
+	)
+	check(
+		_event_count(public_states, 2) == observer_updates_before,
+		"revoked observer receives no hidden update"
+	)
+
+	server.set_relevant_peers(PackedInt32Array([peer_one, peer_two]))
+	await frames(30)
+	check(
+		components[1].granted_specs().size() == 2,
+		"re-added owner converges from an authoritative snapshot or delta"
+	)
+	observer_state = _latest_event(public_states, 2)
+	check(
+		_state_has_ability(observer_state, PRIMARY_ABILITY)
+			and _state_has_ability(observer_state, SECONDARY_ABILITY),
+		"re-added observer converges to the current public projection"
+	)
+
+	# Session retirement invalidates the old command namespace immediately.
+	server.end_session(peer_one)
+	result_count_before = _event_count(acknowledgements, 1) \
+		+ _event_count(rejections, 1)
+	policy_calls_before = authorization_contexts.size()
+	commits_before = committed_activations
+	var retired_result: Dictionary = bridges[1].request_activation_networked(
+		_activation_request(primary_spec, 4, 1004), tick
+	)
+	check(bool(retired_result.get("sent", false)), "retired client can still send hostile bytes")
+	await frames(12)
+	check(
+		_event_count(acknowledgements, 1) + _event_count(rejections, 1)
+			== result_count_before + 1,
+		"retired session receives one terminal rejection"
+	)
+	check(
+		authorization_contexts.size() == policy_calls_before
+			and committed_activations == commits_before,
+		"retired session cannot reach policy or mutate authority"
+	)
+
+	shutting_down = true
+	for peer in peers:
+		peer.close()
+	for _index in range(5):
+		await process_frame
+	for scope in scopes:
+		scope.queue_free()
+	for _index in range(3):
+		await process_frame
+	print(
+		"GAS_HARDENING_RESULT checks=", checks,
+		" failures=", failures,
+		" real_enet_peers=3 native=true"
+	)
+	quit(0 if failures == 0 else 1)
+
+
+func frames(count: int) -> void:
+	for _index in range(count):
+		await process_frame
+		tick += 1
+		if (
+			not shutting_down
+			and not bridges.is_empty()
+			and is_instance_valid(bridges[0])
+		):
+			bridges[0].push_full_state(tick)
+
+
+func _catalog() -> GameplayDefinitionCatalog:
+	var schema := GameplayTargetDataSchema.new()
+	schema.identifier = TARGET_SCHEMA
+	schema.schema_version = 1
+	schema.intent_kind = GameplayTargetDataSchema.VALUE_ENTITY_SET
+	schema.result_kind = GameplayTargetDataSchema.VALUE_ENTITY_SET
+	schema.min_entities = 1
+	schema.max_entities = 1
+	schema.max_payload_bytes = 128
+	schema.allow_self = false
+	schema.allow_empty = false
+
+	var primary := GameplayAbilityDefinition.new()
+	primary.identifier = PRIMARY_ABILITY
+	primary.activation_policy = GameplayAbilityDefinition.ACTIVATION_MANUAL
+	primary.auto_commit = true
+	primary.ends_on_commit = true
+	primary.target_schema = TARGET_SCHEMA
+
+	var secondary := GameplayAbilityDefinition.new()
+	secondary.identifier = SECONDARY_ABILITY
+	secondary.activation_policy = GameplayAbilityDefinition.ACTIVATION_MANUAL
+	secondary.auto_commit = true
+	secondary.ends_on_commit = true
+
+	var catalog := GameplayDefinitionCatalog.new()
+	catalog.target_data_schemas = [schema]
+	catalog.ability_definitions = [primary, secondary]
+	return catalog
+
+
+func _activation_request(spec: int, sequence: int, prediction_key: int) -> Dictionary:
+	return {
+		"spec": spec,
+		"targets": PackedInt64Array([TARGET_ID]),
+		"command_sequence": sequence,
+		"prediction_key": prediction_key,
+		"input_phase": 0,
+	}
+
+
+func _authorize_target(context: Dictionary) -> bool:
+	authorization_contexts.append(context.duplicate(true))
+	if authorization_mode != 2:
+		return false
+	var targets: PackedInt64Array = context.get("targets", PackedInt64Array())
+	return (
+		int(context.get("component", 0)) == ENTITY_ID
+		and StringName(context.get("ability_identifier", &"")) == PRIMARY_ABILITY
+		and targets == PackedInt64Array([TARGET_ID])
+	)
+
+
+func _on_server_activation_committed(_event: Dictionary) -> void:
+	committed_activations += 1
+
+
+func _on_handshake(result: Dictionary, index: int) -> void:
+	handshakes[index] = result.duplicate(true)
+
+
+func _on_acknowledged(result: Dictionary, index: int) -> void:
+	_append_event(acknowledgements, index, result)
+
+
+func _on_rejected(result: Dictionary, index: int) -> void:
+	_append_event(rejections, index, result)
+
+
+func _on_state_synced(info: Dictionary, index: int) -> void:
+	_append_event(state_syncs, index, info)
+
+
+func _on_public_state(state: Dictionary, index: int) -> void:
+	_append_event(public_states, index, state)
+
+
+func _append_event(store: Dictionary, index: int, payload: Dictionary) -> void:
+	var rows: Array = store.get(index, [])
+	rows.append(payload.duplicate(true))
+	store[index] = rows
+
+
+func _event_count(store: Dictionary, index: int) -> int:
+	var rows: Array = store.get(index, [])
+	return rows.size()
+
+
+func _latest_event(store: Dictionary, index: int) -> Dictionary:
+	var rows: Array = store.get(index, [])
+	return rows.back() as Dictionary if not rows.is_empty() else {}
+
+
+func _handshake_compatible(index: int) -> bool:
+	var result: Dictionary = handshakes.get(index, {})
+	return bool(result.get("compatible", false))
+
+
+func _state_has_ability(state: Dictionary, ability: StringName) -> bool:
+	var abilities: PackedStringArray = state.get(
+		"granted_abilities", PackedStringArray()
+	)
+	return abilities.has(String(ability))
+
+
+func _status_ok(result: Dictionary) -> bool:
+	var status: Dictionary = result.get("status", {})
+	return bool(status.get("ok", false))
