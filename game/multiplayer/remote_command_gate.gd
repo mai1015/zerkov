@@ -133,10 +133,6 @@ func _admit_remote_command_inner(
 	if internal_sequence <= 0 or internal_sequence > MAX_INTERNAL_SEQUENCE:
 		return _reject_receipt(&"internal_command_sequence_exhausted")
 
-	if not _registry.admit_command(
-		session_id, actor_id, transport_peer_id, authority_epoch, sequence):
-		return _reject_receipt(_registry.last_error)
-
 	var current_authority_admission := _authority.admission()
 	if current_authority_admission == null 			or not current_authority_admission.session_id.is_equal(_authority_admission.session_id) 			or current_authority_admission.authority_epoch != _authority_admission.authority_epoch:
 		return _reject_receipt(&"server_authority_session_changed")
@@ -165,6 +161,14 @@ func _admit_remote_command_inner(
 	last_gate_trace.append("enqueue")
 	if not _authority.enqueue_intent(intent, generation):
 		return _reject_receipt(_authority.last_error)
+
+	# The session registry preflight above was non-consuming. Commit its replay
+	# fence only after canonical queue admission succeeds. No external callback is
+	# invoked between preflight and this commit, so failure here is an invariant
+	# violation rather than a normal client rejection.
+	if not _registry.admit_command(
+		session_id, actor_id, transport_peer_id, authority_epoch, sequence):
+		return _reject_receipt(&"remote_sequence_commit_invariant_failed")
 
 	_next_internal_sequence_by_actor[actor_key] = internal_sequence + 1
 	return {
