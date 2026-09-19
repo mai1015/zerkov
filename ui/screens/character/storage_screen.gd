@@ -110,7 +110,7 @@ func _arrange_storage() -> void:
 				_place_storage(recover, Rect2(0, cursor, 620, 36))
 				cursor += 44
 	if _secure_grid != null and _secure_swap != null:
-		var secure := _inventory_controller.storage_state(&"secure")
+		var secure: Dictionary = _inventory_controller.storage_state(&"secure")
 		_place_storage(_secure_title, Rect2(0, cursor, 620, 26))
 		_secure_title.text = "SECURE CONTAINER"
 		cursor += 32
