@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ZHeldWeaponArt" format=3]
+
+[ext_resource type="Script" path="res://game/presentation/art/held_weapon_art.gd" id="profile"]
+[ext_resource type="Texture2D" path="res://assets/original/ally/arms+ak.png" id="pose"]
+
+[resource]
+script = ExtResource("profile")
+definition_id = "zerkov.weapon.akm"
+texture = ExtResource("pose")
+includes_arms = true
+grip = Vector2(18, 1)
+shoulder = Vector2(2, -17)
+muzzle = Vector2(0, 2)
+pixel_scale = 1.0

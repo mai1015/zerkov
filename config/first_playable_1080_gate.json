@@ -156,7 +156,7 @@
   "active_command_entrypoints": {
     "tools/run_equipment_contracts.py": {
       "purpose": "Native equipment and existing reconciliation/UI suites; isolated real profile and native fullscreen recording",
-      "sha256": "4b0bf01c63182ff1b108aa614a42b5d430bba60554558917f02f6646a3a0fd14"
+      "sha256": "530f0797013cb93f7c302b97d10da3a1956ecc1c1137c61ba79e13c75191064d"
     },
     "tools/run_live_maps_contracts.py": {"purpose": "isolated real native maps, save failure/restart and original Sawmill regression", "sha256": "a6368240475738e1ef97c1c8d9234518082f5d239f077df51a930c2a77b24b8b"},
     "tests/tooling/run_interaction_policy_headless_gate.py": {
@@ -249,6 +249,7 @@
     }
   },
   "active_reviewed_support": {
+    "tests/equipment/equipment_gameplay_driver.gd": {"purpose": "Non-entrypoint real-input equipment gameplay driver with fail-closed native 1080p stills", "runner_inventory": true, "sha256": "fbb93b6ea72e00704ca8ccc623831ca7e45a46c471ffbbf33c91f080b98da5d2"},
     "game/presentation/exact_1080_capture_guard.gd": {
       "purpose": "export-safe physical window, viewport, texture and raw-image final-write guard",
       "runner_inventory": false,
@@ -267,6 +268,7 @@
   },
   "active_headless_entrypoints": [
     "tests/equipment/equipment_contract.gd",
+    "tests/equipment/weapon_presentation_contract.gd",
     "tests/raid/live_maps_contract.gd",
     "tools/build_live_map_cache.gd",
     "tools/migrate_northline_freight.gd",
@@ -448,6 +450,7 @@
     ]
   },
   "sanctioned_capture_writers": {
+    "tests/equipment/equipment_gameplay_driver.gd": {"physical_guard_call": "Exact1080CaptureGuard.accepts(_tree.root, _tree.root, image)", "guard_anchors": ["var image := _tree.root.get_texture().get_image()", "if not Exact1080CaptureGuard.accepts(_tree.root, _tree.root, image):"]},
     "tests/raid/live_maps_flow.gd": {"physical_guard_call": "Exact1080CaptureGuard.accepts(root,root,image)", "guard_anchors": ["const EXACT := Vector2i(1920,1080)", "root.borderless=true;root.size=EXACT"]},
     "tests/presentation/feature_gates_8_9_contract.gd": {
       "physical_guard_call": "Exact1080CaptureGuard.accepts(root, production_render_target, image)",

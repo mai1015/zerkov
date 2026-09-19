@@ -372,8 +372,9 @@ func _due(raid: RaidAuthority, phase: int, tick: int, _intents: Array[ZRaidInten
 			var pose: Dictionary = _poses[intent.actor_id.canonical_key()]
 			_noise.append({"event_id": result.consequence_id, "source_id": result.actor_id, "tick": tick,
 				"position_raw": pose.origin_raw, "category": &"gunshot", "intensity_milli": 1000})
-			_feedback.append({"id": result.consequence_id, "kind": &"shot", "actor_id": result.actor_id,
-				"hit": result.hit, "blocked": result.blocked, "tick": tick})
+			# Ray endpoints and weapon identity come from that same resolved shot,
+			# never from the current cursor, an animation socket or another query.
+			_feedback.append(_fire.resolved_presentation(pending.shot))
 			_pending.erase(request_id)
 		elif pending.kind == &"quick_heal":
 			var result := _health.treatment_receipt(request_id)
