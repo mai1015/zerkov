@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_i0ju6"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_80io0"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/furniture/blue_chair.tres" id="3_mykwt"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_uamuw"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/blue_chair_shadow.tres" id="5_i85sm"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_hg8sa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_awoce"]
+size = Vector2(35.77, 14.58)
+
+[node name="BlueChair" type="Node2D" unique_id=1199215088]
+script = ExtResource("1_i0ju6")
+sun_profile = ExtResource("2_80io0")
+asset_id = "blue_chair"
+silhouette_height = 54.0
+physical_height = 35.1
+ground_size = Vector2(35.77, 14.58)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1518909529]
+texture_filter = 1
+texture = ExtResource("3_mykwt")
+offset = Vector2(0, -27)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=417707981]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_uamuw")
+scale = Vector2(1, -0.49400002)
+skew = -0.890118
+texture = ExtResource("5_i85sm")
+offset = Vector2(0, -27)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=539020713]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_uamuw")
+position = Vector2(0, -7.29)
+scale = Vector2(0.6147969, 0.25059375)
+texture = ExtResource("6_hg8sa")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=1056547978]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=736404020]
+position = Vector2(0, -7.29)
+shape = SubResource("RectangleShape2D_awoce")

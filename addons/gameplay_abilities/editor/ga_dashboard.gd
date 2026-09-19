@@ -49,6 +49,20 @@ const KIND_ORDER: PackedStringArray = [
 	KIND_TAG, KIND_ATTRIBUTE, KIND_EFFECT, KIND_ABILITY, KIND_CUE, KIND_TARGET_SCHEMA, KIND_NETWORK_POLICY,
 ]
 
+# Resource types that can actually appear in the dashboard's definitions browser.
+# The dashboard scans res:// by default, so filtering by declared resource type before
+# ResourceLoader.load() avoids eagerly loading unrelated art/TileSet resources during
+# a fresh editor import, when their imported image dependencies may not exist yet.
+const DEFINITION_RESOURCE_TYPES: PackedStringArray = [
+	"GameplayTagDefinition",
+	"GameplayAttributeDefinition",
+	"GameplayEffectDefinition",
+	"GameplayAbilityDefinition",
+	"GameplayCueDefinition",
+	"GameplayTargetDataSchema",
+	"GameplayNetworkPolicy",
+]
+
 const KIND_LABELS := {
 	KIND_TAG: "Tags",
 	KIND_ATTRIBUTE: "Attributes",
@@ -242,6 +256,27 @@ static func classify_resource(resource: Resource) -> String:
 	return ""
 
 
+## Reads only the first line of a text resource to identify its declared type
+## without instantiating the resource or any dependencies. Binary .res files
+## intentionally fall back to the normal load path in scan_directory().
+static func _tres_declared_resource_type(path: String) -> String:
+	if not path.ends_with(".tres"):
+		return ""
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return ""
+	var header := file.get_line()
+	var marker := "type=\""
+	var start := header.find(marker)
+	if start < 0:
+		return ""
+	start += marker.length()
+	var finish := header.find("\"", start)
+	if finish < 0:
+		return ""
+	return header.substr(start, finish - start)
+
+
 ## Recursively collects every [code].tres[/code]/[code].res[/code]/
 ## [code].tscn[/code] path beneath [param p_directory] -- broader than
 ## [method find_definition_files] below (which only collects .tres/.res,
@@ -304,6 +339,14 @@ static func scan_directory(p_directory: String) -> Dictionary:
 		grouped[kind] = []
 
 	for path in find_definition_files(p_directory):
+		# Avoid loading every arbitrary .tres/.res in the project. On a clean editor
+		# import, unrelated resources can legitimately reference images that have not
+		# been imported yet; loading them here turns those transient dependencies into
+		# editor diagnostics even though they are not GameplayAbilities definitions.
+		if path.ends_with(".tres"):
+			var declared_type := _tres_declared_resource_type(path)
+			if not DEFINITION_RESOURCE_TYPES.has(declared_type):
+				continue
 		var resource: Resource = ResourceLoader.load(path)
 		var kind := classify_resource(resource)
 		if kind.is_empty():

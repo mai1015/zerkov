@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_r0cji"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_j04wi"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/vegetation/pine_young.tres" id="3_8choh"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_uttob"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/pine_young_shadow.tres" id="5_rjhbd"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_pbyvi"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f4u80"]
+size = Vector2(18, 11)
+
+[node name="PineYoung" type="Node2D" unique_id=1242672111]
+script = ExtResource("1_r0cji")
+sun_profile = ExtResource("2_j04wi")
+asset_id = "pine_young"
+silhouette_height = 100.0
+physical_height = 95.0
+ground_size = Vector2(18, 11)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1435223870]
+texture_filter = 1
+texture = ExtResource("3_8choh")
+offset = Vector2(0, -50)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=2045939153]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_uttob")
+scale = Vector2(1, -0.7219999)
+skew = -0.890118
+texture = ExtResource("5_rjhbd")
+offset = Vector2(0, -50)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=184567874]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_uttob")
+position = Vector2(0, -5.5)
+scale = Vector2(0.309375, 0.18906249)
+texture = ExtResource("6_pbyvi")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=2067919350]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=1158346308]
+position = Vector2(0, -5.5)
+shape = SubResource("RectangleShape2D_f4u80")

@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_cnkei"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_ox3mo"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/props/green_drum.tres" id="3_rkirm"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_k6vm3"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/green_drum_shadow.tres" id="5_yfs22"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_o5ai6"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_r6mln"]
+size = Vector2(24.82, 13.5)
+
+[node name="GreenDrum" type="Node2D" unique_id=323188258]
+script = ExtResource("1_cnkei")
+sun_profile = ExtResource("2_ox3mo")
+asset_id = "green_drum"
+silhouette_height = 50.0
+physical_height = 32.5
+ground_size = Vector2(24.82, 13.5)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=424112826]
+texture_filter = 1
+texture = ExtResource("3_rkirm")
+offset = Vector2(0, -25)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=377302379]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_k6vm3")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_yfs22")
+offset = Vector2(0, -25)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=1640128632]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_k6vm3")
+position = Vector2(0, -6.75)
+scale = Vector2(0.42659375, 0.23203124)
+texture = ExtResource("6_o5ai6")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=812160962]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=902701108]
+position = Vector2(0, -6.75)
+shape = SubResource("RectangleShape2D_r6mln")

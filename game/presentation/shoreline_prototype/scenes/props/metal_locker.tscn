@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_p35g3"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_goq2c"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/props/metal_locker.tres" id="3_gukew"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_pjep8"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/metal_locker_shadow.tres" id="5_tghd7"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_yyhq1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yphwn"]
+size = Vector2(27.01, 14.31)
+
+[node name="MetalLocker" type="Node2D" unique_id=2032249780]
+script = ExtResource("1_p35g3")
+sun_profile = ExtResource("2_goq2c")
+asset_id = "metal_locker"
+silhouette_height = 53.0
+physical_height = 34.45
+ground_size = Vector2(27.01, 14.31)
+search_label = "metal locker"
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=251087409]
+texture_filter = 1
+texture = ExtResource("3_gukew")
+offset = Vector2(0, -26.5)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=816296214]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_pjep8")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_tghd7")
+offset = Vector2(0, -26.5)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=150519881]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_pjep8")
+position = Vector2(0, -7.155)
+scale = Vector2(0.46423438, 0.24595313)
+texture = ExtResource("6_yyhq1")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=217451870]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=1996896623]
+position = Vector2(0, -7.155)
+shape = SubResource("RectangleShape2D_yphwn")

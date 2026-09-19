@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_2y4sf"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_ti2gf"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/vegetation/pine_sapling_a.tres" id="3_wa8ba"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_oji5f"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/pine_sapling_a_shadow.tres" id="5_ve3jy"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_g6knm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_78gg1"]
+size = Vector2(18, 11)
+
+[node name="PineSaplingA" type="Node2D" unique_id=895330336]
+script = ExtResource("1_2y4sf")
+sun_profile = ExtResource("2_ti2gf")
+asset_id = "pine_sapling_a"
+silhouette_height = 46.0
+physical_height = 43.699999999999996
+ground_size = Vector2(18, 11)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=516147355]
+texture_filter = 1
+texture = ExtResource("3_wa8ba")
+offset = Vector2(0, -23)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=709628294]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_oji5f")
+scale = Vector2(1, -0.722)
+skew = -0.890118
+texture = ExtResource("5_ve3jy")
+offset = Vector2(0, -23)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=648659141]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_oji5f")
+position = Vector2(0, -5.5)
+scale = Vector2(0.309375, 0.18906249)
+texture = ExtResource("6_g6knm")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=817882772]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=432063288]
+position = Vector2(0, -5.5)
+shape = SubResource("RectangleShape2D_78gg1")

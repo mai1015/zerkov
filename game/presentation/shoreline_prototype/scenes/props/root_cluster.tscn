@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_qlf2n"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_hg3k3"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/vegetation/root_cluster.tres" id="3_5wysk"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_np6qu"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/root_cluster_shadow.tres" id="5_y6uxy"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_s66fd"]
+
+[node name="RootCluster" type="Node2D" unique_id=2025736454]
+script = ExtResource("1_qlf2n")
+sun_profile = ExtResource("2_hg3k3")
+asset_id = "root_cluster"
+silhouette_height = 48.0
+physical_height = 31.200000000000003
+ground_size = Vector2(39.42, 12.96)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=2061617913]
+texture_filter = 1
+texture = ExtResource("3_5wysk")
+offset = Vector2(0, -24)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=445620186]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_np6qu")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_y6uxy")
+offset = Vector2(0, -24)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=2127168775]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_np6qu")
+position = Vector2(0, -6.48)
+scale = Vector2(0.67753124, 0.22275)
+texture = ExtResource("6_s66fd")

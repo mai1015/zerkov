@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_dfrep"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_6o0i6"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/props/sandbag_wall.tres" id="3_ecrn3"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_f5414"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/sandbag_wall_shadow.tres" id="5_3j72b"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_nasfb"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vxjha"]
+size = Vector2(39.42, 13.23)
+
+[node name="SandbagWall" type="Node2D" unique_id=994219656]
+script = ExtResource("1_dfrep")
+sun_profile = ExtResource("2_6o0i6")
+asset_id = "sandbag_wall"
+silhouette_height = 49.0
+physical_height = 31.85
+ground_size = Vector2(39.42, 13.23)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1247430343]
+texture_filter = 1
+texture = ExtResource("3_ecrn3")
+offset = Vector2(0, -24.5)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=2094897122]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_f5414")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_3j72b")
+offset = Vector2(0, -24.5)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=235256802]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_f5414")
+position = Vector2(0, -6.615)
+scale = Vector2(0.67753124, 0.2273906)
+texture = ExtResource("6_nasfb")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=1748974666]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=357564938]
+position = Vector2(0, -6.615)
+shape = SubResource("RectangleShape2D_vxjha")
