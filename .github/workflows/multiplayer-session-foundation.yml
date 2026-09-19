@@ -10,6 +10,7 @@ on:
       - 'game/domain/z_session_auth_grant.gd'
       - 'game/domain/ports/session_authenticator_port.gd'
       - 'game/domain/ports/remote_command_policy_port.gd'
+      - 'game/domain/ports/replication_projection_port.gd'
       - 'game/adapters/authenticated_session_ingress.gd'
       - 'game/adapters/offline_session_ingress.gd'
       - 'game/multiplayer/**'
@@ -50,7 +51,7 @@ jobs:
             -o "$RUNNER_TEMP/godot.zip"
           ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
           echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
-      - name: Product session, Phase B and integration-regression contracts
+      - name: Product session, Phase B, Task 10.5 and integration-regression contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -65,6 +66,7 @@ jobs:
             'game/domain/z_session_auth_grant.gd' \
             'game/domain/ports/session_authenticator_port.gd' \
             'game/domain/ports/remote_command_policy_port.gd' \
+            'game/domain/ports/replication_projection_port.gd' \
             'game/adapters/authenticated_session_ingress.gd' \
             'game/adapters/offline_session_ingress.gd' \
             'game/multiplayer/**' \
@@ -83,21 +85,30 @@ jobs:
               call_deferred("run")
 
           func run() -> void:
-              var session_suite = load("res://tests/multiplayer/product_session_contract.gd").new()
-              var session_result: Dictionary = session_suite.run()
-              print("MULTIPLAYER_SESSION_FOUNDATION_RESULT checks=",
-                  session_result.get("checks", 0), " failures=",
-                  session_result.get("failures", 1))
-
-              var phase_b_suite = load("res://tests/multiplayer/phase_b_contract.gd").new()
-              var phase_b_result: Dictionary = phase_b_suite.run()
-              print("MULTIPLAYER_PHASE_B_RESULT checks=",
-                  phase_b_result.get("checks", 0), " failures=",
-                  phase_b_result.get("failures", 1))
-
+              var session_result := run_suite(
+                  "res://tests/multiplayer/product_session_contract.gd",
+                  "MULTIPLAYER_SESSION_FOUNDATION_RESULT")
+              var phase_b_result := run_suite(
+                  "res://tests/multiplayer/phase_b_contract.gd",
+                  "MULTIPLAYER_PHASE_B_RESULT")
+              var phase_c_result := run_suite(
+                  "res://tests/multiplayer/phase_c_egress_contract.gd",
+                  "MULTIPLAYER_PHASE_C_EGRESS_RESULT")
               var failures := int(session_result.get("failures", 1)) + int(
-                  phase_b_result.get("failures", 1))
+                  phase_b_result.get("failures", 1)) + int(
+                  phase_c_result.get("failures", 1))
               quit(0 if failures == 0 else 1)
+
+          func run_suite(path: String, marker: String) -> Dictionary:
+              var suite_script := load(path) as Script
+              if suite_script == null:
+                  print(marker, " checks=0 failures=1 load_failed=true")
+                  return {"checks": 0, "failures": 1}
+              var suite = suite_script.new()
+              var result: Dictionary = suite.run()
+              print(marker, " checks=", result.get("checks", 0),
+                  " failures=", result.get("failures", 1))
+              return result
           GDSCRIPT
           "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
             --script res://tests/multiplayer/_ci_product_session_driver.gd \
@@ -110,6 +121,7 @@ jobs:
             2>&1 | tee "$OUT/equipment-identity-regression.log"
           grep -q 'MULTIPLAYER_SESSION_FOUNDATION_RESULT .* failures=0' "$OUT/product-session.log"
           grep -q 'MULTIPLAYER_PHASE_B_RESULT .* failures=0' "$OUT/product-session.log"
+          grep -q 'MULTIPLAYER_PHASE_C_EGRESS_RESULT .* failures=0' "$OUT/product-session.log"
           grep -q 'SESSION_LIFECYCLE_RESULT .* failures=0' "$OUT/offline-session-regression.log"
           grep -q 'EQUIPPED_ITEM_RECONCILIATION_RESULT .* failures=0' "$OUT/equipment-identity-regression.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
