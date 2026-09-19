@@ -50,7 +50,7 @@ func is_configured() -> bool:
 func admit_remote_command(
 	transport_peer_id: int,
 	wire_size_bytes: int,
-	command: Dictionary
+	command: Variant
 ) -> Dictionary:
 	last_error = &""
 	last_gate_trace = PackedStringArray()
@@ -66,7 +66,7 @@ func admit_remote_command(
 func _admit_remote_command_inner(
 	transport_peer_id: int,
 	wire_size_bytes: int,
-	command: Dictionary
+	command: Variant
 ) -> Dictionary:
 	last_gate_trace.append("size")
 	if wire_size_bytes <= 0 or wire_size_bytes > MAX_WIRE_BYTES:
@@ -182,34 +182,39 @@ func _admit_remote_command_inner(
 		"gate_trace": last_gate_trace.duplicate(),
 	}
 
-func _decode_command(command: Dictionary) -> Dictionary:
-	if command.size() != COMMAND_KEYS.size():
+func _decode_command(command: Variant) -> Dictionary:
+	if typeof(command) != TYPE_DICTIONARY:
 		return {"ok": false, "reason": &"remote_command_shape_invalid"}
-	for key in command.keys():
+	var command_dict := command as Dictionary
+	if command_dict.size() != COMMAND_KEYS.size():
+		return {"ok": false, "reason": &"remote_command_shape_invalid"}
+	for key in command_dict.keys():
 		if typeof(key) != TYPE_STRING or not COMMAND_KEYS.has(String(key)):
 			return {"ok": false, "reason": &"remote_command_shape_invalid"}
-	if not ZCanonicalValue.is_bounded(command):
+	if not ZCanonicalValue.is_bounded(command_dict):
 		return {"ok": false, "reason": &"remote_command_unbounded"}
-	if typeof(command.get("session_id", null)) != TYPE_STRING 			or typeof(command.get("actor_id", null)) != TYPE_STRING 			or typeof(command.get("authority_epoch", null)) != TYPE_INT 			or typeof(command.get("sequence", null)) != TYPE_INT 			or typeof(command.get("base_revision", null)) != TYPE_INT 			or typeof(command.get("compatibility_digest", null)) != TYPE_STRING 			or (typeof(command.get("kind", null)) != TYPE_STRING 				and typeof(command.get("kind", null)) != TYPE_STRING_NAME) 			or typeof(command.get("payload", null)) != TYPE_DICTIONARY:
+	if typeof(command_dict.get("session_id", null)) != TYPE_STRING 			or typeof(command_dict.get("actor_id", null)) != TYPE_STRING 			or typeof(command_dict.get("authority_epoch", null)) != TYPE_INT 			or typeof(command_dict.get("sequence", null)) != TYPE_INT 			or typeof(command_dict.get("base_revision", null)) != TYPE_INT 			or typeof(command_dict.get("compatibility_digest", null)) != TYPE_STRING 			or (typeof(command_dict.get("kind", null)) != TYPE_STRING 				and typeof(command_dict.get("kind", null)) != TYPE_STRING_NAME) 			or typeof(command_dict.get("payload", null)) != TYPE_DICTIONARY:
 		return {"ok": false, "reason": &"remote_command_type_invalid"}
-	var session_id := ZSessionId.parse(String(command["session_id"]))
-	var actor_id := ZEntityId.parse(String(command["actor_id"]))
-	var kind := StringName(command["kind"])
-	if session_id == null or actor_id == null 			or int(command["authority_epoch"]) <= 0 			or int(command["sequence"]) <= 0 			or int(command["sequence"]) > ZProductSessionRegistry.MAX_COMMAND_SEQUENCE 			or int(command["base_revision"]) < 0 			or not ZProductCompatibilityManifest.is_sha256(String(command["compatibility_digest"])) 			or not ZIdentityRules.is_valid_part(String(kind)):
+	var session_id := ZSessionId.parse(String(command_dict["session_id"]))
+	var actor_id := ZEntityId.parse(String(command_dict["actor_id"]))
+	var kind := StringName(command_dict["kind"])
+	if session_id == null or actor_id == null 			or int(command_dict["authority_epoch"]) <= 0 			or int(command_dict["sequence"]) <= 0 			or int(command_dict["sequence"]) > ZProductSessionRegistry.MAX_COMMAND_SEQUENCE 			or int(command_dict["base_revision"]) < 0 			or not ZProductCompatibilityManifest.is_sha256(String(command_dict["compatibility_digest"])) 			or not ZIdentityRules.is_valid_part(String(kind)):
 		return {"ok": false, "reason": &"remote_command_value_invalid"}
 	return {
 		"ok": true,
 		"session_id": session_id,
 		"actor_id": actor_id,
-		"authority_epoch": int(command["authority_epoch"]),
-		"sequence": int(command["sequence"]),
-		"base_revision": int(command["base_revision"]),
-		"compatibility_digest": String(command["compatibility_digest"]),
+		"authority_epoch": int(command_dict["authority_epoch"]),
+		"sequence": int(command_dict["sequence"]),
+		"base_revision": int(command_dict["base_revision"]),
+		"compatibility_digest": String(command_dict["compatibility_digest"]),
 		"kind": kind,
-		"payload": (command["payload"] as Dictionary).duplicate(true),
+		"payload": (command_dict["payload"] as Dictionary).duplicate(true),
 	}
 
 func _charge_rate(transport_peer_id: int, server_tick: int) -> StringName:
+	if transport_peer_id <= 1 or transport_peer_id > ZSessionRequest.MAX_TRANSPORT_PEER_ID:
+		return &"remote_transport_peer_invalid"
 	if server_tick < 0:
 		return &"remote_rate_clock_invalid"
 	var bucket := _rate_by_peer.get(transport_peer_id, {}) as Dictionary
