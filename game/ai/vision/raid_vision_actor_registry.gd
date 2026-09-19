@@ -3,12 +3,23 @@ extends RefCounted
 ## Task 6.2. Trusted, raid-owned actor/geometry input port, NOT an AI view.
 ## Stage after movement, apply inside the reserved Vision callback. The native
 ## owner never escapes that callback; this registry stores values only.
+##
+## Multiplayer may authorize an immutable set of player actors as observers at
+## configure time. All other players remain targets only. This prevents a
+## client-controlled actor record from creating an observer or projection.
 
 const MAX_ACTORS: int = 128
 const MAX_OBSERVERS: int = 64
 const MAX_IDENTITIES: int = 4096
 const MAX_SEGMENTS: int = 4096
-const ACTOR_KEYS: Array = ["entity_id", "revision", "position_raw", "facing_raw", "archetype", "alive"]
+const ACTOR_KEYS: Array = [
+	"entity_id",
+	"revision",
+	"position_raw",
+	"facing_raw",
+	"archetype",
+	"alive",
+]
 
 var last_error: StringName = &""
 var _generation: int = 0
@@ -23,37 +34,77 @@ var _segments: Array = []
 var _staged: Dictionary = {}
 var _projections: Dictionary = {}
 var _perception_profiles: Dictionary = {}
+var _authorized_player_observers: Dictionary = {}
+var _player_observer_profile: Dictionary = {}
 
 
-func configure(generation: int, scav: ZAIProfile = null, mutant: ZAIProfile = null) -> bool:
+func configure(
+	generation: int,
+	scav: ZAIProfile = null,
+	mutant: ZAIProfile = null,
+	authorized_player_observers: PackedStringArray = PackedStringArray()
+) -> bool:
 	if _generation != 0 or _released or generation < 1:
 		return _reject(&"vision_actor_configuration_invalid")
 	var scav_profile := ZAIProfile.scav() if scav == null else scav
 	var mutant_profile := ZAIProfile.mutant() if mutant == null else mutant
-	if not scav_profile.is_valid() or not mutant_profile.is_valid() \
-		or scav_profile.archetype != "scav" or mutant_profile.archetype != "mutant":
+	if (
+		not scav_profile.is_valid()
+		or not mutant_profile.is_valid()
+		or scav_profile.archetype != "scav"
+		or mutant_profile.archetype != "mutant"
+	):
 		return _reject(&"vision_actor_profiles_invalid")
-	_perception_profiles = ZAIValues.frozen({"scav": scav_profile.perception_record(),
-		"mutant": mutant_profile.perception_record()})
+	var player_configuration := _player_observer_configuration(
+		authorized_player_observers
+	)
+	if not bool(player_configuration.get("ok", false)):
+		return _reject(StringName(player_configuration.get(
+			"reason", &"vision_player_observer_configuration_invalid"
+		)))
+	_perception_profiles = ZAIValues.frozen({
+		"scav": scav_profile.perception_record(),
+		"mutant": mutant_profile.perception_record(),
+	})
+	_authorized_player_observers = (
+		player_configuration.get("recipients", {}) as Dictionary
+	).duplicate()
+	_player_observer_profile = ZAIValues.frozen(
+		(player_configuration.get("profile", {}) as Dictionary).duplicate(true)
+	)
 	_generation = generation
 	return true
 
 
-func stage_frame(generation: int, tick: int, actors: Array,
-	geometry_revision: int, segments: Array) -> bool:
+func stage_frame(
+	generation: int,
+	tick: int,
+	actors: Array,
+	geometry_revision: int,
+	segments: Array
+) -> bool:
 	last_error = &""
-	if not is_active(generation) or not _staged.is_empty() or tick != _tick + 1 \
-		or tick >= ZAIValues.MAX_TICK:
+	if (
+		not is_active(generation)
+		or not _staged.is_empty()
+		or tick != _tick + 1
+		or tick >= ZAIValues.MAX_TICK
+	):
 		return _reject(&"vision_actor_frame_order_invalid")
-	if actors.size() > MAX_ACTORS or geometry_revision < 1 \
-		or geometry_revision < _geometry_revision:
+	if (
+		actors.size() > MAX_ACTORS
+		or geometry_revision < 1
+		or geometry_revision < _geometry_revision
+	):
 		return _reject(&"vision_actor_frame_invalid")
 	var sorted_segments: Array = _segments
 	if geometry_revision > _geometry_revision:
 		if not _valid_segments(segments):
 			return _reject(&"vision_actor_frame_invalid")
 		sorted_segments = segments.duplicate(true)
-		sorted_segments.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id)
+		sorted_segments.sort_custom(
+			func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id
+		)
 	elif not segments.is_empty():
 		# Backward-compatible diagnostic callers may still resend geometry. The
 		# production port sends an empty payload after the revision was accepted,
@@ -61,7 +112,9 @@ func stage_frame(generation: int, tick: int, actors: Array,
 		if not _valid_segments(segments):
 			return _reject(&"vision_actor_frame_invalid")
 		var repeated_segments := segments.duplicate(true)
-		repeated_segments.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id)
+		repeated_segments.sort_custom(
+			func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id
+		)
 		if repeated_segments != _segments:
 			return _reject(&"vision_geometry_revision_conflict")
 	var incoming: Dictionary = {}
@@ -71,7 +124,7 @@ func stage_frame(generation: int, tick: int, actors: Array,
 			return _reject(&"vision_actor_invalid_or_duplicate")
 		if _retired.has(value.entity_id):
 			return _reject(&"vision_actor_identity_retired")
-		if value.alive and value.archetype != "player":
+		if _is_observer(String(value.entity_id), value):
 			observer_count += 1
 		incoming[value.entity_id] = value.duplicate(true)
 	if observer_count > MAX_OBSERVERS:
@@ -81,16 +134,25 @@ func stage_frame(generation: int, tick: int, actors: Array,
 	var next_map := _identity_map.duplicate()
 	var next_retired := _retired.duplicate()
 	if geometry_revision > _geometry_revision:
-		commands.append({"method": &"set_occluder_segments", "args": [sorted_segments, geometry_revision]})
+		commands.append({
+			"method": &"set_occluder_segments",
+			"args": [sorted_segments, geometry_revision],
+		})
 	var old_keys := _entities.keys()
 	old_keys.sort()
 	for key: String in old_keys:
 		var old: Dictionary = _entities[key]
 		if not incoming.has(key) or not bool(incoming[key].alive):
 			if old.actor.alive:
-				if old.actor.archetype != "player":
-					commands.append({"method": &"remove_observer", "args": [old.native_id]})
-				commands.append({"method": &"remove_target", "args": [old.native_id]})
+				if _is_observer(key, old.actor):
+					commands.append({
+						"method": &"remove_observer",
+						"args": [old.native_id],
+					})
+				commands.append({
+					"method": &"remove_target",
+					"args": [old.native_id],
+				})
 			if not incoming.has(key):
 				next_retired[key] = true
 	var keys := incoming.keys()
@@ -101,9 +163,15 @@ func stage_frame(generation: int, tick: int, actors: Array,
 		if not old.is_empty():
 			if actor.revision == old.actor.revision and actor != old.actor:
 				return _reject(&"vision_actor_revision_conflict")
-			if actor.revision != old.actor.revision and actor.revision != old.actor.revision + 1:
+			if (
+				actor.revision != old.actor.revision
+				and actor.revision != old.actor.revision + 1
+			):
 				return _reject(&"vision_actor_revision_gap_or_regression")
-			if actor.archetype != old.actor.archetype or (not old.actor.alive and actor.alive):
+			if (
+				actor.archetype != old.actor.archetype
+				or (not old.actor.alive and actor.alive)
+			):
 				return _reject(&"vision_actor_identity_changed")
 		elif actor.revision != 1:
 			return _reject(&"vision_actor_initial_revision")
@@ -118,16 +186,38 @@ func stage_frame(generation: int, tick: int, actors: Array,
 		if actor.alive and changed:
 			native_revision += 1
 			var target := _target(actor, native_id, native_revision)
-			commands.append({"method": &"register_target" if old.is_empty() else &"update_target",
-				"args": [target] if old.is_empty() else [target, native_revision - 1]})
-			if actor.archetype != "player":
+			commands.append({
+				"method": &"register_target" if old.is_empty() else &"update_target",
+				"args": [target] if old.is_empty() else [target, native_revision - 1],
+			})
+			if _is_observer(key, actor):
 				var observer := _observer(actor, native_id, native_revision)
-				commands.append({"method": &"register_observer" if old.is_empty() else &"update_observer",
-					"args": [observer] if old.is_empty() else [observer, native_revision - 1]})
-		next_entities[key] = {"actor": actor, "native_id": native_id, "native_revision": native_revision}
-	_staged = {"tick": tick, "entities": next_entities, "identities": next_map,
-		"retired": next_retired, "commands": commands, "geometry_revision": geometry_revision,
-		"segments": sorted_segments}
+				commands.append({
+					"method": (
+						&"register_observer"
+						if old.is_empty()
+						else &"update_observer"
+					),
+					"args": (
+						[observer]
+						if old.is_empty()
+						else [observer, native_revision - 1]
+					),
+				})
+		next_entities[key] = {
+			"actor": actor,
+			"native_id": native_id,
+			"native_revision": native_revision,
+		}
+	_staged = {
+		"tick": tick,
+		"entities": next_entities,
+		"identities": next_map,
+		"retired": next_retired,
+		"commands": commands,
+		"geometry_revision": geometry_revision,
+		"segments": sorted_segments,
+	}
 	return true
 
 
@@ -136,15 +226,28 @@ func stage_frame(generation: int, tick: int, actors: Array,
 ## invalidates this registry and must quarantine/dispose the owning Vision world.
 func apply_staged(native: Object, generation: int, tick: int) -> bool:
 	last_error = &""
-	if not is_active(generation) or _staged.is_empty() or _staged.tick != tick or native == null:
+	if (
+		not is_active(generation)
+		or _staged.is_empty()
+		or _staged.tick != tick
+		or native == null
+	):
 		return _reject(&"vision_actor_frame_missing")
-	if not _staged.get("commands") is Array or _staged.commands.size() > MAX_ACTORS * 4 + 1:
+	if (
+		not _staged.get("commands") is Array
+		or _staged.commands.size() > MAX_ACTORS * 4 + 1
+	):
 		return _fail(&"vision_native_commands_invalid")
 	for command: Variant in _staged.commands:
 		# Never expose arbitrary Object.call through retained command data. Even
 		# a corrupted staged record cannot invoke add_child/call_deferred/etc.
-		if not command is Dictionary or not ZAIValues.keys(command, ["method", "args"]) \
-			or not command.args is Array or command.args.size() < 1 or command.args.size() > 2:
+		if (
+			not command is Dictionary
+			or not ZAIValues.keys(command, ["method", "args"])
+			or not command.args is Array
+			or command.args.size() < 1
+			or command.args.size() > 2
+		):
 			return _fail(&"vision_native_command_invalid")
 		var args: Array = command.args
 		var result: Variant = {}
@@ -152,17 +255,38 @@ func apply_staged(native: Object, generation: int, tick: int) -> bool:
 			&"register_target", &"register_observer":
 				if args.size() != 1 or not args[0] is Dictionary:
 					return _fail(&"vision_native_command_invalid")
-				result = native.call("register_target", args[0]) if command.method == &"register_target" else native.call("register_observer", args[0])
+				result = (
+					native.call("register_target", args[0])
+					if command.method == &"register_target"
+					else native.call("register_observer", args[0])
+				)
 			&"update_target", &"update_observer":
-				if args.size() != 2 or not args[0] is Dictionary or typeof(args[1]) != TYPE_INT:
+				if (
+					args.size() != 2
+					or not args[0] is Dictionary
+					or typeof(args[1]) != TYPE_INT
+				):
 					return _fail(&"vision_native_command_invalid")
-				result = native.call("update_target", args[0], args[1]) if command.method == &"update_target" else native.call("update_observer", args[0], args[1])
+				result = (
+					native.call("update_target", args[0], args[1])
+					if command.method == &"update_target"
+					else native.call("update_observer", args[0], args[1])
+				)
 			&"remove_target", &"remove_observer":
 				if args.size() != 1 or typeof(args[0]) != TYPE_INT:
 					return _fail(&"vision_native_command_invalid")
-				result = native.call("remove_target", args[0]) if command.method == &"remove_target" else native.call("remove_observer", args[0])
+				result = (
+					native.call("remove_target", args[0])
+					if command.method == &"remove_target"
+					else native.call("remove_observer", args[0])
+				)
 			&"set_occluder_segments":
-				if args.size() != 2 or not args[0] is Array or not _valid_segments(args[0]) or typeof(args[1]) != TYPE_INT:
+				if (
+					args.size() != 2
+					or not args[0] is Array
+					or not _valid_segments(args[0])
+					or typeof(args[1]) != TYPE_INT
+				):
 					return _fail(&"vision_native_command_invalid")
 				result = native.call("set_occluder_segments", args[0], args[1])
 			_:
@@ -179,7 +303,11 @@ func apply_staged(native: Object, generation: int, tick: int) -> bool:
 	# Immediately invalidate removed observers, even between cadence evaluations.
 	var retained := _projections.duplicate(true)
 	for key: String in retained.keys():
-		if not _entities.has(key) or not _entities[key].actor.alive:
+		if (
+			not _entities.has(key)
+			or not _entities[key].actor.alive
+			or not _is_observer(key, _entities[key].actor)
+		):
 			retained.erase(key)
 	_projections = ZAIValues.frozen(retained)
 	return true
@@ -193,7 +321,7 @@ func collect_projections(native: Object, generation: int, tick: int) -> bool:
 	keys.sort()
 	for key: String in keys:
 		var entry: Dictionary = _entities[key]
-		if not entry.actor.alive or entry.actor.archetype == "player":
+		if not _is_observer(key, entry.actor):
 			continue
 		# Fail collection before a malformed retained identity reaches a native API.
 		# The owner must downgrade its successful advance and quarantine this batch.
@@ -221,28 +349,61 @@ func projection_for(generation: int, entity_id: String) -> Dictionary:
 	return _projections.get(entity_id, {})
 
 
+func is_authorized_observer(generation: int, entity_id: String) -> bool:
+	if not is_active(generation) or ZEntityId.parse(entity_id) == null:
+		return false
+	var entry := _entities.get(entity_id, {}) as Dictionary
+	return not entry.is_empty() and _is_observer(entity_id, entry.actor)
+
+
 ## Frozen at configure; mutating a caller's Resource cannot retune a live raid.
 func perception_for(generation: int, archetype: String) -> Dictionary:
-	return _perception_profiles.get(archetype, {}) if is_active(generation) else {}
+	if not is_active(generation):
+		return {}
+	if archetype == "player":
+		return _player_observer_profile
+	return _perception_profiles.get(archetype, {})
 
 
-func matches_perception(generation: int, scav: ZAIProfile, mutant: ZAIProfile) -> bool:
-	return is_active(generation) and scav != null and mutant != null \
-		and scav.is_valid() and mutant.is_valid() \
-		and perception_for(generation, "scav") == scav.perception_record() \
+func matches_perception(
+	generation: int,
+	scav: ZAIProfile,
+	mutant: ZAIProfile
+) -> bool:
+	return (
+		is_active(generation)
+		and scav != null
+		and mutant != null
+		and scav.is_valid()
+		and mutant.is_valid()
+		and perception_for(generation, "scav") == scav.perception_record()
 		and perception_for(generation, "mutant") == mutant.perception_record()
+	)
 
 
 func entity_for_native_id(generation: int, native_id: int) -> String:
-	return String(_identity_map.get(native_id, "")) if is_active(generation) else ""
+	return (
+		String(_identity_map.get(native_id, ""))
+		if is_active(generation)
+		else ""
+	)
 
 
 func native_id_for(generation: int, entity_id: String) -> int:
-	return int(_entities.get(entity_id, {}).get("native_id", 0)) if is_active(generation) else 0
+	return (
+		int((_entities.get(entity_id, {}) as Dictionary).get("native_id", 0))
+		if is_active(generation)
+		else 0
+	)
 
 
 func is_active(generation: int) -> bool:
-	return _generation > 0 and generation == _generation and not _released and not _failed
+	return (
+		_generation > 0
+		and generation == _generation
+		and not _released
+		and not _failed
+	)
 
 
 func release(generation: int) -> bool:
@@ -254,24 +415,40 @@ func release(generation: int) -> bool:
 	_identity_map.clear()
 	_retired.clear()
 	_projections = {}
+	_authorized_player_observers.clear()
+	_player_observer_profile = {}
 	return true
 
 
 func diagnostics() -> Dictionary:
-	return ZAIValues.frozen({"generation": _generation, "tick": _tick,
-		"actors": _entities.size(), "identities": _identity_map.size(),
-		"staged_tick": int(_staged.get("tick", 0)), "staged_frame_required_every_tick": true,
-		"geometry_revision": _geometry_revision, "failed": _failed, "released": _released})
+	return ZAIValues.frozen({
+		"generation": _generation,
+		"tick": _tick,
+		"actors": _entities.size(),
+		"identities": _identity_map.size(),
+		"authorized_player_observers": _authorized_player_observers.size(),
+		"staged_tick": int(_staged.get("tick", 0)),
+		"staged_frame_required_every_tick": true,
+		"geometry_revision": _geometry_revision,
+		"failed": _failed,
+		"released": _released,
+	})
 
 
 static func _valid_actor(value: Variant) -> bool:
 	if not value is Dictionary or not ZAIValues.keys(value, ACTOR_KEYS):
 		return false
-	return ZAIValues.entity(value.entity_id) and ZAIValues.integer(value.revision, 1, ZAIValues.MAX_TICK - 1) \
-		and ZAIValues.position(value.position_raw) and ZAIValues.position(value.facing_raw) \
-		and value.facing_raw != Vector2i.ZERO and typeof(value.alive) == TYPE_BOOL \
-		and typeof(value.archetype) == TYPE_STRING and value.archetype in ["player", "scav", "mutant"] \
+	return (
+		ZAIValues.entity(value.entity_id)
+		and ZAIValues.integer(value.revision, 1, ZAIValues.MAX_TICK - 1)
+		and ZAIValues.position(value.position_raw)
+		and ZAIValues.position(value.facing_raw)
+		and value.facing_raw != Vector2i.ZERO
+		and typeof(value.alive) == TYPE_BOOL
+		and typeof(value.archetype) == TYPE_STRING
+		and value.archetype in ["player", "scav", "mutant"]
 		and absi(int(value.position_raw.y)) <= ZAIValues.LIMIT - 250_000
+	)
 
 
 static func _valid_segments(segments: Array) -> bool:
@@ -279,31 +456,143 @@ static func _valid_segments(segments: Array) -> bool:
 		return false
 	var ids: Dictionary = {}
 	for item: Variant in segments:
-		if not item is Dictionary or not ZAIValues.keys(item, ["id", "a", "b", "mask", "two_sided"]) \
-			or not ZAIValues.integer(item.id, 1, ZAIValues.MAX_TICK) or ids.has(item.id) \
-			or not ZAIValues.point(item.a) or not ZAIValues.point(item.b) or item.a == item.b \
-			or not ZAIValues.integer(item.mask, 1, 3) or item.two_sided != true:
+		if (
+			not item is Dictionary
+			or not ZAIValues.keys(item, ["id", "a", "b", "mask", "two_sided"])
+			or not ZAIValues.integer(item.id, 1, ZAIValues.MAX_TICK)
+			or ids.has(item.id)
+			or not ZAIValues.point(item.a)
+			or not ZAIValues.point(item.b)
+			or item.a == item.b
+			or not ZAIValues.integer(item.mask, 1, 3)
+			or item.two_sided != true
+		):
 			return false
 		ids[item.id] = true
 	return true
 
 
-static func _target(actor: Dictionary, native_id: int, revision: int) -> Dictionary:
-	var mask: int = {"player": 1, "scav": 2, "mutant": 4}[actor.archetype]
-	return {"id": native_id, "position": ZAIValues.encode_point(actor.position_raw),
-		"mask": mask, "sample_policy": 0, "sample_offsets": [
-			{"x": 0, "y": 0}, {"x": 0, "y": -250000}, {"x": 0, "y": 250000}],
-		"revision": revision}
+static func _target(
+	actor: Dictionary,
+	native_id: int,
+	revision: int
+) -> Dictionary:
+	var mask: int = {
+		"player": ZerkovVisionConfig.TARGET_LAYER_PLAYER,
+		"scav": ZerkovVisionConfig.TARGET_LAYER_SCAV,
+		"mutant": ZerkovVisionConfig.TARGET_LAYER_MUTANT,
+	}[actor.archetype]
+	return {
+		"id": native_id,
+		"position": ZAIValues.encode_point(actor.position_raw),
+		"mask": mask,
+		"sample_policy": ZerkovVisionConfig.SAMPLE_POLICY_ANY,
+		"sample_offsets": [
+			{"x": 0, "y": 0},
+			{"x": 0, "y": -ZerkovVisionConfig.MAX_SAMPLE_OFFSET_RAW},
+			{"x": 0, "y": ZerkovVisionConfig.MAX_SAMPLE_OFFSET_RAW},
+		],
+		"revision": revision,
+	}
 
 
-func _observer(actor: Dictionary, native_id: int, revision: int) -> Dictionary:
+func _observer(
+	actor: Dictionary,
+	native_id: int,
+	revision: int
+) -> Dictionary:
+	if actor.archetype == "player":
+		return {
+			"id": native_id,
+			"position": ZAIValues.encode_point(actor.position_raw),
+			"facing": ZAIValues.encode_point(actor.facing_raw),
+			"range": int(_player_observer_profile["range_raw"]),
+			"cone_cos_million": int(
+				_player_observer_profile["cone_cos_million"]
+			),
+			"full_circle": bool(_player_observer_profile["full_circle"]),
+			"target_mask": int(_player_observer_profile["target_mask"]),
+			"occluder_mask": int(_player_observer_profile["occluder_mask"]),
+			"memory_ticks": int(_player_observer_profile["memory_ticks"]),
+			"priority": int(_player_observer_profile["priority"]),
+			"urgent": bool(_player_observer_profile["urgent"]),
+			"revision": revision,
+		}
 	var scav: bool = actor.archetype == "scav"
 	var profile: Dictionary = _perception_profiles[actor.archetype]
-	return {"id": native_id, "position": ZAIValues.encode_point(actor.position_raw),
-		"facing": ZAIValues.encode_point(actor.facing_raw), "range": profile.sight_range_raw,
-		"cone_cos_million": profile.cone_cos_million, "full_circle": false,
-		"target_mask": 5 if scav else 3, "occluder_mask": 3,
-		"memory_ticks": profile.memory_ticks, "priority": 0, "urgent": false, "revision": revision}
+	return {
+		"id": native_id,
+		"position": ZAIValues.encode_point(actor.position_raw),
+		"facing": ZAIValues.encode_point(actor.facing_raw),
+		"range": profile.sight_range_raw,
+		"cone_cos_million": profile.cone_cos_million,
+		"full_circle": false,
+		"target_mask": (
+			ZerkovVisionConfig.TARGET_LAYER_PLAYER
+			| ZerkovVisionConfig.TARGET_LAYER_MUTANT
+			if scav
+			else (
+				ZerkovVisionConfig.TARGET_LAYER_PLAYER
+				| ZerkovVisionConfig.TARGET_LAYER_SCAV
+			)
+		),
+		"occluder_mask": ZerkovVisionConfig.OCCLUDER_LAYER_ALL,
+		"memory_ticks": profile.memory_ticks,
+		"priority": 0,
+		"urgent": false,
+		"revision": revision,
+	}
+
+
+func _is_observer(entity_id: String, actor: Dictionary) -> bool:
+	return (
+		bool(actor.get("alive", false))
+		and (
+			String(actor.get("archetype", "")) != "player"
+			or _authorized_player_observers.has(entity_id)
+		)
+	)
+
+
+static func _player_observer_configuration(
+	recipients: PackedStringArray
+) -> Dictionary:
+	if recipients.size() > MAX_OBSERVERS:
+		return {
+			"ok": false,
+			"reason": &"vision_player_observer_capacity",
+		}
+	var normalized: Dictionary = {}
+	for raw_recipient in recipients:
+		var recipient := String(raw_recipient)
+		if ZEntityId.parse(recipient) == null or normalized.has(recipient):
+			return {
+				"ok": false,
+				"reason": &"vision_player_observer_identity_invalid",
+			}
+		normalized[recipient] = true
+	var sealed_profile := ZerkovVisionConfig.observer_profile(
+		ZerkovVisionConfig.OBSERVER_PROFILE_SCAV
+	)
+	if sealed_profile.is_empty():
+		return {
+			"ok": false,
+			"reason": &"vision_player_observer_profile_missing",
+		}
+	return {
+		"ok": true,
+		"recipients": normalized,
+		"profile": {
+			"range_raw": int(sealed_profile["range_raw"]),
+			"cone_cos_million": int(sealed_profile["cone_cos_million"]),
+			"full_circle": bool(sealed_profile["full_circle"]),
+			"target_mask": ZerkovVisionConfig.TARGET_LAYER_ALL_ACTORS,
+			"occluder_mask": int(sealed_profile["occluder_mask"]),
+			"memory_ticks": int(sealed_profile["memory_ticks"]),
+			"priority": int(sealed_profile["priority"]),
+			"urgent": bool(sealed_profile["urgent"]),
+		},
+	}
 
 
 func _fail(reason: StringName) -> bool:
