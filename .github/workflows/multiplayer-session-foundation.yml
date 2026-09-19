@@ -112,7 +112,6 @@ jobs:
             2>&1 | tee "$OUT/equipment-identity-regression.log"
           grep -q 'MULTIPLAYER_SESSION_FOUNDATION_RESULT .* failures=0' "$OUT/product-session.log"
           grep -q 'MULTIPLAYER_PHASE_B_RESULT .* failures=0' "$OUT/product-session.log"
-          grep -q 'MULTIPLAYER_PHASE_B_RESULT .* failures=0' "$OUT/product-session.log"
           grep -q 'SESSION_LIFECYCLE_RESULT .* failures=0' "$OUT/offline-session-regression.log"
           grep -q 'EQUIPPED_ITEM_RECONCILIATION_RESULT .* failures=0' "$OUT/equipment-identity-regression.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
