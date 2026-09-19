@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_8c0qs"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_0q3fg"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/vegetation/grass_clump_a.tres" id="3_ib2iq"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_ycjau"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/grass_clump_a_shadow.tres" id="5_1783w"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_t4ljy"]
+
+[node name="GrassClumpA" type="Node2D" unique_id=455946157]
+script = ExtResource("1_8c0qs")
+sun_profile = ExtResource("2_0q3fg")
+asset_id = "grass_clump_a"
+silhouette_height = 38.0
+physical_height = 24.7
+ground_size = Vector2(23.36, 10.26)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=629501466]
+texture_filter = 1
+texture = ExtResource("3_ib2iq")
+offset = Vector2(0, -19)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=1554525401]
+modulate = Color(0.09, 0.115, 0.115, 0.24)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_ycjau")
+scale = Vector2(1, -0.49399996)
+skew = -0.890118
+texture = ExtResource("5_1783w")
+offset = Vector2(0, -19)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=69952687]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_ycjau")
+position = Vector2(0, -5.13)
+scale = Vector2(0.4015, 0.17634375)
+texture = ExtResource("6_t4ljy")

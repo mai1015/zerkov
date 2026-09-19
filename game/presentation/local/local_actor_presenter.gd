@@ -38,7 +38,9 @@ func present(pose: Vector2, velocity: Vector2, facing: Vector2, frame: Dictionar
 		for receipt: Dictionary in frame.receipts:
 			if not _dead and receipt.kind == &"melee" and receipt.committed:
 				if not _event("attack", tick): return false
-	return _layers.present(_state.snapshot(), facing.x < 0.0)
+	# The authored player frames face LEFT (mask, knife reach and throw trails
+	# all point -x), so the horizontal mirror belongs to a right-facing actor.
+	return _layers.present(_state.snapshot(), facing.x > 0.0)
 
 func release() -> void:
 	_state.release()

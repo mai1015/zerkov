@@ -122,7 +122,9 @@ func can_advance() -> bool:
 ## Product physics and native tests share this path. Screens cannot call it.
 func advance() -> bool:
 	if not can_advance(): return false
-	var cursor := ZWorldViewportPolicy.screen_to_world(_ui.get_viewport().get_mouse_position(), _session.camera.global_position)
+	# Canvas-space pointer, not window pixels: the world image is laid out in the
+	# 1920x1080 design space, so a resized window must not shear the aim vector.
+	var cursor := ZWorldViewportPolicy.screen_to_world(_ui.get_global_mouse_position(), _session.camera.global_position)
 	if cursor.ok:
 		_input_binding.set_aim_direction(cursor.world_position - _session.player_movement.position_px)
 	var receipt := _input_binding.flush_movement(_session.raid.last_processed_tick + 1)

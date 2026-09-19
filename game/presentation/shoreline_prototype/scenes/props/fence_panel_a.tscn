@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_jqc35"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_ie4af"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/fences/fence_panel_a.tres" id="3_51cr4"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_b7o51"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/fence_panel_a_shadow.tres" id="5_nvg1d"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_arjbl"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ev4q2"]
+size = Vector2(45, 8)
+
+[node name="FencePanelA" type="Node2D" unique_id=1209006822]
+script = ExtResource("1_jqc35")
+sun_profile = ExtResource("2_ie4af")
+asset_id = "fence_panel_a"
+silhouette_height = 50.0
+physical_height = 32.5
+ground_size = Vector2(45, 8)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=821475355]
+texture_filter = 1
+texture = ExtResource("3_51cr4")
+offset = Vector2(0, -25)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=2017973569]
+modulate = Color(0.09, 0.115, 0.115, 0.37)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_b7o51")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_nvg1d")
+offset = Vector2(0, -25)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=777647636]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_b7o51")
+position = Vector2(0, -4)
+scale = Vector2(0.7734375, 0.1375)
+texture = ExtResource("6_arjbl")
+
+[node name="Body" type="StaticBody2D" parent="." unique_id=67638931]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body" unique_id=1122721731]
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_ev4q2")

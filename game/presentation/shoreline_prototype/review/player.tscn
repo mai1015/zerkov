@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/review/player.gd" id="1_uuw2b"]
+[ext_resource type="PackedScene" path="res://game/presentation/shoreline_prototype/scenes/props/generated_scale_character.tscn" id="2_pdims"]
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="3_s4nun"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="4_0j7tx"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_yb033"]
+radius = 8.0
+
+[node name="Player" type="CharacterBody2D" unique_id=1446282798]
+collision_layer = 2
+script = ExtResource("1_uuw2b")
+
+[node name="Visual" type="Node2D" parent="." unique_id=73981979 instance=ExtResource("2_pdims")]
+script = ExtResource("3_s4nun")
+sun_profile = ExtResource("4_0j7tx")
+asset_id = "generated_scale_character"
+silhouette_height = 34.0
+physical_height = 36.0
+ground_size = Vector2(15.33, 9.18)
+
+[node name="Feet" type="CollisionShape2D" parent="." unique_id=1306658500]
+position = Vector2(0, -6)
+shape = SubResource("CircleShape2D_yb033")

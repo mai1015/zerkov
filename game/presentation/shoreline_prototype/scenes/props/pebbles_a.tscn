@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/presentation/shoreline_prototype/scripts/shadowed_prop.gd" id="1_ukvq5"]
+[ext_resource type="Resource" path="res://game/presentation/shoreline_prototype/resources/sun_profile.tres" id="2_fuqqp"]
+[ext_resource type="Texture2D" path="res://assets/world/shoreline_v2/sprites/rocks/pebbles_a.tres" id="3_k6g4d"]
+[ext_resource type="Material" path="res://game/presentation/shoreline_prototype/resources/shadow_unlit.tres" id="4_pvgr1"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/pebbles_a_shadow.tres" id="5_qqvl7"]
+[ext_resource type="Texture2D" path="res://game/presentation/shoreline_prototype/textures/derived/contact.tres" id="6_k4e4n"]
+
+[node name="PebblesA" type="Node2D" unique_id=1646449193]
+script = ExtResource("1_ukvq5")
+sun_profile = ExtResource("2_fuqqp")
+asset_id = "pebbles_a"
+silhouette_height = 24.0
+physical_height = 15.600000000000001
+ground_size = Vector2(16.06, 6.48)
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1321595084]
+texture_filter = 1
+texture = ExtResource("3_k6g4d")
+offset = Vector2(0, -12)
+
+[node name="CastShadow" type="Sprite2D" parent="." unique_id=1242056056]
+modulate = Color(0.09, 0.115, 0.115, 0.24)
+z_index = -7
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_pvgr1")
+scale = Vector2(1, -0.494)
+skew = -0.8901179
+texture = ExtResource("5_qqvl7")
+offset = Vector2(0, -12)
+
+[node name="ContactShadow" type="Sprite2D" parent="." unique_id=145728541]
+modulate = Color(0.07, 0.09, 0.075, 0.32)
+z_index = -6
+z_as_relative = false
+texture_filter = 1
+material = ExtResource("4_pvgr1")
+position = Vector2(0, -3.24)
+scale = Vector2(0.27603123, 0.111375)
+texture = ExtResource("6_k4e4n")

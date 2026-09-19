@@ -1908,6 +1908,34 @@ func _can_edit_current() -> bool:
 	return native_extension_available and _current_resource != null and not _current_path.is_empty() and _document_model != null and _document_model.call("can_mutate")
 
 
+func _tres_declared_resource_type(path: String) -> String:
+	if not path.ends_with(".tres"):
+		return ""
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return ""
+	var header := file.get_line()
+	var marker := "type=\""
+	var start := header.find(marker)
+	if start < 0:
+		return ""
+	start += marker.length()
+	var finish := header.find("\"", start)
+	if finish < 0:
+		return ""
+	return header.substr(start, finish - start)
+
+
+func _is_supported_text_resource_path(path: String) -> bool:
+	if not path.ends_with(".tres"):
+		return true
+	var declared_type := _tres_declared_resource_type(path)
+	for class_names in WorkspaceState.KIND_CLASS_NAMES.values():
+		if class_names.has(declared_type):
+			return true
+	return false
+
+
 func _scan_project_model() -> Object:
 	if not native_extension_available:
 		return DocumentModel.new(null, false)
@@ -1922,6 +1950,12 @@ func _scan_project_model() -> Object:
 	for path in _collect_resource_paths("res://", RESOURCE_SCAN_LIMIT):
 		if scanned >= RESOURCE_SCAN_LIMIT:
 			break
+		# The workspace only supports the Level Task definition classes above.
+		# Prefilter text resources by their declared type so clean editor imports
+		# do not instantiate unrelated art/TileSet resources before their image
+		# dependencies have finished importing.
+		if not _is_supported_text_resource_path(path):
+			continue
 		var resource := ResourceLoader.load(path)
 		var kind := WorkspaceState.supported_resource_kind(resource)
 		if kind.is_empty():
