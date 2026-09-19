@@ -61,8 +61,11 @@ func admit_remote_session(admission: ZSessionAdmission) -> bool:
 	last_error = &""
 	if not _configured or admission == null:
 		return _reject(&"server_composition_not_configured")
+	var replaced := _sessions.admission_for_actor(admission.actor_id)
 	if not _sessions.activate(admission):
 		return _reject(_sessions.last_error)
+	if replaced != null and replaced.transport_peer_id != admission.transport_peer_id:
+		_command_gate.clear_peer_rate_state(replaced.transport_peer_id)
 	var actor := admission.actor_id
 	var generation := _raid.generation()
 	if _raid.has_authorized_actor_source(actor, ZRaidIntent.Source.PLAYER, generation):
