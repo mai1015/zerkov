@@ -1,0 +1,36 @@
+name: Pinecrest authoring inputs
+on:
+  push:
+    branches: [codex/pinecrest-full-coast]
+    paths: ['.github/workflows/pinecrest-authoring.yml']
+permissions:
+  contents: read
+jobs:
+  source-inputs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Retain source identity and original Shoreline dependencies
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,os,subprocess,zipfile
+          out=Path(os.environ['RUNNER_TEMP'])/'pinecrest-inputs';out.mkdir()
+          roots=['assets/world/shoreline_v2','game/presentation/shoreline_prototype']
+          records={}
+          with zipfile.ZipFile(out/'inputs.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for root in roots:
+                  for p in sorted(Path(root).rglob('*')):
+                      if p.is_file() and not p.is_symlink():
+                          b=p.read_bytes();z.writestr(p.as_posix(),b)
+                          records[p.as_posix()]=hashlib.sha256(b).hexdigest()
+          (out/'identity.json').write_text(json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'sha256':records},indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pinecrest-authoring-inputs
+          path: ${{ runner.temp }}/pinecrest-inputs
+          retention-days: 7
