@@ -171,6 +171,18 @@ func _test_remote_command_gate() -> void:
 	check(not result.accepted and result.reason == &"remote_command_shape_invalid",
 		"exact command shape is mandatory")
 
+	result = server.submit_remote_command(1, 1, {})
+	check(not result.accepted
+			and result.reason == &"remote_transport_peer_invalid"
+			and result.gate_trace == PackedStringArray(["size", "rate"]),
+		"invalid transport peer stops at rate gate")
+
+	result = server.submit_remote_command(31, 1, "not_a_command_dictionary")
+	check(not result.accepted
+			and result.reason == &"remote_command_shape_invalid"
+			and result.gate_trace == PackedStringArray(["size", "rate", "shape"]),
+		"non-dictionary decoded command fails closed at shape gate")
+
 	var large_blob := PackedByteArray()
 	large_blob.resize(300)
 	var unbounded := command.duplicate(true)
