@@ -10,7 +10,6 @@ on:
       - 'game/domain/z_session_auth_grant.gd'
       - 'game/domain/ports/session_authenticator_port.gd'
       - 'game/domain/ports/remote_command_policy_port.gd'
-      - 'game/domain/ports/remote_command_policy_port.gd'
       - 'game/adapters/authenticated_session_ingress.gd'
       - 'game/adapters/offline_session_ingress.gd'
       - 'game/multiplayer/**'
@@ -65,7 +64,6 @@ jobs:
             'game/domain/z_product_compatibility_manifest.gd' \
             'game/domain/z_session_auth_grant.gd' \
             'game/domain/ports/session_authenticator_port.gd' \
-            'game/domain/ports/remote_command_policy_port.gd' \
             'game/domain/ports/remote_command_policy_port.gd' \
             'game/adapters/authenticated_session_ingress.gd' \
             'game/adapters/offline_session_ingress.gd' \
