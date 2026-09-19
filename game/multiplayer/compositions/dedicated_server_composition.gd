@@ -98,7 +98,7 @@ func start_raid() -> bool:
 func submit_remote_command(
 	transport_peer_id: int,
 	wire_size_bytes: int,
-	command: Dictionary
+	command: Variant
 ) -> Dictionary:
 	if not _configured:
 		return {
