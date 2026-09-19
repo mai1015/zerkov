@@ -195,6 +195,14 @@ func admission_for_actor(actor_id: ZEntityId) -> ZSessionAdmission:
 	return current.snapshot() if current != null else null
 
 
+func admission_for_peer(transport_peer_id: int) -> ZSessionAdmission:
+	if transport_peer_id <= 1 or transport_peer_id > ZSessionRequest.MAX_TRANSPORT_PEER_ID:
+		return null
+	var session_key := String(_session_by_peer.get(transport_peer_id, ""))
+	var current := _by_session.get(session_key) as ZSessionAdmission
+	return current.snapshot() if current != null else null
+
+
 func next_command_sequence(session_id: ZSessionId) -> int:
 	if session_id == null or not session_id.is_initialized():
 		return 0
