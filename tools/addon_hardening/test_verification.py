@@ -11,7 +11,7 @@ spec = importlib.util.spec_from_file_location("verify", Path(__file__).with_name
 verify = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verify)
 WEAPON_PASS = "ADDON_HARDENING_RESULT checks=80 failures=0 real_enet_peers=3 native=true\n"
-GAS_PASS = "GAS_HARDENING_RESULT checks=42 failures=0 real_enet_peers=3 native=true\n"
+GAS_PASS = "GAS_HARDENING_RESULT checks=47 failures=0 real_enet_peers=3 native=true\n"
 
 
 class Verification(unittest.TestCase):
@@ -66,7 +66,7 @@ class Verification(unittest.TestCase):
     def test_gas_empty_zero_failed_or_wrong_mode_markers_fail(self):
         for text in [
             "",
-            GAS_PASS.replace("checks=42", "checks=0"),
+            GAS_PASS.replace("checks=47", "checks=0"),
             GAS_PASS.replace("failures=0", "failures=1"),
             GAS_PASS.replace("native=true", "native=false"),
             GAS_PASS.replace("real_enet_peers=3", "real_enet_peers=0"),
@@ -80,7 +80,7 @@ class Verification(unittest.TestCase):
             verify.require_gas_pass(GAS_PASS + GAS_PASS)
 
     def test_one_nonempty_gas_marker_required(self):
-        self.assertEqual(42, verify.require_gas_pass("engine startup\n" + GAS_PASS))
+        self.assertEqual(47, verify.require_gas_pass("engine startup\n" + GAS_PASS))
 
 
 if __name__ == "__main__":
