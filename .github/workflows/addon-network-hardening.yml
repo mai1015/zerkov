@@ -1,0 +1,91 @@
+name: Addon network hardening
+
+on:
+  pull_request:
+    paths:
+      - 'addons/gameplay_abilities/**'
+      - 'addons/weapon_system/**'
+      - 'game/combat/content/zerkov_combat_content.gd'
+      - 'game/combat/melee/melee_policy.gd'
+      - 'game/domain/z_world_units.gd'
+      - 'game/domain/z_unit_conversion.gd'
+      - 'tools/addon_hardening/**'
+      - 'config/**'
+      - 'docs/qa/multiplayer_phase_a/**'
+      - 'docs/spec/changes/add-zerkov-playable-raid-2026-09-09/tasks.md'
+      - '.github/workflows/addon-network-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: addon-network-hardening-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-macos:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Verifier negative controls
+        run: python3 tools/addon_hardening/test_verification.py
+
+      - name: Install exact locked engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" \
+            -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+
+      - name: Checked-in Weapon and Gameplay Abilities ENet contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/addon-network-hardening"
+          mkdir -p "$OUT"
+          git rev-parse HEAD > "$OUT/commit.txt"
+          git ls-files -z \
+            'addons/gameplay_abilities/**' \
+            'addons/weapon_system/**' \
+            'tools/addon_hardening/**' \
+            'game/combat/content/zerkov_combat_content.gd' \
+            'game/combat/melee/melee_policy.gd' \
+            'game/domain/z_world_units.gd' \
+            'game/domain/z_unit_conversion.gd' \
+            | xargs -0 shasum -a 256 > "$OUT/source-sha256.txt"
+
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
+            --editor --import --quit 2>&1 | tee "$OUT/import.log"
+
+          WEAPON_DRIVER="$GITHUB_WORKSPACE/tests/multiplayer/_ci_weapon_addon_hardening.gd"
+          GAS_DRIVER="$GITHUB_WORKSPACE/tests/multiplayer/_ci_gas_addon_hardening.gd"
+          trap 'rm -f "$WEAPON_DRIVER" "$WEAPON_DRIVER.uid" "$GAS_DRIVER" "$GAS_DRIVER.uid"' EXIT
+          cp tools/addon_hardening/tests/bridge_contract.gd.in "$WEAPON_DRIVER"
+          cp tools/addon_hardening/tests/gas_bridge_contract.gd.in "$GAS_DRIVER"
+
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
+            --script res://tests/multiplayer/_ci_weapon_addon_hardening.gd \
+            2>&1 | tee "$OUT/weapon-enet.log"
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
+            --script res://tests/multiplayer/_ci_gas_addon_hardening.gd \
+            2>&1 | tee "$OUT/gas-enet.log"
+
+          grep -Eq '^ADDON_HARDENING_RESULT checks=[1-9][0-9]* failures=0 real_enet_peers=3 native=true$' "$OUT/weapon-enet.log"
+          grep -Eq '^GAS_HARDENING_RESULT checks=[1-9][0-9]* failures=0 real_enet_peers=3 native=true$' "$OUT/gas-enet.log"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: addon-network-hardening
+          path: ${{ runner.temp }}/addon-network-hardening
+          retention-days: 7
