@@ -26,6 +26,9 @@ class RunnerContracts(unittest.TestCase):
     def test_exact_cache_marker(self):
         result=m.check_output('LIVE_MAP_CACHE_RESULT maps=2 mode=check failures=0\n',0,m.CACHE)
         self.assertEqual(('2',),result.groups())
+    def test_exact_population_marker(self):
+        result=m.check_output('RAID_POPULATION_RESULT checks=113 failures=0\n',0,m.POPULATION)
+        self.assertEqual(('113',),result.groups())
     def test_vendor_files_untouched(self):
         text=(ROOT/'tools/run_live_maps_contracts.py').read_text()
         self.assertNotIn('write_text(PROJECT',text)

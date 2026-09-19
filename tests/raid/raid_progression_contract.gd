@@ -33,6 +33,7 @@ func check(ok: bool, text: String) -> void:
 func run() -> void:
 	_test_countdown()
 	_test_persistence()
+	_test_population_persistence()
 	_test_active_recovery()
 	_test_malformed_state()
 	_test_deployment_prepare_faults()
@@ -113,6 +114,40 @@ func _test_persistence() -> void:
 	check(service.summary(raid).receipt==receipts.receipt and replacement.load_profile().fingerprint==checkpoint.fingerprint,"fresh owner restores exact committed result/profile")
 	check(service.recover().status==&"no_active_raid","completed does not recover twice")
 	check(replacement.close(),"replacement cleanup")
+func _test_population_persistence() -> void:
+	var f := _fixture()
+	var population := {"version":1,"map_id":"sawmill","seed":17,"map_identity":"a".repeat(64),"digest":"b".repeat(64)}
+	var changed := population.duplicate(true); changed["digest"]="c".repeat(64)
+	check(V.valid_population_descriptor(population),"closed population descriptor")
+	for invalid: Variant in [{}, {"version":1,"map_id":"sawmill","seed":0,"map_identity":"a".repeat(64),"digest":"b".repeat(64)},
+		{"version":2,"map_id":"sawmill","seed":17,"map_identity":"a".repeat(64),"digest":"b".repeat(64)},
+		{"version":1,"map_id":"foreign","seed":17,"map_identity":"a".repeat(64),"digest":"b".repeat(64)},
+		{"version":1,"map_id":"sawmill","seed":17,"map_identity":"bad","digest":"b".repeat(64)}]:
+		check(not V.valid_population_descriptor(invalid),"malformed population descriptor rejected")
+	var wrong_map := population.duplicate(true); wrong_map["map_id"]="northline"
+	check(f.service.deploy("zerkov.request.deploy.population.wrong_map",1,{},wrong_map).get("reason") \
+		== &"deployment_population_map_invalid", "population descriptor is bound to selected map")
+	var deployed: Dictionary = f.service.deploy("zerkov.request.deploy.population",1,{},population)
+	check(deployed.ok and deployed.deployment.population==population,"population pinned before live owner")
+	var generation: int = int(f.store.load_profile().generation)
+	var replay: Dictionary = f.service.deploy("zerkov.request.deploy.population",1,{},population)
+	check(replay.ok and replay.replayed and f.store.load_profile().generation==generation,
+		"identical population retry performs no write")
+	check(f.service.deploy("zerkov.request.deploy.population",1,{},changed).get("reason")==&"deployment_population_conflict",
+		"same request cannot change population plan")
+	var raid: String = deployed.deployment.raid_id
+	check(f.service.prepare(raid,_terminal(),f.payload.domains[V.LOADOUT]).ok,"population deployment prepares")
+	var committed: Dictionary = f.service.commit(raid)
+	check(committed.ok and committed.receipt.population==population,"receipt preserves population identity")
+	check(f.service.deploy("zerkov.request.deploy.population",1,{},changed).get("reason")==&"deployment_population_conflict",
+		"history retry cannot change population identity")
+	check(f.store.close(),"population fixture close")
+	var replacement := ProfileStore.new()
+	check(replacement.configure_with_trusted_operations("zerkov.profile.task7",f.ops),"population fixture reopen")
+	var service := RaidSettlementService.new(); service.configure(replacement,InventoryDouble.new())
+	check(service.summary(raid).receipt.population==population,"fresh owner restores population descriptor")
+	check(replacement.close(),"population replacement close")
+
 func _test_active_recovery() -> void:
 	var f := _fixture()
 	var deployed: Dictionary = f.service.deploy("zerkov.request.deploy.crash",1)

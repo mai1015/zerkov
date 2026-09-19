@@ -473,7 +473,7 @@ func _publish() -> void:
 			# native inventory merely to populate a vicinity UI.
 			frame.nearby_loot = {"target_id":frame.nearest_target,
 				"inventory_id":int(_session.crate_ids[frame.nearest_target]),
-				"label":SupplyRunGraph.crate_titles(_session.map_id)[_session.crate_keys().find(frame.nearest_target)],
+				"label":_session.container_label(String(frame.nearest_target)),
 				"searched":_session.progression.was_crate_searched(frame.nearest_target),
 				"searching":not frame.progression.get("searching", {}).is_empty()}
 		if _session.hud_model != null:

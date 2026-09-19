@@ -11,6 +11,7 @@ var _started_ms: int = 0
 var ticks: int = 0
 var fired: int = 0
 var searched: int = 0
+var optional_searched: int = 0
 var transferred: bool = false
 var _death_run: bool = false
 var _shot_boxes: Array[Rect2] = []
@@ -26,6 +27,7 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	for _i in range(ZerkovCombatContent.AKM_RELOAD_TICKS + 2):
 		if not await _tick(Vector2.ZERO): return false
 	if not _assert(_game._session.hud_model.snapshot().ammo > 0, "physical reload loads real ammunition"): return false
+	if not await _search_optional_container(): return false
 	for id: String in _game._session.crate_keys():
 		if not await _walk_to(_game._session.target_approach(id)): return false
 		_stop()
@@ -96,7 +98,8 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	var retained: bool = false
 	for row: Dictionary in result.get("retained", []):
 		if StringName(row.definition) == ZerkovInventoryCatalog.ITEM_SUPPLY_CRATE and row.quantity == 1: retained = true
-	if not _assert(retained and transferred and searched == 3, "one UI-transferred supply retained"): return false
+	if not _assert(retained and transferred and searched == 3 and optional_searched == 1,
+			"one optional container searched and one UI-transferred supply retained"): return false
 	if not _assert(_game._ui.screen.get_node("MetricKills/Value").text == str(result.stats.kills), "summary renders actual kill count"): return false
 	if not _assert(_game._campaign.store.load_profile().generation == result.profile_generation, "debrief receipt matches the committed file generation"): return false
 	var lost_count: int = 0
@@ -104,6 +107,48 @@ func extract(game: LocalGame, tree: SceneTree, check_callback: Callable, expect_
 	if not _assert(_game._ui.screen.get_node("MetricXP/Title").text == "ITEMS LOST" and _game._ui.screen.get_node("MetricXP/Value").text == str(lost_count), "debrief renders actual losses instead of a profile debug counter"): return false
 	print("LOCAL_FLOW_EXTRACT ticks=", ticks, " fire_inputs=", fired, " searched=", searched,
 		" kills=", result.get("stats", {}).get("kills", 0), " outcome=", result.outcome)
+	return true
+
+func _search_optional_container() -> bool:
+	var optional: Array[String] = []
+	for key: String in _game._session.container_keys():
+		if not _game._session.crate_keys().has(key): optional.append(key)
+	if not _assert(optional.size() == RaidPopulationCatalog.OPTIONAL_ACTIVE_COUNT,
+			"two deterministic optional containers are active"): return false
+	var target := optional[0]
+	if not await _walk_to(_game._session.target_position(target)): return false
+	_stop()
+	for _i in range(10):
+		if not await _tick(Vector2.ZERO): return false
+	if not _assert(_game._session.nearest_target() == target,
+			"physical traversal reaches optional container"): return false
+	_key(KEY_E, true); _key(KEY_E, false)
+	await _tree.process_frame
+	var completed := false
+	var attempts := 1
+	for _i in range(360):
+		if not await _tick(Vector2.ZERO): return false
+		if _game._session.progression.was_crate_searched(target):
+			completed = true
+			break
+		if _game._session.progression.snapshot().get("searching", "").is_empty():
+			if not _assert(attempts < 3 and _game._session.nearest_target() == target,
+					"bounded optional search retry remains in reach"): return false
+			if not await _stabilize_bleeding(): return false
+			attempts += 1
+			_key(KEY_E, true); _key(KEY_E, false)
+			await _tree.process_frame
+	if not _assert(completed, "timed optional container search completes"): return false
+	if not _assert(int(_game._session.progression._stats.searched_crates) == 0,
+			"optional search does not advance Supply Run objectives"): return false
+	_key(KEY_E, true); _key(KEY_E, false)
+	if not await _wait_route("inventory"): return false
+	var controller := _game._character.inventory_controller()
+	if not _assert(controller != null and controller.is_loot_container_open(),
+			"optional container opens through existing inventory authority"): return false
+	_key(KEY_ESCAPE, true); _key(KEY_ESCAPE, false)
+	if not await _wait_route("hud"): return false
+	optional_searched = 1
 	return true
 
 func _stabilize_bleeding() -> bool:

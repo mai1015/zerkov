@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DIAGNOSTIC = re.compile(r"SCRIPT ERROR|(?:^|\n)\s*(?:ERROR:|Parse Error:)|LIVE_MAP_BAD_|LIVE_MAP_\w+_ASSERT")
 FLOW = re.compile(r"(?m)^LIVE_MAP_FLOW_RESULT checks=([1-9][0-9]*) failures=0 map=(sawmill|northline|blackwater) case=(\S+)$")
 CORE = re.compile(r"(?m)^LIVE_MAP_CONTRACT_RESULT checks=([1-9][0-9]*) failures=0$")
+POPULATION = re.compile(r"(?m)^RAID_POPULATION_RESULT checks=([1-9][0-9]*) failures=0$")
 CACHE = re.compile(r"(?m)^LIVE_MAP_CACHE_RESULT maps=([1-9][0-9]*) mode=check failures=0$")
 FINGERPRINT = re.compile(r"(?m)^LIVE_MAP_FINGERPRINT ([a-f0-9]{64})$")
 
@@ -89,6 +90,7 @@ def main() -> int:
             execute('editor-import',base+['--headless','--editor','--import','--quit'],timeout=180)
             execute('map-cache-check',base+['--headless','--script','res://tools/build_live_map_cache.gd','--','--check'],CACHE,180)
             execute('map-contracts',base+['--headless','--script','res://tests/raid/live_maps_contract.gd'],CORE,180)
+            execute('population-contracts',base+['--headless','--script','res://tests/raid/raid_population_contract.gd'],POPULATION,240)
             mode=[] if args.graphical else ['--headless']
             flow=base+mode+['--script','res://tests/raid/live_maps_flow.gd','--']
             for map_id in args.maps:
