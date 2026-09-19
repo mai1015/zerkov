@@ -331,6 +331,10 @@ func _bind_overlays() -> void:
 
 ## Root-owned LocalGameUI projection, never a fixture or authority reference.
 func apply_local_combat(view: Dictionary) -> void:
+	# These authored 1/2/3 samples have no live weapon-selection bindings. The
+	# original Quick Use item row is mounted separately by the local UI host.
+	for name: String in ["PrimarySlot", "SecondarySlot", "MeleeSlot"]:
+		get_node("WeaponGroup/" + name).hide()
 	_combat_bound_once = true
 	_crosshair = get_node_or_null("CrosshairGroup/Crosshair") as Control
 	set_process(true)

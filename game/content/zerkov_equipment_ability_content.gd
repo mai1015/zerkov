@@ -18,6 +18,7 @@ const ITEM_AKM: StringName = &"zerkov.item.weapon.akm"
 const ITEM_MACHETE: StringName = &"zerkov.item.weapon.machete"
 const ITEM_RIG_BASIC: StringName = &"zerkov.item.gear.rig_basic"
 const ITEM_BACKPACK_DAYPACK: StringName = &"zerkov.item.gear.backpack_daypack"
+const ITEM_SECURE_CONTAINER_BASIC: StringName = &"zerkov.item.gear.secure_container_basic"
 
 const ABILITY_AKM_EQUIPPED: StringName = &"zerkov.ability.equipment.akm_equipped"
 const ABILITY_MACHETE_EQUIPPED: StringName = \
@@ -35,6 +36,7 @@ const SLOT_PRIMARY: StringName = &"zerkov.slot.weapon_primary"
 const SLOT_MELEE: StringName = &"zerkov.slot.weapon_melee"
 const SLOT_RIG: StringName = &"zerkov.slot.rig"
 const SLOT_BACKPACK: StringName = &"zerkov.slot.backpack"
+const SLOT_SECURE: StringName = &"zerkov.slot.secure"
 const INTEGRATION_MAPPING_ID: StringName = \
 	&"zerkov.integration.inventory_equipment_abilities_v1"
 const DECLARATION_SCHEMA_VERSION: int = 1
@@ -122,6 +124,11 @@ static func no_grant_equipment_declarations() -> Array[Dictionary]:
 		{
 			"item_definition_identifier": String(ITEM_BACKPACK_DAYPACK),
 			"allowed_slots": [String(SLOT_BACKPACK)],
+			"reason": "no_gameplay_ability_grant",
+		},
+		{
+			"item_definition_identifier": String(ITEM_SECURE_CONTAINER_BASIC),
+			"allowed_slots": [String(SLOT_SECURE)],
 			"reason": "no_gameplay_ability_grant",
 		},
 	]

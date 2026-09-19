@@ -18,6 +18,7 @@ const ITEM_BOLTS: StringName = &"zerkov.item.junk.bolts"
 const ITEM_SCRAP_METAL: StringName = &"zerkov.item.junk.scrap_metal"
 const ITEM_RIG_BASIC: StringName = &"zerkov.item.gear.rig_basic"
 const ITEM_BACKPACK_DAYPACK: StringName = &"zerkov.item.gear.backpack_daypack"
+const ITEM_SECURE_CONTAINER_BASIC: StringName = &"zerkov.item.gear.secure_container_basic"
 
 const CONTAINER_POCKETS: StringName = &"zerkov.container.player.pockets"
 const CONTAINER_RIG: StringName = &"zerkov.container.player.rig"
@@ -40,6 +41,7 @@ const TRAIT_PRIMARY_WEAPON: StringName = &"zerkov.trait.slot.primary_weapon"
 const TRAIT_MELEE_WEAPON: StringName = &"zerkov.trait.slot.melee_weapon"
 const TRAIT_RIG: StringName = &"zerkov.trait.slot.rig"
 const TRAIT_BACKPACK: StringName = &"zerkov.trait.slot.backpack"
+const TRAIT_SECURE_CONTAINER: StringName = &"zerkov.trait.slot.secure_container"
 const TRAIT_AMMO_762: StringName = &"zerkov.trait.ammo.caliber_762x39"
 const TRAIT_MAGAZINE_AKM: StringName = &"zerkov.trait.magazine.akm"
 const TRAIT_MEDICAL_BANDAGE: StringName = &"zerkov.trait.medical.bandage"
@@ -62,6 +64,7 @@ const FIRST_PLAYABLE_ITEM_IDS: PackedStringArray = [
 	ITEM_SCRAP_METAL,
 	ITEM_RIG_BASIC,
 	ITEM_BACKPACK_DAYPACK,
+	ITEM_SECURE_CONTAINER_BASIC,
 ]
 
 const FEATURE_SPATIAL: String = "inventory.feature.spatial_grid"
@@ -198,6 +201,7 @@ static func _trait_schemas() -> Array[InventoryTraitSchema]:
 		TRAIT_MELEE_WEAPON,
 		TRAIT_RIG,
 		TRAIT_BACKPACK,
+		TRAIT_SECURE_CONTAINER,
 		TRAIT_AMMO_762,
 		TRAIT_MAGAZINE_AKM,
 		TRAIT_MEDICAL_BANDAGE,
@@ -234,6 +238,7 @@ static func _items() -> Array[InventoryItemDefinition]:
 		_item(ITEM_SCRAP_METAL, 6, 450_000, Vector2i(2, 1), true),
 		_item(ITEM_RIG_BASIC, 1, 1_100_000, Vector2i(3, 3), false, [TRAIT_RIG]),
 		_item(ITEM_BACKPACK_DAYPACK, 1, 1_300_000, Vector2i(3, 4), false, [TRAIT_BACKPACK]),
+		_item(ITEM_SECURE_CONTAINER_BASIC, 1, 700_000, Vector2i(2, 2), false, [TRAIT_SECURE_CONTAINER]),
 	]
 
 
@@ -283,7 +288,7 @@ static func _containers() -> Array[InventoryContainerDefinition]:
 		_grid(CONTAINER_POCKETS, Vector2i(4, 2), 8, 8_000_000),
 		_grid(CONTAINER_RIG, Vector2i(6, 3), 18, 12_000_000),
 		_grid(CONTAINER_BACKPACK, Vector2i(8, 5), 40, 28_000_000, true),
-		_grid(CONTAINER_SECURE, Vector2i(3, 2), 6, 8_000_000, false,
+		_grid(CONTAINER_SECURE, Vector2i(2, 3), 6, 8_000_000, false,
 			InventoryContainerConstraints.RETENTION_PROTECTED),
 		_equipment(),
 		_grid(CONTAINER_STASH, Vector2i(12, 20), 240, 250_000_000, true),
@@ -350,6 +355,7 @@ static func _equipment() -> InventoryContainerDefinition:
 		_slot(&"zerkov.slot.weapon_melee", TRAIT_MELEE_WEAPON),
 		_slot(&"zerkov.slot.rig", TRAIT_RIG),
 		_slot(&"zerkov.slot.backpack", TRAIT_BACKPACK),
+		_slot(&"zerkov.slot.secure", TRAIT_SECURE_CONTAINER),
 	]
 	var container := InventoryContainerDefinition.new()
 	container.identifier = CONTAINER_EQUIPMENT

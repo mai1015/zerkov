@@ -2,6 +2,9 @@ extends RefCounted
 ## Normal application, real input, real local files. The runner supplies only
 ## an isolated test namespace and manual raid pacing. Three fresh processes
 ## prove changed gear survives relaunch and is used by deployment.
+## Create equips one explicit native daypack test fixture: storage must exist
+## before the 5x2 rifle can be unequipped. The starter loadout now also owns the
+## canonical 2x3 secure-container provider; daypack/rig fixtures remain test-only.
 const Exact1080CaptureGuard = preload("res://game/presentation/exact_1080_capture_guard.gd")
 const EXACT_SIZE := Vector2i(1920, 1080)
 const PRIMARY: StringName = &"zerkov.slot.weapon_primary"
@@ -78,6 +81,7 @@ func linger(label: String) -> void:
 		for _i in range(30): await process_frame
 
 func click(control: Control) -> bool:
+	if control != null: await reveal(control)
 	if not check(control != null and control.is_visible_in_tree(), "visible real input target"): return false
 	var point := control.get_global_rect().get_center()
 	var motion := InputEventMouseMotion.new()
@@ -130,9 +134,10 @@ func assert_live() -> bool:
 	var secure: Control = screen.call("_grid_for_source", "secure")
 	check(secure != null and secure.is_visible_in_tree(), "secure contents are reachable")
 	if secure != null:
-		check(secure.get_global_rect().end.y <= 1030 and secure.grid_columns == 3 and secure.grid_rows == 2,
+		check(secure.get_global_rect().end.y <= 1030 and secure.grid_columns == 2 and secure.grid_rows == 3,
 			"secure grid fits exact canvas at native cell size")
 		check(secure.items.size() == 1 and secure.items[0].definition_id == String(ZerkovInventoryCatalog.ITEM_SPLINT), "secure splints, not fixture")
+	check(gear(&"zerkov.slot.secure").definition_id == String(ZerkovInventoryCatalog.ITEM_SECURE_CONTAINER_BASIC), "starter 2x3 secure container is real equipped gear")
 	for pair: Array in [["BackSlot", "BackDetail"], ["HolsterSlot", "HolsterDetail"], ["ArmorSlot", "ArmorDetail"]]:
 		var button := named("InventoryContent/CharacterColumn/" + pair[0]) as Button
 		check(button.disabled and button.get_node(pair[1]).text == "UNAVAILABLE", "unsupported gear not fabricated")
@@ -177,7 +182,17 @@ func run(scene_tree: SceneTree) -> void:
 		check(store.load_profile().get("reason") == &"profile_missing", "only New Game may create content")
 	else:
 		if not check(args.size() == 4 and store.load_profile().fingerprint == args[3], "fresh process exact saved profile"): await finish(); return
-	if not await boot() or not assert_live(): await finish(); return
+	if not await boot(): await finish(); return
+	if args[0] == "create":
+		var native := game._home.raid_authority()
+		var id: int = game._home.raid_player_inventory_id
+		var equipment := LocalCampaignContent.container_id(native.snapshot(id), ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
+		if not check(native.insert_item(id, String(ZerkovInventoryCatalog.ITEM_BACKPACK_DAYPACK), 1,
+			{"kind":"slot", "container":equipment,"slot_identifier":"zerkov.slot.backpack"}, 7200001, 2_500_001).accepted,
+			"explicit native daypack fixture, not imaginary storage"): await finish(); return
+		await settle()
+	await reveal(game._ui.screen.call("_grid_for_source", "secure"))
+	if not assert_live(): await finish(); return
 	var weapon_id: int = int(args[2]) if args.size() > 2 else int(gear(PRIMARY).get("item_id", 0))
 	if args[0] == "create":
 		check(gear(PRIMARY).definition_id == String(ZerkovInventoryCatalog.ITEM_AKM), "canonical primary visible")
@@ -244,3 +259,13 @@ func finish() -> void:
 	if store != null and store.is_configured(): store.close()
 	print("EQUIPMENT_UI_RESULT checks=", checks, " failures=", failures)
 	quit(0 if failures == 0 else 1)
+
+## Scroll positioning is presentation only. The command gestures below still
+## use actual native mouse/keyboard events and unchanged command ownership.
+func reveal(control: Control) -> void:
+	var parent := control.get_parent()
+	while parent != null:
+		if parent is ScrollContainer:
+			parent.ensure_control_visible(control)
+			await process_frame
+		parent = parent.get_parent()

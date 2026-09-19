@@ -19,10 +19,10 @@ func check(condition: bool, message: String) -> void:
 func run() -> void:
 	var resource := ZerkovInventoryCatalog.build_resource()
 	check(resource != null, "catalog resource builds")
-	check(resource.items.size() == 16, "first-playable catalog has 16 focused items")
+	check(resource.items.size() == 17, "first-playable catalog has 17 focused items")
 	check(resource.containers.size() == 9, "catalog has nine container/equipment definitions")
 	check(resource.profiles.size() == 4, "catalog has player, stash, crate, and corpse profiles")
-	check(resource.trait_schemas.size() == 8,
+	check(resource.trait_schemas.size() == 9,
 		"slot, ammunition, and medical-consumption traits are explicit")
 	check(resource.discovery_policies.size() == 1, "world loot has one staged-search policy")
 
@@ -151,11 +151,13 @@ func run() -> void:
 	check(secure != null, "secure container exists")
 	check(secure != null and secure.constraints.retention == InventoryContainerConstraints.RETENTION_PROTECTED,
 		"secure container is protected-retention")
+	check(secure != null and Vector2i(secure.grid_width, secure.grid_height) == Vector2i(2, 3),
+		"starter secure capacity is canonical 2x3")
 	var equipment := _container(resource, ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
 	check(equipment != null and equipment.layout_kind == InventoryContainerDefinition.LAYOUT_NAMED_SLOTS,
 		"equipment uses canonical named slots")
-	check(equipment != null and equipment.named_slots.size() == 4,
-		"equipment has primary, melee, rig, and backpack slots")
+	check(equipment != null and equipment.named_slots.size() == 5,
+		"equipment has primary, melee, rig, backpack, and secure-container slots")
 	var world_crate := _container(resource, ZerkovInventoryCatalog.CONTAINER_WORLD_CRATE)
 	check(world_crate != null and world_crate.discovery_policy_identifier
 		== ZerkovInventoryCatalog.DISCOVERY_WORLD_LOOT,

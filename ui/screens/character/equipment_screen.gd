@@ -7,10 +7,12 @@ const EQUIPMENT_BUTTONS := {
 	&"zerkov.slot.weapon_primary": ["CharacterColumn/SlingSlot", "SlingDetail", "SlingIcon"],
 	&"zerkov.slot.weapon_melee": ["CharacterColumn/LegStrapSlot", "LegStrapDetail", "LegStrapIcon"],
 	&"zerkov.slot.rig": ["RigSwap", "", ""],
-	&"zerkov.slot.backpack": ["PackSwap", "", ""]}
+	&"zerkov.slot.backpack": ["PackSwap", "", ""],
+	&"zerkov.slot.secure": ["SecureSwap", "", ""]}
 var _equipment_slots: Dictionary = {}
 var _secure_grid: Control
 var _secure_title: Label
+var _secure_swap: Button
 
 func _bind_header() -> void:
 	super._bind_header()
@@ -62,13 +64,18 @@ func _bind_loadout() -> void:
 		_secure_title.size = Vector2(480, 28)
 		_secure_title.add_theme_font_size_override("font_size", 12)
 		column.add_child(_secure_title)
+		_secure_swap = Button.new()
+		_secure_swap.name = "SecureSwap"
+		_secure_swap.position = Vector2(0, 608)
+		_secure_swap.size = Vector2(480, 36)
+		column.add_child(_secure_swap)
 		_secure_grid = EquipmentGrid.new()
 		_secure_grid.name = "SecureGrid"
-		_secure_grid.position = Vector2(0, 612)
+		_secure_grid.position = Vector2(0, 652)
 		column.add_child(_secure_grid)
 	var controller := _equipment_controller()
 	var dimensions := controller.grid_size(&"secure") if controller != null else Vector2i.ZERO
-	_secure_title.text = "SECURE CONTAINER · %d×%d · LIVE" % [dimensions.x, dimensions.y]
+	_secure_title.text = "SECURE CONTAINER · %d×%d · LIVE" % [dimensions.x, dimensions.y] if dimensions != Vector2i.ZERO else "SECURE CONTAINER · EMPTY"
 	_bind_grid(_secure_grid, dimensions.x, dimensions.y, "secure", "secure")
 	_refresh_equipment()
 

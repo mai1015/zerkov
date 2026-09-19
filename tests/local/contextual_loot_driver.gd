@@ -4,6 +4,8 @@ var player := PlayerDriver.new()
 var _game: LocalGame
 ## Native input only. Navigation/visible actors guide the existing play driver;
 ## no teleports, seeded loot, forced search completion or fake inventories.
+## One explicit equipped-daypack fixture gives the full-drain scenario actual
+## capacity; absent-storage behavior is independently covered by the storage suite.
 var h
 var _near_id := ""
 var _own_positions: Array[Vector2] = []
@@ -31,7 +33,7 @@ func run(harness, initial: Dictionary) -> bool:
 	var spawn: Vector2 = _game._session.player_movement.position_px
 	await _press_key(KEY_I)
 	if not h.route("inventory") or not _closed(false): return false
-	_own_positions = [_node("CharacterColumn").position, _node("PackGrid").get_global_rect().position]
+	_own_positions = [_node("CharacterColumn").position, _node("PocketsGrid").get_global_rect().position]
 	_game._ui_port.request(&"inspect_nearby", _game._epoch)
 	await h.settle()
 	if not _closed(false): return false
@@ -111,6 +113,7 @@ func run(harness, initial: Dictionary) -> bool:
 	_assert(_node("StashSearch").text.is_empty() and not _node("OpenLootEmpty").visible, "clear filters restores existing real rows")
 	var before := _loot_items().size()
 	if not _assert(before > 0, "opened real crate starts with loot"): return false
+	var equipped_test_daypack := false
 	for _i in range(20):
 		var items := _loot_items()
 		if items.is_empty(): break
@@ -120,11 +123,30 @@ func run(harness, initial: Dictionary) -> bool:
 			if entry.is_visible_in_tree(): slot = entry; break
 		if not _assert(slot != null, "real visible source slot can be quick transferred"): return false
 		var id: int = slot.get("item").item_id
+		var inventory_owner := _game._session.deployment.inventory
+		var native_inventory := inventory_owner.raid_authority()
+		var player_inventory_id: int = inventory_owner.raid_player_inventory_id
+		var capacity_before: PackedByteArray = native_inventory.snapshot(player_inventory_id).canonical_bytes()
 		player._mouse(slot.get_global_rect().get_center(), true)
 		await h.settle()
 		var still_present := false
 		for item: Dictionary in _loot_items(): still_present = still_present or int(item.item_id) == id
+		if still_present and not equipped_test_daypack:
+			var controller: InventoryPresentationController = _game._character.inventory_controller()
+			if not _assert(controller.last_error == &"no_equipped_storage_space"
+				and capacity_before == native_inventory.snapshot(player_inventory_id).canonical_bytes(),
+				"full pockets reject quick transfer without using unworn roots"): return false
+			# The remainder of this full-drain regression needs real capacity.
+			# Supply one explicit equipped native test fixture; never change New Game.
+			var equipment_id := LocalCampaignContent.container_id(native_inventory.snapshot(player_inventory_id), ZerkovInventoryCatalog.CONTAINER_EQUIPMENT)
+			if not _assert(native_inventory.insert_item(player_inventory_id, String(ZerkovInventoryCatalog.ITEM_BACKPACK_DAYPACK), 1,
+				{"kind":"slot", "container":equipment_id,"slot_identifier":"zerkov.slot.backpack"}, 7200001, 2_600_001).accepted,
+				"explicit native daypack enables the remaining full-drain scenario"): return false
+			equipped_test_daypack = true
+			await h.settle()
+			continue
 		if not _assert(not still_present, "Ctrl-click commits a real transfer through native owner"): return false
+	if not _assert(equipped_test_daypack, "test exercised a real capacity limit before equipping daypack"): return false
 	if not _assert(_loot_items().is_empty(), "all opened contents transferred without a fabricated empty view"): return false
 	_assert(_node("DesktopStashScroll").visible and _node("OpenLootEmpty").text == "CONTAINER EMPTY" and _node("OpenLootEmpty").visible, "genuinely empty open container keeps its valid destination grid")
 	_assert(not _node("ClearLootFilters").visible, "genuine empty does not suggest a useless filter reset")
@@ -207,7 +229,7 @@ func _open() -> bool:
 	_assert(_node("DesktopStashScroll").visible and _node("StashSearch").visible and _node("LootClose").visible, "opened grid tools are present")
 	_assert(not _node("NearbyLootCard").visible and not _node("LootTab").visible, "open source replaces nearby prompt, not another tab")
 	_assert(_node("StashTitle").text == String(_game._ui_port.snapshot().nearby_loot.label).to_upper(), "named source matches current open inventory")
-	_assert(_node("CharacterColumn").position == _own_positions[0] and _node("PackGrid").get_global_rect().position == _own_positions[1], "own equipment and backpack never jump when loot opens")
+	_assert(_node("CharacterColumn").position == _own_positions[0] and _node("PocketsGrid").get_global_rect().position == _own_positions[1], "own equipment and backpack never jump when loot opens")
 	return h.failures == 0
 
 func _type_filter(text: String) -> void:

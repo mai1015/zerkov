@@ -234,8 +234,8 @@ func _test_content_and_manifest_contract() -> void:
 	var no_grant := ZerkovEquipmentAbilityContent.no_grant_equipment_declarations()
 	var mapping := ZerkovEquipmentAbilityContent.integration_mapping_bytes()
 	var digest := ZerkovEquipmentAbilityContent.declaration_digest()
-	check(declarations.size() == 2 and no_grant.size() == 2,
-		"AKM/machete grant declarations and rig/backpack no-grant scope are explicit")
+	check(declarations.size() == 2 and no_grant.size() == 3,
+		"AKM/machete grants and rig/backpack/secure no-grant scope are explicit")
 	check(not mapping.is_empty() and digest.length() == 64,
 		"equipment declaration mapping has non-empty canonical bytes and SHA-256")
 	var encoded := mapping.get_string_from_utf8()
@@ -335,6 +335,15 @@ func _test_real_phase_reconciliation() -> void:
 		and adapter.current_sources().is_empty()
 		and component.granted_specs().is_empty(),
 		"accepted backpack equipment delta produces no ability grant churn")
+	var secure_result := _advance_action(fixture, func() -> Dictionary:
+		return inventory.insert_item(
+			inventory_id, String(ZerkovInventoryCatalog.ITEM_SECURE_CONTAINER_BASIC), 1,
+			_slot(equipment, ZerkovEquipmentAbilityContent.SLOT_SECURE),
+			RaidInventoryOwner.FIXTURE_ACTOR_ID, _next_command()))
+	check(bool(secure_result.get("accepted", false))
+		and adapter.current_sources().is_empty()
+		and component.granted_specs().is_empty(),
+		"accepted secure-container equipment delta produces no ability grant churn")
 
 	var phase_trace_at_transaction: Array[int] = []
 	inventory.transaction_committed.connect(func(_result: Dictionary):

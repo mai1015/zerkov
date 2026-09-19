@@ -27,6 +27,7 @@ func character_runtime_for_route(route: String, origin: ZUIRouteIntent.Origin) -
 
 func _on_route_committed(route: String, view: Control) -> void:
 	super._on_route_committed(route, view)
+	feedback.set_bottom_overlay_height(0.0)
 	var port := local_game_ui()
 	if port == null or route not in LocalJourneyPresenter.ROUTES or not view is ZScreen: return
 	if (view as ZScreen).app.local_game_ui() != port: return
@@ -34,3 +35,6 @@ func _on_route_committed(route: String, view: Control) -> void:
 	presenter.name = "JourneyUX"
 	view.add_child(presenter)
 	presenter.bind(view, port)
+	if route == "hud":
+		AuthoredQuickUse.mount_hud(view)
+	if view.has_node("QuickUse"): feedback.set_bottom_overlay_height(110.0)

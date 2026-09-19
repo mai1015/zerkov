@@ -37,6 +37,7 @@ static func equip_starter(owner: RaidInventoryOwner) -> bool:
 	var rows: Array = [
 		[C.ITEM_AKM, 1, {"kind":"slot", "container":equipment, "slot_identifier":String(EquippedItemReconciler.SLOT_PRIMARY)}],
 		[C.ITEM_MACHETE, 1, {"kind":"slot", "container":equipment, "slot_identifier":String(EquippedItemReconciler.SLOT_MELEE)}],
+		[C.ITEM_SECURE_CONTAINER_BASIC, 1, {"kind":"slot", "container":equipment, "slot_identifier":"zerkov.slot.secure"}],
 		[C.ITEM_AMMO_762, 60, {"kind":"spatial", "container":pockets, "x":0, "y":0, "rotated":false}],
 		[C.ITEM_BANDAGE, 2, {"kind":"spatial", "container":pockets, "x":1, "y":0, "rotated":false}],
 		[C.ITEM_SPLINT, 2, {"kind":"spatial", "container":secure, "x":0, "y":0, "rotated":false}]]

@@ -44,7 +44,7 @@ func run() -> void:
 	reconciler = EquippedItemReconciler.new(); root.add_child(reconciler)
 	check(reconciler.bind_owner(owner, bridge, admission, owner.generation(), bridge.scope_generation(&"raid")), "existing equipment reconciler")
 	var initial := controller.equipment_view()
-	check(initial.available and initial.slots.size() == 4, "all four canonical slots, including empty")
+	check(initial.available and initial.slots.size() == 5, "all five canonical slots, including secure container")
 	check(initial.is_read_only() and initial.slots.is_read_only(), "immutable projection envelope")
 	for row: Dictionary in initial.slots:
 		check(row.is_read_only() and row.item.is_read_only(), "immutable slot and item records")
@@ -52,7 +52,8 @@ func run() -> void:
 	var machete := equipment(MELEE)
 	check(akm.definition_id == String(C.ITEM_AKM) and machete.definition_id == String(C.ITEM_MACHETE), "actual native primary and melee identities")
 	check(equipment(&"zerkov.slot.rig").is_empty() and equipment(&"zerkov.slot.backpack").is_empty(), "no fabricated rig or backpack gear")
-	check(controller.grid_size(&"secure") == Vector2i(3, 2), "secure grid canonical dimensions")
+	check(equipment(&"zerkov.slot.secure").definition_id == String(C.ITEM_SECURE_CONTAINER_BASIC), "starter secure provider is canonical equipment")
+	check(controller.grid_size(&"secure") == Vector2i(2, 3), "secure grid canonical dimensions")
 	var secure := controller.items_for(&"secure")
 	check(secure.size() == 1 and secure[0].definition_id == String(C.ITEM_SPLINT) and secure[0].quantity == 2, "real secure contents")
 	check(not controller.mutation_available(&"stash"), "stash remains read only")
