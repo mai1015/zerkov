@@ -34,7 +34,12 @@ func _process(delta: float) -> void:
 		return
 	# Cosmetic elapsed time is never used to fill ammunition or heal the actor.
 	if app != null and app.local_game_ui() != null:
-		get_node("CrosshairGroup").position = get_viewport().get_mouse_position()
+		# The authored crosshair art already sits at the group's HUD anchor, so
+		# the group tracks the pointer minus that anchor. Assigning the raw
+		# pointer pushed the reticle a half-frame down-right of the cursor.
+		var group := get_node("CrosshairGroup") as Control
+		var anchor: Vector2 = group.get_meta("hud_anchor", Vector2(960, 540))
+		group.position = get_local_mouse_position() - anchor
 	_shot_time = maxf(0.0, _shot_time - delta)
 	if is_instance_valid(_crosshair):
 		_crosshair.set("spread", _shot_time * 20.0)
