@@ -1,0 +1,107 @@
+name: Multiplayer session foundation
+
+on:
+  pull_request:
+    paths:
+      - 'game/bootstrap/session_coordinator.gd'
+      - 'game/domain/z_session_request.gd'
+      - 'game/domain/z_session_admission.gd'
+      - 'game/domain/z_product_compatibility_manifest.gd'
+      - 'game/domain/z_session_auth_grant.gd'
+      - 'game/domain/ports/session_authenticator_port.gd'
+      - 'game/adapters/authenticated_session_ingress.gd'
+      - 'game/adapters/offline_session_ingress.gd'
+      - 'game/multiplayer/**'
+      - 'tests/multiplayer/**'
+      - 'tests/raid/session_lifecycle_contract.gd'
+      - 'tests/raid/equipped_item_reconciliation_contract.gd'
+      - 'config/**'
+      - '.github/workflows/multiplayer-session-foundation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: multiplayer-session-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-macos:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Repository policy
+        run: |
+          python3 tests/tooling/test_ui_first_playable_scope.py
+          python3 tools/check_first_playable_1080.py
+      - name: Install locked engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 -c 'import json; print(json.load(open("config/toolchain.lock.json"))["engine"]["required_version"].split(".stable.")[0])')
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/${VERSION}-stable/Godot_v${VERSION}-stable_macos.universal.zip" \
+            -o "$RUNNER_TEMP/godot.zip"
+          ditto -x -k "$RUNNER_TEMP/godot.zip" "$RUNNER_TEMP/godot"
+          echo "ZERKOV_GODOT=$RUNNER_TEMP/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Product session and integration-regression contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/multiplayer-session"
+          mkdir -p "$OUT"
+          git rev-parse HEAD > "$OUT/commit.txt"
+          git ls-files -z \
+            'game/bootstrap/session_coordinator.gd' \
+            'game/domain/z_session_request.gd' \
+            'game/domain/z_session_admission.gd' \
+            'game/domain/z_product_compatibility_manifest.gd' \
+            'game/domain/z_session_auth_grant.gd' \
+            'game/domain/ports/session_authenticator_port.gd' \
+            'game/adapters/authenticated_session_ingress.gd' \
+            'game/adapters/offline_session_ingress.gd' \
+            'game/multiplayer/**' \
+            'tests/multiplayer/**' \
+            'tests/raid/session_lifecycle_contract.gd' \
+            'tests/raid/equipped_item_reconciliation_contract.gd' \
+            | xargs -0 shasum -a 256 > "$OUT/source-sha256.txt"
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
+            --editor --import --quit 2>&1 | tee "$OUT/import.log"
+          DRIVER="$GITHUB_WORKSPACE/tests/multiplayer/_ci_product_session_driver.gd"
+          trap 'rm -f "$DRIVER" "$DRIVER.uid"' EXIT
+          cat > "$DRIVER" <<'GDSCRIPT'
+          extends SceneTree
+
+          func _initialize() -> void:
+              call_deferred("run")
+
+          func run() -> void:
+              var suite = load("res://tests/multiplayer/product_session_contract.gd").new()
+              var result: Dictionary = suite.run()
+              print("MULTIPLAYER_SESSION_FOUNDATION_RESULT checks=", result.get("checks", 0),
+                  " failures=", result.get("failures", 1))
+              quit(0 if int(result.get("failures", 1)) == 0 else 1)
+          GDSCRIPT
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
+            --script res://tests/multiplayer/_ci_product_session_driver.gd \
+            2>&1 | tee "$OUT/product-session.log"
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
+            --script res://tests/raid/session_lifecycle_contract.gd \
+            2>&1 | tee "$OUT/offline-session-regression.log"
+          "$ZERKOV_GODOT" --headless --path "$GITHUB_WORKSPACE" --audio-driver Dummy \
+            --script res://tests/raid/equipped_item_reconciliation_contract.gd \
+            2>&1 | tee "$OUT/equipment-identity-regression.log"
+          grep -q 'MULTIPLAYER_SESSION_FOUNDATION_RESULT .* failures=0' "$OUT/product-session.log"
+          grep -q 'SESSION_LIFECYCLE_RESULT .* failures=0' "$OUT/offline-session-regression.log"
+          grep -q 'EQUIPPED_ITEM_RECONCILIATION_RESULT .* failures=0' "$OUT/equipment-identity-regression.log"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: multiplayer-session-foundation
+          path: ${{ runner.temp }}/multiplayer-session
+          retention-days: 7

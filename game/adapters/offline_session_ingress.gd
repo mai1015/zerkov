@@ -13,6 +13,12 @@ func admit(request: ZSessionRequest) -> ZSessionAdmission:
 		return ZSessionAdmission.reject(request.request_id, &"offline_ingress_rejects_remote")
 	if not request.credential.is_empty():
 		return ZSessionAdmission.reject(request.request_id, &"offline_credential_forbidden")
+	if (
+		request.transport_peer_id != 0
+		or not request.client_instance.is_empty()
+		or request.compatibility != null
+	):
+		return ZSessionAdmission.reject(request.request_id, &"offline_remote_metadata_forbidden")
 
 	var epoch := "%08d" % request.requested_authority_epoch
 	var profile := String(request.profile_key)
