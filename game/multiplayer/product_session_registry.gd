@@ -3,8 +3,8 @@ extends RefCounted
 ## Server-owned authenticated session, actor ownership and command-sequence fence.
 ##
 ## This registry does not execute gameplay, retain credentials or implement
-## reconnect/resync. A later remote-command adapter must pass this gate before it
-## creates a ZRaidIntent for RaidAuthority.
+## reconnect/resync. A remote-command adapter must pass this gate before it
+## creates an internal ZRaidIntent for RaidAuthority.
 
 const MAX_ACTIVE_SESSIONS: int = 64
 const MAX_COMMAND_SEQUENCE: int = 2_147_483_647
@@ -78,7 +78,6 @@ func activate(admission: ZSessionAdmission) -> bool:
 	if replaced == null and _by_session.size() >= MAX_ACTIVE_SESSIONS:
 		return _reject(&"session_capacity_full")
 
-	# Validate the complete replacement before retiring any current owner.
 	if replaced != null:
 		_remove_active(replaced, true)
 	_by_session[session_key] = frozen
@@ -89,6 +88,46 @@ func activate(admission: ZSessionAdmission) -> bool:
 	return true
 
 
+func command_rejection(
+	session_id: ZSessionId,
+	actor_id: ZEntityId,
+	transport_peer_id: int,
+	authority_epoch: int,
+	sequence: int
+) -> StringName:
+	if session_id == null or not session_id.is_initialized():
+		return &"session_id_invalid"
+	if actor_id == null or not actor_id.is_initialized():
+		return &"actor_id_invalid"
+	if transport_peer_id <= 1 or transport_peer_id > ZSessionRequest.MAX_TRANSPORT_PEER_ID:
+		return &"transport_peer_invalid"
+	if authority_epoch <= 0:
+		return &"authority_epoch_invalid"
+	if sequence <= 0 or sequence > MAX_COMMAND_SEQUENCE:
+		return &"command_sequence_out_of_bounds"
+
+	var session_key := session_id.canonical_key()
+	var current := _by_session.get(session_key) as ZSessionAdmission
+	if current == null:
+		return &"session_not_active"
+	if not current.actor_id.is_equal(actor_id):
+		return &"actor_not_owned"
+	if current.transport_peer_id != transport_peer_id:
+		return &"transport_peer_mismatch"
+	if current.authority_epoch != authority_epoch:
+		return &"authority_epoch_mismatch"
+	var expected := int(_next_sequence_by_session.get(session_key, 0))
+	if expected <= 0:
+		return &"registry_state_invalid"
+	if expected > MAX_COMMAND_SEQUENCE:
+		return &"command_sequence_exhausted"
+	if sequence < expected:
+		return &"command_sequence_replayed"
+	if sequence > expected:
+		return &"command_sequence_gap"
+	return &""
+
+
 func admit_command(
 	session_id: ZSessionId,
 	actor_id: ZEntityId,
@@ -97,37 +136,17 @@ func admit_command(
 	sequence: int
 ) -> bool:
 	last_error = &""
-	if session_id == null or not session_id.is_initialized():
-		return _reject(&"session_id_invalid")
-	if actor_id == null or not actor_id.is_initialized():
-		return _reject(&"actor_id_invalid")
-	if transport_peer_id <= 1 or transport_peer_id > ZSessionRequest.MAX_TRANSPORT_PEER_ID:
-		return _reject(&"transport_peer_invalid")
-	if authority_epoch <= 0:
-		return _reject(&"authority_epoch_invalid")
-	if sequence <= 0 or sequence > MAX_COMMAND_SEQUENCE:
-		return _reject(&"command_sequence_out_of_bounds")
-
+	var rejection := command_rejection(
+		session_id,
+		actor_id,
+		transport_peer_id,
+		authority_epoch,
+		sequence
+	)
+	if not rejection.is_empty():
+		return _reject(rejection)
 	var session_key := session_id.canonical_key()
-	var current := _by_session.get(session_key) as ZSessionAdmission
-	if current == null:
-		return _reject(&"session_not_active")
-	if not current.actor_id.is_equal(actor_id):
-		return _reject(&"actor_not_owned")
-	if current.transport_peer_id != transport_peer_id:
-		return _reject(&"transport_peer_mismatch")
-	if current.authority_epoch != authority_epoch:
-		return _reject(&"authority_epoch_mismatch")
-	var expected := int(_next_sequence_by_session.get(session_key, 0))
-	if expected <= 0:
-		return _reject(&"registry_state_invalid")
-	if expected > MAX_COMMAND_SEQUENCE:
-		return _reject(&"command_sequence_exhausted")
-	if sequence < expected:
-		return _reject(&"command_sequence_replayed")
-	if sequence > expected:
-		return _reject(&"command_sequence_gap")
-	_next_sequence_by_session[session_key] = expected + 1
+	_next_sequence_by_session[session_key] = sequence + 1
 	return true
 
 
@@ -159,6 +178,13 @@ func retire(session_id: ZSessionId, authority_epoch: int) -> bool:
 		return _reject(&"authority_epoch_mismatch")
 	_remove_active(current, true)
 	return true
+
+
+func admission_for_session(session_id: ZSessionId) -> ZSessionAdmission:
+	if session_id == null or not session_id.is_initialized():
+		return null
+	var current := _by_session.get(session_id.canonical_key()) as ZSessionAdmission
+	return current.snapshot() if current != null else null
 
 
 func admission_for_actor(actor_id: ZEntityId) -> ZSessionAdmission:
